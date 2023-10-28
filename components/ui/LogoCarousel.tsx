@@ -3,8 +3,6 @@ import { cn } from "@/lib/utils";
 import { HTMLMotionProps, motion } from "framer-motion";
 import Image from "next/image";
 import ShiftingCountdown from "../ShiftingCountDown";
-import useMousePosition from "@/Hooks/useMouse";
-import usePrefersReducedMotion from "@/Hooks/usePreferedRedcedMotion";
 
 
 interface LogoCarouselProps extends HTMLMotionProps<"div"> {
@@ -72,19 +70,3 @@ export default function LogoCarousel({
   );
 }
 
-function CursorBox() {
-  const mousePosition = useMousePosition({ includeTouch: false }); // Pass includeTouch parameter here
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const transform: string | undefined = prefersReducedMotion
-    ? undefined
-    : `translate(${mousePosition.x}px)`;
-  
-  return (
-    <div
-      className="cursor-box bg-blue-700 w-40 h-24"
-      style={{
-        transform,
-      }}
-    />
-  );
-}
