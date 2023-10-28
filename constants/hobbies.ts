@@ -1,23 +1,27 @@
 import neo from "@/public/neo.jpg";
-import mt_titlis from "@/public/mt_titlis.jpeg";
-import eiffel from "@/public/eiffel.jpeg";
-import nusa from "@/public/nusa.jpeg";
-import waffle from "@/public/waffle.jpeg";
-import sketch from "@/public/sketch.jpeg";
-import painting1 from "@/public/painting1.jpeg";
-import painting2 from "@/public/painting2.jpeg";
+
+
+import mountain from "@/public/mountain.jpg";
+
+import waterfall from "@/public/waterfall_me.jpg";
+import clouds from "@/public/clouds.jpg";
+import flower from "@/public/flower_rose.jpg";
+import cat from "@/public/cat.jpg";
+import sketch from "@/public/sketch.jpg";
+import painting1 from "@/public/painting1.jpg";
+import painting2 from "@/public/painting2.jpg";
 
 export const hobbiesList = [
   [
-    { title: "Hugging my doggo Neo", src: neo },
-    { title: "On top of Mt. Titlis", src: mt_titlis },
+    { title: "cats", src: cat },
+    { title: "clouds", src: clouds },
   ],
   [
-    { title: "Chilling near a beach", src: nusa },
-    { title: "Admiring the Eiffel Tower at night", src: eiffel },
+    { title: "Chilling near a beach", src: mountain },
+    { title: "Admiring the waterfall", src: waterfall },
   ],
   [
-    { title: "Munching on some waffles", src: waffle },
+    { title: "Rose in due", src: flower },
     { title: "Another one of my paintings", src: painting2 },
   ],
   [
@@ -28,11 +32,11 @@ export const hobbiesList = [
 
 export const hobbiesListMobile = [
   [
-    { title: "Hugging my doggo Neo", src: neo },
+    { title: "cats", src: cat },
     { title: "One of my many sketches", src: sketch },
   ],
   [
-    { title: "On top of Mt. Titlis", src: mt_titlis },
+    { title: "clouds", src: clouds },
     { title: "Another one of my paintings", src: painting2 },
   ],
 ];

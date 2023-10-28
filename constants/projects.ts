@@ -3,8 +3,7 @@ import dooit_screenshot from "@/public/dooit_screenshot.png";
 import dooit_screenshot_2 from "@/public/dooit_screenshot_2.png";
 import joey_jumps_cover from "@/public/joey_jumps_cover.png";
 import joey_jumps_screenshot from "@/public/joey_jumps_screenshot.png";
-import xatty_cover from "@/public/xatty_cover.png";
-import xatty_screenshot from "@/public/xatty_screenshot.png";
+
 import maan from '@/public/maan.png';
 import vampire from '@/public/vampire.png';
 import vampire2 from '@/public/vampire2.png';
@@ -22,6 +21,15 @@ import serious_screenshot3 from '@/public/serious4.png';
 import serious_screenshot5 from '@/public/serious5.png';
 import serious_screenshot6 from '@/public/serious6.png';
 import serious_screenshot4 from '@/public/serious7.png';
+
+import arnomis_cover from '@/public/arnomis0.png';
+import arnomis_screenshot0 from '@/public/arnomis2.png';arnomis_cover
+
+import Bemo_cover from '@/public/BemoCover.png'
+import Bemo_screenshot0 from '@/public/Bemo.png'
+
+
+
 
 
 
@@ -93,7 +101,7 @@ export const projects = [
     codeLink: "https://github.com/shantanusoam/CryptoCat/tree/master",
   },
   {
-    id: " ",
+    id: "serious",
     title: "Seriousblack",
     url: "/projects/serious",
     cover_image: serious_cover, 
@@ -119,8 +127,8 @@ export const projects = [
     id: "arnomis",
     title: "arnomis",
     url: "/projects/arnomis",
-    cover_image: xatty_cover,
-    screenshots: [xatty_screenshot],
+    cover_image: arnomis_cover,
+    screenshots: [arnomis_screenshot0],
     description: "arnomis project, a comprehensive solution for tracking product prices on Amazon.",
     metadata: ["Utility"],
     features: [
@@ -130,61 +138,25 @@ export const projects = [
       Backend: [ "Mongoose", "Nodemailer"],
       Frontend: ["Next", "Tailwind ", "TypeScript"],
     },
-    liveLink: "https://xatty.vercel.app/",
+    liveLink: "https://github.com/shantanusoam/arnomis",
     codeLink: "https://github.com/shantanusoam/arnomis",
   },
   {
     id: "BEMO",
     title: "BEMO",
     url: "/projects/bemo",
-    cover_image: xatty_cover,
-    screenshots: [xatty_screenshot],
+    cover_image: Bemo_cover,
+    screenshots: [Bemo_cover,Bemo_screenshot0],
     description: "A task Managment App to manage projects that i been working on",
     metadata: ["Utility"],
     features: [
-      "This project is designed to scrape product details from Amazon, store the data in a MongoDB database, and send email notifications to users when there are changes in the product details. The project includes a web application with a user-friendly interface that allows users to search for products, view product details, and subscribe to product updates.",
+      "A task Managment App to manage projects and task in those project while tracking progress of each project",
     ],
     skills: {
-      Backend: [ "prisma", "Nodemailer"],
+      Backend: [ "prisma", "Next"],
       Frontend: ["Next", "Tailwind ", "TypeScript"],
     },
-    liveLink: "https://xatty.vercel.app/",
+    liveLink: "https://github.com/shantanusoam/BeMO--TaskManager--",
     codeLink: "https://github.com/shantanusoam/BeMO--TaskManager--",
-  },
-  {
-    id: "BEMO",
-    title: "BEMO",
-    url: "/projects/bemo",
-    cover_image: xatty_cover,
-    screenshots: [xatty_screenshot],
-    description: "The application has a client -server model, which handles mutation mostly using REST Api, whereas the read operations/queries are mostly written and handled using graphQL",
-    metadata: ["Utility"],
-    features: [
-      "This project is designed to scrape product details from Amazon, store the data in a MongoDB database, and send email notifications to users when there are changes in the product details. The project includes a web application with a user-friendly interface that allows users to search for products, view product details, and subscribe to product updates.",
-    ],
-    skills: {
-      Backend: [ "prisma", "Nodemailer"],
-      Frontend: ["Next", "Tailwind ", "TypeScript"],
-    },
-    liveLink: "https://xatty.vercel.app/",
-    codeLink: "https://github.com/shantanusoam/BeMO--TaskManager--",
-  },
-  {
-    id: "BEMO",
-    title: "BEMO",
-    url: "/projects/bemo",
-    cover_image: xatty_cover,
-    screenshots: [xatty_screenshot],
-    description: "The application has a client -server model, which handles mutation mostly using REST Api, whereas the read operations/queries are mostly written and handled using graphQL",
-    metadata: ["Utility"],
-    features: [
-      "This project is designed to scrape product details from Amazon, store the data in a MongoDB database, and send email notifications to users when there are changes in the product details. The project includes a web application with a user-friendly interface that allows users to search for products, view product details, and subscribe to product updates.",
-    ],
-    skills: {
-      Backend: [ "prisma", "Nodemailer"],
-      Frontend: ["Next", "Tailwind ", "TypeScript"],
-    },
-    liveLink: "https://xatty.vercel.app/",
-    codeLink: "https://github.com/shantanusoam/H_PlanetProject",
-  },
+  }
 ];
