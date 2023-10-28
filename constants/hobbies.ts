@@ -9,7 +9,7 @@ import flower from "@/public/flower_rose.jpg";
 import cat from "@/public/cat.jpg";
 import sketch from "@/public/sketch.jpg";
 import painting1 from "@/public/painting1.jpg";
-import painting2 from "@/public/painting2.jpg";
+import painting2 from "@/public/Painting2.jpg";
 
 export const hobbiesList = [
   [
