@@ -21,10 +21,10 @@ const ToolTip = ({ children, data }) => {
   const rect = tooltipRef.current.getBoundingClientRect();
   const distanceFromLeft = rect.left + window.scrollX; // Distance from the left in pixels including scroll offset
 
-  console.log(
-    'width of the' +
-    distanceFromLeft
-  )
+  // console.log(
+  //   'width of the' +
+  //   distanceFromLeft
+  // )
   tooltipStyles = {
     className: " text-white p-2 rounded-md absolute left-0 pointer-events-none z-30",
     inlineStyles: {
@@ -35,7 +35,7 @@ const ToolTip = ({ children, data }) => {
   };
   }
 
-  console.log(tooltipPosition.x,tooltipPosition.y)
+
   return (
     <div className="relative  mx-auto" ref={hoverRef} onMouseMove={updateTooltipPosition}  >
       <div>
