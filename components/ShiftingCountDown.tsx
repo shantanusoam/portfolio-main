@@ -1,21 +1,20 @@
-'use client'
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import {useHover} from '@/hooks/useHover.js'
-import ToolTip from '@/components/ToolTip'
-import usePrefersReducedMotion from "@/Hooks/usePreferedRedcedMotion";
-import useMousePosition from "@/Hooks/useMouse";
+'use client';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+
+import ToolTip from '@/components/ToolTip';
+
+i;
 
 // NOTE: Change this date to whatever date you want to countdown to :)
-const COUNTDOWN_FROM = "04/01/2021";
+const COUNTDOWN_FROM = '04/01/2021';
 
 const SECOND = 1000;
 const MINUTE = SECOND * 60;
 const HOUR = MINUTE * 60;
 const DAY = HOUR * 24;
 
-const ShiftingCountdown = ({data}) => {
-
+const ShiftingCountdown = ({ data }) => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [remaining, setRemaining] = useState({
@@ -36,7 +35,7 @@ const ShiftingCountdown = ({data}) => {
 
     const now = new Date();
 
-    const distance =  +now - +Start;
+    const distance = +now - +Start;
 
     const days = Math.floor(distance / DAY);
     const hours = Math.floor((distance % DAY) / HOUR);
@@ -53,16 +52,13 @@ const ShiftingCountdown = ({data}) => {
 
   return (
     <ToolTip data={`yohoooo ${data}+ years`}>
-
       <div className=" text-white mx-auto flex w-fit max-w-5xl flex-wrap items-center justify-center gap-x-4 text-xs md:text-sm">
         <CountdownItem num={remaining.days} text="days" />
         <CountdownItem num={remaining.hours} text="hours" />
         <CountdownItem num={remaining.minutes} text="minutes" />
         <CountdownItem num={remaining.seconds} text="seconds" />
       </div>
-  
-  </ToolTip>
-   
+    </ToolTip>
   );
 };
 
@@ -73,24 +69,19 @@ const CountdownItem = ({ num, text }: { num: number; text: string }) => {
         <AnimatePresence mode="popLayout">
           <motion.span
             key={num}
-            initial={{ y: "100%" }}
-            animate={{ y: "0%" }}
-            exit={{ y: "-100%" }}
-            transition={{ ease: "backIn", duration: 0.95 }}
+            initial={{ y: '100%' }}
+            animate={{ y: '0%' }}
+            exit={{ y: '-100%' }}
+            transition={{ ease: 'backIn', duration: 0.95 }}
             className="block font-mono text-sm font-semibold md:text-base"
           >
             {num}
           </motion.span>
         </AnimatePresence>
       </div>
-      <span className="text-xs md:text-sm lg:text-base font-bold">
-        {text}
-      </span>
+      <span className="text-xs md:text-sm lg:text-base font-bold">{text}</span>
     </div>
   );
 };
 
-
-
 export default ShiftingCountdown;
-
