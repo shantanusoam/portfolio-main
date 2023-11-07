@@ -1,11 +1,11 @@
 import React from 'react';
-const useMousePosition = ({ includeTouch = false } = {}) => {
-  const [
-    mousePosition,
-    setMousePosition
-  ] = React.useState({ x: null, y: null });
+export const useMousePosition = ({ includeTouch = false } = {}) => {
+  const [mousePosition, setMousePosition] = React.useState({
+    x: null,
+    y: null,
+  });
   React.useEffect(() => {
-    const updateMousePosition = ev => {
+    const updateMousePosition = (ev) => {
       let x, y;
       if (ev.touches) {
         const touch = ev.touches[0];
@@ -28,4 +28,3 @@ const useMousePosition = ({ includeTouch = false } = {}) => {
   }, [includeTouch]);
   return mousePosition;
 };
-export default useMousePosition;
