@@ -1,11 +1,12 @@
 'use client';
+
 import Experience from '@/components/Experience';
 import Hero from '@/components/Hero';
 import Intro from '@/components/Intro';
 import MakeAndBreak from '@/components/MakeAndBreak';
 import Skills from '@/components/Skills';
 import Projects from '@/components/Projects';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   motion,
   useAnimate,
@@ -23,7 +24,36 @@ import Contact from '@/components/Contact';
 import Image from 'next/image';
 import slanting_lines from '@/public/slanting_lines.svg';
 import Footer from '@/components/Footer';
+import { MousePosition } from '@uidotdev/usehooks';
+import useMousePosition from '@/Hooks/useMouse';
 
+function MaskedCopy() {
+  const [isHovered, setIsHovered] = useState(false);
+  const { x, y } = useMousePosition();
+
+  const size = isHovered ? 400 : 40;
+  return (
+    <motion.div
+      className="absolute inset-0 z-10  Pointermask"
+      animate={{
+        WebkitMaskPosition: `${x - size / 2}px ${y - size / 2}px`,
+
+        WebkitMaskSize: `${size}px`,
+      }}
+      transition={{ type: 'tween', ease: 'backOut', duration: 0.5 }}
+    >
+      <div className="container">
+        <Hero masked={true} />
+        <MakeAndBreak />
+        <Intro />
+        <Experience />
+        <Projects />
+        <Skills />
+        <Hobbies />
+      </div>
+    </motion.div>
+  );
+}
 export default function Home() {
   const [socialsRef, animateSocials] = useAnimate();
   const [scrollDownRef, animateScrollDown] = useAnimate();
@@ -84,44 +114,47 @@ export default function Home() {
 
   return (
     <>
-      <Navbar />
-      <Socials ref={socialsRef} />
-      <main className="overflow-clip">
-        <div className="container">
-          <Hero />
-          <MakeAndBreak />
-          <Intro />
-          <Experience />
-          <Projects />
-          <Skills />
-          <Hobbies />
-        </div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{
-            opacity: 1,
-            transition: {
-              duration: 0.6,
-              delay: 0.4,
-              ease: 'easeInOut',
-            },
-          }}
-          viewport={{ once: true }}
-          style={{ x: xTransform }}
-          className="w-[200%] mt-12 select-none"
-        >
-          <Image
-            src={slanting_lines}
-            alt="Slanting lines"
-            className="w-full h-[130px] sm:h-[170px] object-cover -rotate-6"
-          />
-        </motion.div>
-        <div className="container">
-          <Contact />
-          <Footer />
-        </div>
-      </main>
-      <ScrollDown ref={scrollDownRef} />
+      <div className="relative">
+        {/* <MaskedCopy /> */}
+        <Navbar />
+        <Socials ref={socialsRef} />
+        <main className="overflow-clip">
+          <div className="container">
+            <Hero />
+            <MakeAndBreak />
+            <Intro />
+            <Experience />
+            <Projects />
+            <Skills />
+            <Hobbies />
+          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: 1,
+              transition: {
+                duration: 0.6,
+                delay: 0.4,
+                ease: 'easeInOut',
+              },
+            }}
+            viewport={{ once: true }}
+            style={{ x: xTransform }}
+            className="w-[200%] mt-12 select-none"
+          >
+            <Image
+              src={slanting_lines}
+              alt="Slanting lines"
+              className="w-full h-[130px] sm:h-[170px] object-cover -rotate-6"
+            />
+          </motion.div>
+          <div className="container">
+            <Contact />
+            <Footer />
+          </div>
+        </main>
+        <ScrollDown ref={scrollDownRef} />
+      </div>
     </>
   );
 }

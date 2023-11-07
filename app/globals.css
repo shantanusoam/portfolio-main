@@ -30,7 +30,14 @@
     width: 100%;
     margin: auto;
   }
-
+  .Pointermask {
+    mask-image: url('../public/masked.svg');
+    mask-repeat: no-repeat;
+    mask-size: 500px;
+    background: #ec4e39;
+    position: absolute;
+    color: black;
+  }
   ::selection {
     @apply bg-primary text-white;
   }
@@ -156,7 +163,7 @@ html.lenis {
 }
 
 .logo_slider_container:before {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   height: 100%;
@@ -177,7 +184,7 @@ html.lenis {
 }
 
 .logo_slider_container:after {
-  content: "";
+  content: '';
   position: absolute;
   right: 0;
   height: 100%;

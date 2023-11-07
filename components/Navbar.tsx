@@ -1,29 +1,29 @@
-"use client";
+'use client';
 
-import { AnimatePresence, motion } from "framer-motion";
-import Link from "next/link";
-import { useState } from "react";
-import MenuToggle from "./ui/MenuToggle";
-import Socials from "./ui/Socials";
-import { Button } from "./ui/Buttons";
-import { ScrollText } from "lucide-react";
-import resume_link from "@/constants/resume";
+import { AnimatePresence, motion } from 'framer-motion';
+import Link from 'next/link';
+import { useState } from 'react';
+import MenuToggle from './ui/MenuToggle';
+import Socials from './ui/Socials';
+import { Button } from './ui/Buttons';
+import { ScrollText } from 'lucide-react';
+import resume_link from '@/constants/resume';
 
 const navSections = [
-  "About",
-  "Experience",
-  "Projects",
-  "Skills",
-  "Hobbies",
-  "Contact",
+  'About',
+  'Experience',
+  'Projects',
+  'Skills',
+  'Hobbies',
+  'Contact',
 ];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const liHoverAnim = {
-    color: "#fff",
-    transition: { ease: "easeIn", duration: 0.3 },
+    color: '#fff',
+    transition: { ease: 'easeIn', duration: 0.3 },
   };
   const ulAnim = {
     hidden: { opacity: 0 },
@@ -36,23 +36,23 @@ export default function Navbar() {
   };
 
   const liAnim = {
-    hidden: { opacity: 0, x: "1.5rem" },
-    show: { opacity: 1, x: "0", transition: { type: "spring", bounce: 0.3 } },
+    hidden: { opacity: 0, x: '1.5rem' },
+    show: { opacity: 1, x: '0', transition: { type: 'spring', bounce: 0.3 } },
   };
 
   return (
     <>
       <div className="fixed left-[3%] top-8 md:top-12 text-xs select-none z-[1001] scale-90 sm:scale-100">
         <Link
-          href={"/#hero"}
+          href={'/#hero'}
           className="group"
           onClick={() => setMenuOpen(false)}
           aria-label="Logo"
         >
           <motion.svg
-            initial={{ opacity: 0, x: "-1.5rem" }}
+            initial={{ opacity: 0, x: '-1.5rem' }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", bounce: 0.3 }}
+            transition={{ type: 'spring', bounce: 0.3 }}
             width="24"
             height="24"
             viewBox="0 0 137 137"
@@ -70,7 +70,7 @@ export default function Navbar() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, ease: "easeIn" }}
+        transition={{ duration: 0.5, ease: 'easeIn' }}
       >
         <Button className="absolute right-[calc(3%+24px+1.5rem)] top-[22px] md:top-[38px] text-xs sm:text-sm select-none z-[1000] p-0">
           <a
@@ -91,17 +91,17 @@ export default function Navbar() {
             key="menuOverlay"
             initial={{
               opacity: 0,
-              x: "100%",
+              x: '100%',
             }}
             animate={{
               opacity: 1,
-              x: "0%",
+              x: '0%',
             }}
             exit={{
               opacity: 0,
-              x: "100%",
+              x: '100%',
             }}
-            transition={{ ease: "easeInOut", duration: 0.3 }}
+            transition={{ ease: 'easeInOut', duration: 0.3 }}
             className="w-screen h-[100dvh] bg-black fixed top-0 left-0 z-[1000] px-[10%] sm:px-[15%]"
           >
             <div

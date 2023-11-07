@@ -1,37 +1,37 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import PageScrollProgress from "@/components/ui/PageScrollProgress";
-import CustomCursor from "@/components/ui/CustomCursor";
+import './globals.css';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import PageScrollProgress from '@/components/ui/PageScrollProgress';
+import CustomCursor from '@/components/ui/CustomCursor';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Shantanu Portfolio",
-  description: "Making pixel-perfect UIs and robust backends.",
+  title: 'Shantanu Portfolio',
+  description: 'Making pixel-perfect UIs and robust backends.',
   openGraph: {
-    type: "website",
+    type: 'website',
     siteName: "Shantanu's Portfolio",
     title: "Shantanu's Portfolio",
-    description: "Making pixel-perfect UIs and robust backends.",
+    description: 'Making pixel-perfect UIs and robust backends.',
     images: [
       {
-        url: "https://0xjoy.tech/logo.png",
+        url: 'https://0xjoy.tech/logo.png',
       },
     ],
   },
   keywords: [
-    "portfolio",
-    "Shantanu",
-    "soam",
-    "Shantanu soam",
-    "frontend",
-    "react",
-    "nextjs",
-    "developer",
-    "backend",
+    'portfolio',
+    'Shantanu',
+    'soam',
+    'Shantanu soam',
+    'frontend',
+    'react',
+    'nextjs',
+    'developer',
+    'backend',
   ],
-  themeColor: "#0d0d0d",
+  themeColor: '#0d0d0d',
 };
 
 export default function RootLayout({
