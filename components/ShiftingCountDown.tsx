@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import ToolTip from '@/components/ToolTip';
 
-i;
-
 // NOTE: Change this date to whatever date you want to countdown to :)
 const COUNTDOWN_FROM = '04/01/2021';
 
