@@ -25,7 +25,7 @@ import Image from 'next/image';
 import slanting_lines from '@/public/slanting_lines.svg';
 import Footer from '@/components/Footer';
 import { MousePosition } from '@uidotdev/usehooks';
-import useMousePosition from '@/Hooks/useMouse';
+import useMousePosition from '@/Hooks/useMousePosition';
 
 function MaskedCopy() {
   const [isHovered, setIsHovered] = useState(false);
