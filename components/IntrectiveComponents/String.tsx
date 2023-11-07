@@ -4,13 +4,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import styles from './string.module.css';
 import useSound from 'use-sound';
 import { debounce } from 'lodash';
+// import { useConditionalSound } from '@/hooks/useConditionalSound';
 import rubberString from '@/public/rubberstring3.mp3';
 const String = ({ volume, playbackRate }) => {
   const [playSound, setPlaySound] = useState(false);
   const [play, { stop }] = useSound(rubberString, {
     playbackRate,
     volume: volume,
-    soundEnabled: playSound,
   });
 
   const path = useRef(null);
@@ -77,7 +77,6 @@ const String = ({ volume, playbackRate }) => {
       <div
         onMouseEnter={() => {
           manageMouseEnter();
-
           stop();
         }}
         onMouseMove={(e) => {
@@ -85,7 +84,6 @@ const String = ({ volume, playbackRate }) => {
         }}
         onMouseLeave={() => {
           manageMouseLeave();
-          setPlaySound(true);
           play();
         }}
         className={styles.box}

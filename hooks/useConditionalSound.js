@@ -2,18 +2,20 @@ import { useState, useEffect } from 'react';
 import useSound from 'use-sound';
 
 const useConditionalSound = (url, options) => {
-  const [playSound, setPlaySound] = useState(null);
+  const [play, soundOptions] = useSound(url, options);
+  const [playSound, setPlaySound] = useState(() => () => {});
+  const [stopSound, setStopSound] = useState(() => () => {});
 
   useEffect(() => {
     if (options.soundEnabled) {
-      const [play, soundOptions] = useSound(url, options);
       setPlaySound(() => play);
+      setStopSound(() => soundOptions.stop);
     } else {
       setPlaySound(() => () => {});
+      setStopSound(() => () => {});
     }
   }, [options.soundEnabled]);
 
-  return [playSound, options];
+  return [playSound, { ...options, stop: stopSound }];
 };
-
 export default useConditionalSound;
