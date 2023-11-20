@@ -43,9 +43,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className}`}>
-        <CustomCursor/>
-      {/* <StickyCursor stickyElement={stickyElement}/> */}
-        <PageScrollProgress />
+        {/* <CustomCursor/> */}
+      <StickyCursor/>
+        {/* <PageScrollProgress /> */}
         {children}
       </body>
     </html>

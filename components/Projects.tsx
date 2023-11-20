@@ -10,7 +10,7 @@ import { Github, MoveRight } from "lucide-react";
 import AlternateSlidingTexts from "./ui/AlternateSlidingTexts";
 import { projects } from "@/constants/projects";
 import { Button } from "./ui/Buttons";
-
+import Magnetic from "@/components/ui/magnetic/Magnetic"
 const textsData = [
   ["MORE", "MORE", "MORE", "MORE", "MORE", "MORE", "MORE"],
   [
@@ -118,7 +118,8 @@ export default function Projects() {
                     ))}
                   </div>
                 </div>
-                <div className="absolute right-0 bottom-0 p-4">
+                <Magnetic>
+                <div className="absolute right-0 bottom-0 p-4 sticky-bo">
                   <Link
                     href={project.url}
                     aria-label="Link to view the project"
@@ -126,6 +127,9 @@ export default function Projects() {
                     <MoveRight className="w-5 text-gray hover:text-primary duration-300 transition-all ease-in-out" />
                   </Link>
                 </div>
+
+                </Magnetic>
+                
               </div>
             </div>
             <div className="w-full h-full border gradientborder bg-black absolute top-[3%] left-[-2%] z-10"></div>

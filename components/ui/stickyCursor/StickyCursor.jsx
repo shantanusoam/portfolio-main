@@ -9,7 +9,7 @@ import {
   animate,
 } from "framer-motion";
 
-export default function StickyCursor({ stickyElement }) {
+export default function StickyCursor() {
   const [isHovered, setIsHovered] = useState(false);
   const cursor = useRef(null);
   const cursorSize = isHovered ? 60 : 15;
@@ -38,8 +38,18 @@ export default function StickyCursor({ stickyElement }) {
 
   const manageMouseMove = (e) => {
     const { clientX, clientY } = e;
-    const { left, top, height, width } =
-      stickyElement.current.getBoundingClientRect();
+
+    // Select elements by class name
+    const stickyElements = document.querySelectorAll(".sticky-bo");
+
+    // Assuming you have only one sticky element, you can use the first one
+    const stickyElement = stickyElements.length > 0 ? stickyElements[0] : null;
+
+    if (!stickyElement) {
+      return;
+    }
+
+    const { left, top, height, width } = stickyElement.getBoundingClientRect();
 
     // center position of the stickyElement
     const center = { x: left + width / 2, y: top + height / 2 };
@@ -83,13 +93,9 @@ export default function StickyCursor({ stickyElement }) {
   };
 
   useEffect(() => {
-    stickyElement.current.addEventListener("mouseenter", manageMouseOver);
-    stickyElement.current.addEventListener("mouseleave", manageMouseLeave);
-    window.addEventListener("mousemove", manageMouseMove);
+    document.addEventListener("mousemove", manageMouseMove);
     return () => {
-      stickyElement.current.removeEventListener("mouseenter", manageMouseOver);
-      stickyElement.current.removeEventListener("mouseleave", manageMouseLeave);
-      window.removeEventListener("mousemove", manageMouseMove);
+      document.removeEventListener("mousemove", manageMouseMove);
     };
   }, [isHovered]);
 
