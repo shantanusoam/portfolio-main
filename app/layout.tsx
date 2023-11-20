@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import PageScrollProgress from '@/components/ui/PageScrollProgress';
 import CustomCursor from '@/components/ui/CustomCursor';
-
+import StickyCursor from '@/components/ui/stickyCursor/StickyCursor';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -39,10 +39,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  
   return (
     <html lang="en">
       <body className={`${inter.className}`}>
-        <CustomCursor />
+      <StickyCursor stickyElement={stickyElement}/>
         <PageScrollProgress />
         {children}
       </body>

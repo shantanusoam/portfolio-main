@@ -68,7 +68,7 @@ export default function CustomCursor() {
       variants={variants}
       initial="load"
       animate="move"
-      className="hidden sm:block w-3 h-3 bg-white rounded-full z-[1005] fixed pointer-events-none"
+      className="hidden sm:block w-40 h-40 bg-white rounded-full z-[1005] fixed pointer-events-none"
     />
   );
 }
