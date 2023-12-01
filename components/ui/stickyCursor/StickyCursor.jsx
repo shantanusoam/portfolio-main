@@ -1,18 +1,18 @@
-"use client";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "./style.module.scss";
 import {
   motion,
   useMotionValue,
   useSpring,
-  transform,
   animate,
+  transform,
 } from "framer-motion";
 
-export default function StickyCursor() {
+export default function StickyCursor({ stickyElement }) {
+  console.log(stickyElement);
   const [isHovered, setIsHovered] = useState(false);
   const cursor = useRef(null);
-  const cursorSize = isHovered ? 60 : 15;
+  const cursorSize = isHovered ? 40 : 20;
 
   const mouse = {
     x: useMotionValue(0),
@@ -39,50 +39,55 @@ export default function StickyCursor() {
   const manageMouseMove = (e) => {
     const { clientX, clientY } = e;
 
-    // Select elements by class name
-    const stickyElements = document.querySelectorAll(".sticky-bo");
+    if (Array.isArray(stickyElement.current)) {
+      stickyElement.current.some((ref) => {
+        if (ref) {
+          const { left, top, height, width } = ref.getBoundingClientRect();
+          const center = { x: left + width / 2, y: top + height / 2 };
 
-    // Assuming you have only one sticky element, you can use the first one
-    const stickyElement = stickyElements.length > 0 ? stickyElements[0] : null;
+          if (
+            clientX >= left &&
+            clientX <= left + width &&
+            clientY >= top &&
+            clientY <= top + height
+          ) {
+            setIsHovered(true);
 
-    if (!stickyElement) {
-      return;
+            const distance = { x: clientX - center.x, y: clientY - center.y };
+
+            rotate(distance);
+
+            const absDistance = Math.max(
+              Math.abs(distance.x),
+              Math.abs(distance.y)
+            );
+            const newScaleX = transform(absDistance, [0, height / 2], [1, 1.3]);
+            const newScaleY = transform(absDistance, [0, width / 2], [1, 0.8]);
+            scale.x.set(newScaleX);
+            scale.y.set(newScaleY);
+
+            mouse.x.set(center.x - cursorSize / 2 + distance.x * 0.1);
+            mouse.y.set(center.y - cursorSize / 2 + distance.y * 0.1);
+
+            return true; // Break the loop if a match is found
+          }
+        }
+
+        return false;
+      });
     }
 
-    const { left, top, height, width } = stickyElement.getBoundingClientRect();
-
-    // center position of the stickyElement
-    const center = { x: left + width / 2, y: top + height / 2 };
-
-    if (isHovered) {
-      // distance between the mouse pointer and the center of the custom cursor and
-      const distance = { x: clientX - center.x, y: clientY - center.y };
-
-      // rotate
-      rotate(distance);
-
-      // stretch based on the distance
-      const absDistance = Math.max(Math.abs(distance.x), Math.abs(distance.y));
-      const newScaleX = transform(absDistance, [0, height / 2], [1, 1.3]);
-      const newScaleY = transform(absDistance, [0, width / 2], [1, 0.8]);
-      scale.x.set(newScaleX);
-      scale.y.set(newScaleY);
-
-      // move mouse to center of stickyElement + slightly move it towards the mouse pointer
-      mouse.x.set(center.x - cursorSize / 2 + distance.x * 0.1);
-      mouse.y.set(center.y - cursorSize / 2 + distance.y * 0.1);
-    } else {
-      // move custom cursor to center of stickyElement
+    if (!isHovered) {
       mouse.x.set(clientX - cursorSize / 2);
       mouse.y.set(clientY - cursorSize / 2);
     }
   };
 
-  const manageMouseOver = (e) => {
+  const manageMouseOver = () => {
     setIsHovered(true);
   };
 
-  const manageMouseLeave = (e) => {
+  const manageMouseLeave = () => {
     setIsHovered(false);
     animate(
       cursor.current,
@@ -93,9 +98,28 @@ export default function StickyCursor() {
   };
 
   useEffect(() => {
-    document.addEventListener("mousemove", manageMouseMove);
+    if (Array.isArray(stickyElement.current)) {
+      stickyElement.current.forEach((ref) => {
+        if (ref) {
+          ref.addEventListener("mouseenter", manageMouseOver);
+          ref.addEventListener("mouseleave", manageMouseLeave);
+        }
+      });
+    }
+
+    window.addEventListener("mousemove", manageMouseMove);
+
     return () => {
-      document.removeEventListener("mousemove", manageMouseMove);
+      if (Array.isArray(stickyElement.current)) {
+        stickyElement.current.forEach((ref) => {
+          if (ref) {
+            ref.removeEventListener("mouseenter", manageMouseOver);
+            ref.removeEventListener("mouseleave", manageMouseLeave);
+          }
+        });
+      }
+
+      window.removeEventListener("mousemove", manageMouseMove);
     };
   }, [isHovered]);
 

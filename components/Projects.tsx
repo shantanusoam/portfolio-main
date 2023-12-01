@@ -5,12 +5,13 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Heading from "./ui/Heading";
 import GradientBlocker from "./ui/GradientBlocker";
 import { cn } from "@/lib/utils";
-import { useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { Github, MoveRight } from "lucide-react";
 import AlternateSlidingTexts from "./ui/AlternateSlidingTexts";
 import { projects } from "@/constants/projects";
 import { Button } from "./ui/Buttons";
 import Magnetic from "@/components/ui/magnetic/Magnetic"
+import StickyCursor from "./ui/stickyCursor/StickyCursor";
 const textsData = [
   ["MORE", "MORE", "MORE", "MORE", "MORE", "MORE", "MORE"],
   [
@@ -35,8 +36,9 @@ const textsData = [
   ["MORE", "MORE", "MORE", "MORE", "MORE", "MORE"],
 ];
 
-export default function Projects() {
+const Projects = forwardRef(({stickyElement}) => {
   const targetRef = useRef<HTMLDivElement>(null);
+ 
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start end", "end end"],
@@ -55,6 +57,7 @@ export default function Projects() {
       id="projects"
       className="relative select-none mx-[10%] sm:mx-[15%] my-[3rem] py-[6rem]"
     >
+      
       <Heading>Projects</Heading>
       <motion.p
         variants={{
@@ -101,10 +104,10 @@ export default function Projects() {
             <div className="w-full h-full border bg-black z-20 p-12 md:p-20 gradientborder text-graytransparent">
               <div className="h-full leading-7 tracking-wider font-medium flex flex-col items-start justify-center">
                 <div className="flex flex-col gap-6">
-                  <p className="text-lg md:text-xl text-white">
+                  <p  className="text-lg md:text-xl text-white">
                     {project.title}
                   </p>
-                  <p className="font-light text-sm text-graytransparent">
+                  <p className="font-light text-sm text-graytransparent" >
                     {project.description}
                   </p>
                   <div className="flex flex-row gap-4">
@@ -118,17 +121,23 @@ export default function Projects() {
                     ))}
                   </div>
                 </div>
-                <Magnetic>
-                <div className="absolute right-0 bottom-0 p-4 sticky-bo">
+                
+                <div   className="absolute right-0 bottom-0 p-4 sticky-bo">
+                
                   <Link
                     href={project.url}
                     aria-label="Link to view the project"
                   >
-                    <MoveRight className="w-5 text-gray hover:text-primary duration-300 transition-all ease-in-out" />
+                    <Magnetic>
+                    <MoveRight  className="w-5 text-gray hover:text-primary duration-300 transition-all ease-in-out" />
+                    <div ref={(el) => (stickyElement.current.push(el))} className='bounds'></div>
+                    </Magnetic>
+                   
                   </Link>
+                   
                 </div>
 
-                </Magnetic>
+               
                 
               </div>
             </div>
@@ -176,4 +185,7 @@ export default function Projects() {
       </motion.div>
     </motion.section>
   );
-}
+})
+
+Projects.displayName = "Projects"; 
+export default Projects;

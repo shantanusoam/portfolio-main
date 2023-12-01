@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import PageScrollProgress from '@/components/ui/PageScrollProgress';
 import CustomCursor from '@/components/ui/CustomCursor';
-import StickyCursor from '@/components/ui/stickyCursor/StickyCursor';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -44,7 +44,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className}`}>
         {/* <CustomCursor/> */}
-      <StickyCursor/>
+    
         {/* <PageScrollProgress /> */}
         {children}
       </body>

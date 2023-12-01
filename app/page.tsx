@@ -6,7 +6,7 @@ import Intro from '@/components/Intro';
 import MakeAndBreak from '@/components/MakeAndBreak';
 import Skills from '@/components/Skills';
 import Projects from '@/components/Projects';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   motion,
   useAnimate,
@@ -26,11 +26,13 @@ import slanting_lines from '@/public/slanting_lines.svg';
 import Footer from '@/components/Footer';
 import { MousePosition } from '@uidotdev/usehooks';
 import { useMousePosition } from '@/hooks/useMousePosition';
+import StickyCursor from '@/components/ui/stickyCursor/StickyCursor';
+
 
 function MaskedCopy() {
   const [isHovered, setIsHovered] = useState(false);
   const { x, y } = useMousePosition();
-
+  
   const size = isHovered ? 400 : 40;
   return (
     <motion.div
@@ -42,6 +44,7 @@ function MaskedCopy() {
       }}
       transition={{ type: 'tween', ease: 'backOut', duration: 0.5 }}
     >
+       
       <div className="container">
         <Hero masked={true} />
         <MakeAndBreak />
@@ -68,7 +71,7 @@ export default function Home() {
     [0, 1],
     ['50%', '-50%']
   );
-
+  const stickyElement = useRef([]);
   useEffect(() => {
     const lenis = new Lenis();
 
@@ -111,20 +114,24 @@ export default function Home() {
       }
     });
   }, []);
-
+console.log(stickyElement[1])
   return (
     <>
       <div className="relative">
+      <StickyCursor stickyElement={stickyElement}/>
         {/* <MaskedCopy /> */}
         <Navbar />
-        <Socials ref={socialsRef} />
+        <Socials  ref={{
+            ref1: socialsRef,
+            ref2: stickyElement
+          }}  />
         <main className="overflow-clip">
           <div className="container">
             <Hero />
             <MakeAndBreak />
             <Intro />
             <Experience />
-            <Projects />
+            <Projects stickyElement={stickyElement}/>
             <Skills />
             <Hobbies />
           </div>
