@@ -39,15 +39,15 @@ export default function ProjectPage({ params }: PageProps) {
   }, []);
 
   return (
-    <section className="relative mx-[10%] sm:mx-[15%] py-[9rem] select-none flex flex-col gap-12">
+    <section className="relative mx-[10%] flex select-none flex-col gap-12 py-[9rem] sm:mx-[15%]">
       <GradientBlocker className="fixed h-[25dvh]" />
-      <Link href={"/"} className="text-gray flex flex-row gap-2 items-center">
+      <Link href={"/"} className="flex flex-row items-center gap-2 text-gray">
         <MoveLeft className="w-5" /> Go back to homepage
       </Link>
       <div className="flex flex-col gap-2">
-        <div className="flex flex-row gap-4 items-end">
+        <div className="flex flex-row items-end gap-4">
           {project.metadata?.map((meta, i) => (
-            <p key={i} className="text-xs font-mono text-darkgray uppercase">
+            <p key={i} className="font-mono text-xs uppercase text-darkgray">
               {meta}
             </p>
           ))}
@@ -55,11 +55,11 @@ export default function ProjectPage({ params }: PageProps) {
         <Image
           src={project.cover_image as any}
           alt={`${project.title}'s cover image`}
-          className="h-[250px] object-cover bg-gradient-to-br from-zinc-800 to-black"
+          className="h-[250px] bg-gradient-to-br from-zinc-800 to-black object-cover"
           priority
         ></Image>
       </div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="text-2xl font-semibold tracking-wide">
           {project.title}
         </h2>
@@ -78,7 +78,7 @@ export default function ProjectPage({ params }: PageProps) {
       </div>
       <div className="flex flex-col gap-8">
         <Heading>FEATURES</Heading>
-        <ul className="text-graytransparent list-outside list-disc ml-3.5">
+        <ul className="ml-3.5 list-outside list-disc text-graytransparent">
           {project.features.map((feat, i) => (
             <li key={i}>{feat}</li>
           ))}
@@ -101,11 +101,11 @@ export default function ProjectPage({ params }: PageProps) {
         <div className="flex flex-col gap-8 md:gap-3">
           {Object.keys(project.skills).map((skill_name, i) => (
             <div
-              className="flex flex-row gap-4 text-graytransparent items-start"
+              className="flex flex-row items-start gap-4 text-graytransparent"
               key={i}
             >
-              <p className="text-darkgray min-w-[80px]">{skill_name}: </p>
-              <ul className="flex flex-row gap-2 flex-wrap text-sm font-mono uppercase">
+              <p className="min-w-[80px] text-darkgray">{skill_name}: </p>
+              <ul className="flex flex-row flex-wrap gap-2 font-mono text-sm uppercase">
                 {project.skills[skill_name as keyof typeof project.skills]!.map(
                   (skill, j) => (
                     <li key={j}>{skill}</li>
@@ -124,7 +124,7 @@ export default function ProjectPage({ params }: PageProps) {
               key={i}
               src={screenshot as any}
               alt={`${project.title}'s ${i + 1} screenshot`}
-              className="object-cover bg-gradient-to-br from-zinc-800 to-black"
+              className="bg-gradient-to-br from-zinc-800 to-black object-cover"
               priority
             ></Image>
           ))}
@@ -140,7 +140,7 @@ export default function ProjectPage({ params }: PageProps) {
         {project_index != 0 && (
           <Link
             href={projects[project_index - 1].url}
-            className="text-gray flex flex-row gap-2 items-center"
+            className="flex flex-row items-center gap-2 text-gray"
           >
             <MoveLeft className="w-5" /> Previous
           </Link>
@@ -148,7 +148,7 @@ export default function ProjectPage({ params }: PageProps) {
         {project_index != projects.length - 1 && (
           <Link
             href={projects[project_index + 1].url}
-            className="text-gray flex flex-row gap-2 items-center"
+            className="flex flex-row items-center gap-2 text-gray"
           >
             Next <MoveRight className="w-5" />
           </Link>

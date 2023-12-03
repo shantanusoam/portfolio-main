@@ -13,12 +13,12 @@ interface SocialsProps extends HTMLMotionProps<"div"> {
 
 const Socials = React.forwardRef(
   ({ direction = "vertical", ...props }: SocialsProps, ref) => {
-    const { ref1, ref2 } = ref || {}
+    const { ref1, ref2 } = ref || {};
     const ulAnim = {
       hidden: { opacity: 0 },
       show: {
         opacity: 1,
-        transition: { 
+        transition: {
           staggerChildren: 0.2,
         },
       },
@@ -117,5 +117,5 @@ const Socials = React.forwardRef(
   }
 );
 
-Socials.displayName = Socials.displayName;
+Socials.displayName = "Socials";
 export default Socials;

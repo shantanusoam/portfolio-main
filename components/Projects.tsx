@@ -55,7 +55,7 @@ const Projects = forwardRef(({stickyElement}) => {
       ref={sectionRef}
       style={{ opacity: sectionOpacity }}
       id="projects"
-      className="relative select-none mx-[10%] sm:mx-[15%] my-[3rem] py-[6rem]"
+      className="relative mx-[10%] my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
       
       <Heading>Projects</Heading>
@@ -75,13 +75,14 @@ const Projects = forwardRef(({stickyElement}) => {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
-        className="mt-24 w-full leading-7 text-center text-base sm:text-lg md:text-xl font-medium text-graytransparent"
+        className="mt-24 w-full text-center text-base font-medium leading-7 text-graytransparent sm:text-lg md:text-xl"
       >
         Check out some of my <span className="text-primary">side projects</span>{" "}
         below.
       </motion.p>
-      <motion.div className="flex flex-row mt-24 items-center justify-center flex-wrap gap-14">
+      <motion.div className="mt-24 flex flex-row flex-wrap items-center justify-center gap-14">
         {projects.map((project, i) => (
+          
           <motion.div
             key={i}
             variants={{
@@ -101,35 +102,36 @@ const Projects = forwardRef(({stickyElement}) => {
             viewport={{ once: true }}
             className={cn("flex flex-col relative w-[400px] h-[300px]")}
           >
-            <div className="w-full h-full border bg-black z-20 p-12 md:p-20 gradientborder text-graytransparent">
-              <div className="h-full leading-7 tracking-wider font-medium flex flex-col items-start justify-center">
+             
+            <div className="gradientborder z-20 h-full w-full border bg-black p-12 text-graytransparent md:p-20">
+              <div className="flex h-full flex-col items-start justify-center font-medium leading-7 tracking-wider">
                 <div className="flex flex-col gap-6">
-                  <p  className="text-lg md:text-xl text-white">
+                  <p  className="text-lg text-white md:text-xl">
                     {project.title}
                   </p>
-                  <p className="font-light text-sm text-graytransparent" >
+                  <p className="text-sm font-light text-graytransparent" >
                     {project.description}
                   </p>
                   <div className="flex flex-row gap-4">
                     {project.metadata?.map((meta, i) => (
                       <p
                         key={i}
-                        className="text-xs font-mono text-darkgray uppercase"
+                        className="font-mono text-xs uppercase text-darkgray"
                       >
                         {meta}
                       </p>
                     ))}
                   </div>
                 </div>
-                
-                <div   className="absolute right-0 bottom-0 p-4 sticky-bo">
+         
+                <div   className="sticky-bo absolute bottom-0 right-0 p-4">
                 
                   <Link
                     href={project.url}
                     aria-label="Link to view the project"
                   >
                     <Magnetic>
-                    <MoveRight  className="w-5 text-gray hover:text-primary duration-300 transition-all ease-in-out" />
+                    <MoveRight  className="w-5 text-gray transition-all duration-300 ease-in-out hover:text-primary" />
                     <div ref={(el) => (stickyElement.current.push(el))} className='bounds'></div>
                     </Magnetic>
                    
@@ -141,7 +143,7 @@ const Projects = forwardRef(({stickyElement}) => {
                 
               </div>
             </div>
-            <div className="w-full h-full border gradientborder bg-black absolute top-[3%] left-[-2%] z-10"></div>
+            <div className="gradientborder absolute left-[-2%] top-[3%] z-10 h-full w-full border bg-black"></div>
           </motion.div>
         ))}
         <motion.div
@@ -162,7 +164,7 @@ const Projects = forwardRef(({stickyElement}) => {
           viewport={{ once: true }}
           className={cn("flex flex-col relative w-[400px] h-[300px]")}
         >
-          <div className="w-full h-full border bg-black z-20 gradientborder relative">
+          <div className="gradientborder relative z-20 h-full w-full border bg-black">
             <div className="absolute w-full opacity-50">
               <AlternateSlidingTexts
                 scrollYProgress={scrollYProgress}
@@ -170,22 +172,36 @@ const Projects = forwardRef(({stickyElement}) => {
               />
               <GradientBlocker />
             </div>
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="flex h-full w-full items-center justify-center">
               <Link href={"https://github.com/shantanusoam"} target="_blank">
-                <Button type="white" className="relative p-2 text-sm bg-black">
-                  <p className="flex flex-row gap-2 items-center justify-center">
+                <Button type="white" className="relative bg-black p-2 text-sm">
+                  <p className="flex flex-row items-center justify-center gap-2">
                     <Github className="w-4" /> Github
                   </p>
                 </Button>
               </Link>
             </div>
           </div>
-          <div className="w-full h-full border gradientborder bg-black absolute top-[3%] left-[-2%] z-10"></div>
+          <div className="gradientborder absolute left-[-2%] top-[3%] z-10 h-full w-full border bg-black"></div>
         </motion.div>
       </motion.div>
     </motion.section>
   );
 })
-
+const BounceCard = ({ className, children }) => {
+  return (
+    <motion.div
+      whileHover={{ scale: 0.95, rotate: "-1deg" }}
+      className={`group relative min-h-[300px] cursor-pointer overflow-hidden rounded-2xl bg-slate-100 p-8 ${className}`}
+    >
+      {children}
+    </motion.div>
+  );
+};
+const CardTitle = ({ children }) => {
+  return (
+    <h3 className="mx-auto text-center text-3xl font-semibold">{children}</h3>
+  );
+};
 Projects.displayName = "Projects"; 
 export default Projects;

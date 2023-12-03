@@ -36,7 +36,7 @@ function MaskedCopy() {
   const size = isHovered ? 400 : 40;
   return (
     <motion.div
-      className="absolute inset-0 z-10  Pointermask"
+      className="Pointermask absolute inset-0  z-10"
       animate={{
         WebkitMaskPosition: `${x - size / 2}px ${y - size / 2}px`,
 
@@ -114,18 +114,18 @@ export default function Home() {
       }
     });
   }, []);
-console.log(stickyElement[1])
+
   return (
     <>
       <div className="relative">
       <StickyCursor stickyElement={stickyElement}/>
         {/* <MaskedCopy /> */}
-        <Navbar />
+        <Navbar ref={stickyElement}/>
         <Socials  ref={{
             ref1: socialsRef,
             ref2: stickyElement
           }}  />
-        <main className="overflow-clip">
+        <main className="text-clip">
           <div className="container">
             <Hero />
             <MakeAndBreak />
@@ -147,12 +147,12 @@ console.log(stickyElement[1])
             }}
             viewport={{ once: true }}
             style={{ x: xTransform }}
-            className="w-[200%] mt-12 select-none"
+            className="mt-12 w-[200%] select-none"
           >
             <Image
               src={slanting_lines}
               alt="Slanting lines"
-              className="w-full h-[130px] sm:h-[170px] object-cover -rotate-6"
+              className="h-[130px] w-full -rotate-6 object-cover sm:h-[170px]"
             />
           </motion.div>
           <div className="container">
