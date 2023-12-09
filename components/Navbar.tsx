@@ -133,13 +133,13 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
             {/* <HoverImageLinks/> */}
             <div
               id="nav-container"
-              className="flex h-screen items-center justify-center"
+              className="flex h-[90vh] items-center justify-center md:h-screen"
             >
               <motion.ul
                 variants={ulAnim}
                 initial="hidden"
                 animate="show"
-                className="flex flex-col items-center justify-center gap-6 text-xl font-medium uppercase tracking-widest text-graytransparent sm:text-2xl"
+                className="flex flex-col items-center justify-center gap-1 text-xl font-medium uppercase tracking-widest text-graytransparent sm:text-2xl md:gap-6"
               >
                 {navSections.map((navSection, i) => (
                   <motion.li

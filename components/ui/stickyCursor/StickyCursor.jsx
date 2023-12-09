@@ -12,7 +12,7 @@ export default function StickyCursor({ stickyElement }) {
   console.log(stickyElement);
   const [isHovered, setIsHovered] = useState(false);
   const cursor = useRef(null);
-  const cursorSize = isHovered ? 40 : 20;
+  const cursorSize = isHovered ? 60 : 30;
 
   const mouse = {
     x: useMotionValue(0),
@@ -25,7 +25,7 @@ export default function StickyCursor({ stickyElement }) {
   };
 
   // Smooth out the mouse values
-  const smoothOptions = { damping: 20, stiffness: 300, mass: 0.5 };
+  const smoothOptions = { damping: 40, stiffness: 300, mass: 0.5 };
   const smoothMouse = {
     x: useSpring(mouse.x, smoothOptions),
     y: useSpring(mouse.y, smoothOptions),

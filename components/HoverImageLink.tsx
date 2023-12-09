@@ -56,7 +56,7 @@ const HoverImageLink = forwardRef<HTMLAnchorElement, LinkProps>(
       onMouseMove={handleMouseMove}
       initial="initial"
       whileHover="whileHover"
-      className="group relative flex w-[90vw] items-center  justify-between border-b-2 border-neutral-700 py-4 transition-colors duration-500 hover:border-neutral-50 md:w-[40vw] md:py-4"
+      className="group relative flex w-[90vw] items-center  justify-between border-b-2 border-neutral-700 py-1 transition-colors duration-500 hover:border-neutral-50 md:w-[60vw] md:py-4 xl:w-[45vw]"
     >
       <div>
         <motion.span
@@ -69,7 +69,7 @@ const HoverImageLink = forwardRef<HTMLAnchorElement, LinkProps>(
             staggerChildren: 0.075,
             delayChildren: 0.25,
           }}
-          className="relative z-10 block text-4xl font-bold text-neutral-500 transition-colors duration-500 group-hover:text-neutral-50 md:text-4xl"
+          className="relative z-10 block text-2xl font-bold text-neutral-500 transition-colors duration-500 group-hover:text-neutral-50 md:text-4xl"
         >
           {heading.split("").map((l, i) => (
             <motion.span
