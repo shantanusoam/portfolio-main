@@ -14,6 +14,7 @@ export const skills: Record<string, string[]> = {
     "Framer Motion",
     "GSAP",
     "Redux",
+    "RTK",
     "and more...",
   ],
   backend: [

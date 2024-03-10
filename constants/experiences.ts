@@ -2,7 +2,7 @@ import { ExperienceType } from "@/@types/experience.type";
 import agoraverse from "@/public/agora.webp";
 import cognizant from "@/public/cognizant.webp";
 import KalGroup from "@/public/KalGroup.webp";
-
+import Mobikasa from "@/public/Mobikasa.png"
 import TheTarzanWay from "@/public/TheTarzanWay.webp"
 import fasthr from "@/public/fasthr.svg";
 
@@ -11,24 +11,26 @@ export const yearsOfExperience =
   (1000 * 60 * 60 * 24 * 365);
 
 export const experiences: ExperienceType[] = [
-  // {
-  //   company: "Fasthr.AI",
-  //   companyLink: "https://www.linkedin.com/company/fasthrdotai/",
-  //   companyLogo: fasthr,
-  //   roles: [
-  //     {
-  //       role: "Frontend Engineer",
-  //       from: {
-  //         month: "JUN",
-  //         year: 2023,
-  //       },
-  //       to: {
-  //         month: "NOW",
-  //       },
-  //       type: "Full time",
-  //     },
-  //   ],
-  // },
+
+  {
+    company: "Mobikasa",
+    companyLink: "https://www.linkedin.com/company/thetarzanway/",
+    companyLogo: Mobikasa,
+    roles: [
+      {
+        role: "Full-stack Developer",
+        from: {
+          month: "OCT",
+          year: 2023,
+        },
+        to: {
+          month: "Current",
+         
+        },
+        type: "Full time",
+      },
+    ],
+  },
   {
     company: "The Tarzan Way",
     companyLink: "https://www.linkedin.com/company/thetarzanway/",
