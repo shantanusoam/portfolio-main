@@ -68,7 +68,7 @@ export default function Hobbies() {
       ref={sectionRef}
       style={{ opacity: sectionOpacity }}
       id="hobbies"
-      className="relative select-none mx-[10%] sm:mx-[15%] min-h-max my-[3rem] py-[6rem]"
+      className="relative mx-[10%] my-[3rem] min-h-max select-none py-[6rem] sm:mx-[15%]"
     >
       <Heading>HOBBIES</Heading>
       <div className="mt-24 text-graytransparent">
@@ -76,25 +76,30 @@ export default function Hobbies() {
           variants={hideAndShowVariant}
           initial="hide"
           whileInView="show"
-          className="w-max flex items-center justify-center flex-col m-auto text-center"
+          className="m-auto flex w-max flex-col items-center justify-center text-center"
           ref={targetRef}
           viewport={{ once: true }}
         >
           <RevealingTextContainer
             scrollYProgress={scrollYProgressRevealingText}
           >
-            {[`In the world of code, I'am the star,`,`Frontend wizard,taken it far.,`,`With lines so neat,`, "My websites are always a visual treat."].map((text, i) => (
+            {[
+              `In the world of code, I'am the star,`,
+              `Frontend wizard,taken it far.,`,
+              `With lines so neat,`,
+              "My websites are always a visual treat.",
+            ].map((text, i) => (
               <RevealingTextItem index={i} key={i}>
                 {text}
               </RevealingTextItem>
             ))}
           </RevealingTextContainer>
-          <p className="w-full text-center mt-6 text-xs sm:text-sm">
-            - Probably  Dr. Seuss's
+          <p className="mt-6 w-full text-center text-xs sm:text-sm">
+            - Probably Dr. Seuss's
           </p>
         </motion.div>
         <div
-          className="hidden md:flex flex-row my-[15rem] items-center justify-between gap-2 h-[60dvh] overflow-clip"
+          className="my-[5rem] hidden h-[75dvh] flex-row items-center justify-between gap-2 overflow-hidden text-clip md:flex"
           ref={imageContainerRef}
         >
           {hobbiesList.map((hobbies, i) => (
@@ -128,7 +133,7 @@ export default function Hobbies() {
           ))}
         </div>
         <div
-          className="flex md:hidden flex-row my-[6rem] items-center justify-between gap-2 h-[60dvh] overflow-clip"
+          className="my-[6rem] flex h-[70dvh] flex-row items-center justify-between gap-2 overflow-hidden text-clip md:hidden"
           ref={imageContainerRefMobile}
         >
           {hobbiesListMobile.map((hobbies, i) => (
@@ -166,7 +171,7 @@ export default function Hobbies() {
           initial="hide"
           whileInView="show"
           viewport={{ once: true }}
-          className="flex mb-24 w-full lg:w-1/2 m-auto leading-7 text-center text-base sm:text-xl font-medium"
+          className="m-auto mb-24 flex w-full text-center text-base font-medium leading-7 sm:text-xl lg:w-1/2"
         >
           <p>
             Apart from coding,

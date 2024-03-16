@@ -14,17 +14,17 @@ import HoverImageLink from "./HoverImageLink";
 const navSections = [
   {
     title: "About",
-    subHeading: `You Don't see what's real`,
+    subHeading: `Something Not To be Told`,
     image: AboutmePic,
   },
   {
     title: "Experience",
-    subHeading: `You Don't see what's real`,
+    subHeading: `companies i worked for`,
     image: AboutmePic,
   },
   {
     title: "Projects",
-    subHeading: `You Don't see what's real`,
+    subHeading: `Things i give my commitment to`,
     image: AboutmePic,
   },
   {
@@ -34,12 +34,12 @@ const navSections = [
   },
   {
     title: "Hobbies",
-    subHeading: `You Don't see what's real`,
+    subHeading: `loves to do`,
     image: AboutmePic,
   },
   {
     title: "Contact",
-    subHeading: `You Don't see what's real`,
+    subHeading: `Common I am here to help`,
     image: AboutmePic,
   },
 ];
@@ -59,7 +59,7 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
       },
     },
   };
- 
+
   const liAnim = {
     hidden: { opacity: 0, x: "1.5rem" },
     show: { opacity: 1, x: "0", transition: { type: "spring", bounce: 0.3 } },
@@ -133,7 +133,7 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
             {/* <HoverImageLinks/> */}
             <div
               id="nav-container"
-              className="flex h-[90vh] items-center justify-center md:h-screen"
+              className="flex h-[90vh] items-center justify-center md:h-[90vh]"
             >
               <motion.ul
                 variants={ulAnim}
@@ -149,7 +149,7 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
                     whileHover={liHoverAnim}
                   >
                     <HoverImageLink
-                    arrowref={ref}
+                      arrowref={ref}
                       heading={navSection.title}
                       subheading={navSection.subHeading}
                       imgSrc={navSection.image}
@@ -161,7 +161,7 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
               </motion.ul>
               <Socials
                 ref={{
-                  ref2: ref ,
+                  ref2: ref,
                 }}
                 direction="horizontal"
               />
@@ -171,7 +171,7 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
       </AnimatePresence>
     </>
   );
-})
+});
 
-Navbar.displayName = 'Navbar';
+Navbar.displayName = "Navbar";
 export default Navbar;

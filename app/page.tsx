@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import Experience from '@/components/Experience';
-import Hero from '@/components/Hero';
-import Intro from '@/components/Intro';
-import MakeAndBreak from '@/components/MakeAndBreak';
-import Skills from '@/components/Skills';
-import Projects from '@/components/Projects';
-import { useEffect, useRef, useState } from 'react';
+import Experience from "@/components/Experience";
+import Hero from "@/components/Hero";
+import Intro from "@/components/Intro";
+import MakeAndBreak from "@/components/MakeAndBreak";
+import Skills from "@/components/Skills";
+import Projects from "@/components/Projects";
+import { useEffect, useRef, useState } from "react";
 import {
   motion,
   useAnimate,
@@ -14,25 +14,24 @@ import {
   useSpring,
   useTransform,
   useVelocity,
-} from 'framer-motion';
-import Socials from '@/components/ui/Socials';
-import ScrollDown from '@/components/ui/ScrollDown';
-import Hobbies from '@/components/Hobbies';
-import Lenis from '@studio-freight/lenis';
-import Navbar from '@/components/Navbar';
-import Contact from '@/components/Contact';
-import Image from 'next/image';
-import slanting_lines from '@/public/slanting_lines.svg';
-import Footer from '@/components/Footer';
-import { MousePosition } from '@uidotdev/usehooks';
-import { useMousePosition } from '@/hooks/useMousePosition';
-import StickyCursor from '@/components/ui/stickyCursor/StickyCursor';
-
+} from "framer-motion";
+import Socials from "@/components/ui/Socials";
+import ScrollDown from "@/components/ui/ScrollDown";
+import Hobbies from "@/components/Hobbies";
+import Lenis from "@studio-freight/lenis";
+import Navbar from "@/components/Navbar";
+import Contact from "@/components/Contact";
+import Image from "next/image";
+import slanting_lines from "@/public/slanting_lines.svg";
+import Footer from "@/components/Footer";
+import { MousePosition } from "@uidotdev/usehooks";
+import { useMousePosition } from "@/hooks/useMousePosition";
+import StickyCursor from "@/components/ui/stickyCursor/StickyCursor";
 
 function MaskedCopy() {
   const [isHovered, setIsHovered] = useState(false);
   const { x, y } = useMousePosition();
-  
+
   const size = isHovered ? 400 : 40;
   return (
     <motion.div
@@ -42,9 +41,8 @@ function MaskedCopy() {
 
         WebkitMaskSize: `${size}px`,
       }}
-      transition={{ type: 'tween', ease: 'backOut', duration: 0.5 }}
+      transition={{ type: "tween", ease: "backOut", duration: 0.5 }}
     >
-       
       <div className="container">
         <Hero masked={true} />
         <MakeAndBreak />
@@ -69,7 +67,7 @@ export default function Home() {
       restDelta: 0.001,
     }),
     [0, 1],
-    ['50%', '-50%']
+    ["50%", "-50%"]
   );
   const stickyElement = useRef([]);
   useEffect(() => {
@@ -84,18 +82,18 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    return xVelocity.on('change', (latestVelocity) => {
-      if (window.getComputedStyle(socialsRef.current).display != 'none') {
+    return xVelocity.on("change", (latestVelocity) => {
+      if (window.getComputedStyle(socialsRef.current).display != "none") {
         if (latestVelocity > 0 && socialsRef.current.style.opacity != 0) {
           animateSocials(
             socialsRef.current,
             { opacity: 0 },
-            { duration: 0.1, ease: 'easeInOut' }
+            { duration: 0.1, ease: "easeInOut" }
           );
           animateScrollDown(
             scrollDownRef.current,
             { opacity: 0 },
-            { duration: 0.1, ease: 'easeInOut' }
+            { duration: 0.1, ease: "easeInOut" }
           );
         }
 
@@ -103,12 +101,12 @@ export default function Home() {
           animateSocials(
             socialsRef.current,
             { opacity: 1 },
-            { duration: 0.1, ease: 'easeInOut' }
+            { duration: 0.1, ease: "easeInOut" }
           );
           animateScrollDown(
             scrollDownRef.current,
             { opacity: 1 },
-            { duration: 0.1, ease: 'easeInOut' }
+            { duration: 0.1, ease: "easeInOut" }
           );
         }
       }
@@ -118,43 +116,48 @@ export default function Home() {
   return (
     <>
       <div className="relative">
-      <StickyCursor stickyElement={stickyElement}/>
+        <StickyCursor stickyElement={stickyElement} />
         {/* <MaskedCopy /> */}
-        <Navbar ref={stickyElement}/>
-        <Socials  ref={{
+        <Navbar ref={stickyElement} />
+        <Socials
+          ref={{
             ref1: socialsRef,
-            ref2: stickyElement
-          }}  />
+            ref2: stickyElement,
+          }}
+        />
         <main className="text-clip">
           <div className="container">
             <Hero />
             <MakeAndBreak />
             <Intro />
             <Experience />
-            <Projects stickyElement={stickyElement}/>
+            <Projects stickyElement={stickyElement} />
             <Skills />
             <Hobbies />
           </div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: 1,
-              transition: {
-                duration: 0.6,
-                delay: 0.4,
-                ease: 'easeInOut',
-              },
-            }}
-            viewport={{ once: true }}
-            style={{ x: xTransform }}
-            className="mt-12 w-[200%] select-none"
-          >
-            <Image
-              src={slanting_lines}
-              alt="Slanting lines"
-              className="h-[130px] w-full -rotate-6 object-cover sm:h-[170px]"
-            />
-          </motion.div>
+          <div className="overflow-x-hidden md:overflow-x-visible">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                transition: {
+                  duration: 0.6,
+                  delay: 0.4,
+                  ease: "easeInOut",
+                },
+              }}
+              viewport={{ once: true }}
+              style={{ x: xTransform }}
+              className="mt-12 w-[200%] select-none "
+            >
+              <Image
+                src={slanting_lines}
+                alt="Slanting lines"
+                className="h-[130px] w-full -rotate-6 object-cover sm:h-[170px]"
+              />
+            </motion.div>
+          </div>
+
           <div className="container">
             <Contact />
             <Footer />
