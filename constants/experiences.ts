@@ -2,7 +2,7 @@ import { ExperienceType } from "@/@types/experience.type";
 import agoraverse from "@/public/agora.webp";
 import cognizant from "@/public/cognizant.webp";
 import KalGroup from "@/public/KalGroup.webp";
-import Mobikasa from "@/public/Mobikasa.png"
+import Mobikasa from "@/public/mobikasa.png"
 import TheTarzanWay from "@/public/TheTarzanWay.webp"
 import fasthr from "@/public/fasthr.svg";
 
