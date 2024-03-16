@@ -179,9 +179,10 @@ export default function Hobbies() {
             <br />
             You can usually find me{" "}
             <span className="text-white">petting doggos</span>,{" "}
-            <span className="text-white">travelling around the world</span>,
-            chilling on the <span className="text-white">beach</span>, binging
-            on some <span className="text-white">netflix shows</span>, trying{" "}
+            <span className="text-white">playing games</span>,{" "}
+            <span className="text-white">travelling around</span>, chilling on
+            the <span className="text-white">web</span>, binging on some{" "}
+            <span className="text-white">netflix shows</span>, trying{" "}
             <span className="text-white">something new to eat</span>,{" "}
             <span className="text-white">painting</span>, or probably doing{" "}
             <span className="text-white">something stupid</span>.
