@@ -2,9 +2,9 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import TextCarousel from "./ui/TextCarousel";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import String from "./IntrectiveComponents/String";
-import Spline from "@splinetool/react-spline";
+// import Spline from "@splinetool/react-spline";
 
 interface HeroProps {
   masked: boolean;
@@ -21,11 +21,11 @@ export default function Hero({ masked }: HeroProps) {
 
   return (
     <div>
-      <div className="absolute">
+      {/* <div className="absolute">
         <div className=" mx-[-3%] flex h-[100vh] max-h-[1080px]  w-screen   flex-row items-center justify-center ">
           <Spline scene="https://prod.spline.design/WTbnS8VGbbw4NYlj/scene.splinecode" />
         </div>
-      </div>
+      </div> */}
 
       <motion.section
         id="hero"
