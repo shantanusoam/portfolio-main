@@ -1,9 +1,16 @@
-import String from '@/components/IntrectiveComponents/String';
-import React from 'react';
-import styles from './page.module.css';
+"use client";
+import String from "@/components/IntrectiveComponents/String";
+import React from "react";
+import styles from "./page.module.css";
+import Spline from "@splinetool/react-spline";
+
 const testingPage = () => {
   return (
     <div>
+      <div className="absolute h-screen w-screen">
+        <Spline scene="https://prod.spline.design/WTbnS8VGbbw4NYlj/scene.splinecode" />
+      </div>
+
       <div>testing Page</div>
       <div className={styles.container}>
         <div className={styles.body}>
