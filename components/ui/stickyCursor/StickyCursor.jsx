@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import styles from "./style.module.scss";
 import {
   motion,
@@ -36,7 +42,7 @@ export default function StickyCursor({ stickyElement }) {
     animate(cursor.current, { rotate: `${angle}rad` }, { duration: 0 });
   };
 
-  const manageMouseMove = (e) => {
+  const manageMouseMove = useCallback((e) => {
     const { clientX, clientY } = e;
 
     if (Array.isArray(stickyElement.current)) {
@@ -81,7 +87,7 @@ export default function StickyCursor({ stickyElement }) {
       mouse.x.set(clientX - cursorSize / 2);
       mouse.y.set(clientY - cursorSize / 2);
     }
-  };
+  }, []);
 
   const manageMouseOver = () => {
     setIsHovered(true);
@@ -97,7 +103,7 @@ export default function StickyCursor({ stickyElement }) {
     );
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (Array.isArray(stickyElement.current)) {
       stickyElement.current.forEach((ref) => {
         if (ref) {
@@ -121,7 +127,7 @@ export default function StickyCursor({ stickyElement }) {
 
       window.removeEventListener("mousemove", manageMouseMove);
     };
-  }, [isHovered]);
+  }, [isHovered, manageMouseMove, stickyElement]);
 
   const template = ({ rotate, scaleX, scaleY }) => {
     return `rotate(${rotate}) scaleX(${scaleX}) scaleY(${scaleY})`;

@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import TextCarousel from "./ui/TextCarousel";
 import { useRef } from "react";
 import String from "./IntrectiveComponents/String";
-// import Spline from "@splinetool/react-spline";
+import Spline from "@splinetool/react-spline";
 
 interface HeroProps {
   masked: boolean;
