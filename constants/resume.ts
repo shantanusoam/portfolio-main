@@ -1,4 +1,4 @@
 export const resume_link =
-  'https://drive.google.com/file/d/1-3PQ1Sl5-Vr7D25Gpc2QuaG2hAPtYIXB/view?usp=sharing';
+  'https://drive.google.com/file/d/15scBYip-WcPm89SAp-KQYPwuUv8VzXjo/view?usp=sharing';
 
 export default resume_link;
