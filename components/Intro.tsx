@@ -57,7 +57,7 @@ export default function Intro() {
       style={{ opacity: sectionOpacity }}
       id="about"
       ref={sectionRef}
-      className="relative mx-[10%] sm:mx-[15%] my-[3rem] py-[6rem] select-none flex flex-col"
+      className="relative mx-[10%] my-[3rem] flex select-none flex-col py-[6rem] sm:mx-[15%]"
     >
       <Heading>ABOUT ME</Heading>
       <motion.div
@@ -67,7 +67,10 @@ export default function Intro() {
         viewport={{ once: true }}
         className="mt-24 hidden sm:block"
       >
-        <RevealingTextContainer scrollYProgress={scrollYProgress}>
+        <RevealingTextContainer
+          className="items-center sm:items-start"
+          scrollYProgress={scrollYProgress}
+        >
           {texts.map((text, i) => (
             <RevealingTextItem index={i} key={i}>
               {text}

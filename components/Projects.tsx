@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useScroll, useTransform, easeIn } from 'framer-motion';
+import { motion, useScroll, useTransform, easeIn } from "framer-motion";
 import Heading from "./ui/Heading";
 import GradientBlocker from "./ui/GradientBlocker";
 import { cn } from "@/lib/utils";
@@ -115,11 +115,16 @@ const Projects = forwardRef(({ stickyElement }) => {
               initial={"hidden"}
               whileInView={"show"}
               viewport={{ once: true }}
-              className={cn("flex  flex-col relative w-[400px] h-[300px]")}
+              className={cn(
+                "flex  flex-col relative w-[290px] md:w-[400px] h-[200px] md:h-[300px]"
+              )}
             >
-              <div className="gradientborder  group z-20 h-full w-full border bg-black p-12 text-graytransparent md:p-20">
+              <div className="gradientborder  group z-20 h-full w-full border bg-black p-7 text-graytransparent sm:p-8 md:p-20">
                 <div className="flex h-full flex-col items-start justify-center font-medium leading-7 tracking-wider">
-                  <motion.div variants={child2} className="absolute   flex flex-col gap-6">
+                  <motion.div
+                    variants={child2}
+                    className="absolute   flex flex-col gap-6"
+                  >
                     <p className="text-lg text-white md:text-xl">
                       {project.title}
                     </p>
@@ -178,8 +183,6 @@ const Projects = forwardRef(({ stickyElement }) => {
                       </Magnetic>
                     </Link>
                   </div>
-
-                  
                 </div>
               </div>
               <div className="gradientborder absolute left-[-2%] top-[3%] z-10 h-full w-full border bg-black"></div>

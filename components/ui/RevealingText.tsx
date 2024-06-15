@@ -26,7 +26,7 @@ export function RevealingTextContainer({
     <div
       {...props}
       className={cn(
-        "flex flex-col font-semibold text-white responsive_text_xl",
+        "flex flex-col font-semibold text-white responsive_text_xl ",
         className
       )}
     >
