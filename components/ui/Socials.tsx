@@ -57,60 +57,55 @@ const Socials = React.forwardRef(
           direction === "horizontal" && "flex-row ml-0 flex"
         )}
       >
-       
         <motion.a
           variants={socialsAnim}
-         
           href="https://www.linkedin.com/in/shantanu007/"
           target="_blank"
           className="p-2  "
           aria-label="Link to my linkedin"
         >
-           <Magnetic>
-           <Linkedin className="h-5 w-5  hover:text-primary" />
-           <div ref={(el) => (ref2.current.push(el))} className='bounds'></div>
+          <Magnetic>
+            <Linkedin className="h-5 w-5  hover:text-primary" />
+            <div ref={(el) => ref2.current.push(el)} className="bounds"></div>
           </Magnetic>
-        
         </motion.a>
-       
+
         <motion.a
           variants={socialsAnim}
-       
           href="https://github.com/shantanusoam"
           target="_blank"
           className="p-2"
           aria-label="Link to my github"
         >
-           <Magnetic>
-           <Github className="h-5 w-5  hover:text-primary" />
-           <div ref={(el) => (ref2.current.push(el))} className='bounds'></div>
-           </Magnetic>
-         
+          <Magnetic>
+            <Github className="h-5 w-5  hover:text-primary" />
+            <div ref={(el) => ref2.current.push(el)} className="bounds"></div>
+          </Magnetic>
         </motion.a>
         <motion.a
           variants={socialsAnim}
-        
           href="https://twitter.com/Shanntanusoam"
           target="_blank"
           className="p-2"
           aria-label="Link to my twitter"
         >
           <Magnetic>
-          <Twitter className="h-5 w-5 hover:text-primary" />
-          <div ref={(el) => (ref2.current.push(el))} className='bounds'></div>
+            <Twitter className="h-5 w-5 hover:text-primary" />
+            <div ref={(el) => ref2.current.push(el)} className="bounds"></div>
           </Magnetic>
-        
         </motion.a>
         <motion.a
           variants={socialsAnim}
-          ref={(el) => (ref2.current.push(el))}
+          ref={(el) => ref2.current.push(el)}
           href={resume_link}
           target="_blank"
           className="p-2"
           aria-label="Link to view my resume"
         >
-          <Magnetic><ScrollText className="h-5 w-5 hover:text-primary" /></Magnetic>
-          
+          <Magnetic>
+            <ScrollText className="h-5 w-5 hover:text-primary" />
+            <div ref={(el) => ref2.current.push(el)} className="bounds"></div>
+          </Magnetic>
         </motion.a>
       </motion.div>
     );

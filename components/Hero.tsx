@@ -33,7 +33,7 @@ export default function Hero({ masked }: HeroProps) {
         ref={sectionRef}
         className="mx-[10%] flex h-[100vh] max-h-[1080px] flex-row items-center justify-center sm:mx-[15%]"
       >
-        <div className="absolute z-[997] mt-4 flex h-24  w-full flex-col  items-center justify-center">
+        <div className="absolute z-[997] mt-4 hidden h-24 w-full  flex-col items-center  justify-center md:flex">
           <div className="my-6 w-[60vw]">
             <String volume={0.1} playbackRate={2} />
           </div>

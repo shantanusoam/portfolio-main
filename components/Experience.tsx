@@ -6,6 +6,7 @@ import Heading from "./ui/Heading";
 import { ExperienceType } from "@/@types/experience.type";
 import { experiences } from "@/constants/experiences";
 import LogoCarousel from "./ui/LogoCarousel";
+import ScrollingText from "./ScrollingText";
 
 interface ExperienceItemProps {
   experience: ExperienceType;
@@ -44,7 +45,7 @@ function ExperienceItem({ experience }: ExperienceItemProps) {
       initial={"hidden"}
       whileInView={"show"}
       viewport={{ once: true, amount: 0.8 }}
-      className="relative flex flex-col sm:flex-row items-center justify-between w-full py-12 min-h-[180px] sm:min-h-[250px] gap-10"
+      className="  relative flex min-h-[180px] w-full flex-col items-center justify-between  gap-10 py-12 sm:min-h-[250px] sm:flex-row"
     >
       <motion.div
         variants={{
@@ -62,16 +63,17 @@ function ExperienceItem({ experience }: ExperienceItemProps) {
         initial={"collapse"}
         whileInView={"expand"}
         viewport={{ once: true, amount: 0.8, margin: "0px 0px -150px 0px" }}
-        className="h-[1px] absolute top-0 left-0 linegradient"
+        className="linegradient absolute left-0 top-0 h-[1px]"
       ></motion.div>
+
       <motion.h2
         custom={1}
         variants={pTagVariants}
-        className="text-lg md:text-xl text-white leading-7 tracking-wider font-medium flex flex-row"
+        className=" flex flex-row text-lg font-medium leading-7 tracking-wider text-white md:text-xl"
       >
         {experience.company}
       </motion.h2>
-      <div className="text-center sm:text-right relative">
+      <div className="relative text-center sm:text-right ">
         <div className="flex flex-col gap-6">
           {experience.roles.map((role, index) => {
             return (
@@ -88,9 +90,8 @@ function ExperienceItem({ experience }: ExperienceItemProps) {
                     variants={pTagVariants}
                     className="text-xs font-light"
                   >
-                    {`${role.from?.month} ${role.from?.year} - ${
-                      role.to?.month
-                    } ${role.to?.year ? role.to.year : ""}`}
+                    {`${role.from?.month} ${role.from?.year} - ${role.to
+                      ?.month} ${role.to?.year ? role.to.year : ""}`}
                   </motion.p>
                 )}
                 <motion.p
@@ -104,6 +105,18 @@ function ExperienceItem({ experience }: ExperienceItemProps) {
             );
           })}
         </div>
+
+        {/* <div className=" absolute hidden h-[400px] w-[400px] rounded-full bg-red-500  group-hover:block">
+          <ScrollingText>
+            {experience.summary.map((summary, index) => {
+              return (
+                <p key={index} className="text-sm text-white">
+                  {summary}
+                </p>
+              );
+            })}
+          </ScrollingText>
+        </div> */}
       </div>
     </motion.div>
   );
@@ -122,10 +135,10 @@ export default function Experience() {
       style={{ opacity: sectionOpacity }}
       ref={sectionRef}
       id="experience"
-      className="select-none sm:mx-[15%] my-[3rem] py-[6rem]"
+      className="my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
       <Heading className="mx-[10%] sm:mx-[0%]">EXPERIENCE</Heading>
-      <div className="flex flex-col mt-24 items-start justify-center">
+      <div className="mt-24 flex flex-col items-start justify-center">
         <motion.div
           variants={{
             collapse: {
@@ -142,7 +155,7 @@ export default function Experience() {
           initial={"collapse"}
           whileInView={"expand"}
           viewport={{ once: true, amount: 0.8, margin: "0px 0px -10% 0px" }}
-          className="h-[1px] linegradient"
+          className="linegradient h-[1px]"
         ></motion.div>
         <LogoCarousel />
         {experiences.map((experience, i) => (
@@ -164,7 +177,7 @@ export default function Experience() {
           initial={"collapse"}
           whileInView={"expand"}
           viewport={{ once: true, amount: 0.8, margin: "0px 0px -10% 0px" }}
-          className="h-[1px] linegradient"
+          className="linegradient h-[1px]"
         ></motion.div>
       </div>
     </motion.section>

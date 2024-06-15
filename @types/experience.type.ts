@@ -16,4 +16,5 @@ export type ExperienceType = {
     };
     type: string;
   }[];
+  summary: string[];
 };
