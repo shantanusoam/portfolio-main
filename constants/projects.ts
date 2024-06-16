@@ -12,24 +12,51 @@ import cryptocat_screenshot2 from '@/public/cryptocat2.png';
 import cryptocat_screenshot1 from '@/public/cryptocat1.png';
 import cryptocat_screenshot0 from '@/public/cryptocat0.jpg';
 import serious_cover from '@/public/serious1.png';
-import serious_screenshot7 from '@/public/serious0.png';
+import SeriousScreenshot7 from '@/public/serious0.png';
 
-import serious_screenshot0 from '@/public/serious1.png';
-import serious_screenshot1 from '@/public/serious2.png';
-import serious_screenshot2 from '@/public/serious3.png';
-import serious_screenshot3 from '@/public/serious4.png';
-import serious_screenshot5 from '@/public/serious5.png';
-import serious_screenshot6 from '@/public/serious6.png';
-import serious_screenshot4 from '@/public/serious7.png';
+import SeriousScreenshot0 from '@/public/serious1.png';
+import SeriousScreenshot1 from '@/public/serious2.png';
+import SeriousScreenshot2 from '@/public/serious3.png';
+import SeriousScreenshot3 from '@/public/serious4.png';
+import SeriousScreenshot5 from '@/public/serious5.png';
+import SeriousScreenshot6 from '@/public/serious6.png';
+import SeriousScreenshot4 from '@/public/serious7.png';
+import DndCover from '@/public/dnd-kit-folder.png';
+import Dndscreenshot from '@/public/dnd-drag.png';
 
 import arnomis_cover from '@/public/arnomis0.png';
 import arnomis_screenshot0 from '@/public/arnomis2.png';
-arnomis_cover;
 
 import Bemo_cover from '@/public/BemoCover.png';
 import Bemo_screenshot0 from '@/public/Bemo.png';
+arnomis_cover;
 
 export const projects = [
+
+  {
+    id: 'dnd-dynamic-tree',
+    title: 'dnd-dynamic-tree',
+    metadata: ['NPM Library'],
+    cover_image: DndCover,
+    screenshots: [DndCover, Dndscreenshot],
+    description:
+      'dnd NPM Library for nth level D&D with Custom trigger, Custom drag, auto-positioning',
+    url: '/projects/dnd-dynamic-tree',
+    features: [
+      'Custom trigger element',
+      'Custom drag Element.',
+      'Multi nth level submenu support',
+      'Automatic State update and Postion generation',
+      'Auto positioning of each dnd-item',
+      'Enhanced user interactions with auto-positioning for each DnD item, utilizing comprehensive DnD-kit helpers.',
+    ],
+    skills: {
+      Frontend: ['Storybook', 'React'],
+      Bundler: ['Webpack', 'Vite', 'babel', 'tsconfig', 'rollup'],
+    },
+    liveLink: 'https://www.npmjs.com/package/dnd-dynamic-tree',
+    codeLink: 'https://github.com/shantanusoam/dnd-dynamic-tree',
+  },
   {
     id: 'maan',
     title: 'MAAN',
@@ -54,24 +81,7 @@ export const projects = [
     liveLink: 'https://maan-ten.vercel.app/',
     codeLink: 'https://github.com/shantanusoam/maan',
   },
-  {
-    id: 'vampire',
-    title: 'Vampire',
-    metadata: ['Entertainment', 'Utility'],
-    cover_image: vampire,
-    screenshots: [vampire2],
-    description: 'Filmpire a Movie recommending Website',
-    url: '/projects/vampire',
-    features: [
-      'The application allows users to Search diffrent Movies, stars, category and much more.',
-    ],
-    skills: {
-      Frontend: ['Reactjs', ' Redux,', ' Material UI', 'Alan AI'],
-      Others: ['Open-AI'],
-    },
-    liveLink: 'https://fvampire.netlify.app/',
-    codeLink: 'https://github.com/shantanusoam/Vampire',
-  },
+
   {
     id: 'cryptocat',
     title: 'Crypto Cat',
@@ -100,14 +110,14 @@ export const projects = [
     url: '/projects/serious',
     cover_image: serious_cover,
     screenshots: [
-      serious_screenshot0,
-      serious_screenshot7,
-      serious_screenshot1,
-      serious_screenshot2,
-      serious_screenshot3,
-      serious_screenshot4,
-      serious_screenshot5,
-      serious_screenshot6,
+      SeriousScreenshot0,
+      SeriousScreenshot7,
+      SeriousScreenshot1,
+      SeriousScreenshot2,
+      SeriousScreenshot3,
+      SeriousScreenshot4,
+      SeriousScreenshot5,
+      SeriousScreenshot6,
     ],
     description: 'A modern StackOverflow clone.',
     metadata: ['Social'],
@@ -125,6 +135,24 @@ export const projects = [
     },
     liveLink: 'https://dev-overflow-lilac.vercel.app/',
     codeLink: 'https://github.com/shantanusoam/CryptoCat/tree/master',
+  },
+  {
+    id: 'vampire',
+    title: 'Vampire',
+    metadata: ['Entertainment', 'Utility'],
+    cover_image: vampire,
+    screenshots: [vampire2],
+    description: 'Filmpire a Movie recommending Website',
+    url: '/projects/vampire',
+    features: [
+      'The application allows users to Search diffrent Movies, stars, category and much more.',
+    ],
+    skills: {
+      Frontend: ['Reactjs', ' Redux,', ' Material UI', 'Alan AI'],
+      Others: ['Open-AI'],
+    },
+    liveLink: 'https://fvampire.netlify.app/',
+    codeLink: 'https://github.com/shantanusoam/Vampire',
   },
   {
     id: 'arnomis',
