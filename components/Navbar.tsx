@@ -10,6 +10,11 @@ import { ScrollText } from "lucide-react";
 import resume_link from "@/constants/resume";
 
 import AboutmePic from "@/public/AboutMePic.jpg";
+import contact from "@/public/Fluency Zoom Logo.png";
+import hobbi from "@/public/3D Windows Developer Symbols.png";
+import ai from "@/public/AI Isometric Lettering.png";
+import programming from "@/public/Programmer coding laptop.png";
+import skills from "@/public/Skills clipart gleam.png";
 import HoverImageLink from "./HoverImageLink";
 const navSections = [
   {
@@ -20,27 +25,27 @@ const navSections = [
   {
     title: "Experience",
     subHeading: `companies i worked for`,
-    image: AboutmePic,
+    image: skills,
   },
   {
     title: "Projects",
     subHeading: `Things i give my commitment to`,
-    image: AboutmePic,
+    image: programming,
   },
   {
     title: "Skills",
     subHeading: `You Don't see what's real`,
-    image: AboutmePic,
+    image: ai,
   },
   {
     title: "Hobbies",
     subHeading: `loves to do`,
-    image: AboutmePic,
+    image: hobbi,
   },
   {
     title: "Contact",
     subHeading: `Common I am here to help`,
-    image: AboutmePic,
+    image: contact,
   },
 ];
 const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
@@ -149,6 +154,7 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
                     whileHover={liHoverAnim}
                   >
                     <HoverImageLink
+                      ageLink
                       arrowref={ref}
                       heading={navSection.title}
                       subheading={navSection.subHeading}
