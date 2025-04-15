@@ -13,6 +13,7 @@ import { Button } from "./ui/Buttons";
 import Magnetic from "@/components/ui/magnetic/Magnetic";
 import StickyCursor from "./ui/stickyCursor/StickyCursor";
 import Image from "next/image";
+import EnhancedPageTransition from "./ui/EnhancedPageTransition";
 const textsData = [
   ["MORE", "MORE", "MORE", "MORE", "MORE", "MORE", "MORE"],
   [
@@ -167,12 +168,13 @@ const Projects = forwardRef(({ stickyElement }) => {
                       src={project.cover_image}
                       alt={`${project.description}`}
                       className="  rounded-lg object-cover "
-                    />{" "}
+                    />
                   </motion.div>
                   <div className=" absolute bottom-0 right-0 p-4">
-                    <Link
+                    <EnhancedPageTransition
                       href={project.url}
                       aria-label="Link to view the project"
+                      transitionStyle="stairs"
                     >
                       <Magnetic>
                         <MoveRight className="w-5 text-gray transition-all duration-300 ease-in-out hover:text-primary" />
@@ -181,7 +183,7 @@ const Projects = forwardRef(({ stickyElement }) => {
                           className="bounds"
                         ></div>
                       </Magnetic>
-                    </Link>
+                    </EnhancedPageTransition>
                   </div>
                 </div>
               </div>

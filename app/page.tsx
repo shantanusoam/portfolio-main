@@ -27,6 +27,7 @@ import Footer from "@/components/Footer";
 import { MousePosition } from "@uidotdev/usehooks";
 import { useMousePosition } from "@/hooks/useMousePosition";
 import StickyCursor from "@/components/ui/stickyCursor/StickyCursor";
+import DadJokes from "@/components/IntrectiveComponents/DadJokes";
 
 function MaskedCopy() {
   const [isHovered, setIsHovered] = useState(false);
@@ -159,6 +160,7 @@ export default function Home() {
           </div>
 
           <div className="container">
+            <DadJokes />
             <Contact />
             <Footer />
           </div>
