@@ -163,7 +163,7 @@ const EnhancedPageTransition = ({
             {/* Slide Transition */}
             {transitionStyle === "slide" && (
               <motion.div
-                className="fixed inset-0  flex items-center justify-center"
+                className="fixed inset-0 z-50 flex items-center justify-center"
                 style={{ backgroundColor }}
                 initial="initial"
                 animate="animate"
@@ -188,7 +188,7 @@ const EnhancedPageTransition = ({
             {transitionStyle === "perspective" && (
               <>
                 <motion.div
-                  className="fixed inset-0 z-40"
+                  className="fixed inset-0 z-50"
                   style={{ backgroundColor }}
                   initial="initial"
                   animate="animate"
@@ -212,7 +212,7 @@ const EnhancedPageTransition = ({
             {/* Stairs Transition */}
             {transitionStyle === "stairs" && (
               <motion.div
-                className="fixed inset-0 z-40 flex flex-row items-stretch"
+                className="fixed inset-0 z-50 flex flex-row items-stretch"
                 initial="initial"
                 animate="animate"
                 exit="exit"
@@ -225,7 +225,7 @@ const EnhancedPageTransition = ({
             {/* Curve Transition */}
             {transitionStyle === "curve" && (
               <motion.div
-                className="fixed inset-0 z-40 flex items-center justify-center"
+                className="fixed inset-0 z-50 flex items-center justify-center"
                 style={{ backgroundColor }}
                 initial="initial"
                 animate="animate"

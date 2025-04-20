@@ -168,13 +168,13 @@ const Projects = forwardRef(({ stickyElement }) => {
                       src={project.cover_image}
                       alt={`${project.description}`}
                       className="  rounded-lg object-cover "
-                    />
+                    />{" "}
                   </motion.div>
                   <div className=" absolute bottom-0 right-0 p-4">
                     <EnhancedPageTransition
                       href={project.url}
                       aria-label="Link to view the project"
-                      transitionStyle="stairs"
+                      transitionStyle="curve"
                     >
                       <Magnetic>
                         <MoveRight className="w-5 text-gray transition-all duration-300 ease-in-out hover:text-primary" />

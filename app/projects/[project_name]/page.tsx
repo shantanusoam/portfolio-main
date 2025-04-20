@@ -6,11 +6,12 @@ import Lenis from "@studio-freight/lenis";
 import { MoveLeft, MoveRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { notFound, redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Buttons";
 import GradientBlocker from "@/components/ui/GradientBlocker";
+import { MatterScene } from "@/components/IntrectiveComponents/PhysicsSimulation";
 
 interface PageProps {
   params: { project_name: string };
@@ -37,10 +38,15 @@ export default function ProjectPage({ params }: PageProps) {
 
     requestAnimationFrame(raf);
   }, []);
+  const [cartTotal, setCartTotal] = useState(0);
 
   return (
     <section className="relative mx-[10%] flex select-none flex-col gap-12 py-[9rem] sm:mx-[15%]">
       <GradientBlocker className="fixed h-[25dvh]" />
+      <MatterScene particleTrigger={cartTotal} />
+      <div className="button " onClick={() => setCartTotal((cartTotal) =>  cartTotal+1)}>
+        
+      add{cartTotal}</div>
       <Link href={"/"} className="flex flex-row items-center gap-2 text-gray">
         <MoveLeft className="w-5" /> Go back to homepage
       </Link>

@@ -28,6 +28,7 @@ import { MousePosition } from "@uidotdev/usehooks";
 import { useMousePosition } from "@/hooks/useMousePosition";
 import StickyCursor from "@/components/ui/stickyCursor/StickyCursor";
 import DadJokes from "@/components/IntrectiveComponents/DadJokes";
+// import PhysicsSimulation from "@/components/IntrectiveComponents/PhysicsSimulation";
 
 function MaskedCopy() {
   const [isHovered, setIsHovered] = useState(false);
@@ -134,6 +135,7 @@ export default function Home() {
             <Experience />
             <Projects stickyElement={stickyElement} />
             <Skills />
+            {/* <PhysicsSimulation/> */}
             <Hobbies />
           </div>
           <div className="overflow-x-hidden md:overflow-x-visible">
