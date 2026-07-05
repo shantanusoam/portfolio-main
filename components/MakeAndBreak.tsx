@@ -1,15 +1,12 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
+import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 
 export default function MakeAndBreak() {
   const sectionRef = useRef(null);
-  const { scrollYProgress: opacityScroller } = useScroll({
-    target: sectionRef,
-    offset: ["end end", "end start"],
-  } as any);
-  const sectionOpacity = useTransform(opacityScroller, [0.6, 1], [1, 0]);
+  const sectionOpacity = useSectionExitFade(sectionRef, [0.6, 1]);
 
   return (
     <motion.section

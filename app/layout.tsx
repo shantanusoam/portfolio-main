@@ -3,20 +3,24 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import PageScrollProgress from '@/components/ui/PageScrollProgress';
 import CustomCursor from '@/components/ui/CustomCursor';
+import { displayFont, dataFont } from '@/lib/fonts';
+import SmoothScrollProvider from '@/components/providers/SmoothScrollProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Shantanu Portfolio',
-  description: 'Making pixel-perfect UIs and robust backends.',
+  title: "Shantanu Soam — Creative Systems Engineer",
+  description:
+    'A creative systems engineer building fast software, playful interfaces, AI tools, and hardware experiments.',
   openGraph: {
     type: 'website',
-    siteName: "Shantanu's Portfolio",
-    title: "Shantanu's Portfolio",
-    description: 'Making pixel-perfect UIs and robust backends.',
+    siteName: "Shantanu Soam's Portfolio",
+    title: 'Shantanu Soam — Creative Systems Engineer',
+    description:
+      'A creative systems engineer building fast software, playful interfaces, AI tools, and hardware experiments.',
     images: [
       {
-        url: 'https://0xjoy.tech/logo.png',
+        url: 'https://portfolio-main-jkzj-git-main-shantanusoams-projects.vercel.app/logo.png',
       },
     ],
   },
@@ -39,14 +43,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  
+
   return (
     <html lang="en">
-      <body className={`${inter.className}`}>
+      <body className={`${inter.className} ${displayFont.variable} ${dataFont.variable}`}>
         {/* <CustomCursor/> */}
-    
-        {/* <PageScrollProgress /> */}
-        {children}
+
+        <PageScrollProgress />
+        <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
     </html>
   );

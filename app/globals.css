@@ -3,15 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --primary: #3b82f6;
-  --primary-light: #60a5fa;
-  --primary-dark: #2563eb;
+  /* Impact accent: bold amber/red energy, replaces the generic Tailwind-blue default */
+  --primary: #ff4d1c;
+  --primary-light: #ff7a47;
+  --primary-dark: #c9330a;
   --black: #0d0d0d;
   --white: #ffffff;
   --gray: #595959;
   --darkgray: #373f3f;
   --graytransparent: #ffffff88;
   --maxwidth: 1800px;
+  /* Additive tokens for the redesign — card fills, high-contrast copy, combo-meter states */
+  --ink: #161616;
+  --paper: #f5f1e8;
+  --combo-lit: #ff5a1f;
+  --combo-unlit: #40403c;
   box-sizing: border-box;
   padding: 0;
   border: 0;
@@ -92,6 +98,22 @@ html, body {
   }
   ::selection {
     @apply bg-primary text-white;
+  }
+
+  /* Subtle static film-grain — cheap, GPU-free texture (no animation) that
+     gives the "handmade/cinematic" material the brand calls for without
+     costing anything under reduced-motion. Sits above section content
+     (z ~996-999 elsewhere) but below Navbar/cursor (z-1000+/9999999). */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 998;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
   }
 
   ::-webkit-scrollbar {
@@ -311,4 +333,21 @@ html.lenis {
             transform: scale(3);
         }
     }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 0px transparent); }
+  50% { opacity: 0.85; filter: drop-shadow(0 0 14px rgba(255, 77, 28, 0.35)); }
+}
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes light-leak-drift {
+  0% { transform: translate(-10%, -10%); }
+  50% { transform: translate(15%, 10%); }
+  100% { transform: translate(-10%, -10%); }
+}
+.animate-light-leak {
+  animation: light-leak-drift 28s ease-in-out infinite;
 }

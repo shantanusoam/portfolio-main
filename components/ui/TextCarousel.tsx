@@ -1,6 +1,7 @@
 "use client";
 
 import { HTMLMotionProps, motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface TextCarouselProps extends HTMLMotionProps<"h1"> {
   greetings: string[];
@@ -8,6 +9,7 @@ interface TextCarouselProps extends HTMLMotionProps<"h1"> {
 
 export default function TextCarousel({
   greetings,
+  className,
   ...props
 }: TextCarouselProps) {
   return (
@@ -36,7 +38,10 @@ export default function TextCarousel({
             repeatDelay: 8.2,
             times: [0, 0.2, 0.6, 0.8, 1],
           }}
-          className="absolute text-[5rem] md:text-[7rem] text-clip whitespace-nowrap font-black select-none text-center z-[1] tracking-tight opacity-0"
+          className={cn(
+            "absolute text-[5rem] md:text-[7rem] text-clip whitespace-nowrap font-black select-none text-center z-[1] tracking-tight opacity-0",
+            className
+          )}
         >
           {greeting}
         </motion.h1>

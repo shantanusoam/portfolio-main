@@ -1,9 +1,10 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll } from "framer-motion";
 import { useRef } from "react";
 import Heading from "./ui/Heading";
 import { RevealingTextContainer, RevealingTextItem } from "./ui/RevealingText";
+import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 
 export default function Intro() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -12,11 +13,7 @@ export default function Intro() {
     offset: ["start end", "end start"],
   } as any);
 
-  const { scrollYProgress: opacityScroller } = useScroll({
-    target: sectionRef,
-    offset: ["end end", "end start"],
-  } as any);
-  const sectionOpacity = useTransform(opacityScroller, [0.4, 0.8], [1, 0]);
+  const sectionOpacity = useSectionExitFade(sectionRef);
 
   const hideAndShowVariant = {
     hide: {

@@ -30,10 +30,13 @@ export default function Heading({
       whileInView={"show"}
       viewport={{ once: false }}
       className={cn(
-        "text-[10px] md:text-xs text-gray uppercase underline underline-offset-4",
+        "flex items-center gap-2 text-[10px] md:text-xs text-gray uppercase underline underline-offset-4",
         className
       )}
     >
+      {/* A small accent tick — the same "checkpoint" mark repeated at the
+          top of every section, tying Trail Map's language to the whole site. */}
+      <span className="inline-block h-[3px] w-[3px] rounded-full bg-primary" aria-hidden="true" />
       {children}
     </motion.h2>
   );

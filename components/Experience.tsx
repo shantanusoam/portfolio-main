@@ -1,19 +1,30 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import Heading from "./ui/Heading";
 import { ExperienceType } from "@/@types/experience.type";
 import { experiences } from "@/constants/experiences";
 import LogoCarousel from "./ui/LogoCarousel";
 import ScrollingText from "./ScrollingText";
+import { useSectionExitFade } from "@/hooks/useSectionExitFade";
+import { MapPin } from "lucide-react";
+import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
+import useMounted from "@/hooks/useMounted";
 
 interface ExperienceItemProps {
   experience: ExperienceType;
+  checkpoint: number;
 }
 
-function ExperienceItem({ experience }: ExperienceItemProps) {
+function ExperienceItem({ experience, checkpoint }: ExperienceItemProps) {
   const animCount = useRef<number>(1);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  // See EntranceWipe.tsx for why: usePrefersReducedMotion's SSR default
+  // (true) differs from what it resolves to on the client's first render,
+  // so a structural mount/unmount decision needs this extra gate or it
+  // fails hydration for the whole page.
+  const mounted = useMounted();
   const pTagVariants = {
     hidden: {
       opacity: 0,
@@ -65,14 +76,36 @@ function ExperienceItem({ experience }: ExperienceItemProps) {
         viewport={{ once: true, amount: 0.8, margin: "0px 0px -150px 0px" }}
         className="linegradient absolute left-0 top-0 h-[1px]"
       ></motion.div>
+      {(!mounted || !prefersReducedMotion) && (
+        // Traveling spark: a bright bead runs along the divider once as it
+        // draws in, like a spark down a wire — turns a static reveal into
+        // a small event, echoing the trail/circuit color language elsewhere.
+        <motion.div
+          initial={{ left: "0%", opacity: 0 }}
+          whileInView={{ left: "100%", opacity: [0, 1, 1, 0] }}
+          viewport={{ once: true, amount: 0.8, margin: "0px 0px -150px 0px" }}
+          transition={{ duration: 0.6, delay: 0.4, ease: "easeInOut" }}
+          className="pointer-events-none absolute top-0 z-10 h-[3px] w-[3px] -translate-y-1/2 rounded-full bg-primary shadow-[0_0_8px_2px_rgba(255,77,28,0.8)]"
+        />
+      )}
 
-      <motion.h2
-        custom={1}
-        variants={pTagVariants}
-        className=" flex flex-row text-lg font-medium leading-7 tracking-wider text-white md:text-xl"
-      >
-        {experience.company}
-      </motion.h2>
+      <div className="flex flex-col gap-2">
+        <motion.p
+          custom={0}
+          variants={pTagVariants}
+          className="flex flex-row items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-primary"
+        >
+          <MapPin className="w-3.5" />
+          Checkpoint {String(checkpoint).padStart(2, "0")}
+        </motion.p>
+        <motion.h2
+          custom={1}
+          variants={pTagVariants}
+          className="font-display flex flex-row text-lg tracking-wider text-white md:text-2xl"
+        >
+          {experience.company}
+        </motion.h2>
+      </div>
       <div className="relative text-center sm:text-right ">
         <div className="flex flex-col gap-6">
           {experience.roles.map((role, index) => {
@@ -124,20 +157,16 @@ function ExperienceItem({ experience }: ExperienceItemProps) {
 
 export default function Experience() {
   const sectionRef = useRef(null);
-  const { scrollYProgress: opacityScroller } = useScroll({
-    target: sectionRef,
-    offset: ["end end", "end start"],
-  } as any);
-  const sectionOpacity = useTransform(opacityScroller, [0.4, 0.8], [1, 0]);
+  const sectionOpacity = useSectionExitFade(sectionRef);
 
   return (
     <motion.section
       style={{ opacity: sectionOpacity }}
       ref={sectionRef}
-      id="experience"
+      id="trail-map"
       className="my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
-      <Heading className="mx-[10%] sm:mx-[0%]">EXPERIENCE</Heading>
+      <Heading className="mx-[10%] sm:mx-[0%]">TRAIL MAP</Heading>
       <div className="mt-24 flex flex-col items-start justify-center">
         <motion.div
           variants={{
@@ -159,7 +188,7 @@ export default function Experience() {
         ></motion.div>
         <LogoCarousel />
         {experiences.map((experience, i) => (
-          <ExperienceItem key={i} experience={experience} />
+          <ExperienceItem key={i} experience={experience} checkpoint={i + 1} />
         ))}
         <motion.div
           variants={{

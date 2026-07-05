@@ -4,7 +4,9 @@ import Experience from "@/components/Experience";
 import Hero from "@/components/Hero";
 import Intro from "@/components/Intro";
 import MakeAndBreak from "@/components/MakeAndBreak";
-import Skills from "@/components/Skills";
+import ComboMeter from "@/components/ComboMeter";
+import PatternLibrary from "@/components/PatternLibrary";
+import MakerLab from "@/components/MakerLab";
 import Projects from "@/components/Projects";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -18,7 +20,6 @@ import {
 import Socials from "@/components/ui/Socials";
 import ScrollDown from "@/components/ui/ScrollDown";
 import Hobbies from "@/components/Hobbies";
-import Lenis from "@studio-freight/lenis";
 import Navbar from "@/components/Navbar";
 import Contact from "@/components/Contact";
 import Image from "next/image";
@@ -27,6 +28,8 @@ import Footer from "@/components/Footer";
 import { MousePosition } from "@uidotdev/usehooks";
 import { useMousePosition } from "@/hooks/useMousePosition";
 import StickyCursor from "@/components/ui/stickyCursor/StickyCursor";
+import ComboTrail from "@/components/ui/ComboTrail";
+import EntranceWipe from "@/components/ui/EntranceWipe";
 
 function MaskedCopy() {
   const [isHovered, setIsHovered] = useState(false);
@@ -49,7 +52,7 @@ function MaskedCopy() {
         <Intro />
         <Experience />
         <Projects />
-        <Skills />
+        <ComboMeter />
         <Hobbies />
       </div>
     </motion.div>
@@ -70,16 +73,6 @@ export default function Home() {
     ["50%", "-50%"]
   );
   const stickyElement = useRef([]);
-  useEffect(() => {
-    const lenis = new Lenis();
-
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-  }, []);
 
   useEffect(() => {
     return xVelocity.on("change", (latestVelocity) => {
@@ -116,6 +109,8 @@ export default function Home() {
   return (
     <>
       <div className="relative">
+        <EntranceWipe />
+        <ComboTrail />
         <StickyCursor stickyElement={stickyElement} />
         {/* <MaskedCopy /> */}
         <Navbar ref={stickyElement} />
@@ -127,12 +122,14 @@ export default function Home() {
         />
         <main className="text-clip">
           <div className="container">
-            <Hero />
+            <Hero masked={false} stickyElement={stickyElement} />
             <MakeAndBreak />
             <Intro />
             <Experience />
             <Projects stickyElement={stickyElement} />
-            <Skills />
+            <PatternLibrary />
+            <ComboMeter stickyElement={stickyElement} />
+            <MakerLab />
             <Hobbies />
           </div>
           <div className="overflow-x-hidden md:overflow-x-visible">

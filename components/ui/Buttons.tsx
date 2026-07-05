@@ -18,7 +18,11 @@ export function Button({
   return (
     <button
       {...props}
-      className={cn("p-2 min-w-[100px]", typeClasses[type], className)}
+      className={cn(
+        "p-2 min-w-[100px] active:scale-95 transition-transform duration-150",
+        typeClasses[type],
+        className
+      )}
     >
       {children}
     </button>
@@ -39,7 +43,7 @@ export function ButtonWithIcon({
     <button
       {...props}
       className={cn(
-        "flex flex-row items-center icon_btn_shadow_primary w-full",
+        "flex flex-row items-center icon_btn_shadow_primary w-full active:scale-[0.98] transition-transform duration-150",
         className
       )}
     >

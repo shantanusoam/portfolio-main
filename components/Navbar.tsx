@@ -15,35 +15,55 @@ import hobbi from "@/public/3D Windows Developer Symbols.png";
 import ai from "@/public/AI Isometric Lettering.png";
 import programming from "@/public/Programmer coding laptop.png";
 import skills from "@/public/Skills clipart gleam.png";
+import lab from "@/public/Disguised Face 3D.png";
+import pattern from "@/public/Happy Smiling Emoji Chat.png";
 import HoverImageLink from "./HoverImageLink";
 const navSections = [
   {
     title: "About",
+    id: "about",
     subHeading: `Something Not To be Told`,
     image: AboutmePic,
   },
   {
-    title: "Experience",
+    title: "Trail Map",
+    id: "trail-map",
     subHeading: `companies i worked for`,
     image: skills,
   },
   {
-    title: "Projects",
-    subHeading: `Things i give my commitment to`,
+    title: "Mission Select",
+    id: "mission-select",
+    subHeading: `Fighter profiles of things I've shipped`,
     image: programming,
   },
   {
-    title: "Skills",
+    title: "Combo Meter",
+    id: "combo-meter",
     subHeading: `You Don't see what's real`,
     image: ai,
   },
   {
-    title: "Hobbies",
+    title: "Pattern Library",
+    id: "pattern-library",
+    subHeading: `components are stitches, patterns become systems`,
+    image: pattern,
+  },
+  {
+    title: "Maker Lab",
+    id: "maker-lab",
+    subHeading: `IoT tinkering & motion experiments`,
+    image: lab,
+  },
+  {
+    title: "Field Notes",
+    id: "field-notes",
     subHeading: `loves to do`,
     image: hobbi,
   },
   {
     title: "Contact",
+    id: "contact",
     subHeading: `Common I am here to help`,
     image: contact,
   },
@@ -159,7 +179,7 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
                       heading={navSection.title}
                       subheading={navSection.subHeading}
                       imgSrc={navSection.image}
-                      href={`#${navSection.title.toLowerCase()}`}
+                      href={`#${navSection.id}`}
                       onClick={() => setMenuOpen(false)}
                     />
                   </motion.li>
