@@ -19,15 +19,11 @@ export default function TextCarousel({
           {...props}
           key={i}
           initial={true}
+          // Reason: animated blur on 6 looping headlines forced expensive
+          // filter paints every frame across the whole Hero — opacity/scale/y only.
           animate={{
             scale: [0.6, 1, 1, 0.6],
             opacity: [0, 1, 1, 0],
-            filter: [
-              "blur(0.4rem)",
-              "blur(0rem)",
-              "blur(0rem)",
-              "blur(0.4rem)",
-            ],
             y: ["70%", "0%", "0%", "-70%"],
           }}
           transition={{

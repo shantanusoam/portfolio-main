@@ -16,7 +16,24 @@ export default function SmoothScrollProvider({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    const lenis = new Lenis();
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (reduceMotion) return;
+
+    // Reason: kill any residual CSS smooth-scroll before Lenis takes over
+    // (html.lenis styles only apply after Lenis mutates the classList).
+    document.documentElement.style.scrollBehavior = "auto";
+
+    // Reason: slightly snappier lerp; syncTouch off so mobile keeps native
+    // scroll (smoother + less JS work on touch devices).
+    const lenis = new Lenis({
+      lerp: 0.1,
+      smoothWheel: true,
+      syncTouch: false,
+      // Wheel multiplier closer to native feels less "floaty" / dual-smoothed.
+      wheelMultiplier: 0.9,
+    });
     let rafId: number;
 
     function raf(time: number) {
@@ -29,6 +46,7 @@ export default function SmoothScrollProvider({
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      document.documentElement.style.scrollBehavior = "";
     };
   }, []);
 

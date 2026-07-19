@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MotionValue, motion, useScroll, useTransform } from "framer-motion";
 import { useSectionBreakpoints } from "@/hooks/useSectionBreakpoints";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
@@ -121,25 +121,37 @@ export default function ComboTrail() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const mounted = useMounted();
   const breakpoints = useSectionBreakpoints(SECTION_IDS);
-  const { scrollYProgress } = useScroll();
+  const { scrollY, scrollYProgress } = useScroll();
   // Tracks scroll 1:1 — an earlier spring-smoothed version noticeably lagged
   // behind fast scrolling, which read as the line "falling behind" instead
   // of a journey that moves with you.
   const drawProgress = scrollYProgress;
 
-  const [viewport, setViewport] = useState({ width: 0, height: 0 });
+  // Reason: a document-tall SVG (~14k px) with mix-blend forced the compositor
+  // to blend the entire page every scroll frame. Keep the path in page coords
+  // but paint only a viewport-sized fixed layer, offset by -scrollY.
+  const [viewport, setViewport] = useState({
+    width: 0,
+    height: 0,
+    pageHeight: 0,
+  });
   useEffect(() => {
     const measure = () =>
       setViewport({
         width: window.innerWidth,
-        height: document.documentElement.scrollHeight,
+        height: window.innerHeight,
+        pageHeight: document.documentElement.scrollHeight,
       });
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, [breakpoints]);
 
-  const { d: pathD, points } = buildPath(breakpoints, viewport.width, viewport.height);
+  const { d: pathD, points } = buildPath(
+    breakpoints,
+    viewport.width,
+    viewport.pageHeight
+  );
   // A little over 0.1% of viewport width reads as a consistent, thin line at
   // any screen size instead of a fixed unit that only looked right at one
   // specific width.
@@ -148,70 +160,91 @@ export default function ComboTrail() {
   const sectionColors = SECTION_IDS.map((id) => SECTION_STYLE[id].color);
   const strokeColor = useTransform(scrollYProgress, breakpoints, sectionColors);
 
-  const [dasharray, setDasharray] = useState(SECTION_STYLE[SECTION_IDS[0]].dasharray);
+  // Translate page-space geometry into the fixed viewport window.
+  const pathOffsetY = useTransform(scrollY, (y) => -y);
+
+  const dasharrayRef = useRef(SECTION_STYLE[SECTION_IDS[0]].dasharray);
+  const [dasharray, setDasharray] = useState(dasharrayRef.current);
   useEffect(() => {
     const unsubscribe = scrollYProgress.on("change", (latest) => {
       let currentIndex = 0;
       for (let i = 0; i < breakpoints.length; i++) {
         if (latest >= breakpoints[i]) currentIndex = i;
       }
-      setDasharray(SECTION_STYLE[SECTION_IDS[currentIndex]].dasharray);
+      const next = SECTION_STYLE[SECTION_IDS[currentIndex]].dasharray;
+      // Reason: avoid React re-renders on every scroll tick when the section
+      // (and therefore dash texture) has not actually changed.
+      if (next !== dasharrayRef.current) {
+        dasharrayRef.current = next;
+        setDasharray(next);
+      }
     });
     return () => unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [breakpoints.join(",")]);
 
-  if (points.length === 0) return null;
+  if (points.length === 0 || viewport.width === 0) return null;
 
   return (
     <svg
-      className="pointer-events-none fixed left-0 top-0 z-0 opacity-40 mix-blend-screen"
+      className="pointer-events-none fixed left-0 top-0 z-0 overflow-hidden opacity-40"
       width={viewport.width}
       height={viewport.height}
       viewBox={`0 0 ${viewport.width} ${viewport.height}`}
-      style={{ position: "absolute" }}
+      aria-hidden="true"
     >
-      <defs>
-        {/* The reveal lives on its own path with no manual stroke-dasharray,
-            so Framer's `pathLength` (which manages dasharray internally to
-            animate the draw) never fights with the visible path's per-section
-            texture below — that exact conflict previously made the server
-            and client disagree on the same attribute and failed hydration
-            for the whole page. Masking is what lets both effects coexist:
-            the reveal path grows a white stroke as you scroll, and the
-            textured path is only visible wherever that white stroke reaches. */}
-        <mask id={MASK_ID} maskUnits="userSpaceOnUse">
-          <motion.path
-            d={pathD}
-            stroke="#fff"
-            strokeWidth={strokeWidth * 3}
-            strokeLinecap="round"
-            fill="none"
-            style={{ pathLength: prefersReducedMotion ? 1 : drawProgress }}
-          />
-        </mask>
-      </defs>
-      <motion.path
-        d={pathD}
-        fill="none"
-        stroke={strokeColor}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeDasharray={dasharray}
-        mask={`url(#${MASK_ID})`}
-      />
-      {(!mounted || !prefersReducedMotion) &&
-        points.map((point, i) => (
-          <Waypoint
-            key={SECTION_IDS[i]}
-            scrollYProgress={scrollYProgress}
-            breakpoint={breakpoints[i] ?? 0}
-            x={point.x}
-            y={point.y}
-            color={SECTION_STYLE[SECTION_IDS[i]].color}
-            strokeWidth={strokeWidth}
-          />
-        ))}
+      {/* Reason: one shared translate keeps mask + stroke + waypoints in the
+          same page-space coordinates while the SVG itself stays viewport-tall. */}
+      <motion.g style={{ y: pathOffsetY }}>
+        <defs>
+          {/* The reveal lives on its own path with no manual stroke-dasharray,
+              so Framer's `pathLength` (which manages dasharray internally to
+              animate the draw) never fights with the visible path's per-section
+              texture below — that exact conflict previously made the server
+              and client disagree on the same attribute and failed hydration
+              for the whole page. Masking is what lets both effects coexist:
+              the reveal path grows a white stroke as you scroll, and the
+              textured path is only visible wherever that white stroke reaches. */}
+          <mask
+            id={MASK_ID}
+            maskUnits="userSpaceOnUse"
+            x={0}
+            y={0}
+            width={viewport.width}
+            height={viewport.pageHeight}
+          >
+            <motion.path
+              d={pathD}
+              stroke="#fff"
+              strokeWidth={strokeWidth * 3}
+              strokeLinecap="round"
+              fill="none"
+              style={{ pathLength: prefersReducedMotion ? 1 : drawProgress }}
+            />
+          </mask>
+        </defs>
+        <motion.path
+          d={pathD}
+          fill="none"
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={dasharray}
+          mask={`url(#${MASK_ID})`}
+        />
+        {(!mounted || !prefersReducedMotion) &&
+          points.map((point, i) => (
+            <Waypoint
+              key={SECTION_IDS[i]}
+              scrollYProgress={scrollYProgress}
+              breakpoint={breakpoints[i] ?? 0}
+              x={point.x}
+              y={point.y}
+              color={SECTION_STYLE[SECTION_IDS[i]].color}
+              strokeWidth={strokeWidth}
+            />
+          ))}
+      </motion.g>
     </svg>
   );
 }

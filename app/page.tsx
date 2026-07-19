@@ -113,13 +113,8 @@ export default function Home() {
         <ComboTrail />
         <StickyCursor stickyElement={stickyElement} />
         {/* <MaskedCopy /> */}
-        <Navbar ref={stickyElement} />
-        <Socials
-          ref={{
-            ref1: socialsRef,
-            ref2: stickyElement,
-          }}
-        />
+        <Navbar stickyTargets={stickyElement} />
+        <Socials containerRef={socialsRef} stickyTargets={stickyElement} />
         <main className="text-clip">
           <div className="container">
             <Hero masked={false} stickyElement={stickyElement} />

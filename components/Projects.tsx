@@ -6,7 +6,7 @@ import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 import Heading from "./ui/Heading";
 import GradientBlocker from "./ui/GradientBlocker";
 import { cn } from "@/lib/utils";
-import { forwardRef, useRef } from "react";
+import { useRef } from "react";
 import { Github } from "lucide-react";
 import AlternateSlidingTexts from "./ui/AlternateSlidingTexts";
 import { projects } from "@/constants/projects";
@@ -36,7 +36,11 @@ const textsData = [
   ["MORE", "MORE", "MORE", "MORE", "MORE", "MORE"],
 ];
 
-const Projects = forwardRef(({ stickyElement }) => {
+type ProjectsProps = {
+  stickyElement?: React.MutableRefObject<(HTMLElement | null)[]>;
+};
+
+export default function Projects({ stickyElement }: ProjectsProps) {
   const targetRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -118,6 +122,4 @@ const Projects = forwardRef(({ stickyElement }) => {
       </motion.div>
     </motion.section>
   );
-});
-Projects.displayName = "Projects";
-export default Projects;
+}

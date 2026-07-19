@@ -4,7 +4,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreBuildErrors: true,
+    // Next 13 expects ignoreDuringBuilds (ignoreBuildErrors is invalid here).
     ignoreDuringBuilds: true,
   },
   webpack: (config, { isServer }) => {

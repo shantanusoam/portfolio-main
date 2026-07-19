@@ -1,5 +1,4 @@
 import React, {
-  useEffect,
   useState,
   useRef,
   useLayoutEffect,
@@ -16,14 +15,18 @@ import {
 
 export default function StickyCursor({ stickyElement }) {
   const [isHovered, setIsHovered] = useState(false);
-  const [dynamiccursorSize, setDynamicCursorSize] = useState(20);
+  const [cursorSize, setCursorSize] = useState(20);
   const cursor = useRef(null);
+  const hoveredRef = useRef(false);
+  const lastRectCheck = useRef(0);
+  const cachedRects = useRef([]);
+  const sizeRef = useRef(20);
 
-  const cursorSize = isHovered ? 60 : dynamiccursorSize;
+  const displaySize = isHovered ? 60 : cursorSize;
 
   const mouse = {
-    x: useMotionValue(0),
-    y: useMotionValue(0),
+    x: useMotionValue(-100),
+    y: useMotionValue(-100),
   };
 
   const scale = {
@@ -31,7 +34,6 @@ export default function StickyCursor({ stickyElement }) {
     y: useMotionValue(1),
   };
 
-  // Smooth out the mouse values
   const smoothOptions = { damping: 20, stiffness: 300, mass: 0.5 };
   const smoothMouse = {
     x: useSpring(mouse.x, smoothOptions),
@@ -43,75 +45,101 @@ export default function StickyCursor({ stickyElement }) {
     animate(cursor.current, { rotate: `${angle}rad` }, { duration: 0 });
   };
 
+  const refreshRects = useCallback(() => {
+    if (!Array.isArray(stickyElement.current)) {
+      cachedRects.current = [];
+      return;
+    }
+    cachedRects.current = stickyElement.current
+      .filter(Boolean)
+      .map((ref) => {
+        const { left, top, height, width } = ref.getBoundingClientRect();
+        return {
+          left,
+          top,
+          height,
+          width,
+          centerX: left + width / 2,
+          centerY: top + height / 2,
+        };
+      });
+  }, [stickyElement]);
+
   const manageMouseMove = useCallback(
     (e) => {
       const { clientX, clientY } = e;
-      const element = document.elementFromPoint(clientX, clientY);
+      const now = performance.now();
 
-      if (element?.className?.includes("mouse-modal")) {
-        setDynamicCursorSize(600);
-      } else {
-        setDynamicCursorSize(20);
+      // Reason: elementFromPoint + getBoundingClientRect every mousemove
+      // layout-thrashed during scroll. Cache rects ~every 100ms.
+      if (now - lastRectCheck.current > 100) {
+        lastRectCheck.current = now;
+        refreshRects();
+
+        const element = document.elementFromPoint(clientX, clientY);
+        const nextSize =
+          typeof element?.className === "string" &&
+          element.className.includes("mouse-modal")
+            ? 600
+            : 20;
+        if (nextSize !== sizeRef.current) {
+          sizeRef.current = nextSize;
+          setCursorSize(nextSize);
+        }
       }
 
       let isHoveredTemp = false;
 
-      stickyElement.current.some((ref) => {
-        if (ref) {
-          const { left, top, height, width } = ref.getBoundingClientRect();
-          const center = { x: left + width / 2, y: top + height / 2 };
+      for (const rect of cachedRects.current) {
+        if (
+          clientX >= rect.left &&
+          clientX <= rect.left + rect.width &&
+          clientY >= rect.top &&
+          clientY <= rect.top + rect.height
+        ) {
+          isHoveredTemp = true;
 
-          if (
-            clientX >= left &&
-            clientX <= left + width &&
-            clientY >= top &&
-            clientY <= top + height
-          ) {
-            isHoveredTemp = true;
-            setIsHovered(true);
+          const distance = {
+            x: clientX - rect.centerX,
+            y: clientY - rect.centerY,
+          };
 
-            const distance = { x: clientX - center.x, y: clientY - center.y };
+          rotate(distance);
 
-            // Rotate the element based on the distance
-            rotate(distance);
+          const absDistance = Math.max(
+            Math.abs(distance.x),
+            Math.abs(distance.y)
+          );
 
-            const absDistance = Math.max(
-              Math.abs(distance.x),
-              Math.abs(distance.y)
-            );
+          scale.x.set(transform(absDistance, [0, rect.height / 2], [1, 1.3]));
+          scale.y.set(transform(absDistance, [0, rect.width / 2], [1, 0.8]));
 
-            // Calculate the new scale based on the distance
-            const newScaleX = transform(absDistance, [0, height / 2], [1, 1.3]);
-            const newScaleY = transform(absDistance, [0, width / 2], [1, 0.8]);
-
-            // Apply the new scale to the element
-            scale.x.set(newScaleX);
-            scale.y.set(newScaleY);
-
-            // Position the cursor relative to the center of the element
-            mouse.x.set(center.x + distance.x * 0.1);
-            mouse.y.set(center.y + distance.y * 0.1);
-
-            return true; // Break the loop if a match is found
-          }
+          mouse.x.set(rect.centerX + distance.x * 0.1);
+          mouse.y.set(rect.centerY + distance.y * 0.1);
+          break;
         }
-        return false; // Continue the loop if no match is found
-      });
+      }
+
+      if (isHoveredTemp !== hoveredRef.current) {
+        hoveredRef.current = isHoveredTemp;
+        setIsHovered(isHoveredTemp);
+      }
 
       if (!isHoveredTemp) {
-        setIsHovered(false); // Reset hover state if the cursor is not over the element
         mouse.x.set(clientX);
         mouse.y.set(clientY);
       }
     },
-    [cursorSize, stickyElement]
+    [refreshRects]
   );
 
   const manageMouseOver = () => {
+    hoveredRef.current = true;
     setIsHovered(true);
   };
 
   const manageMouseLeave = () => {
+    hoveredRef.current = false;
     setIsHovered(false);
     animate(
       cursor.current,
@@ -131,7 +159,8 @@ export default function StickyCursor({ stickyElement }) {
       });
     }
 
-    window.addEventListener("mousemove", manageMouseMove);
+    window.addEventListener("mousemove", manageMouseMove, { passive: true });
+    window.addEventListener("scroll", refreshRects, { passive: true });
 
     return () => {
       if (Array.isArray(stickyElement.current)) {
@@ -144,8 +173,9 @@ export default function StickyCursor({ stickyElement }) {
       }
 
       window.removeEventListener("mousemove", manageMouseMove);
+      window.removeEventListener("scroll", refreshRects);
     };
-  }, [isHovered, manageMouseMove, stickyElement]);
+  }, [manageMouseMove, refreshRects, stickyElement]);
 
   const template = ({ rotate, scaleX, scaleY }) => {
     return `rotate(${rotate}) scaleX(${scaleX}) scaleY(${scaleY})`;
@@ -156,21 +186,19 @@ export default function StickyCursor({ stickyElement }) {
       <motion.div
         transformTemplate={template}
         style={{
-          left: smoothMouse.x,
-          top: smoothMouse.y,
+          // Reason: left/top invalidate layout every frame; x/y stay on the compositor.
+          x: smoothMouse.x,
+          y: smoothMouse.y,
           scaleX: scale.x,
           scaleY: scale.y,
-
-          marginLeft: -cursorSize / 2,
-          marginTop: -cursorSize / 2,
-        }}
-        animate={{
-          width: cursorSize,
-          height: cursorSize,
+          width: displaySize,
+          height: displaySize,
+          marginLeft: -displaySize / 2,
+          marginTop: -displaySize / 2,
         }}
         className={styles.cursor}
         ref={cursor}
-      ></motion.div>
+      />
     </div>
   );
 }

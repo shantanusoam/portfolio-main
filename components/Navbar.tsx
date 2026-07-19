@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import React, { forwardRef, useRef, useState } from "react";
+import { MutableRefObject, useState } from "react";
 import MenuToggle from "./ui/MenuToggle";
 import Socials from "./ui/Socials";
 import { Button } from "./ui/Buttons";
@@ -68,7 +68,11 @@ const navSections = [
     image: contact,
   },
 ];
-const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
+const Navbar = ({
+  stickyTargets,
+}: {
+  stickyTargets?: MutableRefObject<(HTMLElement | null)[]>;
+}) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const liHoverAnim = {
@@ -185,19 +189,13 @@ const Navbar = forwardRef<React.RefObject<never[]>, {}>((props, ref) => {
                   </motion.li>
                 ))}
               </motion.ul>
-              <Socials
-                ref={{
-                  ref2: ref,
-                }}
-                direction="horizontal"
-              />
+              <Socials stickyTargets={stickyTargets} direction="horizontal" />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </>
   );
-});
+};
 
-Navbar.displayName = "Navbar";
 export default Navbar;

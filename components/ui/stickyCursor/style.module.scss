@@ -1,5 +1,7 @@
 .cursor{
     position: fixed;
+    top: 0;
+    left: 0;
     width: 20px;
     height: 20px;
     mix-blend-mode: difference;
@@ -7,5 +9,5 @@
     border-radius: 50%;
     pointer-events: none;
     z-index: 9999999;
-    
+    will-change: transform;
 }
