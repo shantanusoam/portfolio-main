@@ -32,7 +32,16 @@ const SECTION_STYLE: Record<string, { color: string; dasharray: string }> = {
   contact: { color: "#f5f1e8", dasharray: "6 3" },
 };
 
-const VIEW_WIDTH = 100;
+// Sweeps nearly edge-to-edge, alternating sides at each checkpoint — the
+// full "one end to the other" motion. The earlier margin-only version
+// avoided this by staying inside the safe 10% content border the whole
+// time, but that read as too subtle. The crossing itself is handled by
+// buildPath's "quick snap" easing below: instead of a slow 50/50 drift
+// spread across an entire section's height, each transition is bunched
+// into a short stretch right at the section boundary, so the sweep still
+// reaches from edge to edge, it just does it quickly at the seam between
+// sections rather than lingering across a section's own content.
+const EDGE_FRACTION = 0.06;
 
 // Checkpoint ping: a brief scale/brightness pulse right as scroll crosses a
 // section's breakpoint — a small "confirmed" beat, like a combo counter tick,
@@ -43,18 +52,20 @@ function Waypoint({
   x,
   y,
   color,
+  strokeWidth,
 }: {
   scrollYProgress: MotionValue<number>;
   breakpoint: number;
   x: number;
   y: number;
   color: string;
+  strokeWidth: number;
 }) {
   const pulse = 0.015;
   const r = useTransform(
     scrollYProgress,
     [breakpoint - pulse, breakpoint, breakpoint + pulse],
-    [0.8, 2.2, 0.8]
+    [strokeWidth * 2, strokeWidth * 5.5, strokeWidth * 2]
   );
   const opacity = useTransform(
     scrollYProgress,
@@ -64,43 +75,75 @@ function Waypoint({
   return <motion.circle cx={x} cy={y} r={r} fill={color} style={{ opacity }} />;
 }
 
-function buildPath(pointsY: number[]): { d: string; points: { x: number; y: number }[] } {
-  if (pointsY.length === 0) return { d: "", points: [] };
-  const points = pointsY.map((y, i) => ({
-    // Hero (i === 0) gets a marginal anchor instead of the usual 25/75
-    // alternation — its centered headline sits roughly between those two
-    // x positions, so the regular anchor drew the line straight through it.
-    x: i === 0 ? VIEW_WIDTH * 0.08 : i % 2 === 0 ? VIEW_WIDTH * 0.25 : VIEW_WIDTH * 0.75,
-    y,
+// Builds the path in real pixel coordinates (matching the SVG's actual
+// rendered size 1:1, no preserveAspectRatio stretching) so stroke width and
+// dash patterns render at a single, predictable, consistent thickness
+// regardless of the page's aspect ratio — previously the path lived in an
+// abstract 100x1000 space non-uniformly stretched to fit the real page,
+// which distorted the stroke differently depending on viewport width.
+//
+// Each checkpoint alternates edges (one end to the other), but the bezier
+// control points are deliberately unbalanced instead of a symmetric 50/50
+// S-curve: the line holds its current side for most of a section's height,
+// then snaps across in a short burst confined to the last ~14% of the
+// distance, right at the seam going into the next section. That keeps the
+// dramatic full-width sweep, while the actual crossing — the only part
+// that risks passing over a heading — happens quickly at a section
+// boundary instead of drifting through the middle of one section's content.
+const SNAP_FRACTION = 0.14;
+
+function buildPath(
+  pointsFrac: number[],
+  width: number,
+  height: number
+): { d: string; points: { x: number; y: number }[] } {
+  if (pointsFrac.length === 0 || width === 0) return { d: "", points: [] };
+  const edge = width * EDGE_FRACTION;
+  const points = pointsFrac.map((frac, i) => ({
+    x: i % 2 === 0 ? edge : width - edge,
+    y: frac * height,
   }));
   let d = `M ${points[0].x} ${points[0].y}`;
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
     const curr = points[i];
-    const midY = (prev.y + curr.y) / 2;
-    d += ` C ${prev.x} ${midY}, ${curr.x} ${midY}, ${curr.x} ${curr.y}`;
+    const span = curr.y - prev.y;
+    const holdY = prev.y + span * (1 - SNAP_FRACTION);
+    const arriveY = curr.y - span * SNAP_FRACTION * 0.35;
+    d += ` C ${prev.x} ${holdY}, ${curr.x} ${arriveY}, ${curr.x} ${curr.y}`;
   }
   return { d, points };
 }
+
+const MASK_ID = "combo-trail-reveal";
 
 export default function ComboTrail() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const mounted = useMounted();
   const breakpoints = useSectionBreakpoints(SECTION_IDS);
   const { scrollYProgress } = useScroll();
+  // Tracks scroll 1:1 — an earlier spring-smoothed version noticeably lagged
+  // behind fast scrolling, which read as the line "falling behind" instead
+  // of a journey that moves with you.
+  const drawProgress = scrollYProgress;
 
-  const [docHeight, setDocHeight] = useState(0);
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
   useEffect(() => {
-    setDocHeight(document.documentElement.scrollHeight);
-    const onResize = () => setDocHeight(document.documentElement.scrollHeight);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const measure = () =>
+      setViewport({
+        width: window.innerWidth,
+        height: document.documentElement.scrollHeight,
+      });
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
   }, [breakpoints]);
 
-  // Canvas is a fixed-height coordinate space (independent of docHeight);
-  // the <svg> below stretches it to the real page height via preserveAspectRatio.
-  const canvasHeight = 1000;
-  const { d: pathD, points } = buildPath(breakpoints.map((f) => f * canvasHeight));
+  const { d: pathD, points } = buildPath(breakpoints, viewport.width, viewport.height);
+  // A little over 0.1% of viewport width reads as a consistent, thin line at
+  // any screen size instead of a fixed unit that only looked right at one
+  // specific width.
+  const strokeWidth = Math.max(1, viewport.width * 0.0012);
 
   const sectionColors = SECTION_IDS.map((id) => SECTION_STYLE[id].color);
   const strokeColor = useTransform(scrollYProgress, breakpoints, sectionColors);
@@ -122,24 +165,40 @@ export default function ComboTrail() {
 
   return (
     <svg
-      className="pointer-events-none fixed left-0 top-0 z-0 h-full w-full opacity-40 mix-blend-screen"
-      viewBox={`0 0 ${VIEW_WIDTH} ${canvasHeight}`}
-      preserveAspectRatio="none"
-      style={{ position: "absolute", height: docHeight || "100%" }}
+      className="pointer-events-none fixed left-0 top-0 z-0 opacity-40 mix-blend-screen"
+      width={viewport.width}
+      height={viewport.height}
+      viewBox={`0 0 ${viewport.width} ${viewport.height}`}
+      style={{ position: "absolute" }}
     >
-      {/* Always fully drawn — no Framer `pathLength` here, since its
-          built-in path-draw animation manages stroke-dasharray internally
-          and fights with the per-section dasharray texture below (they'd
-          disagree between server and client, failing hydration for the
-          whole page). Scroll progress is instead communicated by the
-          waypoint pulses and the color shift, both of which are compatible. */}
+      <defs>
+        {/* The reveal lives on its own path with no manual stroke-dasharray,
+            so Framer's `pathLength` (which manages dasharray internally to
+            animate the draw) never fights with the visible path's per-section
+            texture below — that exact conflict previously made the server
+            and client disagree on the same attribute and failed hydration
+            for the whole page. Masking is what lets both effects coexist:
+            the reveal path grows a white stroke as you scroll, and the
+            textured path is only visible wherever that white stroke reaches. */}
+        <mask id={MASK_ID} maskUnits="userSpaceOnUse">
+          <motion.path
+            d={pathD}
+            stroke="#fff"
+            strokeWidth={strokeWidth * 3}
+            strokeLinecap="round"
+            fill="none"
+            style={{ pathLength: prefersReducedMotion ? 1 : drawProgress }}
+          />
+        </mask>
+      </defs>
       <motion.path
         d={pathD}
         fill="none"
         stroke={strokeColor}
-        strokeWidth={0.4}
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeDasharray={dasharray}
+        mask={`url(#${MASK_ID})`}
       />
       {(!mounted || !prefersReducedMotion) &&
         points.map((point, i) => (
@@ -150,6 +209,7 @@ export default function ComboTrail() {
             x={point.x}
             y={point.y}
             color={SECTION_STYLE[SECTION_IDS[i]].color}
+            strokeWidth={strokeWidth}
           />
         ))}
     </svg>
