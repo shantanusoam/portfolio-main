@@ -110,7 +110,7 @@ export default function Home() {
     <>
       <div className="relative">
         <EntranceWipe />
-        {/* <ComboTrail /> */}
+        <ComboTrail />
         {/* <StickyCursor stickyElement={stickyElement} /> */}
         {/* <MaskedCopy /> */}
         <Navbar stickyTargets={stickyElement} />

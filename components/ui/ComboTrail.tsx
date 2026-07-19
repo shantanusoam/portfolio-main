@@ -32,15 +32,38 @@ const SECTION_STYLE: Record<string, { color: string; dasharray: string }> = {
   contact: { color: "#f5f1e8", dasharray: "6 3" },
 };
 
-// Sweeps nearly edge-to-edge, alternating sides at each checkpoint — the
-// full "one end to the other" motion. The crossing itself is handled by
-// buildGeometry's "quick snap" easing below: instead of a slow 50/50 drift
-// spread across an entire section's height, each transition is bunched
-// into a short stretch right at the section boundary, so the sweep still
-// reaches from edge to edge, it just does it quickly at the seam between
-// sections rather than lingering across a section's own content.
+// Sweeps nearly edge-to-edge where there is vertical room to do it
+// gracefully. EDGE_FRACTION is how far in from the sides the line turns
+// around.
 const EDGE_FRACTION = 0.06;
-const SNAP_FRACTION = 0.14;
+
+// The line's horizontal travel between two anchors is capped at
+// span * MAX_AVG_SLOPE (span = vertical distance between them). Section
+// heights on the real page vary ~6x, so an unconditional edge-to-edge
+// sweep gave a 2:1 average slope through short sections — and the old
+// "hold, then snap across in the last 14%" control points compressed that
+// crossing into a near-horizontal slash that read as a right angle. With
+// the cap, a short section produces a partial drift instead, and the line
+// finishes the journey to the far edge over the following sections; the
+// slope (and therefore the curve character) stays uniform top to bottom
+// at any viewport width. 0.85 average keeps the steepest instantaneous
+// slope of the symmetric cubic (~1.5x the average, at its midpoint)
+// around 52 degrees from vertical — flowing, never flat.
+const MAX_AVG_SLOPE = 0.85;
+
+// Symmetric control-point offset: both handles sit at 45% of the span,
+// vertically in line with their endpoints. Every anchor therefore has a
+// vertical tangent on both sides — mathematically continuous joins, one
+// even S-curve per transition, identical character everywhere (the old
+// asymmetric hold/snap handles are what made the top of the page look
+// organic and the bottom geometric).
+const CONTROL_FRACTION = 0.45;
+
+// Anchors closer together than this (or out of order, e.g. a renamed
+// section id resolving to offsetTop 0) are dropped from the trail: a
+// near-zero span can only ever render as a horizontal cut, and a
+// backwards one breaks the monotonic-y assumption the reveal depends on.
+const MIN_SPAN = 100;
 
 // How far (in scroll progress) around a checkpoint the sonar ping animates.
 const PULSE_WINDOW = 0.02;
@@ -51,6 +74,12 @@ const PULSE_WINDOW = 0.02;
 const SAMPLES_PER_SEGMENT = 16;
 
 type Point = { x: number; y: number };
+type TrailNode = {
+  id: string;
+  breakpoint: number;
+  x: number;
+  y: number;
+};
 type Segment = {
   d: string;
   dasharray: string;
@@ -62,7 +91,7 @@ type Segment = {
 };
 type Geometry = {
   previewD: string;
-  points: Point[];
+  nodes: TrailNode[];
   segments: Segment[];
   xs: Float32Array;
   ys: Float32Array;
@@ -81,51 +110,77 @@ function cubicAt(a: number, c1: number, c2: number, b: number, t: number) {
 // next section's color) — nothing about the strokes themselves ever needs
 // touching while scrolling, unlike the old per-frame color interpolation
 // and dasharray state swaps.
+//
+// Anchor x-positions come from a "pen walk" rather than strict left/right
+// alternation: the pen heads for one edge, moves at most span * MAX_AVG_SLOPE
+// per anchor, and only turns around once it has actually reached that edge.
+// Where sections are tall the result is the same full edge-to-edge sweep as
+// before; where they are short the pen drifts partway and completes the
+// crossing over the next sections, so no transition is ever steeper than the
+// cap no matter how the page's section heights or the viewport width change.
 function buildGeometry(
   pointsFrac: number[],
   width: number,
   height: number
 ): Geometry | null {
   if (pointsFrac.length < 2 || width === 0 || height === 0) return null;
-  const edge = width * EDGE_FRACTION;
-  const points = pointsFrac.map((frac, i) => ({
-    x: i % 2 === 0 ? edge : width - edge,
-    y: frac * height,
-  }));
+  const edgeL = width * EDGE_FRACTION;
+  const edgeR = width - edgeL;
+
+  const nodes: TrailNode[] = [];
+  for (let i = 0; i < pointsFrac.length; i++) {
+    const y = pointsFrac[i] * height;
+    if (nodes.length > 0 && y < nodes[nodes.length - 1].y + MIN_SPAN) continue;
+    nodes.push({ id: SECTION_IDS[i], breakpoint: pointsFrac[i], x: 0, y });
+  }
+  if (nodes.length < 2) return null;
+
+  nodes[0].x = edgeL;
+  const reachTolerance = width * 0.02;
+  let direction = 1;
+  for (let i = 1; i < nodes.length; i++) {
+    const prev = nodes[i - 1];
+    const span = nodes[i].y - prev.y;
+    const target = direction > 0 ? edgeR : edgeL;
+    const maxDx = span * MAX_AVG_SLOPE;
+    const dx = Math.max(-maxDx, Math.min(maxDx, target - prev.x));
+    nodes[i].x = prev.x + dx;
+    if (Math.abs(target - nodes[i].x) <= reachTolerance) direction = -direction;
+  }
+
   const segments: Segment[] = [];
-  let previewD = `M ${points[0].x} ${points[0].y}`;
-  const total = (points.length - 1) * SAMPLES_PER_SEGMENT + 1;
+  let previewD = `M ${nodes[0].x} ${nodes[0].y}`;
+  const total = (nodes.length - 1) * SAMPLES_PER_SEGMENT + 1;
   const xs = new Float32Array(total);
   const ys = new Float32Array(total);
-  xs[0] = points[0].x;
-  ys[0] = points[0].y;
+  xs[0] = nodes[0].x;
+  ys[0] = nodes[0].y;
   let k = 1;
-  for (let i = 1; i < points.length; i++) {
-    const prev = points[i - 1];
-    const curr = points[i];
+  for (let i = 1; i < nodes.length; i++) {
+    const prev = nodes[i - 1];
+    const curr = nodes[i];
     const span = curr.y - prev.y;
-    const holdY = prev.y + span * (1 - SNAP_FRACTION);
-    const arriveY = curr.y - span * SNAP_FRACTION * 0.35;
-    const curve = ` C ${prev.x} ${holdY}, ${curr.x} ${arriveY}, ${curr.x} ${curr.y}`;
+    const c1y = prev.y + span * CONTROL_FRACTION;
+    const c2y = curr.y - span * CONTROL_FRACTION;
+    const curve = ` C ${prev.x} ${c1y}, ${curr.x} ${c2y}, ${curr.x} ${curr.y}`;
     previewD += curve;
     segments.push({
       d: `M ${prev.x} ${prev.y}${curve}`,
-      dasharray: SECTION_STYLE[SECTION_IDS[i - 1]].dasharray,
+      dasharray: SECTION_STYLE[prev.id].dasharray,
       gradientId: `combo-seg-${i - 1}`,
-      from: SECTION_STYLE[SECTION_IDS[i - 1]].color,
-      to: SECTION_STYLE[SECTION_IDS[i]].color,
+      from: SECTION_STYLE[prev.id].color,
+      to: SECTION_STYLE[curr.id].color,
       y1: prev.y,
-      // userSpaceOnUse gradients degenerate when y1 === y2.
-      y2: curr.y === prev.y ? prev.y + 1 : curr.y,
+      y2: curr.y,
     });
     for (let s = 1; s <= SAMPLES_PER_SEGMENT; s++) {
       const t = s / SAMPLES_PER_SEGMENT;
       xs[k] = cubicAt(prev.x, prev.x, curr.x, curr.x, t);
-      ys[k] = cubicAt(prev.y, holdY, arriveY, curr.y, t);
+      ys[k] = cubicAt(prev.y, c1y, c2y, curr.y, t);
       k++;
     }
   }
-  return { previewD, points, segments, xs, ys };
+  return { previewD, nodes, segments, xs, ys };
 }
 
 // The path only ever descends, so the pen tip for a given reveal depth is a
@@ -248,13 +303,14 @@ export default function ComboTrail() {
       head.setAttribute("r", `${strokeWidth * (2.2 + v * 2.5)}`);
       halo.setAttribute("transform", `translate(${tip.x} ${tip.y})`);
 
+      const nodes = geometry.nodes;
       let idx = 0;
-      for (let i = 0; i < breakpoints.length; i++) {
-        if (p >= breakpoints[i]) idx = i;
+      for (let i = 0; i < nodes.length; i++) {
+        if (p >= nodes[i].breakpoint) idx = i;
       }
       if (idx !== liveState.current.sectionIdx) {
         liveState.current.sectionIdx = idx;
-        head.setAttribute("fill", SECTION_STYLE[SECTION_IDS[idx]].color);
+        head.setAttribute("fill", SECTION_STYLE[nodes[idx].id].color);
       }
 
       // Sonar ping: an expanding, fading ring exactly as scroll crosses a
@@ -262,19 +318,19 @@ export default function ComboTrail() {
       // shared ring element is enough: checkpoints sit far apart, so at most
       // one is ever inside the pulse window.
       let active = -1;
-      for (let i = 0; i < breakpoints.length; i++) {
-        if (Math.abs(p - breakpoints[i]) < PULSE_WINDOW) {
+      for (let i = 0; i < nodes.length; i++) {
+        if (Math.abs(p - nodes[i].breakpoint) < PULSE_WINDOW) {
           active = i;
           break;
         }
       }
       if (active >= 0) {
-        const beat = 1 - Math.abs(p - breakpoints[active]) / PULSE_WINDOW;
-        const at = geometry.points[active];
+        const at = nodes[active];
+        const beat = 1 - Math.abs(p - at.breakpoint) / PULSE_WINDOW;
         pulse.setAttribute("cx", `${at.x}`);
         pulse.setAttribute("cy", `${at.y}`);
         pulse.setAttribute("r", `${strokeWidth * (2 + beat * 7)}`);
-        pulse.setAttribute("stroke", SECTION_STYLE[SECTION_IDS[active]].color);
+        pulse.setAttribute("stroke", SECTION_STYLE[at.id].color);
         pulse.setAttribute("opacity", `${0.9 * beat}`);
         liveState.current.pulseOn = true;
       } else if (liveState.current.pulseOn) {
@@ -296,7 +352,6 @@ export default function ComboTrail() {
     geometry,
     prefersReducedMotion,
     strokeWidth,
-    breakpoints,
     scrollY,
     scrollYProgress,
     scrollVelocity,
@@ -362,13 +417,13 @@ export default function ComboTrail() {
             strokeLinecap="round"
           />
         )}
-        {geometry.points.map((point, i) => (
+        {geometry.nodes.map((node) => (
           <circle
-            key={SECTION_IDS[i]}
-            cx={point.x}
-            cy={point.y}
+            key={node.id}
+            cx={node.x}
+            cy={node.y}
             r={strokeWidth * 2}
-            fill={SECTION_STYLE[SECTION_IDS[i]].color}
+            fill={SECTION_STYLE[node.id].color}
             opacity={0.35}
           />
         ))}
