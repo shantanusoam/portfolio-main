@@ -1,47 +1,81 @@
 "use client";
 
-import { HTMLMotionProps, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 
-interface TextCarouselProps extends HTMLMotionProps<"h1"> {
+interface TextCarouselProps {
   greetings: string[];
+  className?: string;
+  /**
+   * How long each greeting stays on screen, in ms. Deliberately off-beat
+   * from RoleTicker's 2600ms so the two lines never swap in the same frame.
+   */
+  interval?: number;
 }
 
+// One element mounted at a time via AnimatePresence `mode="wait"` — the old
+// version stacked six infinitely-looping headlines whose stagger (1.8s) was
+// shorter than each word's visible window (~2.4s) and whose loop period
+// (11.2s) never matched the total stagger (10.8s), so words ghosted on top
+// of each other and drifted further out of sync the longer the page sat.
 export default function TextCarousel({
   greetings,
   className,
-  ...props
+  interval = 3400,
 }: TextCarouselProps) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const id = setInterval(
+      () => setIndex((i) => (i + 1) % greetings.length),
+      interval
+    );
+    return () => clearInterval(id);
+  }, [greetings.length, interval, prefersReducedMotion]);
+
+  // Same DOM shape whether motion is reduced or not (see EntranceWipe.tsx for
+  // why structural branches on this preference break hydration) — reduced
+  // motion just zeroes the movement and durations.
+  const y = prefersReducedMotion ? 0 : 28;
+  const scale = prefersReducedMotion ? 1 : 0.96;
+
   return (
-    <>
-      {greetings.map((greeting, i) => (
-        <motion.h1
-          {...props}
-          key={i}
-          initial={true}
-          // Reason: animated blur on 6 looping headlines forced expensive
-          // filter paints every frame across the whole Hero — opacity/scale/y only.
-          animate={{
-            scale: [0.6, 1, 1, 0.6],
-            opacity: [0, 1, 1, 0],
-            y: ["70%", "0%", "0%", "-70%"],
-          }}
-          transition={{
-            duration: 3,
-            ease: "easeInOut",
-            repeat: Infinity,
-            delay: i * 1.8,
-            repeatDelay: 8.2,
-            times: [0, 0.2, 0.6, 0.8, 1],
-          }}
-          className={cn(
-            "absolute text-[5rem] md:text-[7rem] text-clip whitespace-nowrap font-black select-none text-center z-[1] tracking-tight opacity-0",
-            className
-          )}
-        >
-          {greeting}
-        </motion.h1>
-      ))}
-    </>
+    <AnimatePresence mode="wait">
+      {/* Decorative — the page's real h1 is the name right below this. */}
+      <motion.span
+        key={greetings[index]}
+        aria-hidden="true"
+        initial={{ opacity: 0, y, scale }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          transition: {
+            duration: prefersReducedMotion ? 0 : 0.5,
+            ease: [0.22, 1, 0.36, 1],
+          },
+        }}
+        exit={{
+          opacity: 0,
+          y: -y,
+          scale,
+          // Reason: exits read best slightly faster than entrances (~75%).
+          transition: {
+            duration: prefersReducedMotion ? 0 : 0.35,
+            ease: [0.22, 1, 0.36, 1],
+          },
+        }}
+        className={cn(
+          "absolute select-none whitespace-nowrap text-center text-[4.5rem] font-black tracking-tight md:text-[6.5rem]",
+          className
+        )}
+      >
+        {greetings[index]}
+      </motion.span>
+    </AnimatePresence>
   );
 }

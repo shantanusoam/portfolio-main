@@ -96,9 +96,13 @@ function Sticker({
   const [missing, setMissing] = useState(false);
 
   const from = def.appearAt;
-  // Reason: 4 scroll-linked props × 6 stickers = 24 subscribers painting
-  // filters every frame. Opacity + y only; tilt is static.
-  const opacity = useTransform(scrollYProgress, [from, from + 0.06], [0, 1]);
+  const opacity = useTransform(scrollYProgress, [from, from + 0.05], [0, 1]);
+  const scale = useTransform(scrollYProgress, [from, from + 0.08], [0.55, 1]);
+  const rotate = useTransform(
+    scrollYProgress,
+    [from, from + 0.05, from + 0.09],
+    [def.tilt + 18, def.tilt - 3, def.tilt]
+  );
   const y = useTransform(scrollYProgress, [0, 1], [def.drift, -def.drift]);
 
   if (missing && process.env.NODE_ENV !== "development") return null;
@@ -108,10 +112,10 @@ function Sticker({
       style={
         staticMode
           ? { rotate: def.tilt }
-          : { opacity, y, rotate: def.tilt, willChange: "transform, opacity" }
+          : { opacity, scale, rotate, y, willChange: "transform" }
       }
       className={cn(
-        "absolute select-none",
+        "absolute select-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]",
         def.className,
         def.desktopOnly && "hidden md:block"
       )}

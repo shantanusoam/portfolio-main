@@ -110,8 +110,8 @@ export default function Home() {
     <>
       <div className="relative">
         <EntranceWipe />
-        <ComboTrail />
-        <StickyCursor stickyElement={stickyElement} />
+        {/* <ComboTrail /> */}
+        {/* <StickyCursor stickyElement={stickyElement} /> */}
         {/* <MaskedCopy /> */}
         <Navbar stickyTargets={stickyElement} />
         <Socials containerRef={socialsRef} stickyTargets={stickyElement} />
@@ -127,7 +127,7 @@ export default function Home() {
             <MakerLab />
             <Hobbies />
           </div>
-          <div className="overflow-x-hidden md:overflow-x-visible">
+          {/* <div className="overflow-x-hidden md:overflow-x-visible">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{
@@ -148,7 +148,7 @@ export default function Home() {
                 className="h-[130px] w-full -rotate-6 object-cover sm:h-[170px]"
               />
             </motion.div>
-          </div>
+          </div> */}
 
           <div className="container">
             <Contact />

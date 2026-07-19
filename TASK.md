@@ -7,6 +7,7 @@
 - [x] 2026-07-19: Delight pass on MakeAndBreak + Intro — scrapbook layout, fix mid-word reveal, fill dead space with larger stickers
 - [x] 2026-07-19: Fix jaggy scroll through Hero → MakeAndBreak → Intro (initial load + scroll lag)
 - [x] 2026-07-19: Fix Socials/Navbar/Projects broken forwardRef patterns (TS errors + React warning)
+- [x] 2026-07-19: Fix Hero visual bugs — greeting carousel ghosting/desync, String lines cutting through the name, over-eager scroll exit fade
 
 ## Discovered During Work
 - ComboTrail was painting a ~14k-px-tall SVG with `mix-blend-screen` (primary scroll jank source)
@@ -18,6 +19,9 @@
 - Intro stickers: 4 scroll transforms × 6 + `drop-shadow` filter; ~1.6MB of 512px PNGs for ~128px display
 - ComboTrail deferred via `next/dynamic` so first three sections hydrate sooner
 - Socials stuffed `{ref1, ref2}` into React `ref` (invalid); Projects `forwardRef` omitted the `ref` param
+- TextCarousel's 6 infinite loops had mismatched keyframes/`times` (4 vs 5) and a loop period (11.2s) that never matched the stagger total (10.8s) — words ghosted and drifted out of sync; rebuilt as single-element AnimatePresence `mode="wait"` rotator
+- String.tsx drew its curve at `window.innerWidth * 0.7` regardless of its 60vw/71vw container; now measures its own svg
+- Removed the dead Spline import + commented JSX from Hero (was still pulling the Spline bundle)
 
 ## Follow-ups
 - [ ] Re-export About stickers at 256px (or WebP) — files are still 512px / ~1.6MB total

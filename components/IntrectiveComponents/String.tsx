@@ -13,7 +13,7 @@ const String = ({ volume, playbackRate }) => {
     volume: volume,
   });
 
-  const path = useRef(null);
+  const path = useRef<SVGPathElement>(null);
   let progress = 0;
   let x = 0.5;
   let time = Math.PI / 2;
@@ -24,7 +24,13 @@ const String = ({ volume, playbackRate }) => {
   }, []);
 
   const setPath = (progress: number) => {
-    const width = window.innerWidth * 0.7;
+    if (!path.current) return;
+    // Reason: containers are 60vw/71vw wide — a hardcoded innerWidth * 0.7
+    // drew the curve wider than the svg, skewing the anchor math.
+    const svg = path.current.ownerSVGElement;
+    const width = svg
+      ? svg.getBoundingClientRect().width
+      : window.innerWidth * 0.7;
 
     path.current.setAttributeNS(
       null,
