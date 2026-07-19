@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AnimatePresence, motion, easeIn } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { MoveRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Magnetic from "@/components/ui/magnetic/Magnetic";
@@ -14,27 +14,20 @@ import useMounted from "@/hooks/useMounted";
 
 interface MissionCardProps {
   mission: MissionType;
+  index?: number;
   stickyElement?: React.MutableRefObject<(HTMLElement | null)[]>;
 }
 
-// Same hover-flip mechanic as the original inline Projects.tsx card — reused,
-// not reinvented — extended with Class/Special Moves/Impact fighter-profile
-// framing and a placeholder state for missions with no real content yet.
-const cardVariants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.4, delay: 0.4 } },
-};
-
-const child = {
-  variantA: { bottom: 150, right: 0, rotate: 0 },
-  variantB: { top: 120, left: -20, rotate: -2 },
-};
-const child2 = {
-  variantA: { bottom: 0, right: 0, rotate: 0 },
-  variantB: { top: 20, left: 20, rotate: 0 },
-};
-
-export default function MissionCard({ mission, stickyElement }: MissionCardProps) {
+// Fighter-select profile card: cover portrait on top, loadout data below.
+// The previous hover-flip (absolutely-positioned image sliding over the
+// text) left the unsized cover image stuck over card titles; this layout
+// keeps everything in flow so nothing can clip or overlap, and spends the
+// hover budget on polish (portrait zoom, border glow, arrow nudge) instead.
+export default function MissionCard({
+  mission,
+  index = 0,
+  stickyElement,
+}: MissionCardProps) {
   const router = useRouter();
   const prefersReducedMotion = usePrefersReducedMotion();
   // See EntranceWipe.tsx for why this two-step (mounted, then check the
@@ -45,6 +38,9 @@ export default function MissionCard({ mission, stickyElement }: MissionCardProps
   // fails hydration for the whole page, not just this card.
   const mounted = useMounted();
   const [isLaunching, setIsLaunching] = useState(false);
+
+  const isLocked = mission.isPlaceholder;
+  const isConfidential = mission.cover_image === null;
 
   // A fast (~180ms) impact-stamp beat on click before the route change —
   // real click feedback instead of an ordinary link transition. Skipped
@@ -59,14 +55,24 @@ export default function MissionCard({ mission, stickyElement }: MissionCardProps
   return (
     <div className="overflow-hidden pb-[9px] pl-2">
       <motion.div
-        whileHover="variantB"
-        variants={cardVariants}
+        variants={{
+          hidden: { opacity: 0, y: 16 },
+          show: {
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: 0.5,
+              ease: [0.25, 1, 0.5, 1],
+              // Reason: column-based stagger (not row) so cards in the same
+              // viewport row cascade left-to-right as they scroll in.
+              delay: 0.08 * (index % 3),
+            },
+          },
+        }}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true }}
-        className={cn(
-          "relative flex h-[170px] w-[240px] flex-col md:h-[200px] md:w-[268px]"
-        )}
+        viewport={{ once: true, margin: "0px 0px -40px 0px" }}
+        className="group relative flex h-[330px] w-[260px] flex-col md:h-[356px] md:w-[288px]"
       >
         {(!mounted || !prefersReducedMotion) && (
           // Holo-card shimmer: one soft diagonal light sweep the first time
@@ -99,89 +105,100 @@ export default function MissionCard({ mission, stickyElement }: MissionCardProps
             </motion.div>
           )}
         </AnimatePresence>
-        <div className="gradientborder group z-20 h-full w-full border bg-black p-5 text-graytransparent sm:p-6 md:p-8">
-          <div className="flex h-full flex-col items-start justify-center font-medium leading-7 tracking-wider">
-            <motion.div
-              variants={child2}
-              className="absolute flex flex-col gap-2"
-            >
-              <div className="flex items-center gap-2">
-                <p className="font-display text-lg tracking-wide text-white md:text-xl">
-                  {mission.title}
+
+        <div className="gradientborder relative z-20 flex h-full w-full flex-col border bg-black transition-shadow duration-300 group-hover:shadow-[0_0_24px_rgba(255,77,28,0.12)]">
+          {/* Cover portrait — fixed-height, clipped, always visible */}
+          <div className="relative h-[128px] shrink-0 overflow-hidden border-b border-white/10 md:h-[140px]">
+            {mission.cover_image !== null ? (
+              <Image
+                src={mission.cover_image}
+                alt={`Screenshot of ${mission.title}`}
+                fill
+                sizes="(min-width: 768px) 288px, 260px"
+                className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              />
+            ) : (
+              // Confidential missions (real client work, no public visuals):
+              // deliberate "redacted dossier" treatment instead of a broken-
+              // image look — diagonal hazard stripes + a stamped label.
+              <div
+                className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-900 to-black"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,77,28,0.05) 10px, rgba(255,77,28,0.05) 12px)",
+                }}
+              >
+                <p className="rotate-[-4deg] border border-primary/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.25em] text-primary/90">
+                  Confidential build
                 </p>
-                {mission.isPlaceholder && (
-                  <span className="rounded-sm border border-primary px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-primary">
-                    Classified
-                  </span>
-                )}
               </div>
-              <p className="font-mono text-xs uppercase tracking-widest text-primary">
-                Class: {mission.class}
-              </p>
-              <ul className="w-4/5 text-sm font-light text-graytransparent transition-all group-hover:w-full">
-                {mission.specialMoves.slice(0, 2).map((move, i) => (
-                  <li key={i}>— {move}</li>
-                ))}
-              </ul>
-              <div className="flex flex-row gap-4 group-hover:hidden">
-                {mission.metadata?.map((meta, i) => (
-                  <p
+            )}
+            {/* Legibility scrim so the title zone below never fights the image */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/80 to-transparent"
+            />
+            {mission.metadata && mission.metadata.length > 0 && (
+              <div className="absolute left-2.5 top-2.5 flex flex-wrap gap-1.5">
+                {mission.metadata.map((meta, i) => (
+                  <span
                     key={i}
-                    className="font-mono text-xs uppercase text-darkgray"
+                    className="border border-white/15 bg-black/70 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-graytransparent backdrop-blur-sm"
                   >
                     {meta}
-                  </p>
+                  </span>
                 ))}
               </div>
-            </motion.div>
-            <motion.div
-              style={{
-                width: "100%",
-                height: "50%",
-                borderRadius: "14px 14px 18px 14px",
-                backgroundColor: "#fff",
-                position: "absolute",
-                bottom: -100,
-                right: 0,
-              }}
-              variants={child}
-              transition={{
-                type: "spring",
-                damping: 10,
-                mass: 0.2,
-                stiffness: 150,
-                duration: 1.2,
-                easeIn,
-              }}
-            >
-              {mission.cover_image !== null ? (
-                <Image
-                  src={mission.cover_image}
-                  alt={`${mission.description}`}
-                  className="rounded-lg object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-lg bg-gradient-to-br from-zinc-800 to-black">
-                  <p className="px-2 text-center font-mono text-[10px] uppercase tracking-widest text-darkgray">
-                    No public screenshot
-                  </p>
-                </div>
+            )}
+          </div>
+
+          {/* Loadout data. Reason: title/class/footer are shrink-0 so that
+              when two-line special moves overflow the fixed card height, the
+              moves list (overflow-hidden) truncates — otherwise flexbox
+              collapses the class line (its line-clamp overflow:hidden makes
+              it the only shrinkable child) to zero height. */}
+          <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-4 md:p-5">
+            <div className="flex shrink-0 items-start gap-2">
+              <h3 className="line-clamp-2 font-display text-xl leading-tight tracking-wide text-white transition-colors duration-300 group-hover:text-primary-light md:text-[22px]">
+                {mission.title}
+              </h3>
+              {isLocked && (
+                <span className="mt-1 shrink-0 rounded-sm border border-primary px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-primary">
+                  Classified
+                </span>
               )}
-            </motion.div>
-            <div className="absolute bottom-0 right-0 p-4">
-              {mission.isPlaceholder ? (
-                <span className="font-mono text-xs uppercase tracking-widest text-darkgray">
+            </div>
+            <p className="line-clamp-1 shrink-0 font-mono text-[10px] uppercase tracking-[0.2em] text-primary md:text-[11px]">
+              {mission.class}
+            </p>
+            <ul className="mt-1 min-h-0 space-y-1 overflow-hidden text-[13px] font-light leading-snug text-graytransparent">
+              {mission.specialMoves.slice(0, 2).map((move, i) => (
+                <li key={i} className="line-clamp-2 flex gap-1.5">
+                  <span aria-hidden="true" className="text-primary/60">
+                    —
+                  </span>
+                  <span>{move}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-auto flex shrink-0 items-center justify-between border-t border-white/10 pt-3">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-graytransparent">
+                {isConfidential ? "Case study" : "Deployed"}
+              </p>
+              {isLocked ? (
+                <span className="font-mono text-xs uppercase tracking-widest text-graytransparent">
                   Locked
                 </span>
               ) : (
                 <Link
                   href={mission.url}
-                  aria-label="Link to view the mission"
+                  aria-label={`Open ${mission.title} mission debrief`}
                   onClick={handleLaunch}
-                  className="active:scale-90 transition-transform duration-150"
+                  className="transition-transform duration-150 active:scale-90"
                 >
                   <Magnetic>
-                    <MoveRight className="w-5 text-gray transition-all duration-300 ease-in-out hover:text-primary" />
+                    <MoveRight className="w-5 text-gray transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:text-primary motion-reduce:group-hover:translate-x-0" />
                     {stickyElement && (
                       <div
                         ref={(el) => stickyElement.current.push(el)}

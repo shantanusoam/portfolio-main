@@ -36,23 +36,30 @@ function ComboSkillChip({ skill, stickyElement }: ComboSkillChipProps) {
       )}
     >
       <div className="relative h-[1.1rem] overflow-hidden">
+        {/* The bottom-half copy stays in normal flow — it is the only element
+            that gives the chip its width, because every previous copy was
+            absolutely positioned and the chip collapsed to ~0px, clipping all
+            skill names behind overflow-hidden. Mirrors MakeAndBreak.tsx. */}
         <p
           className={cn(
-            "brokenclip1 absolute pr-1 text-sm font-medium transition duration-300 ease-in-out",
+            "pr-1 text-sm font-medium transition duration-300 ease-in-out",
             isLit
-              ? "text-combo-lit group-hover/chip:translate-y-[-0.75rem]"
+              ? // Reason: the row-level `group` hover paints the orange sweep
+                // behind these chips, so lit orange text flips to white there
+                // to stay legible (orange-on-orange otherwise).
+                "brokenclip2 text-combo-lit group-hover:text-white group-hover/chip:translate-y-[0.75rem]"
               : "text-combo-unlit"
           )}
         >
           {skill.name}
         </p>
         {isLit && (
-          <p className="brokenclip2 absolute translate-y-[0.75rem] pr-1 text-sm font-medium text-combo-lit opacity-0 transition duration-300 ease-in-out group-hover/chip:translate-y-0 group-hover/chip:opacity-100">
+          <p className="brokenclip1 absolute left-0 top-0 pr-1 text-sm font-medium text-combo-lit transition duration-300 ease-in-out group-hover:text-white group-hover/chip:translate-y-[-0.75rem]">
             {skill.name}
           </p>
         )}
         {isLit && (
-          <p className="absolute pr-1 text-sm font-medium text-white opacity-0 transition duration-300 ease-in-out group-hover/chip:opacity-100">
+          <p className="absolute left-0 top-0 -z-[1] pr-1 text-sm font-medium text-white opacity-0 transition duration-300 ease-in-out group-hover/chip:opacity-100">
             proven ↗
           </p>
         )}
@@ -67,7 +74,10 @@ function ComboSkillChip({ skill, stickyElement }: ComboSkillChipProps) {
               ? { duration: 0 }
               : { type: "spring", stiffness: 120, damping: 10, mass: 0.5 }
           }
-          className={cn("h-full", isLit ? "bg-combo-lit" : "bg-combo-unlit")}
+          className={cn(
+            "h-full transition-colors duration-300",
+            isLit ? "bg-combo-lit group-hover:bg-white" : "bg-combo-unlit"
+          )}
         />
       </div>
       {!isLit && (
