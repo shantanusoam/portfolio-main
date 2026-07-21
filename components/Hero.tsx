@@ -2,8 +2,14 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import TextCarousel from "./ui/TextCarousel";
-import { useEffect, useRef, useState } from "react";
-import String from "./IntrectiveComponents/String";
+import {
+  type MouseEvent,
+  type MutableRefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import StringInstrument from "./IntrectiveComponents/StringInstrument";
 import Link from "next/link";
 import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 import Magnetic from "@/components/ui/magnetic/Magnetic";
@@ -13,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 interface HeroProps {
   masked: boolean;
-  stickyElement?: React.MutableRefObject<(HTMLElement | null)[]>;
+  stickyElement?: MutableRefObject<(HTMLElement | null)[]>;
 }
 
 // Inert until the section they point at exists: #trail-map lands in Phase 3
@@ -77,7 +83,7 @@ export default function Hero({ masked, stickyElement }: HeroProps) {
   // Cinematic cursor-glow, scoped to the hero only. Mutates CSS custom
   // properties directly via a ref instead of React state, so it costs zero
   // re-renders per mousemove. Static/centered under reduced motion.
-  function handleHeroMouseMove(e: React.MouseEvent<HTMLElement>) {
+  function handleHeroMouseMove(e: MouseEvent<HTMLElement>) {
     resetIdleTimer();
     if (prefersReducedMotion || !glowRef.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -123,7 +129,7 @@ export default function Hero({ masked, stickyElement }: HeroProps) {
         style={{ opacity }}
         ref={sectionRef}
         onMouseMove={handleHeroMouseMove}
-        className="relative mx-[10%] flex h-[100vh] max-h-[1080px] flex-col items-center justify-center gap-6 overflow-hidden sm:mx-[15%]"
+        className="relative isolate flex max-h-[1080px] min-h-[100svh] w-full overflow-hidden px-[clamp(1.25rem,6vw,6rem)] pb-[clamp(1.5rem,5vh,4rem)] pt-[clamp(4.5rem,9vh,7rem)]"
       >
         <div
           ref={glowRef}
@@ -146,89 +152,89 @@ export default function Hero({ masked, stickyElement }: HeroProps) {
             background: "radial-gradient(circle, #ff7a47, transparent 60%)",
           }}
         />
-        {/* Interactive "string" toy, pinned to the dead space below the
-            content stack — when it sat at the section's vertical center the
-            three lines sliced straight through the name and tagline. */}
-        <div className="absolute inset-x-0 bottom-[8%] z-[993] hidden flex-col items-center justify-center md:flex">
-          <div className="my-3 w-[60vw]">
-            <String volume={0.1} playbackRate={2} />
-          </div>
-          <div className="my-3 w-[71vw]">
-            <String volume={0.1} playbackRate={1} />
-          </div>
-          <div className="my-3 w-[60vw]">
-            <String volume={0.1} playbackRate={2} />
+        <div className="relative z-[996] mx-auto grid w-full max-w-[1200px] flex-1 grid-rows-[minmax(0,1fr)_auto] items-center">
+          <motion.div
+            variants={{ show: { transition: { staggerChildren: stagger } } }}
+            initial="hidden"
+            animate="show"
+            className="flex w-full translate-y-[clamp(-1rem,-1.5vh,0rem)] flex-col items-center justify-center gap-[clamp(0.55rem,1.8vh,1rem)] self-end text-center"
+          >
+            <motion.div
+              variants={contentVariants}
+              className="relative flex h-[clamp(4.5rem,14vh,8rem)] w-full items-center justify-center overflow-hidden"
+            >
+              <TextCarousel
+                greetings={[
+                  "Hello",
+                  "नमस्ते",
+                  "你好",
+                  "Hola",
+                  "Bonjour",
+                  "こんにちは",
+                ]}
+              />
+            </motion.div>
+
+            <motion.h1
+              variants={contentVariants}
+              className={cn(
+                "font-display text-[clamp(2.5rem,6.2vw,5.5rem)] uppercase leading-[0.92] tracking-wide text-white",
+                isIdle && "animate-breathe"
+              )}
+            >
+              Shantanu Soam
+            </motion.h1>
+
+            <motion.div
+              variants={contentVariants}
+              className="relative flex h-[clamp(1.5rem,4vh,2.5rem)] w-full items-center justify-center overflow-hidden"
+            >
+              <RoleTicker
+                lines={ROLE_LINES}
+                className="text-[clamp(0.7rem,1.4vw,1.15rem)] font-normal normal-case tracking-[0.28em] text-primary"
+              />
+            </motion.div>
+
+            <motion.p
+              variants={contentVariants}
+              className="max-w-2xl text-[clamp(0.75rem,1.2vw,0.95rem)] leading-relaxed text-graytransparent"
+            >
+              Building fast systems with a maker&apos;s curiosity and a game
+              designer&apos;s eye.
+            </motion.p>
+
+            <motion.nav
+              variants={contentVariants}
+              className="mt-[clamp(0.25rem,1vh,0.75rem)] flex flex-wrap items-center justify-center gap-x-[clamp(1rem,4vw,3rem)] gap-y-2 font-mono text-[clamp(0.62rem,1vw,0.8rem)] uppercase tracking-widest"
+            >
+              {START_MENU.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="whitespace-nowrap text-graytransparent transition-colors duration-300 hover:text-primary"
+                >
+                  <Magnetic>
+                    <span className="relative">
+                      [ {item.label} ]
+                      {stickyElement && (
+                        <div
+                          ref={(el) => stickyElement.current.push(el)}
+                          className="bounds"
+                        ></div>
+                      )}
+                    </span>
+                  </Magnetic>
+                </Link>
+              ))}
+            </motion.nav>
+          </motion.div>
+
+          {/* The instrument is part of the composition instead of being
+              absolutely pinned, so short screens cannot crop or detach it. */}
+          <div className="mx-auto mt-[clamp(1rem,3vh,2.5rem)] w-full max-w-[1100px]">
+            <StringInstrument />
           </div>
         </div>
-
-        <motion.div
-          variants={{ show: { transition: { staggerChildren: stagger } } }}
-          initial="hidden"
-          animate="show"
-          className="z-[996] flex flex-col items-center justify-center gap-4 text-center"
-        >
-          <motion.div
-            variants={contentVariants}
-            className="relative flex h-24 w-full items-center justify-center overflow-hidden md:h-32"
-          >
-            <TextCarousel
-              greetings={["Hello", "नमस्ते", "你好", "Hola", "Bonjour", "こんにちは"]}
-            />
-          </motion.div>
-
-          <motion.h1
-            variants={contentVariants}
-            className={cn(
-              "font-display text-4xl uppercase tracking-wide text-white sm:text-6xl md:text-7xl",
-              isIdle && "animate-breathe"
-            )}
-          >
-            Shantanu Soam
-          </motion.h1>
-
-          <motion.div
-            variants={contentVariants}
-            className="relative flex h-8 w-full items-center justify-center overflow-hidden md:h-10"
-          >
-            <RoleTicker
-              lines={ROLE_LINES}
-              className="text-sm font-normal normal-case tracking-[0.3em] text-primary sm:text-base md:text-xl"
-            />
-          </motion.div>
-
-          <motion.p
-            variants={contentVariants}
-            className="max-w-xl text-sm text-graytransparent sm:text-base"
-          >
-            Building fast systems with a maker&apos;s curiosity and a game
-            designer&apos;s eye.
-          </motion.p>
-
-          <motion.nav
-            variants={contentVariants}
-            className="mt-4 flex flex-col items-center gap-3 font-mono text-xs uppercase tracking-widest sm:flex-row sm:gap-8 sm:text-sm"
-          >
-            {START_MENU.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="text-graytransparent transition-colors duration-300 hover:text-primary"
-              >
-                <Magnetic>
-                  <span className="relative">
-                    [ {item.label} ]
-                    {stickyElement && (
-                      <div
-                        ref={(el) => stickyElement.current.push(el)}
-                        className="bounds"
-                      ></div>
-                    )}
-                  </span>
-                </Magnetic>
-              </Link>
-            ))}
-          </motion.nav>
-        </motion.div>
       </motion.section>
     </div>
   );

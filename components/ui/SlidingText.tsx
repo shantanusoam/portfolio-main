@@ -7,6 +7,10 @@ interface SlidingTextProps extends HTMLMotionProps<"div"> {
   doNotRepeat?: boolean;
   amount?: number | "all" | "some";
   margin?: string;
+  /** Per-letter stagger in seconds. Default 0.18 — ComboMeter passes ~0.05. */
+  letterDelay?: number;
+  /** Per-letter slide duration in seconds. Default 0.38. */
+  letterDuration?: number;
 }
 
 export function SlidingText({
@@ -15,6 +19,8 @@ export function SlidingText({
   doNotRepeat = true,
   amount = 0.8,
   margin = "0px 0px -200px 0px",
+  letterDelay = 0.18,
+  letterDuration = 0.38,
   ...props
 }: SlidingTextProps) {
   const letters = children.split("");
@@ -52,8 +58,8 @@ export function SlidingText({
               up: (i: number) => ({
                 y: "-100%",
                 transition: {
-                  duration: 0.38,
-                  delay: 0.18 * i,
+                  duration: letterDuration,
+                  delay: letterDelay * i,
                   ease: "easeInOut",
                 },
               }),
@@ -71,8 +77,8 @@ export function SlidingText({
               up: (i: number) => ({
                 y: "0%",
                 transition: {
-                  duration: 0.38,
-                  delay: 0.18 * i,
+                  duration: letterDuration,
+                  delay: letterDelay * i,
                   ease: "easeInOut",
                 },
               }),

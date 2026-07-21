@@ -1,0 +1,131 @@
+.instrument {
+  position: relative;
+  width: min(100%, 1100px);
+  height: clamp(7.25rem, 21vh, 11rem);
+  color: rgb(255 228 213 / 72%);
+  outline: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.instrument::before,
+.instrument::after {
+  position: absolute;
+  z-index: 2;
+  top: 1.35rem;
+  bottom: 0.5rem;
+  width: 1px;
+  content: "";
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgb(255 111 61 / 58%) 18%,
+    rgb(255 111 61 / 58%) 82%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.instrument::before {
+  left: 0;
+}
+
+.instrument::after {
+  right: 0;
+}
+
+.instrument:focus-visible {
+  outline: 1px dashed rgb(255 111 61 / 70%);
+  outline-offset: 0.4rem;
+}
+
+.legend {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 0.15rem;
+  color: rgb(255 228 213 / 46%);
+  font-family: monospace;
+  font-size: clamp(0.55rem, 1.2vw, 0.68rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.note {
+  color: rgb(255 111 61 / 88%);
+  letter-spacing: 0.24em;
+  transition: color 180ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.strings {
+  position: absolute;
+  inset: 1rem 0 0;
+  width: 100%;
+  height: calc(100% - 1rem);
+  overflow: visible;
+  cursor: grab;
+}
+
+.strings:active {
+  cursor: grabbing;
+}
+
+.string {
+  fill: none;
+  stroke: rgb(255 242 235 / 78%);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 2px rgb(255 111 61 / 38%));
+  transition: stroke 160ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.instrument:hover .string,
+.instrument:focus-visible .string {
+  stroke: rgb(255 242 235 / 95%);
+}
+
+.srStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 767px) {
+  .instrument {
+    height: clamp(6.75rem, 18vh, 8rem);
+  }
+
+  .legend {
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (max-height: 650px) and (min-width: 768px) {
+  .instrument {
+    height: 7.25rem;
+  }
+
+  .legend {
+    font-size: 0.56rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note,
+  .string {
+    transition: none;
+  }
+}
