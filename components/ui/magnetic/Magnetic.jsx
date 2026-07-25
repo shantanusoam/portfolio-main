@@ -20,10 +20,12 @@ const MAX_LEAN = 28;
 
 // Critically damped while held — welded to the soft-capture target.
 const HELD_SPRING = { stiffness: 720, damping: criticalDamping(720) };
-// Slightly underdamped on release: one soft settle, not a bounce fight.
+// Distinctly underdamped on release (ζ ≈ 0.4): the icon snaps home with a
+// couple of decaying oscillations — the elastic-band character of the
+// classic GSAP elastic.out magnetic button, from spring physics instead.
 const RELEASE_SPRING = {
-  stiffness: 380,
-  damping: criticalDamping(380) * 0.72,
+  stiffness: 340,
+  damping: criticalDamping(340) * 0.4,
 };
 
 const SETTLED_OFFSET = 0.05;

@@ -16,6 +16,7 @@
 - [x] 2026-07-25: Improve Hero instrument desktop playability, physical synthesis, feedback, and chord-based musicality
 - [x] 2026-07-25: Fix silent Hero instrument and unstable Web Audio filter state
 - [x] 2026-07-25: Fix StickyCursor top-left lock, transform contention, and Navbar target wiring
+- [x] 2026-07-25: Fix cursor angle glitch (transform order + atan2 seam), add elastic escape strain and wobbly magnetic release
 
 ## Discovered During Work
 - ComboTrail was painting a ~14k-px-tall SVG with `mix-blend-screen` (primary scroll jank source)
@@ -35,6 +36,7 @@
 - Hero pull gesture switched strings after half a row gap, before reaching its allowed bend; slow pulls now lock while fast sweeps trigger every crossed string
 - Karplus–Strong feedback read `samples[-1]` on its first iteration, propagating NaN through every BiquadFilterNode and silencing the instrument
 - StickyCursor's custom `transformTemplate` omitted x/y, replacing Framer Motion's translate transform and pinning the cursor at the viewport origin
+- Cursor's centering `translate(-50%,-50%)` sat after rotate/scale in the transform list, so the offset itself got rotated — on a wrapped ~300px field a few degrees of angle swung the box around the pointer; lerping raw atan2 also spun 358° across the ±180° seam
 - Sticky cursor stretch/rotate kept running while the field wrapped a target — that angle glitch made capture feel broken; held state now suppresses deformation
 - `.MagneticHead` still carried Olivier Larose header CSS (`position: fixed`, `mix-blend-mode`) which fought magnetic transforms
 

@@ -25,8 +25,8 @@ const CORE_SPRING = {
 };
 // Free field trails with a little slack (underdamped enough to feel alive).
 const FIELD_FREE_SPRING = {
-  stiffness: 480,
-  damping: criticalDamping(480) * 0.7,
+  stiffness: 560,
+  damping: criticalDamping(560) * 0.68,
 };
 // Held field is critically damped — welded to the soft-capture target.
 const FIELD_HELD_SPRING = {
@@ -41,7 +41,9 @@ const FIELD_HELD_SPRING = {
  */
 const CENTRE_PULL = 0.12;
 const EDGE_PULL = 0.55;
-const RELEASE_IMPULSE = 0.42;
+const RELEASE_IMPULSE = 0.55;
+/** Extra axis-aligned scale as the wrapped field is dragged toward escape. */
+const ESCAPE_STRETCH = 0.16;
 
 const MAX_STRETCH = 0.38;
 const STRETCH_PER_SPEED = 1 / 2200;
@@ -50,13 +52,20 @@ const SETTLED_DISTANCE = 0.12;
 const SETTLED_SPEED = 3;
 
 function transformOf(x, y, angle, scaleX, scaleY) {
-  // Innermost translate centres the box so rotate/scale pivot on the cursor;
-  // the outer translate then places it in the viewport.
+  // Centering translate must precede rotate/scale in the list: functions to
+  // its left are applied after it, so the -50% offset stays axis-aligned.
+  // With it last, the offset itself was rotated and scaled — on a wrapped
+  // 300px field even a few degrees of angle swung the box around the cursor.
   return `translate3d(${x.toFixed(2)}px, ${y.toFixed(
     2
-  )}px, 0) rotate(${angle.toFixed(2)}deg) scale(${scaleX.toFixed(
-    4
-  )}, ${scaleY.toFixed(4)}) translate(-50%, -50%)`;
+  )}px, 0) translate(-50%, -50%) rotate(${angle.toFixed(
+    2
+  )}deg) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`;
+}
+
+/** Wraps an angle delta to its nearest 180°-equivalent, in (-90, 90]. */
+function shortestArc180(delta) {
+  return ((delta % 180) + 270) % 180 - 90;
 }
 
 export default function StickyCursor() {
@@ -76,6 +85,8 @@ export default function StickyCursor() {
     pressTarget: 0,
     hold: 0,
     angle: 0,
+    pullX: 0,
+    pullY: 0,
   });
   const capture = useRef({ element: null, geometry: null, stale: false });
 
@@ -171,10 +182,12 @@ export default function StickyCursor() {
       const gap = clamp((timeStamp - state.time) / 1000, 1 / 1000, 0.1);
 
       if (state.time !== 0) {
-        // Exponential smoothing: raw per-event velocity spikes on the
-        // sub-millisecond gaps coalesced pointer events produce.
-        state.vx += ((clientX - state.x) / gap - state.vx) * 0.32;
-        state.vy += ((clientY - state.y) / gap - state.vy) * 0.32;
+        // Time-corrected exponential smoothing (τ = 24ms). A fixed per-event
+        // factor made responsiveness depend on the mouse's polling rate:
+        // sluggish at 1000Hz, twitchy at 125Hz.
+        const alpha = 1 - Math.exp(-gap / 0.024);
+        state.vx += ((clientX - state.x) / gap - state.vx) * alpha;
+        state.vy += ((clientY - state.y) / gap - state.vy) * alpha;
       }
       state.x = clientX;
       state.y = clientY;
@@ -238,6 +251,8 @@ export default function StickyCursor() {
       let fieldTargetX = pointerState.x;
       let fieldTargetY = pointerState.y;
       let holdTarget = 0;
+      let pullTargetX = 0;
+      let pullTargetY = 0;
       let spring = FIELD_FREE_SPRING;
 
       if (held.element && held.geometry && !prefersReducedMotion) {
@@ -259,6 +274,14 @@ export default function StickyCursor() {
           fieldTargetY = held.geometry.cy + probe.dy * pull;
           holdTarget = potential;
           spring = FIELD_HELD_SPRING;
+
+          // Rubber-band tell: as the pointer drags toward escape, the wrap
+          // box stretches along the pull axis. Axis-aligned on purpose —
+          // rotating the wrapped rectangle is what reads as a glitch.
+          const reach = Math.hypot(probe.dx, probe.dy) || 1;
+          const strain = ESCAPE_STRETCH * smootherstep(probe.escape);
+          pullTargetX = strain * Math.abs(probe.dx / reach);
+          pullTargetY = strain * Math.abs(probe.dy / reach);
         }
       }
 
@@ -319,18 +342,26 @@ export default function StickyCursor() {
         ? 0
         : clamp(speed * STRETCH_PER_SPEED, 0, MAX_STRETCH) * freeFactor;
       shapeState.stretch += (stretchTarget - shapeState.stretch) * ease;
+      shapeState.pullX += (pullTargetX - shapeState.pullX) * ease;
+      shapeState.pullY += (pullTargetY - shapeState.pullY) * ease;
 
       const rawAngle =
         (Math.atan2(shapeState.dirY, shapeState.dirX) * 180) / Math.PI;
-      // Lerp angle toward 0 while held so the wrap box never spins.
+      // Both field shapes (stretch ellipse, wrap rectangle) are symmetric
+      // under 180°, so blend along the shortest 180°-arc. Lerping raw atan2
+      // output jumped +179 → −179 across the left axis and spun the cursor
+      // the long way round — that was the visible angle glitch.
+      const desiredAngle = shapeState.hold > 0.5 ? 0 : rawAngle;
       shapeState.angle +=
-        (rawAngle * freeFactor - shapeState.angle) * holdEase;
+        shortestArc180(desiredAngle - shapeState.angle) * holdEase;
+      shapeState.angle = shortestArc180(shapeState.angle);
       const angle = shapeState.angle;
 
       const stretch = shapeState.stretch;
-      // Area-preserving deformation: mass pulled along its path, not scaled up.
-      const fieldScaleX = 1 + stretch;
-      const fieldScaleY = 1 / (1 + stretch);
+      // Area-preserving deformation: mass pulled along its path, not scaled
+      // up. The held pull strain stacks on top, axis by axis.
+      const fieldScaleX = (1 + stretch) * (1 + shapeState.pullX);
+      const fieldScaleY = (1 / (1 + stretch)) * (1 + shapeState.pullY);
       const coreScale = 1 - 0.22 * shapeState.press - 0.14 * shapeState.hold;
       const coreStretch = stretch * 0.4;
 
@@ -361,6 +392,8 @@ export default function StickyCursor() {
         speed < SETTLED_SPEED &&
         Math.hypot(coreState.vx, coreState.vy) < SETTLED_SPEED &&
         Math.abs(stretch) < 0.002 &&
+        Math.abs(shapeState.pullX) < 0.002 &&
+        Math.abs(shapeState.pullY) < 0.002 &&
         Math.abs(shapeState.press - shapeState.pressTarget) < 0.002;
 
       if (settled) {
