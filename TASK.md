@@ -1,6 +1,7 @@
 # Tasks
 
 ## Active
+- [x] 2026-07-25: Remove Hero glow/light-leak overlays and tighten vertical composition
 - [x] 2026-07-19: Fix home page post-load lag and scroll jank (Home container / main)
 - [x] 2026-07-19: Redesign Intro/About — concise copy + scroll-triggered corner stickers (flowers/paintbrush), performance-safe
 - [x] 2026-07-19: Wire generated About stickers from public/stickers/aboutus/ (renamed + resized to 256px)
@@ -12,6 +13,9 @@
 - [x] 2026-07-21: Compact ComboMeter layout — denser rows, smaller chips, tighter section padding for a sleeker read
 - [x] 2026-07-21: Rebuild Hero strings as a responsive, physics-driven playable guitar instrument
 - [x] 2026-07-21: Recompose Hero layout around the playable strings across short desktop and mobile viewports
+- [x] 2026-07-25: Improve Hero instrument desktop playability, physical synthesis, feedback, and chord-based musicality
+- [x] 2026-07-25: Fix silent Hero instrument and unstable Web Audio filter state
+- [x] 2026-07-25: Fix StickyCursor top-left lock, transform contention, and Navbar target wiring
 
 ## Discovered During Work
 - ComboTrail was painting a ~14k-px-tall SVG with `mix-blend-screen` (primary scroll jank source)
@@ -28,6 +32,12 @@
 - ComboMeter chips: lit orange text/bars were also illegible against the row's orange hover sweep — now flip to white via the row-level `group-hover`
 - Removed the dead Spline import + commented JSX from Hero (was still pulling the Spline bundle)
 - Hero strings previously depended on one rubber-band sample and mouse-leave; replaced with tuned Web Audio synthesis and unified pointer/keyboard input
+- Hero pull gesture switched strings after half a row gap, before reaching its allowed bend; slow pulls now lock while fast sweeps trigger every crossed string
+- Karplus–Strong feedback read `samples[-1]` on its first iteration, propagating NaN through every BiquadFilterNode and silencing the instrument
+- StickyCursor's custom `transformTemplate` omitted x/y, replacing Framer Motion's translate transform and pinning the cursor at the viewport origin
+- Sticky cursor stretch/rotate kept running while the field wrapped a target — that angle glitch made capture feel broken; held state now suppresses deformation
+- `.MagneticHead` still carried Olivier Larose header CSS (`position: fixed`, `mix-blend-mode`) which fought magnetic transforms
 
 ## Follow-ups
 - [ ] Re-export About stickers at 256px (or WebP) — files are still 512px / ~1.6MB total
+- [x] 2026-07-25: Rebuild sticky cursor + magnetic physics — soft capture field, held-wrap without stretch glitch, fluid free motion

@@ -1,35 +1,21 @@
 "use client";
 
-import resume_link from "@/constants/resume";
+import resumeLink from "@/constants/resume";
 import { cn } from "@/lib/utils";
 import { HTMLMotionProps, motion } from "framer-motion";
 import { Github, Linkedin, ScrollText, Twitter } from "lucide-react";
-import { MutableRefObject, Ref } from "react";
+import { Ref } from "react";
 import Magnetic from "./magnetic/Magnetic";
 
 interface SocialsProps extends HTMLMotionProps<"div"> {
   direction?: "vertical" | "horizontal";
   /** Framer `useAnimate` / container ref for opacity toggles on scroll. */
   containerRef?: Ref<HTMLDivElement>;
-  /** Shared sticky-cursor hit targets (array ref). */
-  stickyTargets?: MutableRefObject<(HTMLElement | null)[]>;
-}
-
-function registerStickyTarget(
-  stickyTargets: MutableRefObject<(HTMLElement | null)[]> | undefined,
-  el: HTMLElement | null
-) {
-  // Reason: callback refs re-fire on re-render; avoid duplicate entries.
-  if (!el || !stickyTargets?.current) return;
-  if (!stickyTargets.current.includes(el)) {
-    stickyTargets.current.push(el);
-  }
 }
 
 export default function Socials({
   direction = "vertical",
   containerRef,
-  stickyTargets,
   className,
   ...props
 }: SocialsProps) {
@@ -49,7 +35,7 @@ export default function Socials({
       show: {
         opacity: 1,
         x: "0",
-        transition: { type: "spring", bounce: 0.3 },
+        transition: { type: "spring", duration: 0.42, bounce: 0 },
       },
     },
     horizontal: {
@@ -57,7 +43,7 @@ export default function Socials({
       show: {
         opacity: 1,
         y: "0",
-        transition: { type: "spring", bounce: 0.3 },
+        transition: { type: "spring", duration: 0.42, bounce: 0 },
       },
     },
   };
@@ -72,7 +58,7 @@ export default function Socials({
       initial="hidden"
       animate="show"
       className={cn(
-        "text-graytransparent hidden sm:flex flex-col items-center justify-start transition-all fixed bottom-0 ml-[2.5%] my-8 md:my-12 z-[997]",
+        "fixed bottom-0 z-[997] my-8 ml-[2.5%] hidden flex-col items-center justify-start text-graytransparent transition-opacity sm:flex md:my-12",
         direction === "horizontal" && "flex-row ml-0 flex",
         className
       )}
@@ -86,10 +72,6 @@ export default function Socials({
       >
         <Magnetic>
           <Linkedin className="h-5 w-5 hover:text-primary" />
-          <div
-            ref={(el) => registerStickyTarget(stickyTargets, el)}
-            className="bounds"
-          />
         </Magnetic>
       </motion.a>
 
@@ -102,10 +84,6 @@ export default function Socials({
       >
         <Magnetic>
           <Github className="h-5 w-5 hover:text-primary" />
-          <div
-            ref={(el) => registerStickyTarget(stickyTargets, el)}
-            className="bounds"
-          />
         </Magnetic>
       </motion.a>
       <motion.a
@@ -117,25 +95,17 @@ export default function Socials({
       >
         <Magnetic>
           <Twitter className="h-5 w-5 hover:text-primary" />
-          <div
-            ref={(el) => registerStickyTarget(stickyTargets, el)}
-            className="bounds"
-          />
         </Magnetic>
       </motion.a>
       <motion.a
         variants={socialsAnim}
-        href={resume_link}
+        href={resumeLink}
         target="_blank"
         className="p-2"
         aria-label="Link to view my resume"
       >
         <Magnetic>
           <ScrollText className="h-5 w-5 hover:text-primary" />
-          <div
-            ref={(el) => registerStickyTarget(stickyTargets, el)}
-            className="bounds"
-          />
         </Magnetic>
       </motion.a>
     </motion.div>

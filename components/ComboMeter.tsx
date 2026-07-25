@@ -9,15 +9,15 @@ import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 import { cn } from "@/lib/utils";
 import { ComboSkill } from "@/@types/combo.type";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
+import { MAGNETIC_ATTRIBUTE } from "./ui/magnetic/magneticField";
 
 interface ComboSkillChipProps {
   skill: ComboSkill;
-  stickyElement?: React.MutableRefObject<(HTMLElement | null)[]>;
 }
 
 // Compact skill chip — same lit/unlit + proven-link mechanic as before,
 // tightened for density (smaller type, thinner meter, snappier hover).
-function ComboSkillChip({ skill, stickyElement }: ComboSkillChipProps) {
+function ComboSkillChip({ skill }: ComboSkillChipProps) {
   const isLit = skill.proofProjectIds.length > 0;
   const proofId = skill.proofProjectIds[0];
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -82,12 +82,6 @@ function ComboSkillChip({ skill, stickyElement }: ComboSkillChipProps) {
           no shipped project yet
         </p>
       )}
-      {isLit && stickyElement && (
-        <div
-          ref={(el) => stickyElement.current.push(el)}
-          className="pointer-events-none absolute inset-0"
-        ></div>
-      )}
     </motion.div>
   );
 
@@ -97,17 +91,17 @@ function ComboSkillChip({ skill, stickyElement }: ComboSkillChipProps) {
     <Link
       href={`/projects/${proofId}`}
       aria-label={`${skill.name} — proven by ${proofId}`}
+      // Reason: the target sits on the untransformed anchor, not the chip —
+      // the chip scales on press, and the cursor measures its target's
+      // resting box.
+      {...{ [MAGNETIC_ATTRIBUTE]: "" }}
     >
       {chip}
     </Link>
   );
 }
 
-interface ComboMeterProps {
-  stickyElement?: React.MutableRefObject<(HTMLElement | null)[]>;
-}
-
-export default function ComboMeter({ stickyElement }: ComboMeterProps) {
+export default function ComboMeter() {
   const sectionRef = useRef<HTMLElement>(null);
   const sectionOpacity = useSectionExitFade(sectionRef, [0.6, 1]);
 
@@ -199,11 +193,7 @@ export default function ComboMeter({ stickyElement }: ComboMeterProps) {
               className="z-[1] flex w-full flex-row flex-wrap justify-start gap-x-2.5 gap-y-1.5 text-left sm:flex-1"
             >
               {group.skills.map((skill) => (
-                <ComboSkillChip
-                  key={skill.name}
-                  skill={skill}
-                  stickyElement={stickyElement}
-                />
+                <ComboSkillChip key={skill.name} skill={skill} />
               ))}
             </motion.div>
             {combos.length == i + 1 && (

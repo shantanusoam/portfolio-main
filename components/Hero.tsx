@@ -2,24 +2,16 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import TextCarousel from "./ui/TextCarousel";
-import {
-  type MouseEvent,
-  type MutableRefObject,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
+import { MAGNETIC_ATTRIBUTE } from "./ui/magnetic/magneticField";
 import StringInstrument from "./IntrectiveComponents/StringInstrument";
 import Link from "next/link";
 import { useSectionExitFade } from "@/hooks/useSectionExitFade";
-import Magnetic from "@/components/ui/magnetic/Magnetic";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
-import useMounted from "@/hooks/useMounted";
 import { cn } from "@/lib/utils";
 
 interface HeroProps {
   masked: boolean;
-  stickyElement?: MutableRefObject<(HTMLElement | null)[]>;
 }
 
 // Inert until the section they point at exists: #trail-map lands in Phase 3
@@ -70,26 +62,12 @@ function RoleTicker({ lines, className }: { lines: string[]; className?: string 
   );
 }
 
-export default function Hero({ masked, stickyElement }: HeroProps) {
+export default function Hero({ masked }: HeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
   // Reason: a [0, 0.4] range started fading on the very first scrolled pixel,
   // so the hero sat at half-opacity while still filling most of the viewport.
   const opacity = useSectionExitFade(sectionRef, [0.2, 0.7]);
   const prefersReducedMotion = usePrefersReducedMotion();
-  // See EntranceWipe.tsx for why the mounted-gate matters below.
-  const mounted = useMounted();
-
-  // Cinematic cursor-glow, scoped to the hero only. Mutates CSS custom
-  // properties directly via a ref instead of React state, so it costs zero
-  // re-renders per mousemove. Static/centered under reduced motion.
-  function handleHeroMouseMove(e: MouseEvent<HTMLElement>) {
-    resetIdleTimer();
-    if (prefersReducedMotion || !glowRef.current) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    glowRef.current.style.setProperty("--glow-x", `${e.clientX - rect.left}px`);
-    glowRef.current.style.setProperty("--glow-y", `${e.clientY - rect.top}px`);
-  }
 
   // After ~4s of no input, the name breathes very slowly — the page seems
   // to be waiting for you rather than sitting dead. Stops the instant you
@@ -128,40 +106,22 @@ export default function Hero({ masked, stickyElement }: HeroProps) {
         id="hero"
         style={{ opacity }}
         ref={sectionRef}
-        onMouseMove={handleHeroMouseMove}
-        className="relative isolate flex max-h-[1080px] min-h-[100svh] w-full overflow-hidden px-[clamp(1.25rem,6vw,6rem)] pb-[clamp(1.5rem,5vh,4rem)] pt-[clamp(4.5rem,9vh,7rem)]"
+        onMouseMove={resetIdleTimer}
+        className="relative isolate flex max-h-[1080px] min-h-[100svh] w-full items-center overflow-hidden px-[clamp(1.25rem,6vw,6rem)] py-[clamp(5.5rem,10vh,7.5rem)]"
       >
-        <div
-          ref={glowRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[995]"
-          style={{
-            background:
-              "radial-gradient(400px circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(255,77,28,0.08), transparent 70%)",
-          }}
-        />
-        {/* Film light-leak: one soft drift, not generic particles — a nod to
-            the photography hobby, barely conscious at ~28s per loop. */}
-        <div
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute -inset-1/4 z-[994] rounded-full opacity-[0.06] blur-3xl",
-            mounted && !prefersReducedMotion && "animate-light-leak"
-          )}
-          style={{
-            background: "radial-gradient(circle, #ff7a47, transparent 60%)",
-          }}
-        />
-        <div className="relative z-[996] mx-auto grid w-full max-w-[1200px] flex-1 grid-rows-[minmax(0,1fr)_auto] items-center">
+        {/* Reason: one centered column keeps name + CTAs + instrument as a
+            single composition — avoids the old 1fr/self-end stack that left
+            a large empty band above the copy. */}
+        <div className="relative z-[996] mx-auto flex w-full max-w-[1200px] flex-col items-center justify-center gap-[clamp(1.25rem,3.5vh,2.75rem)]">
           <motion.div
             variants={{ show: { transition: { staggerChildren: stagger } } }}
             initial="hidden"
             animate="show"
-            className="flex w-full translate-y-[clamp(-1rem,-1.5vh,0rem)] flex-col items-center justify-center gap-[clamp(0.55rem,1.8vh,1rem)] self-end text-center"
+            className="flex w-full flex-col items-center justify-center gap-[clamp(0.4rem,1.2vh,0.85rem)] text-center"
           >
             <motion.div
               variants={contentVariants}
-              className="relative flex h-[clamp(4.5rem,14vh,8rem)] w-full items-center justify-center overflow-hidden"
+              className="relative flex h-[clamp(3.25rem,9vh,5.5rem)] w-full items-center justify-center overflow-hidden"
             >
               <TextCarousel
                 greetings={[
@@ -187,7 +147,7 @@ export default function Hero({ masked, stickyElement }: HeroProps) {
 
             <motion.div
               variants={contentVariants}
-              className="relative flex h-[clamp(1.5rem,4vh,2.5rem)] w-full items-center justify-center overflow-hidden"
+              className="relative flex h-[clamp(1.35rem,3.2vh,2rem)] w-full items-center justify-center overflow-hidden"
             >
               <RoleTicker
                 lines={ROLE_LINES}
@@ -205,25 +165,18 @@ export default function Hero({ masked, stickyElement }: HeroProps) {
 
             <motion.nav
               variants={contentVariants}
-              className="mt-[clamp(0.25rem,1vh,0.75rem)] flex flex-wrap items-center justify-center gap-x-[clamp(1rem,4vw,3rem)] gap-y-2 font-mono text-[clamp(0.62rem,1vw,0.8rem)] uppercase tracking-widest"
+              className="mt-[clamp(0.15rem,0.6vh,0.5rem)] flex flex-wrap items-center justify-center gap-x-[clamp(1rem,4vw,3rem)] gap-y-2 font-mono text-[clamp(0.62rem,1vw,0.8rem)] uppercase tracking-widest"
             >
               {START_MENU.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
+                  // The cursor wraps whatever carries this attribute, so the
+                  // link itself is the target — no overlay element to size.
+                  {...{ [MAGNETIC_ATTRIBUTE]: "" }}
                   className="whitespace-nowrap text-graytransparent transition-colors duration-300 hover:text-primary"
                 >
-                  <Magnetic>
-                    <span className="relative">
-                      [ {item.label} ]
-                      {stickyElement && (
-                        <div
-                          ref={(el) => stickyElement.current.push(el)}
-                          className="bounds"
-                        ></div>
-                      )}
-                    </span>
-                  </Magnetic>
+                  [ {item.label} ]
                 </Link>
               ))}
             </motion.nav>
@@ -231,7 +184,7 @@ export default function Hero({ masked, stickyElement }: HeroProps) {
 
           {/* The instrument is part of the composition instead of being
               absolutely pinned, so short screens cannot crop or detach it. */}
-          <div className="mx-auto mt-[clamp(1rem,3vh,2.5rem)] w-full max-w-[1100px]">
+          <div className="mx-auto w-full max-w-[1100px]">
             <StringInstrument />
           </div>
         </div>

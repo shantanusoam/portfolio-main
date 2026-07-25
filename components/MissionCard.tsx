@@ -15,7 +15,6 @@ import useMounted from "@/hooks/useMounted";
 interface MissionCardProps {
   mission: MissionType;
   index?: number;
-  stickyElement?: React.MutableRefObject<(HTMLElement | null)[]>;
 }
 
 // Fighter-select profile card: cover portrait on top, loadout data below.
@@ -26,7 +25,6 @@ interface MissionCardProps {
 export default function MissionCard({
   mission,
   index = 0,
-  stickyElement,
 }: MissionCardProps) {
   const router = useRouter();
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -199,12 +197,6 @@ export default function MissionCard({
                 >
                   <Magnetic>
                     <MoveRight className="w-5 text-gray transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:text-primary motion-reduce:group-hover:translate-x-0" />
-                    {stickyElement && (
-                      <div
-                        ref={(el) => stickyElement.current.push(el)}
-                        className="bounds"
-                      ></div>
-                    )}
                   </Magnetic>
                 </Link>
               )}

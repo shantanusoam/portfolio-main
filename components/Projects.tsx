@@ -46,11 +46,7 @@ const introVariants = {
   }),
 };
 
-type ProjectsProps = {
-  stickyElement?: React.MutableRefObject<(HTMLElement | null)[]>;
-};
-
-export default function Projects({ stickyElement }: ProjectsProps) {
+export default function Projects() {
   const targetRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -98,12 +94,7 @@ export default function Projects({ stickyElement }: ProjectsProps) {
         className="mt-14 flex flex-row flex-wrap items-stretch justify-center gap-x-6 gap-y-8"
       >
         {projects.map((project, i) => (
-          <MissionCard
-            mission={project}
-            index={i}
-            stickyElement={stickyElement}
-            key={project.id}
-          />
+          <MissionCard mission={project} index={i} key={project.id} />
         ))}
         {/* "More on GitHub" card — same frame + dimensions as MissionCard so
             the grid stays perfectly uniform */}

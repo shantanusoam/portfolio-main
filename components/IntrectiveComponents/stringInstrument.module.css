@@ -1,4 +1,6 @@
 .instrument {
+  --pick-x: 50%;
+  --pick-y: 50%;
   position: relative;
   width: min(100%, 1100px);
   height: clamp(7.25rem, 21vh, 11rem);
@@ -70,11 +72,44 @@
   width: 100%;
   height: calc(100% - 1rem);
   overflow: visible;
-  cursor: grab;
+  cursor: none;
 }
 
-.strings:active {
-  cursor: grabbing;
+.pick,
+.demoPick {
+  position: absolute;
+  z-index: 5;
+  width: 0.72rem;
+  height: 0.9rem;
+  border: 1px solid rgb(255 134 84 / 90%);
+  border-radius: 60% 45% 60% 45%;
+  background: rgb(17 16 15 / 86%);
+  box-shadow: 0 0 0 3px rgb(255 111 61 / 8%);
+  pointer-events: none;
+}
+
+.pick {
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transform: translate3d(
+      calc(var(--pick-x) - 50%),
+      calc(var(--pick-y) - 50%),
+      0
+    )
+    rotate(28deg);
+  transition: opacity 120ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.pick[data-visible="true"] {
+  opacity: 1;
+}
+
+.demoPick {
+  top: 2.2rem;
+  left: 50%;
+  opacity: 0;
+  animation: demo-strum 1.7s cubic-bezier(0.22, 1, 0.36, 1) 0.5s 2;
 }
 
 .string {
@@ -89,6 +124,79 @@
 .instrument:hover .string,
 .instrument:focus-visible .string {
   stroke: rgb(255 242 235 / 95%);
+}
+
+.hoveredString {
+  stroke: rgb(255 154 112 / 100%) !important;
+  filter: drop-shadow(0 0 4px rgb(255 111 61 / 58%));
+}
+
+.activeString {
+  stroke: rgb(255 111 61 / 100%) !important;
+  filter: drop-shadow(0 0 6px rgb(255 111 61 / 72%));
+}
+
+.chordRail {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: -0.2rem;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  color: rgb(255 228 213 / 30%);
+  font-family: monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+  text-align: center;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.chordRail span {
+  position: relative;
+  transition:
+    color 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 180ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.chordRail span:not(:last-child)::after {
+  position: absolute;
+  top: -0.25rem;
+  right: 0;
+  width: 1px;
+  height: 0.3rem;
+  content: "";
+  background: rgb(255 111 61 / 24%);
+}
+
+.activeChord {
+  color: rgb(255 134 84 / 90%);
+}
+
+.instrument[data-status="holding"] .legend,
+.instrument[data-status="strumming"] .legend {
+  color: rgb(255 228 213 / 70%);
+}
+
+@keyframes demo-strum {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, 0, 0) rotate(28deg);
+  }
+
+  18% {
+    opacity: 0.9;
+  }
+
+  75% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(-50%, 5rem, 0) rotate(28deg);
+  }
 }
 
 .srStatus {
@@ -111,6 +219,15 @@
   .legend {
     letter-spacing: 0.1em;
   }
+
+  .keyboardHint,
+  .pick {
+    display: none;
+  }
+
+  .strings {
+    cursor: default;
+  }
 }
 
 @media (max-height: 650px) and (min-width: 768px) {
@@ -125,7 +242,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .note,
-  .string {
+  .string,
+  .pick,
+  .chordRail span {
     transition: none;
+  }
+
+  .demoPick {
+    display: none;
   }
 }

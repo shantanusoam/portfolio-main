@@ -1,20 +1,20 @@
 import { useMotionValue, motion, useSpring, useTransform } from "framer-motion";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import React, { forwardRef, useRef } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import Magnetic from "./ui/magnetic/Magnetic";
 
 type LinkProps = {
   heading: string;
-  imgSrc: string;
+  imgSrc: string | StaticImageData;
   subheading: string;
   href: string;
   onClick: () => void;
-  arrowref: React.RefObject<never[]>; // Correct type for arrowref
+  ageLink?: boolean;
 };
 
 const HoverImageLink = forwardRef<HTMLAnchorElement, LinkProps>(
-  ({ heading, imgSrc, subheading, href, onClick, arrowref }) => {
+  ({ heading, imgSrc, subheading, href, onClick }) => {
     const ref = useRef<HTMLAnchorElement | null>(null);
 
     const x = useMotionValue(0);
@@ -122,7 +122,6 @@ const HoverImageLink = forwardRef<HTMLAnchorElement, LinkProps>(
                 opacity: 1,
               },
             }}
-            ref={(el) => arrowref?.current?.push(el)}
             transition={{ type: "spring" }}
             className="relative z-10 p-4"
           >

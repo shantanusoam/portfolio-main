@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { MutableRefObject, useState } from "react";
+import { useState } from "react";
 import MenuToggle from "./ui/MenuToggle";
 import Socials from "./ui/Socials";
 import { Button } from "./ui/Buttons";
@@ -15,64 +15,40 @@ import hobbi from "@/public/3D Windows Developer Symbols.png";
 import ai from "@/public/AI Isometric Lettering.png";
 import programming from "@/public/Programmer coding laptop.png";
 import skills from "@/public/Skills clipart gleam.png";
-import lab from "@/public/Disguised Face 3D.png";
-import pattern from "@/public/Happy Smiling Emoji Chat.png";
 import HoverImageLink from "./HoverImageLink";
 const navSections = [
   {
     title: "About",
-    id: "about",
     subHeading: `Something Not To be Told`,
     image: AboutmePic,
   },
   {
-    title: "Trail Map",
-    id: "trail-map",
+    title: "Experience",
     subHeading: `companies i worked for`,
     image: skills,
   },
   {
-    title: "Mission Select",
-    id: "mission-select",
-    subHeading: `Fighter profiles of things I've shipped`,
+    title: "Projects",
+    subHeading: `Things i give my commitment to`,
     image: programming,
   },
   {
-    title: "Combo Meter",
-    id: "combo-meter",
+    title: "Skills",
     subHeading: `You Don't see what's real`,
     image: ai,
   },
   {
-    title: "Pattern Library",
-    id: "pattern-library",
-    subHeading: `components are stitches, patterns become systems`,
-    image: pattern,
-  },
-  {
-    title: "Maker Lab",
-    id: "maker-lab",
-    subHeading: `IoT tinkering & motion experiments`,
-    image: lab,
-  },
-  {
-    title: "Field Notes",
-    id: "field-notes",
+    title: "Hobbies",
     subHeading: `loves to do`,
     image: hobbi,
   },
   {
     title: "Contact",
-    id: "contact",
     subHeading: `Common I am here to help`,
     image: contact,
   },
 ];
-const Navbar = ({
-  stickyTargets,
-}: {
-  stickyTargets?: MutableRefObject<(HTMLElement | null)[]>;
-}) => {
+export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const liHoverAnim = {
@@ -179,23 +155,20 @@ const Navbar = ({
                   >
                     <HoverImageLink
                       ageLink
-                      arrowref={ref}
                       heading={navSection.title}
                       subheading={navSection.subHeading}
                       imgSrc={navSection.image}
-                      href={`#${navSection.id}`}
+                      href={`#${navSection.title.toLowerCase()}`}
                       onClick={() => setMenuOpen(false)}
                     />
                   </motion.li>
                 ))}
               </motion.ul>
-              <Socials stickyTargets={stickyTargets} direction="horizontal" />
+              <Socials direction="horizontal" />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </>
   );
-};
-
-export default Navbar;
+}

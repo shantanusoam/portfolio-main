@@ -1,13 +1,61 @@
-.cursor{
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 20px;
-    height: 20px;
-    mix-blend-mode: difference;
-    background-color: rgb(255, 255, 255);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999999;
-    will-change: transform;
+// Both layers are siblings at the document level on purpose: a positioned,
+// z-indexed wrapper would form a blend group and `mix-blend-mode: difference`
+// would then invert against the wrapper instead of the page.
+
+// Shared per-frame contract: JS writes only `transform` (and the field's
+// opacity). Everything else changes on capture/release, never in the loop.
+.field,
+.core {
+  position: fixed;
+  top: 0;
+  left: 0;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  will-change: transform;
+  // Reason: the transform includes translate(-50%, -50%), so both layers pivot
+  // and centre on the cursor without margin maths that would fight the
+  // width/height transition below.
+  transform-origin: 50% 50%;
+}
+
+.field {
+  z-index: 9999998;
+  width: var(--field-width, var(--field-rest, 36px));
+  height: var(--field-height, var(--field-rest, 36px));
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: var(--field-radius, 999px);
+  // Dimensions only change when the cursor attaches to or leaves a target, so a
+  // CSS transition covers the morph and the loop stays transform-only.
+  // Opacity is excluded: it is driven per frame from hold strength.
+  transition:
+    width 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.field[data-held="true"] {
+  border-color: rgb(255 255 255 / 95%);
+}
+
+.core {
+  z-index: 9999999;
+  width: var(--core-size, 10px);
+  height: var(--core-size, 10px);
+  border-radius: 50%;
+  background-color: rgb(255 255 255);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .field,
+  .core {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field,
+  .core {
+    transition: none;
+  }
 }

@@ -8,7 +8,7 @@ import ComboMeter from "@/components/ComboMeter";
 import PatternLibrary from "@/components/PatternLibrary";
 import MakerLab from "@/components/MakerLab";
 import Projects from "@/components/Projects";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   motion,
   useAnimate,
@@ -72,8 +72,6 @@ export default function Home() {
     [0, 1],
     ["50%", "-50%"]
   );
-  const stickyElement = useRef([]);
-
   useEffect(() => {
     return xVelocity.on("change", (latestVelocity) => {
       if (window.getComputedStyle(socialsRef.current).display != "none") {
@@ -111,19 +109,19 @@ export default function Home() {
       <div className="relative">
         <EntranceWipe />
         <ComboTrail />
-        {/* <StickyCursor stickyElement={stickyElement} /> */}
+        <StickyCursor />
         {/* <MaskedCopy /> */}
-        <Navbar stickyTargets={stickyElement} />
-        <Socials containerRef={socialsRef} stickyTargets={stickyElement} />
+        <Navbar />
+        <Socials containerRef={socialsRef} />
         <main className="text-clip">
           <div className="container">
-            <Hero masked={false} stickyElement={stickyElement} />
+            <Hero masked={false} />
             <MakeAndBreak />
             <Intro />
             <Experience />
-            <Projects stickyElement={stickyElement} />
+            <Projects />
             <PatternLibrary />
-            <ComboMeter stickyElement={stickyElement} />
+            <ComboMeter />
             <MakerLab />
             <Hobbies />
           </div>

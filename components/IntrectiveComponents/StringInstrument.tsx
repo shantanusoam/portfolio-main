@@ -8,14 +8,19 @@ import React, {
 } from "react";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import styles from "./stringInstrument.module.css";
+import {
+  CHORDS,
+  type PluckBufferCache,
+  playPhysicalString,
+} from "./stringSynth";
 
 const STRINGS = [
-  { note: "C3", frequency: 130.81, gauge: 2.4 },
-  { note: "G3", frequency: 196, gauge: 2.1 },
-  { note: "C4", frequency: 261.63, gauge: 1.8 },
-  { note: "E4", frequency: 329.63, gauge: 1.5 },
-  { note: "G4", frequency: 392, gauge: 1.2 },
-  { note: "C5", frequency: 523.25, gauge: 0.9 },
+  { gauge: 2.4 },
+  { gauge: 2.1 },
+  { gauge: 1.8 },
+  { gauge: 1.5 },
+  { gauge: 1.2 },
+  { gauge: 0.9 },
 ] as const;
 
 const VIEWBOX_WIDTH = 1000;
@@ -34,6 +39,9 @@ type StringMotion = {
 type PointerSession = {
   stringIndex: number;
   previousY: number;
+  previousTime: number;
+  startY: number;
+  mode: "pull" | "strum";
 };
 
 function createMotion(): StringMotion[] {
@@ -47,14 +55,24 @@ function createMotion(): StringMotion[] {
 
 export default function StringInstrument() {
   const prefersReducedMotion = usePrefersReducedMotion();
-  const svgRef = useRef<SVGSVGElement>(null);
   const pathRefs = useRef<(SVGPathElement | null)[]>([]);
+  const pickRef = useRef<HTMLDivElement>(null);
   const motions = useRef<StringMotion[]>(createMotion());
   const pointers = useRef(new Map<number, PointerSession>());
   const frameRef = useRef<number>();
   const previousFrame = useRef<number>();
   const audioContext = useRef<AudioContext>();
+  const audioBuffers = useRef<PluckBufferCache>(new Map());
+  const chordIndexRef = useRef(0);
+  const hintTimer = useRef<ReturnType<typeof setTimeout>>();
   const [lastNote, setLastNote] = useState<string>();
+  const [currentChord, setCurrentChord] = useState(0);
+  const [activeString, setActiveString] = useState<number>();
+  const [hoveredString, setHoveredString] = useState<number>();
+  const [status, setStatus] = useState<"ready" | "holding" | "strumming">(
+    "ready"
+  );
+  const [showHint, setShowHint] = useState(true);
 
   const drawString = useCallback((index: number) => {
     const path = pathRefs.current[index];
@@ -114,68 +132,71 @@ export default function StringInstrument() {
 
   useEffect(() => {
     STRINGS.forEach((_, index) => drawString(index));
+    try {
+      if (window.sessionStorage.getItem("hero-string-hint-seen")) {
+        setShowHint(false);
+      } else {
+        hintTimer.current = setTimeout(() => {
+          setShowHint(false);
+          window.sessionStorage.setItem("hero-string-hint-seen", "true");
+        }, 6000);
+      }
+    } catch {
+      hintTimer.current = setTimeout(() => setShowHint(false), 6000);
+    }
+
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      if (hintTimer.current) clearTimeout(hintTimer.current);
       audioContext.current?.close().catch(() => undefined);
     };
   }, [drawString]);
 
-  const playNote = useCallback((index: number, intensity = 0.55) => {
+  const dismissHint = useCallback(() => {
+    setShowHint(false);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    try {
+      window.sessionStorage.setItem("hero-string-hint-seen", "true");
+    } catch {
+      // Storage can be unavailable in privacy-restricted browsing contexts.
+    }
+  }, []);
+
+  const setChordFromX = useCallback((x: number) => {
+    const index = Math.min(
+      CHORDS.length - 1,
+      Math.max(0, Math.floor((x / VIEWBOX_WIDTH) * CHORDS.length))
+    );
+    if (index !== chordIndexRef.current) {
+      chordIndexRef.current = index;
+      setCurrentChord(index);
+    }
+    return index;
+  }, []);
+
+  const playNote = useCallback((index: number, intensity = 0.55, x = 500) => {
     const Context = window.AudioContext;
     const context = audioContext.current ?? new Context();
     audioContext.current = context;
+
+    const chord = CHORDS[chordIndexRef.current];
+    const [note, frequency] = chord.strings[index];
+    const startPlayback = () => {
+      playPhysicalString({
+        context,
+        cache: audioBuffers.current,
+        frequency,
+        intensity,
+        pan: (x / VIEWBOX_WIDTH) * 2 - 1,
+      });
+    };
+
     if (context.state === "suspended") {
-      context.resume().catch(() => undefined);
+      context.resume().then(startPlayback).catch(() => undefined);
+    } else {
+      startPlayback();
     }
-
-    const now = context.currentTime;
-    const level = Math.min(Math.max(intensity, 0.12), 1);
-    const output = context.createGain();
-    const filter = context.createBiquadFilter();
-    const fundamental = context.createOscillator();
-    const harmonic = context.createOscillator();
-    const harmonicGain = context.createGain();
-    const noise = context.createBufferSource();
-    const noiseFilter = context.createBiquadFilter();
-
-    output.gain.setValueAtTime(0.0001, now);
-    output.gain.exponentialRampToValueAtTime(0.16 * level, now + 0.008);
-    output.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
-
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(3200, now);
-    filter.frequency.exponentialRampToValueAtTime(700, now + 1.2);
-    filter.Q.value = 1.2;
-
-    fundamental.type = "triangle";
-    fundamental.frequency.value = STRINGS[index].frequency;
-    harmonic.type = "sine";
-    harmonic.frequency.value = STRINGS[index].frequency * 2.01;
-    harmonic.detune.value = -4;
-    harmonicGain.gain.value = 0.24;
-
-    const noiseBuffer = context.createBuffer(1, context.sampleRate * 0.025, context.sampleRate);
-    const samples = noiseBuffer.getChannelData(0);
-    for (let sample = 0; sample < samples.length; sample += 1) {
-      samples[sample] = Math.random() * 2 - 1;
-    }
-    noise.buffer = noiseBuffer;
-    noiseFilter.type = "bandpass";
-    noiseFilter.frequency.value = STRINGS[index].frequency * 2.5;
-    noiseFilter.Q.value = 0.8;
-
-    fundamental.connect(filter);
-    harmonic.connect(harmonicGain).connect(filter);
-    noise.connect(noiseFilter).connect(filter);
-    filter.connect(output).connect(context.destination);
-
-    fundamental.start(now);
-    harmonic.start(now);
-    noise.start(now);
-    fundamental.stop(now + 1.5);
-    harmonic.stop(now + 1.5);
-    noise.stop(now + 0.03);
-    setLastNote(STRINGS[index].note);
+    setLastNote(note);
   }, []);
 
   function getPoint(event: React.PointerEvent<SVGSVGElement>) {
@@ -203,49 +224,130 @@ export default function StringInstrument() {
     startAnimation();
   }
 
-  function releaseString(index: number, force = 0.5) {
+  function releaseString(
+    index: number,
+    force = 0.5,
+    x = VIEWBOX_WIDTH / 2,
+    withSound = true
+  ) {
     const string = motions.current[index];
     string.held = false;
     string.velocity += Math.sign(string.bend || 1) * Math.min(8 + force * 10, 18);
-    playNote(index, force);
+    if (withSound) playNote(index, force, x);
     startAnimation();
+  }
+
+  function strumString(index: number, direction: number, force: number, x: number) {
+    const string = motions.current[index];
+    string.held = false;
+    string.anchorX = Math.min(Math.max(x / VIEWBOX_WIDTH, 0.08), 0.92);
+    string.bend = direction * Math.min(9 + force * 8, 18);
+    string.velocity = direction * Math.min(8 + force * 9, 17);
+    playNote(index, force, x);
+    startAnimation();
+  }
+
+  function positionPick(event: React.PointerEvent<SVGSVGElement>) {
+    if (!pickRef.current) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    pickRef.current.style.setProperty(
+      "--pick-x",
+      `${event.clientX - bounds.left}px`
+    );
+    pickRef.current.style.setProperty(
+      "--pick-y",
+      `${event.clientY - bounds.top + 16}px`
+    );
+    pickRef.current.dataset.visible = "true";
   }
 
   function handlePointerDown(event: React.PointerEvent<SVGSVGElement>) {
     const point = getPoint(event);
     const index = nearestString(point.y);
     const stringY = FIRST_STRING_Y + index * STRING_GAP;
+    dismissHint();
+    setChordFromX(point.x);
     event.currentTarget.setPointerCapture(event.pointerId);
-    pointers.current.set(event.pointerId, { stringIndex: index, previousY: point.y });
-    exciteString(index, point.y - stringY || 7, point.x);
+    pointers.current.set(event.pointerId, {
+      stringIndex: index,
+      previousY: point.y,
+      previousTime: event.timeStamp,
+      startY: point.y,
+      mode: "pull",
+    });
+    setActiveString(index);
+    setStatus("holding");
+    exciteString(index, point.y - stringY || 5, point.x);
+    playNote(index, 0.2, point.x);
   }
 
   function handlePointerMove(event: React.PointerEvent<SVGSVGElement>) {
-    const session = pointers.current.get(event.pointerId);
-    if (!session) return;
-
+    positionPick(event);
     const point = getPoint(event);
-    const nextIndex = nearestString(point.y);
-    if (nextIndex !== session.stringIndex) {
-      const travel = Math.abs(point.y - session.previousY) / STRING_GAP;
-      releaseString(session.stringIndex, Math.min(0.45 + travel * 0.25, 1));
-      session.stringIndex = nextIndex;
+    const session = pointers.current.get(event.pointerId);
+    if (!session) {
+      setChordFromX(point.x);
+      const nearest = nearestString(point.y);
+      if (nearest !== hoveredString) setHoveredString(nearest);
+      return;
     }
 
-    const stringY = FIRST_STRING_Y + session.stringIndex * STRING_GAP;
-    exciteString(session.stringIndex, point.y - stringY, point.x);
+    setChordFromX(point.x);
+    const elapsed = Math.max(event.timeStamp - session.previousTime, 1);
+    const stepY = point.y - session.previousY;
+    const speed = Math.abs(stepY) / elapsed;
+    const totalTravel = Math.abs(point.y - session.startY);
+
+    // A slow pull remains locked to its starting string. A decisive vertical
+    // sweep becomes a strum only after the user has had room for a full bend.
+    if (
+      session.mode === "pull" &&
+      totalTravel > STRING_GAP * 0.82 &&
+      speed > 0.38
+    ) {
+      releaseString(session.stringIndex, 0.35, point.x, false);
+      session.mode = "strum";
+      setStatus("strumming");
+    }
+
+    if (session.mode === "pull") {
+      const stringY = FIRST_STRING_Y + session.stringIndex * STRING_GAP;
+      exciteString(session.stringIndex, point.y - stringY, point.x);
+    } else {
+      const nextIndex = nearestString(point.y);
+      if (nextIndex !== session.stringIndex) {
+        const direction = nextIndex > session.stringIndex ? 1 : -1;
+        const force = Math.min(0.42 + speed * 0.55, 1);
+
+        // Fast pointer events can jump several rows. Trigger every crossed
+        // string so a quick desktop sweep still produces a complete chord.
+        for (
+          let index = session.stringIndex + direction;
+          direction > 0 ? index <= nextIndex : index >= nextIndex;
+          index += direction
+        ) {
+          strumString(index, direction, force, point.x);
+        }
+        session.stringIndex = nextIndex;
+        setActiveString(nextIndex);
+      }
+    }
+
     session.previousY = point.y;
+    session.previousTime = event.timeStamp;
   }
 
   function handlePointerUp(event: React.PointerEvent<SVGSVGElement>) {
     const session = pointers.current.get(event.pointerId);
     if (!session) return;
-    const force = Math.min(
-      0.35 + Math.abs(motions.current[session.stringIndex].bend) / MAX_BEND,
-      1
-    );
-    releaseString(session.stringIndex, force);
+    if (session.mode === "pull") {
+      const bend = Math.abs(motions.current[session.stringIndex].bend);
+      const force = Math.min(0.35 + bend / MAX_BEND, 1);
+      releaseString(session.stringIndex, force, getPoint(event).x, bend > 6);
+    }
     pointers.current.delete(event.pointerId);
+    setActiveString(undefined);
+    setStatus("ready");
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -258,7 +360,9 @@ export default function StringInstrument() {
     const string = motions.current[index];
     string.bend = 14;
     string.velocity = 10;
-    playNote(index, 0.65);
+    playNote(index, 0.65, VIEWBOX_WIDTH / 2);
+    setActiveString(index);
+    setTimeout(() => setActiveString(undefined), 180);
     startAnimation();
   }
 
@@ -266,41 +370,80 @@ export default function StringInstrument() {
     <div
       className={styles.instrument}
       role="group"
-      aria-label="Playable six-string instrument. Drag across the strings, or press keys 1 through 6."
+      aria-label="Playable six-string instrument. Pull a string slowly, sweep vertically to strum, or press keys 1 through 6."
       tabIndex={0}
       onKeyDown={handleKeyDown}
+      data-status={status}
     >
       <div className={styles.legend} aria-hidden="true">
-        <span>drag to strum</span>
-        <span className={styles.note}>{lastNote ?? "open C"}</span>
-        <span>keys 1—6</span>
+        <span>
+          {status === "ready"
+            ? "hold + pull · sweep to strum"
+            : status === "holding"
+            ? "release to pluck"
+            : "keep sweeping"}
+        </span>
+        <span className={styles.note}>
+          {lastNote ? `${lastNote} · ` : ""}
+          {CHORDS[currentChord].name}
+        </span>
+        <span className={styles.keyboardHint}>keys 1—6</span>
       </div>
+      <div className={styles.chordRail} aria-hidden="true">
+        {CHORDS.map((chord, index) => (
+          <span
+            key={chord.shortName}
+            className={index === currentChord ? styles.activeChord : undefined}
+          >
+            {chord.shortName}
+          </span>
+        ))}
+      </div>
+      {showHint && !prefersReducedMotion && (
+        <div className={styles.demoPick} aria-hidden="true" />
+      )}
+      <div ref={pickRef} className={styles.pick} aria-hidden="true" />
       <svg
-        ref={svgRef}
         className={styles.strings}
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
+        onPointerEnter={positionPick}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onPointerLeave={() => {
+          if (pointers.current.size === 0 && pickRef.current) {
+            pickRef.current.dataset.visible = "false";
+            setHoveredString(undefined);
+          }
+        }}
         onContextMenu={(event) => event.preventDefault()}
         aria-hidden="true"
       >
+        <rect width={VIEWBOX_WIDTH} height={VIEWBOX_HEIGHT} fill="transparent" />
         {STRINGS.map((string, index) => (
           <path
-            key={string.note}
+            key={index}
             ref={(element) => {
               pathRefs.current[index] = element;
             }}
-            className={styles.string}
+            className={[
+              styles.string,
+              index === hoveredString ? styles.hoveredString : "",
+              index === activeString ? styles.activeString : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
             style={{ strokeWidth: string.gauge }}
             d=""
           />
         ))}
       </svg>
       <span className={styles.srStatus} aria-live="polite">
-        {lastNote ? `Played ${lastNote}` : ""}
+        {lastNote
+          ? `Played ${lastNote} in ${CHORDS[currentChord].name}`
+          : ""}
       </span>
     </div>
   );

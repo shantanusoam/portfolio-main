@@ -1,0 +1,38 @@
+/*
+ * Host stays still; mover carries the magnetic offset. Keeping them separate
+ * lets the cursor measure resting geometry without chasing the animation.
+ *
+ * An invisible padded hit area (::before) expands the capture field so the
+ * sticky cursor traps earlier and the icon leans before you land on the glyph.
+ */
+.host {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.host::before {
+  position: absolute;
+  z-index: 0;
+  inset: -14px;
+  content: "";
+  border-radius: 999px;
+  pointer-events: auto;
+}
+
+.mover {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mover {
+    will-change: auto;
+  }
+}

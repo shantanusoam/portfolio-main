@@ -39,44 +39,26 @@ html, body {
   overflow-x: hidden; /* Prevent horizontal scroll */
   font-family: Arial, sans-serif;
 }
-.MagneticHead{
-  position: fixed;
-  display: flex;
- 
-  justify-content: flex-end;
-  padding: 8px;
+/* Magnetic host styles live in magnetic.module.css — keep this class as a
+   lightweight hook only. The old Olivier Larose header leftovers (fixed +
+   mix-blend-mode) were fighting the magnetic transform and sticky capture. */
+.MagneticHead {
   box-sizing: border-box;
-  cursor: pointer;
-  mix-blend-mode: difference;
-  z-index: 1;
-  /* .burger{
-      position: relative;
-      display: flex;
-      gap: 8px;
-      flex-direction: column;
-      padding: 30px;
-      pointer-events: none;
-      &::before, &::after{
-          display: block;
-          content: "";
-          width: 30px;
-          height: 2px;
-          mix-blend-mode: difference;
-          background-color: white;
-      }
-  } */
-  .bounds{
-    /* border: 1px solid red; */
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: all;
-      &:hover{
-          transform: scale(3);
-      }
-  }
+}
+
+/* Custom sticky cursor owns the pointer on fine-pointer desktops. */
+html.has-sticky-cursor,
+html.has-sticky-cursor * {
+  cursor: none !important;
+}
+
+html.has-sticky-cursor a,
+html.has-sticky-cursor button,
+html.has-sticky-cursor [role="button"],
+html.has-sticky-cursor input,
+html.has-sticky-cursor textarea,
+html.has-sticky-cursor select {
+  cursor: none !important;
 }
 @layer base {
   body {
@@ -294,43 +276,10 @@ html.lenis {
 }
 
 
-.header{
-    position: fixed;
-    display: flex;
-    width: 100%;
-    justify-content: flex-end;
-    padding: 10px;
-    box-sizing: border-box;
-    cursor: pointer;
-    mix-blend-mode: difference;
-    z-index: 1;
-    .burger{
-        position: relative;
-        display: flex;
-        gap: 8px;
-        flex-direction: column;
-        padding: 30px;
-        pointer-events: none;
-        &::before, &::after{
-            display: block;
-            content: "";
-            width: 30px;
-            height: 2px;
-            mix-blend-mode: difference;
-            background-color: white;
-        }
-    }
-    .bounds{
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: all;
-        &:hover{
-            transform: scale(3);
-        }
-    }
+/* Unused Olivier Larose header demo leftovers — kept inert so nested
+   .bounds:hover { scale(3) } cannot inflate magnetic hit targets. */
+.header {
+  display: none;
 }
 
 @keyframes breathe {
