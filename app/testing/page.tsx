@@ -1,8 +1,14 @@
 "use client";
 import String from "@/components/IntrectiveComponents/String";
 import React from "react";
+import dynamic from "next/dynamic";
 import styles from "./page.module.css";
-import Spline from "@splinetool/react-spline";
+
+// Reason: @splinetool/react-spline pulls Three.js classes that break Next
+// prerender ("Super constructor null … is not a constructor").
+const Spline = dynamic(() => import("@splinetool/react-spline"), {
+  ssr: false,
+});
 
 const testingPage = () => {
   return (

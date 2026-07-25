@@ -1,6 +1,7 @@
 # Tasks
 
 ## Active
+- [x] 2026-07-25: Fix `/testing` prerender crash from Spline SSR
 - [x] 2026-07-25: Remove Hero glow/light-leak overlays and tighten vertical composition
 - [x] 2026-07-19: Fix home page post-load lag and scroll jank (Home container / main)
 - [x] 2026-07-19: Redesign Intro/About — concise copy + scroll-triggered corner stickers (flowers/paintbrush), performance-safe
