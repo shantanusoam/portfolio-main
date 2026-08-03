@@ -1,6 +1,10 @@
 # Tasks
 
 ## Active
+
+- [x] 2026-08-03: Match About + Experience to the archive reference art — real tech brand icons, yarn patch assets, live career counter, logo tiles, IBM Plex Mono typography
+- [x] 2026-08-03: Add the Make/Break interactive word transition to the About studio panel
+- [x] 2026-08-03: Unify About and Experience under the Crafted Systems Archive visual system
 - [x] 2026-08-03: Add seamless black-linen page background for the dark theme
 - [x] 2026-08-03: Use ChatGPT linen texture as Hero section background
 - [x] 2026-08-03: Replace procedural black-linen with ChatGPT weave (12_12_16) site-wide
@@ -23,6 +27,7 @@
 - [x] 2026-07-25: Fix cursor angle glitch (transform order + atan2 seam), add elastic escape strain and wobbly magnetic release
 
 ## Discovered During Work
+
 - ComboTrail was painting a ~14k-px-tall SVG with `mix-blend-screen` (primary scroll jank source)
 - CSS `scroll-behavior: smooth` was stacking with Lenis
 - Film-grain `mix-blend-mode: overlay` forced a full-viewport composite every frame
@@ -45,5 +50,6 @@
 - `.MagneticHead` still carried Olivier Larose header CSS (`position: fixed`, `mix-blend-mode`) which fought magnetic transforms
 
 ## Follow-ups
+
 - [ ] Re-export About stickers at 256px (or WebP) — files are still 512px / ~1.6MB total
 - [x] 2026-07-25: Rebuild sticky cursor + magnetic physics — soft capture field, held-wrap without stretch glitch, fluid free motion
