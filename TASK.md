@@ -1,6 +1,9 @@
 # Tasks
 
 ## Active
+- [x] 2026-08-03: Add seamless black-linen page background for the dark theme
+- [x] 2026-08-03: Use ChatGPT linen texture as Hero section background
+- [x] 2026-08-03: Replace procedural black-linen with ChatGPT weave (12_12_16) site-wide
 - [x] 2026-07-25: Fix `/testing` prerender crash from Spline SSR
 - [x] 2026-07-25: Remove Hero glow/light-leak overlays and tighten vertical composition
 - [x] 2026-07-19: Fix home page post-load lag and scroll jank (Home container / main)

@@ -291,7 +291,8 @@ export default function ComboTrail() {
       const p = Math.min(1, Math.max(0, scrollYProgress.get()));
       world.setAttribute("transform", `translate(0 ${-sy})`);
 
-      const revealY = p * geometry.ys[geometry.ys.length - 1];
+      const revealY = Math.min(1, p * 1.03) * geometry.ys[geometry.ys.length - 1];
+      // 1.3 → at ~77% scroll, the trail is already fully drawn
       clip.setAttribute("height", `${Math.max(0, revealY)}`);
 
       // Comet head rides the clip edge; a fast flick stretches it a touch so

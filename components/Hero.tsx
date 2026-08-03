@@ -109,6 +109,18 @@ export default function Hero({ masked }: HeroProps) {
         onMouseMove={resetIdleTimer}
         className="relative isolate flex max-h-[1080px] min-h-[100svh] w-full items-center overflow-hidden px-[clamp(1.25rem,6vw,6rem)] py-[clamp(5.5rem,10vh,7.5rem)]"
       >
+        {/* Same ChatGPT linen tile as the page body — even weave, so repeat
+            (not cover) keeps the thread scale honest. Soft bottom fade keeps
+            the exit into the rest of the page seamless. */}
+        {/* <div
+          className="pointer-events-none absolute inset-0 -z-10 bg-[length:320px_320px] bg-repeat"
+          style={{ backgroundImage: "url('/textures/black-linen.webp')" }}
+          aria-hidden="true"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/40" />
+          <div className="absolute inset-x-0 bottom-0 h-[28%] bg-gradient-to-t from-[var(--black)] to-transparent" />
+        </div> */}
+
         {/* Reason: one centered column keeps name + CTAs + instrument as a
             single composition — avoids the old 1fr/self-end stack that left
             a large empty band above the copy. */}

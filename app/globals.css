@@ -62,7 +62,15 @@ html.has-sticky-cursor select {
 }
 @layer base {
   body {
-    @apply bg-black text-white;
+    @apply text-white;
+    /* Authentic linen tile (ChatGPT weave). Lives on the document — not a
+       fixed blend layer — so Lenis scroll stays compositor-cheap. */
+    background-color: var(--black);
+    background-image: url('/textures/black-linen.webp');
+    background-repeat: repeat;
+    /* Reason: ~320px keeps the weave fine at desktop without reading as
+       a loud wallpaper pattern. */
+    background-size: 320px 320px;
   }
 
   #nav-container,
@@ -83,15 +91,15 @@ html.has-sticky-cursor select {
     @apply bg-primary text-white;
   }
 
-  /* Static film-grain without mix-blend — overlay forced a full-viewport
-     composite on every scroll/paint frame and was a primary jank source. */
+  /* Hairline fiber noise on top of the linen — static, no mix-blend.
+     Kept very soft so it adds depth without fighting the weave. */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
     z-index: 998;
     pointer-events: none;
-    opacity: 0.045;
+    opacity: 0.028;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-repeat: repeat;
   }
