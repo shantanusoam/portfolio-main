@@ -70,6 +70,71 @@ body {
   color: #14101d;
 }
 
+#mode-toggle {
+  position: fixed;
+  top: max(38px, calc(env(safe-area-inset-top) + 28px));
+  left: 0;
+  right: 0;
+  z-index: 6;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mode-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 7px 16px;
+  border-radius: 999px;
+}
+
+.mode-btn.selected {
+  background: linear-gradient(120deg, #8fd3ff, #ff9ecb);
+  color: #14101d;
+  border-color: transparent;
+}
+
+#enable-motion {
+  position: absolute;
+  bottom: max(70px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  appearance: none;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(120deg, #8fd3ff, #ffd166);
+  color: #14101d;
+}
+
+#swing-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 209, 102, 0.55), transparent 60%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+#swing-flash.show {
+  animation: swing-flash-pop 0.3s ease-out forwards;
+}
+
+@keyframes swing-flash-pop {
+  0% {
+    opacity: var(--swing-power, 0.7);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 #trackpad {
   position: fixed;
   inset: 0;
@@ -96,6 +161,11 @@ body {
   border-color: #ffd166;
   background: rgba(255, 209, 102, 0.35);
   transform: scale(1.15);
+}
+
+#trackpad.sword-mode #crosshair {
+  border-color: rgba(255, 158, 203, 0.65);
+  background: rgba(255, 158, 203, 0.14);
 }
 
 #hint {
