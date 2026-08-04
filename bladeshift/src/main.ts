@@ -46,8 +46,13 @@ function boot(): void {
     }
   });
 
+  // ?seed=1234 forces a deterministic run -- used by the Playwright smoke
+  // test and handy for manually reproducing a specific spawn sequence.
+  const seedParam = new URLSearchParams(window.location.search).get('seed');
+  const forcedSeed = seedParam ? Number(seedParam) : undefined;
+
   function startMatch(mode: GameMode): void {
-    game.scene.start('GameScene', { mode } satisfies GameSceneData);
+    game.scene.start('GameScene', { mode, seed: forcedSeed } satisfies GameSceneData);
   }
 
   attachHud(uiRoot, game, router, {
