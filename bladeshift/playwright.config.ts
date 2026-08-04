@@ -6,8 +6,12 @@ export default defineConfig({
   fullyParallel: false,
   retries: 0,
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: 'https://localhost:4173',
     headless: true,
+    // Both servers use a locally-generated self-signed cert (see
+    // scripts/certs.ts) -- required for getUserMedia/motion-sensor access
+    // on a real phone, but means the browser has to be told to trust it.
+    ignoreHTTPSErrors: true,
     launchOptions: {
       // Fake camera device + auto-grant permission, so the webcam-adapter
       // test doesn't need a real camera. Harmless for tests that never call
@@ -18,13 +22,15 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run build && npm run preview',
-      url: 'http://localhost:4173',
+      url: 'https://localhost:4173',
+      ignoreHTTPSErrors: true,
       reuseExistingServer: false,
       timeout: 120_000
     },
     {
       command: 'npx tsx server/relay.ts',
-      url: 'http://localhost:8787',
+      url: 'https://localhost:8787',
+      ignoreHTTPSErrors: true,
       reuseExistingServer: false,
       timeout: 30_000
     }

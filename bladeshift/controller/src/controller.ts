@@ -8,6 +8,8 @@ const trackpad = document.getElementById('trackpad')!;
 const crosshair = document.getElementById('crosshair')!;
 const swingFlash = document.getElementById('swing-flash')!;
 const enableMotionBtn = document.getElementById('enable-motion') as HTMLButtonElement;
+const recalibrateBtn = document.getElementById('recalibrate') as HTMLButtonElement;
+const holdToCutBtn = document.getElementById('hold-to-cut') as HTMLButtonElement;
 const hint = document.getElementById('hint')!;
 
 let ws: WebSocket | null = null;
@@ -16,7 +18,7 @@ let sequence = 0;
 let reconnectAttempt = 0;
 let reconnectTimer: number | undefined;
 
-type ControlMode = 'trackpad' | 'sword';
+type ControlMode = 'trackpad' | 'sword' | 'tilt';
 let controlMode: ControlMode = 'trackpad';
 
 /** Aim position, driven by touch in both modes. Only "active" (cut-capable)
@@ -135,17 +137,28 @@ function setMode(nextMode: ControlMode): void {
   controlMode = nextMode;
   current.active = false;
   swingInProgress = false;
+  activePointerId = null;
 
   modeToggle.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('selected'));
   modeToggle.querySelector(`[data-mode="${nextMode}"]`)?.classList.add('selected');
   trackpad.classList.toggle('sword-mode', nextMode === 'sword');
+  trackpad.classList.toggle('tilt-mode', nextMode === 'tilt');
+  trackpad.classList.remove('active', 'cutting');
+  enableMotionBtn.classList.add('hidden');
+  recalibrateBtn.classList.add('hidden');
+  holdToCutBtn.classList.add('hidden');
 
   if (nextMode === 'sword') {
     hint.textContent = 'Touch to aim · swing the phone to cut';
-    setupMotion();
+    ensureSensorAccess(attachMotionListener);
+  } else if (nextMode === 'tilt') {
+    hint.textContent = 'Move the phone to aim · hold the button to cut';
+    holdToCutBtn.classList.remove('hidden');
+    recalibrateBtn.classList.remove('hidden');
+    tiltCalibrated = false;
+    ensureSensorAccess(attachOrientationListener);
   } else {
     hint.textContent = 'Drag to move the blade · press to cut';
-    enableMotionBtn.classList.add('hidden');
   }
 }
 
@@ -154,7 +167,8 @@ function setMode(nextMode: ControlMode): void {
 let activePointerId: number | null = null;
 
 trackpad.addEventListener('pointerdown', (e) => {
-  if ((e.target as HTMLElement).closest('#enable-motion')) return;
+  if ((e.target as HTMLElement).closest('#enable-motion, #recalibrate, #hold-to-cut')) return;
+  if (controlMode === 'tilt') return; // orientation drives the cursor, not touch
   activePointerId = e.pointerId;
   trackpad.setPointerCapture(e.pointerId);
   updateFromPoint(e.clientX, e.clientY);
@@ -181,6 +195,26 @@ function releasePointer(e: PointerEvent): void {
 trackpad.addEventListener('pointerup', releasePointer);
 trackpad.addEventListener('pointercancel', releasePointer);
 
+// --- Tilt mode: hold-to-cut button ----------------------------------------
+
+holdToCutBtn.addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
+  holdToCutBtn.setPointerCapture(e.pointerId);
+  current.active = true;
+  holdToCutBtn.classList.add('cutting');
+  trackpad.classList.add('cutting');
+  navigator.vibrate?.(15);
+});
+
+function releaseHoldToCut(e: PointerEvent): void {
+  e.stopPropagation();
+  current.active = false;
+  holdToCutBtn.classList.remove('cutting');
+  trackpad.classList.remove('cutting');
+}
+holdToCutBtn.addEventListener('pointerup', releaseHoldToCut);
+holdToCutBtn.addEventListener('pointercancel', releaseHoldToCut);
+
 // --- Sword mode: swing detection via device motion ------------------------
 //
 // A phone's accelerometer/gyro can't recover true position (drift makes real
@@ -198,33 +232,49 @@ const FRAME_MS = 16;
 let lastSwingAt = -Infinity;
 let motionListenerAttached = false;
 
-function setupMotion(): void {
-  if (motionListenerAttached) return;
+// --- Shared sensor permission handling ------------------------------------
+//
+// iOS gates DeviceMotionEvent and DeviceOrientationEvent behind separate
+// requestPermission() calls, but both must be triggered from a real user
+// gesture (a click) -- neither can be requested proactively on page load.
+// Android/desktop expose no such gate; the listener just attaches directly.
+// One "Enable Motion" tap covers whichever sensor the current mode needs.
 
-  const RequestableDeviceMotionEvent = window.DeviceMotionEvent as unknown as {
-    requestPermission?: () => Promise<'granted' | 'denied'>;
-  };
+function ensureSensorAccess(attach: () => void): void {
+  const NeedsPermission = (api: unknown): api is { requestPermission: () => Promise<'granted' | 'denied'> } =>
+    typeof (api as { requestPermission?: unknown })?.requestPermission === 'function';
 
-  if (typeof RequestableDeviceMotionEvent?.requestPermission === 'function') {
-    enableMotionBtn.classList.remove('hidden');
-    enableMotionBtn.onclick = async () => {
-      try {
-        const result = await RequestableDeviceMotionEvent.requestPermission!();
-        if (result === 'granted') {
-          attachMotionListener();
-          enableMotionBtn.classList.add('hidden');
-        } else {
-          hint.textContent = 'Motion permission denied -- sword mode needs it to detect swings.';
-        }
-      } catch {
-        hint.textContent = 'Could not request motion permission on this browser.';
-      }
-    };
-  } else if (window.DeviceMotionEvent) {
-    attachMotionListener();
-  } else {
+  const motionApi = window.DeviceMotionEvent as unknown;
+  const orientationApi = window.DeviceOrientationEvent as unknown;
+  const needsPrompt = NeedsPermission(motionApi) || NeedsPermission(orientationApi);
+
+  if (!window.DeviceMotionEvent && !window.DeviceOrientationEvent) {
     hint.textContent = 'This browser has no motion sensor access -- try Trackpad mode instead.';
+    return;
   }
+
+  if (!needsPrompt) {
+    attach();
+    return;
+  }
+
+  enableMotionBtn.classList.remove('hidden');
+  enableMotionBtn.onclick = async () => {
+    try {
+      if (NeedsPermission(motionApi) && (await motionApi.requestPermission()) !== 'granted') {
+        hint.textContent = 'Motion permission denied -- this mode needs it.';
+        return;
+      }
+      if (NeedsPermission(orientationApi) && (await orientationApi.requestPermission()) !== 'granted') {
+        hint.textContent = 'Orientation permission denied -- this mode needs it.';
+        return;
+      }
+      enableMotionBtn.classList.add('hidden');
+      attach();
+    } catch {
+      hint.textContent = 'Could not request motion permission on this browser.';
+    }
+  };
 }
 
 function attachMotionListener(): void {
@@ -288,6 +338,54 @@ function flashSwing(power: number): void {
   void swingFlash.offsetWidth; // restart animation on rapid consecutive swings
   swingFlash.classList.add('show');
 }
+
+// --- Tilt mode: continuous orientation-driven cursor -----------------------
+//
+// DeviceOrientationEvent gives absolute, gravity/compass-anchored angles --
+// unlike accelerometer integration, this doesn't drift, so (unlike sword
+// mode) the cursor can track physical phone movement continuously in real
+// time: point the phone where you want the blade, hold the button to cut.
+
+const TILT_RANGE_DEG = 35; // degrees off neutral that maps to the full 0-1 range
+let orientationListenerAttached = false;
+let tiltCalibrated = false;
+let neutralBeta = 0;
+let neutralGamma = 0;
+
+function attachOrientationListener(): void {
+  if (orientationListenerAttached) return;
+  orientationListenerAttached = true;
+  window.addEventListener('deviceorientation', onDeviceOrientation);
+}
+
+function onDeviceOrientation(event: DeviceOrientationEvent): void {
+  if (controlMode !== 'tilt') return;
+  const beta = event.beta;
+  const gamma = event.gamma;
+  if (beta === null || gamma === null) return;
+
+  if (!tiltCalibrated) {
+    neutralBeta = beta;
+    neutralGamma = gamma;
+    tiltCalibrated = true;
+  }
+
+  const dx = clampSigned((gamma - neutralGamma) / TILT_RANGE_DEG);
+  const dy = clampSigned((beta - neutralBeta) / TILT_RANGE_DEG);
+  current.x = clamp01(0.5 + dx * 0.5);
+  current.y = clamp01(0.5 + dy * 0.5);
+  crosshair.style.left = `${current.x * 100}%`;
+  crosshair.style.top = `${current.y * 100}%`;
+}
+
+function clampSigned(v: number): number {
+  return v < -1 ? -1 : v > 1 ? 1 : v;
+}
+
+recalibrateBtn.addEventListener('click', () => {
+  tiltCalibrated = false; // next orientation sample re-zeroes neutral
+  navigator.vibrate?.(15);
+});
 
 // --- Boot -------------------------------------------------------------
 
