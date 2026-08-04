@@ -31,6 +31,19 @@ export class AudioDirector {
     this.tone(680 * pitch, 220 * pitch, 0.09, 0.16, 'sine');
   }
 
+  /** Bright ascending arpeggio for combo milestones -- distinct timbre from
+   * the regular slice sound so it reads as a bonus reward, not more slicing. */
+  playMilestone(tier: number): void {
+    const root = 440 * Math.pow(1.06, Math.min(tier, 6) * 2);
+    const notes = [0, 4, 7, 12].map((semi) => root * Math.pow(2, semi / 12));
+    notes.forEach((freq, i) => {
+      window.setTimeout(() => {
+        this.tone(freq, freq * 1.02, 0.16, 0.14, 'triangle');
+        this.tone(freq * 2, freq * 2, 0.1, 0.05, 'sine');
+      }, i * 55);
+    });
+  }
+
   playBomb(): void {
     this.noiseBurst(0.5, 320, 0.55, 'lowpass');
     this.tone(160, 40, 0.4, 0.45, 'sawtooth');

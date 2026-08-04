@@ -7,7 +7,9 @@ test('boots, starts a Classic match, and slicing increases score with no console
     if (msg.type() === 'error') errors.push(msg.text());
   });
 
-  await page.goto('/');
+  // Fixed seed makes spawn timing/positions reproducible, so the sweep
+  // pattern below isn't at the mercy of random spawn luck.
+  await page.goto('/?seed=1234');
 
   await expect(page.locator('#menu-overlay .bs-title')).toHaveText('BladeShift');
   await page.locator('[data-action="start"]').click();

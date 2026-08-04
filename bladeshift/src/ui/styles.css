@@ -53,10 +53,38 @@ body,
   font-weight: 800;
   letter-spacing: 0.02em;
   background: linear-gradient(120deg, #8fd3ff, #ff9ecb 60%, #ffd166);
+  background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   margin: 0;
+  animation: bs-title-float 5s ease-in-out infinite, bs-title-shimmer 6s ease-in-out infinite;
+}
+
+@keyframes bs-title-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes bs-title-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-title {
+    animation: none;
+  }
 }
 
 .bs-subtitle {
@@ -171,6 +199,57 @@ body,
 .hud-combo.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.milestone-toast {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: linear-gradient(120deg, #ffe27a, #ff9ecb 55%, #8fd3ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 18px rgba(255, 200, 120, 0.35));
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.milestone-toast.show {
+  animation: milestone-pop 0.9s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes milestone-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5) rotate(-2deg);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15) rotate(1deg);
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -55%) scale(1.05) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .milestone-toast.show {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .hud-toast {

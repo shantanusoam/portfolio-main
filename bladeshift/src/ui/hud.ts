@@ -21,6 +21,9 @@ export function attachHud(root: HTMLElement, game: Phaser.Game, router: InputRou
   const comboEl = document.createElement('div');
   comboEl.className = 'hud-combo';
 
+  const milestoneEl = document.createElement('div');
+  milestoneEl.className = 'milestone-toast';
+
   const debugToggle = document.createElement('button');
   debugToggle.className = 'debug-toggle';
   debugToggle.textContent = 'debug (`)';
@@ -43,11 +46,29 @@ export function attachHud(root: HTMLElement, game: Phaser.Game, router: InputRou
     </div>
   `;
 
-  root.append(hudTop, comboEl, debugPanel, debugToggle, gameOverOverlay);
+  root.append(hudTop, comboEl, milestoneEl, debugPanel, debugToggle, gameOverOverlay);
 
   let comboFadeTimer: number | undefined;
+  let milestoneFadeTimer: number | undefined;
   let lives = 3;
   let mode: 'classic' | 'zen' = 'classic';
+  let displayedScore = 0;
+  let scoreAnimId = 0;
+
+  function animateScoreTo(target: number): void {
+    cancelAnimationFrame(scoreAnimId);
+    const start = displayedScore;
+    const startTime = performance.now();
+    const duration = 240;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      displayedScore = Math.round(start + (target - start) * eased);
+      scoreEl.textContent = String(displayedScore);
+      if (t < 1) scoreAnimId = requestAnimationFrame(step);
+    };
+    scoreAnimId = requestAnimationFrame(step);
+  }
 
   function renderLives(): void {
     livesEl.innerHTML = '';
@@ -63,14 +84,17 @@ export function attachHud(root: HTMLElement, game: Phaser.Game, router: InputRou
   game.events.on('hud:ready', (data: { mode: 'classic' | 'zen'; lives: number; seed: number }) => {
     mode = data.mode;
     lives = data.lives;
+    cancelAnimationFrame(scoreAnimId);
+    displayedScore = 0;
     scoreEl.textContent = '0';
     comboEl.classList.remove('show');
+    milestoneEl.classList.remove('show');
     gameOverOverlay.classList.add('hidden');
     renderLives();
   });
 
   game.events.on('hud:score', (data: { score: number; gained: number; combo: number; comboBroken: boolean; lives: number }) => {
-    scoreEl.textContent = String(data.score);
+    animateScoreTo(data.score);
     lives = data.lives;
     renderLives();
     if (data.combo > 1) {
@@ -79,6 +103,16 @@ export function attachHud(root: HTMLElement, game: Phaser.Game, router: InputRou
       window.clearTimeout(comboFadeTimer);
       comboFadeTimer = window.setTimeout(() => comboEl.classList.remove('show'), 700);
     }
+  });
+
+  game.events.on('hud:milestone', (data: { label: string }) => {
+    milestoneEl.textContent = data.label;
+    milestoneEl.classList.remove('show');
+    // Force reflow so retriggering the animation on rapid milestones restarts it.
+    void milestoneEl.offsetWidth;
+    milestoneEl.classList.add('show');
+    window.clearTimeout(milestoneFadeTimer);
+    milestoneFadeTimer = window.setTimeout(() => milestoneEl.classList.remove('show'), 900);
   });
 
   game.events.on('hud:lives', (data: { lives: number }) => {
@@ -126,9 +160,11 @@ export function attachHud(root: HTMLElement, game: Phaser.Game, router: InputRou
   return {
     destroy(): void {
       cancelAnimationFrame(rafId);
+      cancelAnimationFrame(scoreAnimId);
       window.removeEventListener('keydown', keyHandler);
       hudTop.remove();
       comboEl.remove();
+      milestoneEl.remove();
       debugPanel.remove();
       debugToggle.remove();
       gameOverOverlay.remove();
