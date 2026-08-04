@@ -8,6 +8,8 @@ const SMOOTHING: Record<InputSource, number> = {
   pointer: 1,
   touch: 1,
   gamepad: 0.55,
+  'camera-hand': 0.4, // baseline; process() blends this with per-frame confidence
+  phone: 0.85,
   replay: 1
 };
 
@@ -32,8 +34,8 @@ export class InputRouter {
     this.adapters.set(adapter.source, adapter);
   }
 
-  start(source: InputSource): void {
-    this.adapters.get(source)?.start();
+  start(source: InputSource): void | Promise<void> {
+    return this.adapters.get(source)?.start();
   }
 
   stop(source: InputSource): void {
@@ -84,7 +86,10 @@ export class InputRouter {
 
   private process(raw: BladePointer, timestamp: number): BladePointer {
     const key = `${raw.source}:${raw.id}`;
-    const alpha = SMOOTHING[raw.source] ?? 1;
+    // Camera tracking gets jitterier as detection confidence drops, so blend
+    // the baseline smoothing with per-frame confidence instead of a fixed alpha.
+    const alpha =
+      raw.source === 'camera-hand' ? clamp(0.15 + raw.confidence * 0.45, 0.15, 0.6) : SMOOTHING[raw.source] ?? 1;
     let tracked = this.tracked.get(key);
 
     const gap = tracked ? timestamp - tracked.lastTimestamp : Infinity;
@@ -111,4 +116,8 @@ export class InputRouter {
 
     return { ...raw, x: tracked.smoothedX, y: tracked.smoothedY, phase };
   }
+}
+
+function clamp(v: number, min: number, max: number): number {
+  return v < min ? min : v > max ? max : v;
 }
