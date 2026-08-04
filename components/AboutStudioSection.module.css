@@ -63,8 +63,17 @@
 .regMark {
   position: absolute;
   z-index: 3;
-  font: 300 22px/1 var(--font-mono);
-  color: rgba(238, 233, 223, 0.28);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.regMarkIcon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  opacity: 0.5;
 }
 
 .regLeft {
@@ -129,7 +138,14 @@
       rgba(196, 66, 22, 0.72) 0%,
       rgba(140, 41, 12, 0.7) 45%,
       rgba(84, 22, 6, 0.82) 100%
-    );
+    ),
+    url("/portfolio-micro-assets/patterns/technical-grid-tile.svg");
+  background-size:
+    auto,
+    auto,
+    96px 96px;
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-blend-mode: normal, normal, overlay;
   box-shadow:
     inset 0 0 0 3px rgba(255, 122, 62, 0.1),
     inset 0 1px 0 rgba(255, 224, 200, 0.32),
@@ -262,49 +278,41 @@
 .screw {
   position: absolute;
   z-index: 2;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 35% 30%,
-    #ffe1ce,
-    #d04e20 30%,
-    #581601 73%
-  );
-  box-shadow:
-    0 0 8px rgba(255, 93, 47, 0.74),
-    inset 0 0 0 1px rgba(255, 235, 220, 0.35);
+  width: 18px;
+  height: 18px;
+  background: url("/portfolio-micro-assets/hardware/bolt-phillips-glow.svg")
+    center / contain no-repeat;
+  box-shadow: 0 0 6px rgba(255, 90, 30, 0.4);
 }
 
-.screw::after {
-  content: "";
+.cornerFrame {
   position: absolute;
-  top: 6px;
-  left: 3px;
-  width: 7px;
-  height: 1px;
-  rotate: -35deg;
-  background: rgba(68, 16, 2, 0.75);
+  inset: 10px;
+  z-index: 1;
+  pointer-events: none;
+  background: url("/portfolio-micro-assets/marks/corner-bracket.svg") center /
+    100% 100% no-repeat;
+  opacity: 0.28;
 }
 
 .tl {
-  top: 16px;
-  left: 16px;
+  top: 14px;
+  left: 14px;
 }
 
 .tr {
-  top: 16px;
-  right: 16px;
+  top: 14px;
+  right: 14px;
 }
 
 .bl {
-  bottom: 16px;
-  left: 16px;
+  bottom: 14px;
+  left: 14px;
 }
 
 .br {
-  right: 16px;
-  bottom: 16px;
+  right: 14px;
+  bottom: 14px;
 }
 
 .content {
@@ -469,6 +477,17 @@
   filter: drop-shadow(0 0 4px rgba(255, 91, 45, 0.35));
 }
 
+.figureLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.figureMark {
+  display: block;
+  opacity: 0.6;
+}
+
 .figureOne {
   top: 490px;
   left: 4%;
@@ -482,12 +501,29 @@
 .coordinate {
   right: 4%;
   bottom: 65px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.coordinateMark {
+  display: block;
+  opacity: 0.5;
 }
 
 .gridLabel {
   bottom: 75px;
   left: 4%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: rgba(238, 233, 223, 0.32);
+}
+
+.gridSwatch {
+  display: block;
+  opacity: 0.7;
 }
 
 @keyframes patchFloat {
@@ -544,6 +580,9 @@
   .estb,
   .regMark,
   .figureLabel,
+  .coordinate,
+  .gridLabel,
+  .topLabel,
   .needleAccent,
   .patchIndex {
     display: none;

@@ -2,6 +2,7 @@
 
 ## Active
 
+- [x] 2026-08-04: Restyle Experience to match the first archive mockup — glass logo rack, // CHECKPOINT labels, diagnostics footer polish
 - [x] 2026-08-03: Match About + Experience to the archive reference art — real tech brand icons, yarn patch assets, live career counter, logo tiles, IBM Plex Mono typography
 - [x] 2026-08-03: Add the Make/Break interactive word transition to the About studio panel
 - [x] 2026-08-03: Unify About and Experience under the Crafted Systems Archive visual system

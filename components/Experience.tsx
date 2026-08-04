@@ -72,7 +72,7 @@ const career = [
     logo: "/knowbuild-logo.svg",
     role: "Staff Engineer / Senior Software Developer",
     type: "Full time",
-    date: "2025 — Present",
+    date: "Jan 2025 — Present",
     summary: "Building digital systems that scale and last.",
     description:
       "Leading product engineering, multi-tenant architecture and modernization for complex business platforms.",
@@ -143,153 +143,183 @@ const skills = [
 ] as const;
 
 const tools = [
-  ["/icons/tech/nextdotjs.svg", "Next.js"],
-  ["/icons/tech/react.svg", "React"],
-  ["/icons/tech/laravel.svg", "Laravel"],
-  ["/icons/tech/javascript.svg", "JavaScript"],
-  ["/icons/tech/typescript.svg", "TypeScript"],
-  ["/icons/tech/postgresql.svg", "PostgreSQL"],
-  ["/icons/tech/docker.svg", "Docker"],
-  ["/icons/tech/aws.svg", "AWS"],
-  ["/icons/tech/github.svg", "GitHub"],
-  ["/icons/tech/tailwindcss.svg", "Tailwind"],
-  ["/icons/tech/figma.svg", "Figma"],
-  ["/icons/tech/vercel.svg", "Vercel"],
+  ["/icons/tech-color/nextdotjs.svg", "Next.js"],
+  ["/icons/tech-color/react.svg", "React"],
+  ["/icons/tech-color/laravel.svg", "Laravel"],
+  ["/icons/tech-color/javascript.svg", "JavaScript"],
+  ["/icons/tech-color/typescript.svg", "TypeScript"],
+  ["/icons/tech-color/postgresql.svg", "PostgreSQL"],
+  ["/icons/tech-color/docker.svg", "Docker"],
+  ["/icons/tech-color/aws.svg", "AWS"],
+  ["/icons/tech-color/github.svg", "GitHub"],
+  ["/icons/tech-color/tailwindcss.svg", "Tailwind"],
+  ["/icons/tech-color/figma.svg", "Figma"],
+  ["/icons/tech-color/vercel.svg", "Vercel"],
 ];
 
+// GitHub and Vercel logos ship solid near-black — invert so they read on the dark card.
+const invertOnDark = new Set(["GitHub", "Vercel"]);
+
+const wireframeIcons: Record<string, string> = {
+  building: "/portfolio-micro-assets/line-icons/blueprint-house.svg",
+  shield: "/portfolio-micro-assets/line-icons/wireframe-shield.svg",
+  wallet: "/portfolio-micro-assets/line-icons/wireframe-wallet.svg",
+  tree: "/portfolio-micro-assets/line-icons/wireframe-tree.svg",
+  network: "/portfolio-micro-assets/line-icons/wireframe-circuit.svg",
+};
+
 function WireframeIcon({ type }: { type: string }) {
+  const src = wireframeIcons[type];
+  if (!src) return null;
+
   return (
-    <svg
-      className={styles.wireframeIcon}
-      viewBox="0 0 120 120"
-      aria-hidden="true"
-    >
-      <g>
-        {type === "building" && (
-          <>
-            <path d="M17 94h88M25 94V47l32-20 36 15v52M57 27v67M25 47l32 14 36-19M35 55v10m11-5v10m24-16v12m12-16v12M68 94V77h14v17" />
-            <path d="M13 99h97M20 104h80" />
-          </>
-        )}
-        {type === "shield" && (
-          <>
-            <path d="M60 15 94 29v29c0 23-14 38-34 47-20-9-34-24-34-47V29Z" />
-            <path d="M60 28v61M38 58h44M48 47h24v24H48z" />
-            <circle cx="60" cy="58" r="35" />
-          </>
-        )}
-        {type === "wallet" && (
-          <>
-            <rect x="18" y="32" width="84" height="58" rx="4" />
-            <path d="M18 43h84M71 54h38v23H71a11 11 0 0 1 0-23Z" />
-            <circle cx="82" cy="66" r="3" />
-            <path d="m27 27 58-11 5 16M28 99h63" />
-          </>
-        )}
-        {type === "tree" && (
-          <>
-            <path d="M58 101V68M58 78 38 61m20 8 22-21M42 98h35M60 26v42" />
-            <path d="M58 25c-11-17-28-8-27 5-15-2-19 18-5 24-5 16 16 23 25 12 7 12 29 7 28-7 18 2 20-24 3-27 1-15-18-21-24-7Z" />
-            <circle cx="38" cy="61" r="3" />
-            <circle cx="80" cy="48" r="3" />
-          </>
-        )}
-        {type === "network" && (
-          <>
-            <rect x="42" y="42" width="36" height="36" />
-            <circle cx="20" cy="25" r="8" />
-            <circle cx="100" cy="25" r="8" />
-            <circle cx="20" cy="96" r="8" />
-            <circle cx="100" cy="96" r="8" />
-            <path d="m27 30 17 14m49-14L76 44M27 91l17-15m49 15L76 76M60 17v25m0 36v25" />
-          </>
-        )}
-      </g>
-    </svg>
+    <span className={styles.wireframeIcon} aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" width={105} height={105} loading="lazy" />
+    </span>
   );
 }
 
 function CareerDiagnostics() {
   return (
     <div className={diagnosticStyles.diagnostics}>
-      <div className={diagnosticStyles.skillsPanel}>
-        <h3>{"// Core skills"}</h3>
-        {skills.map(([name, score]) => (
-          <div className={diagnosticStyles.skillRow} key={name}>
-            <span>{name}</span>
-            <div
-              className={diagnosticStyles.skillLights}
-              aria-label={`${score} out of 10`}
-            >
-              {Array.from({ length: 10 }).map((_, index) => (
-                <i key={index} data-active={index < score} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      <span
+        className={`${diagnosticStyles.cornerBracket} ${diagnosticStyles.cornerTL}`}
+        aria-hidden="true"
+      />
+      <span
+        className={`${diagnosticStyles.cornerBracket} ${diagnosticStyles.cornerTR}`}
+        aria-hidden="true"
+      />
+      <span
+        className={`${diagnosticStyles.cornerBracket} ${diagnosticStyles.cornerBR}`}
+        aria-hidden="true"
+      />
+      <span
+        className={`${diagnosticStyles.cornerBracket} ${diagnosticStyles.cornerBL}`}
+        aria-hidden="true"
+      />
 
-      <div className={diagnosticStyles.toolsPanel}>
-        <h3>{"// Tools & technologies"}</h3>
-        <div className={diagnosticStyles.toolGrid}>
-          {tools.map(([icon, tool]) => (
-            <div className={diagnosticStyles.toolCell} key={tool} title={tool}>
+      <div className={diagnosticStyles.upperRow}>
+        <div className={diagnosticStyles.skillsPanel}>
+          <h3>{"// Core skills"}</h3>
+          {skills.map(([name, score]) => (
+            <div className={diagnosticStyles.skillRow} key={name}>
+              <span>{name}</span>
+              <div
+                className={diagnosticStyles.skillLights}
+                aria-label={`${score} out of 10`}
+              >
+                {Array.from({ length: 10 }).map((_, index) => (
+                  <i key={index} data-active={index < score} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className={diagnosticStyles.toolsPanel}>
+          <h3>{"// Tools & technologies"}</h3>
+          <div className={diagnosticStyles.toolGrid}>
+            {tools.map(([icon, tool]) => (
+              <div
+                className={diagnosticStyles.toolCell}
+                key={tool}
+                title={tool}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={icon}
+                  alt={tool}
+                  width={22}
+                  height={22}
+                  loading="lazy"
+                  className={
+                    invertOnDark.has(tool)
+                      ? diagnosticStyles.toolIconInvert
+                      : undefined
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={diagnosticStyles.achievementsPanel}>
+          <h3>{"// Achievements"}</h3>
+          <div className={diagnosticStyles.achievementsBody}>
+            <ul>
+              <li>Delivered 25+ production grade projects across industries.</li>
+              <li>Built systems that serve thousands of daily active users.</li>
+              <li>Reduced deployment time by 60% with automation.</li>
+              <li>Consistently write clean, maintainable and scalable code.</li>
+            </ul>
+            <span className={diagnosticStyles.blueprintStrip} aria-hidden="true">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={icon}
-                alt={tool}
-                width={26}
-                height={26}
-                loading="lazy"
+                src="/portfolio-micro-assets/marks/coordinate-ticks.svg"
+                alt=""
+                width={32}
+                height={16}
+                className={diagnosticStyles.blueprintTicks}
               />
-              <span>{tool}</span>
-            </div>
-          ))}
+              <i className={diagnosticStyles.blueprintNode} style={{ top: "30%" }} />
+              <i className={diagnosticStyles.blueprintNode} style={{ top: "58%" }} />
+              <i className={diagnosticStyles.blueprintNode} style={{ top: "82%" }} />
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className={diagnosticStyles.achievementsPanel}>
-        <h3>{"// Achievements"}</h3>
-        <ul>
-          <li>Delivered 25+ production grade projects across industries.</li>
-          <li>Built systems that serve thousands of daily active users.</li>
-          <li>Reduced deployment time by 60% with automation.</li>
-          <li>Consistently write clean, maintainable and scalable code.</li>
-        </ul>
-      </div>
+      <div className={diagnosticStyles.rowDivider} aria-hidden="true" />
 
-      <blockquote className={diagnosticStyles.quote}>
-        <span>“</span>
-        I don&apos;t just write code.
-        <br />
-        I solve problems, build systems
-        <br />
-        and craft digital experiences
-        <br />
-        that make an impact.
-        <cite>— Shantanu Soam</cite>
-      </blockquote>
-
-      <div className={diagnosticStyles.focusPanel}>
-        <h3>{"// Current focus"}</h3>
-        <p>
-          Building scalable products, exploring AI integrations and pushing the
-          boundaries of interactive web experiences.
-        </p>
-        <div className={diagnosticStyles.processRail}>
-          {["Build", "Learn", "Ship", "Repeat"].map((item) => (
-            <span key={item}>{item}</span>
-          ))}
-        </div>
-      </div>
-
-      <div className={diagnosticStyles.statusPanel}>
-        <span>● System status</span>
-        <p>
-          Always learning.
+      <div className={diagnosticStyles.lowerRow}>
+        <blockquote className={diagnosticStyles.quote}>
+          <span aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/portfolio-micro-assets/marks/quote-marks.svg"
+              alt=""
+              width={110}
+              height={80}
+            />
+          </span>
+          I don&apos;t just write code.
           <br />
-          Always building.
-        </p>
+          I solve problems, build systems
+          <br />
+          and craft digital experiences
+          <br />
+          that make an impact.
+          <cite>— Shantanu Soam</cite>
+        </blockquote>
+
+        <div className={diagnosticStyles.focusPanel}>
+          <h3>{"// Current focus"}</h3>
+          <p>
+            Building scalable products, exploring AI integrations and pushing the
+            boundaries of interactive web experiences.
+          </p>
+          <div className={diagnosticStyles.processRail}>
+            {["Build", "Learn", "Ship", "Repeat"].map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </div>
+
+        <div className={diagnosticStyles.statusPanel}>
+          <div className={diagnosticStyles.statusCard}>
+            <span>
+              <i className={diagnosticStyles.statusDot} aria-hidden="true" />
+              System status
+            </span>
+            <p>
+              Always learning.
+              <br />
+              Always building.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -375,7 +405,10 @@ export default function Experience() {
         <CareerCounter />
         <p className={styles.counterCaption}>Years of building epic stuff.</p>
         <div className={styles.logoRack}>
-          <span className={styles.rackLabel}>Equipment rack / employers</span>
+          <span className={styles.rackBolt} data-corner="tl" aria-hidden="true" />
+          <span className={styles.rackBolt} data-corner="tr" aria-hidden="true" />
+          <span className={styles.rackBolt} data-corner="br" aria-hidden="true" />
+          <span className={styles.rackBolt} data-corner="bl" aria-hidden="true" />
           {career.map((item) => (
             <span className={styles.logoTile} key={item.checkpoint}>
               <Image
@@ -396,7 +429,7 @@ export default function Experience() {
             <span className={styles.timelineNode} />
             <div className={styles.companyColumn}>
               <span className={styles.checkpoint}>
-                ◉ Checkpoint {item.checkpoint}
+                Checkpoint {item.checkpoint}
               </span>
               <h3>{item.company}</h3>
               {item.qualifier && <strong>({item.qualifier})</strong>}
@@ -421,16 +454,6 @@ export default function Experience() {
             </div>
           </article>
         ))}
-      </div>
-
-      <div className={styles.yarnAccent} aria-hidden="true">
-        <Image
-          src="/yarn/yarn-spool.webp"
-          alt=""
-          width={120}
-          height={120}
-          sizes="90px"
-        />
       </div>
 
       <CareerDiagnostics />

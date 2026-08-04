@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+<defs><filter id="g" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+
+<path d="M14 52V14H52M76 14H114V52M14 76V114H52M76 114H114V76" stroke="#ff5a1f" stroke-width="3" stroke-linecap="square"/><path d="M14 34V14H34M94 14H114V34M14 94V114H34M94 114H114V94" stroke="#ffe0cb" stroke-opacity=".32"/>
+
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="720" viewBox="0 0 120 720" fill="none">
+<defs><filter id="g" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+
+<path d="M60 20V700" stroke="#ff5a1f" stroke-opacity=".55" stroke-width="2" stroke-dasharray="3 8"/>
+<g fill="#0b0b0a" stroke="#ff5a1f" stroke-width="3"><circle cx="60" cy="90" r="15"/><circle cx="60" cy="270" r="15"/><circle cx="60" cy="450" r="15"/><circle cx="60" cy="630" r="15"/></g>
+<g fill="#ff5a1f"><circle cx="60" cy="90" r="5"/><circle cx="60" cy="270" r="5"/><circle cx="60" cy="450" r="5"/><circle cx="60" cy="630" r="5"/></g>
+
+</svg>
