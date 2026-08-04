@@ -1,5 +1,6 @@
-import { createServer } from 'node:http';
+import { createServer } from 'node:https';
 import { WebSocket, WebSocketServer } from 'ws';
+import { getOrCreateCert } from '../scripts/certs.ts';
 import {
   RELAY_PORT,
   ROOM_CODE_CHARS,
@@ -34,11 +35,16 @@ function send(ws: WebSocket, msg: RelayToHost | RelayToController): void {
 
 const rooms = new Map<string, Room>();
 
-// A plain http.Server underneath, rather than letting `ws` create its own,
+// HTTPS (not plain HTTP) because the game page is served over HTTPS too --
+// a page loaded over HTTPS can't open a plain insecure `ws://` connection
+// (mixed content), so the relay has to speak WSS to match.
+const cert = await getOrCreateCert();
+
+// A raw https.Server underneath, rather than letting `ws` create its own,
 // gives us a GET / health check for readiness probes (Playwright's webServer,
 // process managers, uptime monitors) instead of a port that only speaks the
 // WebSocket upgrade handshake.
-const httpServer = createServer((req, res) => {
+const httpServer = createServer(cert, (req, res) => {
   if (req.method === 'GET' && req.url === '/') {
     res.writeHead(200, { 'content-type': 'text/plain' });
     res.end(`ok — ${rooms.size} active room(s)`);
@@ -136,5 +142,6 @@ setInterval(() => {
 }, 60_000).unref();
 
 httpServer.listen(RELAY_PORT, () => {
-  console.log(`BladeShift relay listening on ws://0.0.0.0:${RELAY_PORT}`);
+  console.log(`BladeShift relay listening on wss://0.0.0.0:${RELAY_PORT}`);
+  console.log(`First time on a phone: visit https://<your-lan-ip>:${RELAY_PORT}/ once and accept the certificate warning, then go back to the game.`);
 });
