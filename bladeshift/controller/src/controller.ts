@@ -417,7 +417,9 @@ function onTiltGyro(event: DeviceMotionEvent): void {
   const dGamma = (rate.gamma ?? 0) * dt;
   const dBeta = (rate.beta ?? 0) * dt;
   cursorX = clamp01(cursorX + (dGamma / TILT_RANGE_DEG) * 0.5);
-  cursorY = clamp01(cursorY + (dBeta / TILT_RANGE_DEG) * 0.5);
+  // Tilting the phone's top up/away increases beta, which should move the
+  // cursor toward the top of the screen (lower Y) -- subtract, don't add.
+  cursorY = clamp01(cursorY - (dBeta / TILT_RANGE_DEG) * 0.5);
   applyCursor();
 }
 
@@ -449,7 +451,9 @@ function onDeviceOrientation(event: DeviceOrientationEvent): void {
   // the filter's drift correction, deliberately gentle so it corrects
   // long-term error without fighting the gyro's short-term responsiveness.
   const targetX = clamp01(0.5 + clampSigned((gamma - neutralGamma) / TILT_RANGE_DEG) * 0.5);
-  const targetY = clamp01(0.5 + clampSigned((beta - neutralBeta) / TILT_RANGE_DEG) * 0.5);
+  // Same inversion as the gyro path above -- must agree, or the drift
+  // correction would fight the gyro instead of just correcting its drift.
+  const targetY = clamp01(0.5 - clampSigned((beta - neutralBeta) / TILT_RANGE_DEG) * 0.5);
   cursorX += (targetX - cursorX) * DRIFT_CORRECTION;
   cursorY += (targetY - cursorY) * DRIFT_CORRECTION;
   applyCursor();
