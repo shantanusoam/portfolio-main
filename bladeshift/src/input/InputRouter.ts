@@ -9,7 +9,10 @@ const SMOOTHING: Record<InputSource, number> = {
   touch: 1,
   gamepad: 0.55,
   'camera-hand': 0.4, // baseline; process() blends this with per-frame confidence
-  phone: 0.85,
+  // Trackpad touch is already precise, sword sends deliberately-shaped bursts,
+  // and tilt runs its own complementary filter on the phone -- an extra
+  // smoothing pass here on top of any of those just adds lag, not stability.
+  phone: 1,
   replay: 1
 };
 

@@ -1,11 +1,13 @@
 import type { HandLandmarker, HandLandmarkerResult } from '@mediapipe/tasks-vision';
 import type { BladeFrame, BladePointer, InputAdapter, InputAdapterStatus, InputSource } from './InputAdapter';
 
-// Pinned to the installed package version so the JS wrapper and the wasm
-// binary it loads never drift apart.
-const WASM_BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';
-const MODEL_URL =
-  'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+// Self-hosted (public/mediapipe/) rather than fetched from jsdelivr/Google
+// Storage at runtime: a phone on a restrictive mobile network or a network
+// that blocks/throttles those hosts would otherwise hang forever on "loading
+// hand-tracking model...". Same origin as the game, same HTTPS cert, no
+// external dependency. See scripts/fetch-mediapipe-assets.sh to refresh these.
+const WASM_BASE = '/mediapipe/wasm';
+const MODEL_URL = '/mediapipe/hand_landmarker.task';
 
 const DETECT_INTERVAL_MS = 45; // ~22Hz -- plenty for a cursor, cheap on the main thread
 const PINCH_THRESHOLD = 0.07; // normalized thumb-tip/index-tip distance that counts as a pinch
