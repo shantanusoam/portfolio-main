@@ -26,6 +26,7 @@
 - [x] 2026-08-04: Rebuild Current Focus process rail — glowing line + REPEAT lens-flare node to match archive reference
 - [x] 2026-08-04: Tighten CareerDiagnostics panel side padding and bump body/label font sizes slightly
 - [x] 2026-08-04: Close remaining Experience gaps vs the archive mockup — map-pin checkpoint icons, mockup timeline copy/dates/tech chips, logo rack order, left-anchored quote glyph with right-aligned text, current-focus copy; fixed the broken `--font-mono` alias that was collapsing every Experience `font:` shorthand to Inter 16px
+- [x] 2026-08-05: Fix SecretArcade courier ship orientation — sprite faced bottom-left; rotate to nose-up for vertical shmup
 - [x] 2026-08-04: Restyle Experience to match the first archive mockup — glass logo rack, // CHECKPOINT labels, diagnostics footer polish
 - [x] 2026-08-03: Match About + Experience to the archive reference art — real tech brand icons, yarn patch assets, live career counter, logo tiles, IBM Plex Mono typography
 - [x] 2026-08-03: Add the Make/Break interactive word transition to the About studio panel
