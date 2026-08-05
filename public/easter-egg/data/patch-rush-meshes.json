@@ -1,0 +1,99 @@
+{
+  "name": "patch-rush-original-space-opera-assets",
+  "units": "canvas-local",
+  "generatedAtlas": {
+    "path": "/easter-egg/generated/space-opera-atlas.png",
+    "cellSize": 256,
+    "grid": [4, 4],
+    "manifest": "/easter-egg/generated/asset-manifest.json"
+  },
+  "meshes": {
+    "runnerShip": {
+      "pivot": [0, 0],
+      "points": [
+        [0, -1.35],
+        [0.82, 0.88],
+        [0, 0.58],
+        [-0.82, 0.88]
+      ],
+      "thruster": [
+        [-0.28, 0.9],
+        [0, 1.38],
+        [0.28, 0.9]
+      ]
+    },
+    "buildShard": {
+      "pivot": [0, 0],
+      "points": [
+        [0, -1],
+        [1, 0],
+        [0, 1],
+        [-1, 0]
+      ],
+      "inner": [
+        [0, -0.58],
+        [0.48, 0],
+        [0, 0.58],
+        [-0.48, 0]
+      ]
+    },
+    "corruptTile": {
+      "pivot": [0, 0],
+      "points": [
+        [-0.9, -0.74],
+        [0.46, -0.94],
+        [0.92, -0.26],
+        [0.72, 0.86],
+        [-0.5, 0.92],
+        [-0.96, 0.22]
+      ]
+    },
+    "corruptMine": {
+      "pivot": [0, 0],
+      "radius": 0.78,
+      "dangerPorts": [
+        [0, -0.92],
+        [0.92, 0],
+        [0, 0.92],
+        [-0.92, 0]
+      ]
+    },
+    "rareShard": {
+      "pivot": [0, 0],
+      "points": [
+        [0, -1],
+        [0.72, -0.18],
+        [0.42, 0.78],
+        [-0.42, 0.78],
+        [-0.72, -0.18]
+      ]
+    },
+    "boostPickup": {
+      "pivot": [0, 0],
+      "radius": 1,
+      "chevrons": [
+        [
+          [-0.42, -0.42],
+          [0, -0.06],
+          [0.42, -0.42]
+        ],
+        [
+          [-0.42, 0.02],
+          [0, 0.38],
+          [0.42, 0.02]
+        ]
+      ]
+    },
+    "shieldPickup": {
+      "pivot": [0, 0],
+      "radius": 1,
+      "innerRadius": 0.58
+    }
+  },
+  "mapNodes": [
+    { "id": "depot", "x": 70, "y": 270 },
+    { "id": "relay", "x": 212, "y": 192 },
+    { "id": "forge", "x": 365, "y": 123 },
+    { "id": "gate", "x": 552, "y": 175 }
+  ]
+}

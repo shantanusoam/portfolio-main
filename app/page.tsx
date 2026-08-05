@@ -29,6 +29,7 @@ import { useMousePosition } from "@/hooks/useMousePosition";
 import StickyCursor from "@/components/ui/stickyCursor/StickyCursor";
 import ComboTrail from "@/components/ui/ComboTrail";
 import EntranceWipe from "@/components/ui/EntranceWipe";
+import SecretArcade from "@/components/easter-egg/SecretArcade";
 
 function MaskedCopy() {
   const [isHovered, setIsHovered] = useState(false);
@@ -108,6 +109,7 @@ export default function Home() {
         <EntranceWipe />
         <ComboTrail />
         <StickyCursor />
+        <SecretArcade />
         {/* <MaskedCopy /> */}
         <Navbar />
         <Socials containerRef={socialsRef} />
