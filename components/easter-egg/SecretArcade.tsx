@@ -202,6 +202,9 @@ const ASSET_SOURCES: Record<AssetKey, string> = {
   starfield: "/easter-egg/textures/starfield-tile.svg",
 };
 const ATLAS_GRID = 4;
+// Reason: courier-ship.png is authored nose-toward-bottom-left (~135°).
+// Vertical shmup fire/thrust assume nose-up, so rotate the cell 135° CW.
+const COURIER_SHIP_FACING_OFFSET = (3 * Math.PI) / 4;
 const SPACE_SPRITES: Record<SpaceSpriteKey, SpriteCell> = {
   boostPickup: { column: 3, row: 1 },
   courierShip: { column: 0, row: 0 },
@@ -1701,7 +1704,8 @@ function drawPlayer(
       player.y + player.r * 1.65,
       player.r * 2.15,
       player.r * 3.25,
-      0,
+      // Reason: engine-flame.png trails bottom-left; +45° aligns exhaust downward.
+      Math.PI / 4,
       clamp(speed / 420, 0.25, 0.82),
     );
   }
@@ -1715,7 +1719,7 @@ function drawPlayer(
     player.y,
     player.r * 5.35,
     player.r * 4.75,
-    wobble,
+    COURIER_SHIP_FACING_OFFSET + wobble,
     flicker ? 0.36 : 1,
   );
 
