@@ -27,7 +27,6 @@
   --bone: #eee9df;
   --bone-muted: rgba(238, 233, 223, 0.56);
   --bone-faint: rgba(238, 233, 223, 0.16);
-  --font-mono: var(--font-data);
   --font-body: "Inter", sans-serif;
   box-sizing: border-box;
   padding: 0;
@@ -59,6 +58,10 @@ html {
 body {
   position: relative;
   isolation: isolate;
+  /* Reason: next/font sets --font-data via a class on <body>, so the alias
+     must live here — declared on :root it resolves against <html>, where
+     --font-data is undefined, invalidating every `font:` shorthand using it. */
+  --font-mono: var(--font-data);
 }
 /* Magnetic host styles live in magnetic.module.css — keep this class as a
    lightweight hook only. The old Olivier Larose header leftovers (fixed +

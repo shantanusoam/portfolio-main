@@ -9,6 +9,11 @@
 - [x] 2026-08-06: Preserve the original courier print as a selectable ship skin and add Circuit, Ghost, and Solar variants
 - [x] 2026-08-06: Continue Cluckstorm — strict top-down Gemini sprites, nova bombs, smart enemy formations, and Easy/Hard modes
 - [x] 2026-08-05: Fix SecretArcade courier ship orientation — sprite faced bottom-left; rotate to nose-up for vertical shmup
+- [x] 2026-08-04: Open CareerDiagnostics frame — drop outer border/black fill; keep only column side rules
+- [x] 2026-08-04: Restyle System Status card to match archive — corner ticks, target-ring badge, stronger type
+- [x] 2026-08-04: Rebuild Current Focus process rail — glowing line + REPEAT lens-flare node to match archive reference
+- [x] 2026-08-04: Tighten CareerDiagnostics panel side padding and bump body/label font sizes slightly
+- [x] 2026-08-04: Close remaining Experience gaps vs the archive mockup — map-pin checkpoint icons, mockup timeline copy/dates/tech chips, logo rack order, left-anchored quote glyph with right-aligned text, current-focus copy; fixed the broken `--font-mono` alias that was collapsing every Experience `font:` shorthand to Inter 16px
 - [x] 2026-08-04: Restyle Experience to match the first archive mockup — glass logo rack, // CHECKPOINT labels, diagnostics footer polish
 - [x] 2026-08-03: Match About + Experience to the archive reference art — real tech brand icons, yarn patch assets, live career counter, logo tiles, IBM Plex Mono typography
 - [x] 2026-08-03: Add the Make/Break interactive word transition to the About studio panel
@@ -35,6 +40,9 @@
 - [x] 2026-07-25: Fix cursor angle glitch (transform order + atan2 seam), add elastic escape strain and wobbly magnetic release
 
 ## Discovered During Work
+
+- `--font-mono: var(--font-data)` was declared on `:root` (html), but next/font sets `--font-data` via a class on `<body>` — the alias resolved to nothing, so every `font: ... var(--font-mono)` shorthand was invalid at computed-value time and silently fell back to inherited Inter 16px/400. Moved the alias onto `body`; IBM Plex Mono sizes/weights now actually apply across Experience (and everywhere else using `--font-mono`).
+- The stock `quote-marks.svg` bakes in `fill-opacity: .22`; added `quote-marks-solid.svg` for the left-anchored quote glyph that reads at full strength beside (not behind) the text.
 
 - ComboTrail was painting a ~14k-px-tall SVG with `mix-blend-screen` (primary scroll jank source)
 - CSS `scroll-behavior: smooth` was stacking with Lenis

@@ -223,11 +223,12 @@
 .checkpoint::before {
   content: "";
   display: block;
-  width: 16px;
-  height: 10px;
-  background: url("/portfolio-micro-assets/marks/section-slashes.svg") center /
-    contain no-repeat;
+  width: 10px;
+  height: 13px;
+  background: url("/portfolio-micro-assets/marks/map-pin.svg") center / contain
+    no-repeat;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 3px rgba(255, 93, 47, 0.4));
 }
 
 .companyColumn h3 {

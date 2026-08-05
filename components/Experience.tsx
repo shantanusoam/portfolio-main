@@ -72,11 +72,11 @@ const career = [
     logo: "/knowbuild-logo.svg",
     role: "Staff Engineer / Senior Software Developer",
     type: "Full time",
-    date: "Jan 2025 — Present",
+    date: "Jan 2024 — Present",
     summary: "Building digital systems that scale and last.",
     description:
-      "Leading product engineering, multi-tenant architecture and modernization for complex business platforms.",
-    technologies: ["React", "TypeScript", "TanStack", "Laravel", "AWS"],
+      "Leading product engineering, architecture and implementation for complex web systems and internal platforms.",
+    technologies: ["Next.js", "Laravel", "PostgreSQL", "AWS", "Docker"],
     icon: "building",
   },
   {
@@ -87,10 +87,10 @@ const career = [
     role: "Senior Software Engineer",
     type: "Full time",
     date: "Feb 2025 — Aug 2025",
-    summary: "Secure insurance operations and automation.",
+    summary: "Enterprise grade insurance platforms and automations.",
     description:
-      "Improved platform security, database performance and deployment workflows for high-volume insurance operations.",
-    technologies: ["React", "MongoDB", "Docker", "Kubernetes", "Nginx"],
+      "Worked on policy management, approvals, and internal tools enhancing operational efficiency at scale.",
+    technologies: ["Java", "Spring Boot", "Oracle", "Redis", "Kubernetes"],
     icon: "shield",
   },
   {
@@ -100,10 +100,10 @@ const career = [
     role: "Senior Frontend Developer",
     type: "Full time",
     date: "Oct 2023 — Feb 2025",
-    summary: "Commerce systems and polished interfaces.",
+    summary: "Fintech solutions for modern India.",
     description:
-      "Built accessible e-commerce platforms, reusable UI systems and complex visual builders for consumer products.",
-    technologies: ["Next.js", "TypeScript", "Tailwind", "Redux", "Framer"],
+      "Built fast, accessible and responsive fintech applications used by thousands daily.",
+    technologies: ["Next.js", "TypeScript", "Tailwind", "Zustand", "Vercel"],
     icon: "wallet",
   },
   {
@@ -113,10 +113,10 @@ const career = [
     role: "Full-stack Developer",
     type: "Full time",
     date: "Feb 2023 — Oct 2023",
-    summary: "Creative technology for modern travel.",
+    summary: "Creative tech for bold digital experiences.",
     description:
-      "Developed itinerary, payment and booking experiences with a Django CMS and high-performance Next.js frontend.",
-    technologies: ["Next.js", "Django", "Maps", "Web Workers", "PWA"],
+      "Developed custom websites and applications for brands and creators.",
+    technologies: ["HTML", "CSS", "JavaScript", "PHP", "MySQL"],
     icon: "tree",
   },
   {
@@ -133,6 +133,12 @@ const career = [
     icon: "network",
   },
 ];
+
+// The reference art racks logos in a different order than the timeline.
+const logoRackOrder = ["02", "03", "04", "05", "01"];
+const rackedCareer = logoRackOrder
+  .map((checkpoint) => career.find((item) => item.checkpoint === checkpoint))
+  .filter((item): item is (typeof career)[number] => Boolean(item));
 
 const skills = [
   ["Frontend Development", 9],
@@ -231,8 +237,8 @@ function CareerDiagnostics() {
                 <img
                   src={icon}
                   alt={tool}
-                  width={22}
-                  height={22}
+                  width={32}
+                  height={32}
                   loading="lazy"
                   className={
                     invertOnDark.has(tool)
@@ -278,7 +284,7 @@ function CareerDiagnostics() {
           <span aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/portfolio-micro-assets/marks/quote-marks.svg"
+              src="/portfolio-micro-assets/marks/quote-marks-solid.svg"
               alt=""
               width={110}
               height={80}
@@ -297,20 +303,48 @@ function CareerDiagnostics() {
         <div className={diagnosticStyles.focusPanel}>
           <h3>{"// Current focus"}</h3>
           <p>
-            Building scalable products, exploring AI integrations and pushing the
-            boundaries of interactive web experiences.
+            Building scalable products, exploring AI integrations, and pushing
+            the boundaries of web experiences.
           </p>
           <div className={diagnosticStyles.processRail}>
-            {["Build", "Learn", "Ship", "Repeat"].map((item) => (
-              <span key={item}>{item}</span>
+            {["Build", "Learn", "Ship", "Repeat"].map((item, index, list) => (
+              <span
+                key={item}
+                data-active={index === list.length - 1 ? "true" : undefined}
+              >
+                {item}
+              </span>
             ))}
           </div>
         </div>
 
         <div className={diagnosticStyles.statusPanel}>
           <div className={diagnosticStyles.statusCard}>
-            <span>
-              <i className={diagnosticStyles.statusDot} aria-hidden="true" />
+            <span
+              className={`${diagnosticStyles.statusCorner} ${diagnosticStyles.statusCornerTL}`}
+              aria-hidden="true"
+            />
+            <span
+              className={`${diagnosticStyles.statusCorner} ${diagnosticStyles.statusCornerTR}`}
+              aria-hidden="true"
+            />
+            <span
+              className={`${diagnosticStyles.statusCorner} ${diagnosticStyles.statusCornerBR}`}
+              aria-hidden="true"
+            />
+            <span
+              className={`${diagnosticStyles.statusCorner} ${diagnosticStyles.statusCornerBL}`}
+              aria-hidden="true"
+            />
+            <span className={diagnosticStyles.statusLabel}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/portfolio-micro-assets/marks/target-ring.svg"
+                alt=""
+                width={16}
+                height={16}
+                className={diagnosticStyles.statusBadge}
+              />
               System status
             </span>
             <p>
@@ -409,7 +443,7 @@ export default function Experience() {
           <span className={styles.rackBolt} data-corner="tr" aria-hidden="true" />
           <span className={styles.rackBolt} data-corner="br" aria-hidden="true" />
           <span className={styles.rackBolt} data-corner="bl" aria-hidden="true" />
-          {career.map((item) => (
+          {rackedCareer.map((item) => (
             <span className={styles.logoTile} key={item.checkpoint}>
               <Image
                 src={item.logo}

@@ -87,7 +87,7 @@ export default function AboutStudioSection() {
 
   return (
     <section ref={sectionRef} id="about" className={styles.section}>
-      <span className={styles.topLabel}>Terminal / Studio</span>
+      {/* <span className={styles.topLabel}>Terminal / Studio</span>
       <span className={styles.sideNote}>
         Handmade
         <br />
@@ -102,7 +102,7 @@ export default function AboutStudioSection() {
         Estb
         <br />
         forever
-      </span>
+      </span> */}
       <span
         className={`${styles.regMark} ${styles.regLeft}`}
         aria-hidden="true"
@@ -245,52 +245,7 @@ export default function AboutStudioSection() {
           </p>
         </div>
       </div>
-      <span className={`${styles.figureLabel} ${styles.figureOne}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/portfolio-micro-assets/marks/plus-registration.svg"
-          alt=""
-          width={12}
-          height={12}
-          className={styles.figureMark}
-        />
-        FIG. 01
-      </span>
-      <span className={`${styles.figureLabel} ${styles.figureTwo}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/portfolio-micro-assets/marks/plus-registration.svg"
-          alt=""
-          width={12}
-          height={12}
-          className={styles.figureMark}
-        />
-        FIG. 02
-      </span>
-      <span className={styles.coordinate}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/portfolio-micro-assets/marks/coordinate-ticks.svg"
-          alt=""
-          width={44}
-          height={22}
-          className={styles.coordinateMark}
-        />
-        28.6139° N
-        <br />
-        77.2090° E
-      </span>
-      <span className={styles.gridLabel}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/portfolio-micro-assets/marks/grid-24px.svg"
-          alt=""
-          width={14}
-          height={14}
-          className={styles.gridSwatch}
-        />
-        Grid 24px
-      </span>
+  
       <span className={styles.footerTag}>
         <i aria-hidden="true" />
         Creative systems
