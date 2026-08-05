@@ -1,0 +1,49 @@
+{
+  "name": "cluckstorm-original-vertical-shooter-data",
+  "units": "canvas-local",
+  "runtime": {
+    "playerAtlas": "/easter-egg/generated/space-opera-atlas.png",
+    "enemyAtlas": "/easter-egg/generated/clucker-atlas.png",
+    "scrollingBackground": "/easter-egg/generated/clucker-space-bg.webp",
+    "manifest": "/easter-egg/generated/asset-manifest.json"
+  },
+  "hitboxes": {
+    "player": { "radiusScale": 1 },
+    "grunt": { "radiusScale": 0.68 },
+    "shooter": { "radiusScale": 0.68 },
+    "armored": { "radiusScale": 0.68 },
+    "ufo": { "radiusScale": 0.68 },
+    "popcorn": { "radiusScale": 0.68 },
+    "miniBoss": { "radiusScale": 0.78 },
+    "wingCannon": { "radiusScale": 0.78 },
+    "boss": { "radiusScale": 0.72 }
+  },
+  "waveCadence": {
+    "normal": "formation waves except multiples of 5",
+    "miniBoss": "every 5th wave except multiples of 10",
+    "boss": "every 10th wave with two wing cannons"
+  },
+  "formations": {
+    "normalGrid": {
+      "columns": "4 to 8 based on wave",
+      "rows": "2 to 4 based on wave",
+      "homeY": [74, 128, 182, 236]
+    },
+    "miniBoss": [{ "kind": "miniBoss", "x": 0.5, "homeY": 130 }],
+    "boss": [
+      { "kind": "boss", "x": 0.5, "homeY": 118 },
+      { "kind": "wingCannon", "x": "center - 120", "homeY": 178 },
+      { "kind": "wingCannon", "x": "center + 120", "homeY": 178 }
+    ]
+  },
+  "powerUps": [
+    "rapid",
+    "spread",
+    "laser",
+    "missile",
+    "shield",
+    "magnet",
+    "health",
+    "invincible"
+  ]
+}
