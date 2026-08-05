@@ -6,6 +6,7 @@ import AboutStudioSection from "@/components/AboutStudioSection";
 import ComboMeter from "@/components/ComboMeter";
 import PatternLibrary from "@/components/PatternLibrary";
 import MakerLab from "@/components/MakerLab";
+import PretextCopyLab from "@/components/PretextCopyLab";
 import Projects from "@/components/Projects";
 import { useEffect, useState } from "react";
 import {
@@ -120,6 +121,7 @@ export default function Home() {
             <Experience />
             <Projects />
             <PatternLibrary />
+            <PretextCopyLab />
             <ComboMeter />
             <MakerLab />
             <Hobbies />

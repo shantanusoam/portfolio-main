@@ -19,6 +19,7 @@ interface HeroProps {
 const START_MENU = [
   { label: "Start Journey", href: "#trail-map" },
   { label: "View Case Studies", href: "#mission-select" },
+  { label: "Signal Room", href: "#signal-room" },
   { label: "Enter Lab", href: "#maker-lab" },
 ];
 

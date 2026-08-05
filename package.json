@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@chenglou/pretext": "^0.0.8",
     "@splinetool/react-spline": "^2.2.6",
     "@studio-freight/lenis": "^1.0.22",
     "@types/node": "20.4.2",
