@@ -39,43 +39,47 @@ test('tilt mode: orientation moves the cursor and holding the button cuts', asyn
   await expect(phone.locator('#trackpad')).toHaveClass(/tilt-mode/);
   await expect(phone.locator('#hold-to-cut')).toBeVisible();
 
-  // First orientation sample calibrates neutral; verify the crosshair then
-  // actually moves as beta/gamma deviate from that neutral, proving this is
-  // continuous tracking and not a one-shot burst like sword mode.
   const dispatchOrientation = (beta: number, gamma: number) =>
     phone.evaluate(
       ({ beta, gamma }) => window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { beta, gamma, alpha: 0 })),
       { beta, gamma }
     );
 
-  await dispatchOrientation(0, 0); // calibrates neutral at (0, 0)
-  await phone.waitForTimeout(50);
+  // Calibration now averages over a ~250ms window (a single noisy sample was
+  // the "recalibrating issues" bug report) rather than trusting one reading,
+  // so it needs several samples spanning that window, not just one.
+  async function holdOrientation(beta: number, gamma: number, samples: number, gapMs: number): Promise<void> {
+    for (let i = 0; i < samples; i++) {
+      await dispatchOrientation(beta, gamma);
+      await phone.waitForTimeout(gapMs);
+    }
+  }
+
+  await holdOrientation(0, 0, 10, 30); // ~300ms of near-zero samples calibrates neutral
   const centeredLeft = await phone.locator('#crosshair').evaluate((el) => el.style.left);
 
-  await dispatchOrientation(20, 25);
-  await phone.waitForTimeout(50);
+  // Drift-correction alone (no gyro events) should still visibly move the
+  // cursor toward wherever the phone is actually pointed -- proving this is
+  // continuous tracking, not a one-shot burst like sword mode.
+  await holdOrientation(20, 25, 10, 20);
   const movedLeft = await phone.locator('#crosshair').evaluate((el) => el.style.left);
   expect(movedLeft).not.toBe(centeredLeft);
 
-  // Hold the cut button while sweeping orientation across a grid, same
-  // density reasoning as the sword test but continuous instead of discrete.
+  // Hold the cut button while sweeping orientation across a grid. Each point
+  // gets enough repeated samples for the complementary filter's drift
+  // correction to actually converge close to that target, not just nudge
+  // toward it once.
   const holdBtn = phone.locator('#hold-to-cut');
   const box = await holdBtn.boundingBox();
   if (!box) throw new Error('hold-to-cut button has no bounding box');
   await phone.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await phone.mouse.down();
 
-  // Sweep for several seconds, not just a couple hundred ms -- the first
-  // fruit doesn't spawn until ~1.4s in, so a too-fast sweep can finish
-  // before there's anything on screen to hit at all.
   const betas = [-30, -15, 0, 15, 30];
   const gammas = [-30, -15, 0, 15, 30];
-  for (let lap = 0; lap < 2; lap++) {
-    for (const beta of betas) {
-      for (const gamma of gammas) {
-        await dispatchOrientation(beta, gamma);
-        await phone.waitForTimeout(160);
-      }
+  for (const beta of betas) {
+    for (const gamma of gammas) {
+      await holdOrientation(beta, gamma, 18, 16);
     }
   }
   await phone.mouse.up();

@@ -155,8 +155,11 @@ function setMode(nextMode: ControlMode): void {
     hint.textContent = 'Move the phone to aim · hold the button to cut';
     holdToCutBtn.classList.remove('hidden');
     recalibrateBtn.classList.remove('hidden');
-    tiltCalibrated = false;
-    ensureSensorAccess(attachOrientationListener);
+    beginTiltCalibration();
+    ensureSensorAccess(() => {
+      attachOrientationListener();
+      attachMotionListener();
+    });
   } else {
     hint.textContent = 'Drag to move the blade · press to cut';
   }
@@ -284,7 +287,14 @@ function attachMotionListener(): void {
 }
 
 function onDeviceMotion(event: DeviceMotionEvent): void {
-  if (controlMode !== 'sword') return;
+  if (controlMode === 'sword') {
+    onSwingMotion(event);
+  } else if (controlMode === 'tilt') {
+    onTiltGyro(event);
+  }
+}
+
+function onSwingMotion(event: DeviceMotionEvent): void {
   const rate = event.rotationRate;
   if (!rate) return;
 
@@ -339,23 +349,76 @@ function flashSwing(power: number): void {
   swingFlash.classList.add('show');
 }
 
-// --- Tilt mode: continuous orientation-driven cursor -----------------------
+// --- Tilt mode: continuous, low-latency orientation-driven cursor ---------
 //
-// DeviceOrientationEvent gives absolute, gravity/compass-anchored angles --
-// unlike accelerometer integration, this doesn't drift, so (unlike sword
-// mode) the cursor can track physical phone movement continuously in real
-// time: point the phone where you want the blade, hold the button to cut.
+// A naive implementation would just map DeviceOrientationEvent's absolute
+// beta/gamma straight to cursor position every event. That felt laggy in
+// practice: `deviceorientation` is a *fused* reading (the browser's own
+// sensor fusion, batched/throttled more conservatively than raw sensors on
+// many phones) and every additional smoothing pass downstream (this file's
+// CSS transition, InputRouter's phone-source smoothing) stacks more delay
+// on top of it.
+//
+// This uses a complementary filter instead -- the standard technique for
+// exactly this kind of orientation tracking (also how most "phone as a
+// pointer/wand" implementations work): integrate the gyroscope's angular
+// *velocity* (`devicemotion.rotationRate`, typically higher-frequency and
+// lower-latency than the fused orientation reading) every motion sample for
+// immediate responsiveness, then gently pull that integrated position back
+// toward the absolute orientation reading on every orientation sample so
+// gyro drift never accumulates. Short-term: gyro. Long-term: orientation.
 
 const TILT_RANGE_DEG = 35; // degrees off neutral that maps to the full 0-1 range
+const DRIFT_CORRECTION = 0.08; // per-orientation-sample pull toward the absolute reading
+const CALIBRATION_WINDOW_MS = 250; // average samples over this window instead of trusting one
+
 let orientationListenerAttached = false;
 let tiltCalibrated = false;
+let calibrating = false;
+let calibrationStartAt = 0;
+let calibrationSumBeta = 0;
+let calibrationSumGamma = 0;
+let calibrationCount = 0;
 let neutralBeta = 0;
 let neutralGamma = 0;
+let cursorX = 0.5;
+let cursorY = 0.5;
+let lastGyroSampleAt = 0;
 
 function attachOrientationListener(): void {
   if (orientationListenerAttached) return;
   orientationListenerAttached = true;
   window.addEventListener('deviceorientation', onDeviceOrientation);
+}
+
+function beginTiltCalibration(): void {
+  calibrating = true;
+  tiltCalibrated = false;
+  calibrationStartAt = performance.now();
+  calibrationSumBeta = 0;
+  calibrationSumGamma = 0;
+  calibrationCount = 0;
+  cursorX = 0.5;
+  cursorY = 0.5;
+}
+
+function onTiltGyro(event: DeviceMotionEvent): void {
+  const rate = event.rotationRate;
+  if (!rate || !tiltCalibrated) {
+    lastGyroSampleAt = performance.now();
+    return;
+  }
+
+  const now = performance.now();
+  const dt = lastGyroSampleAt ? Math.min(0.05, (now - lastGyroSampleAt) / 1000) : 0;
+  lastGyroSampleAt = now;
+  if (dt <= 0) return;
+
+  const dGamma = (rate.gamma ?? 0) * dt;
+  const dBeta = (rate.beta ?? 0) * dt;
+  cursorX = clamp01(cursorX + (dGamma / TILT_RANGE_DEG) * 0.5);
+  cursorY = clamp01(cursorY + (dBeta / TILT_RANGE_DEG) * 0.5);
+  applyCursor();
 }
 
 function onDeviceOrientation(event: DeviceOrientationEvent): void {
@@ -364,18 +427,39 @@ function onDeviceOrientation(event: DeviceOrientationEvent): void {
   const gamma = event.gamma;
   if (beta === null || gamma === null) return;
 
-  if (!tiltCalibrated) {
-    neutralBeta = beta;
-    neutralGamma = gamma;
-    tiltCalibrated = true;
+  if (calibrating) {
+    calibrationSumBeta += beta;
+    calibrationSumGamma += gamma;
+    calibrationCount++;
+    if (performance.now() - calibrationStartAt >= CALIBRATION_WINDOW_MS && calibrationCount > 0) {
+      neutralBeta = calibrationSumBeta / calibrationCount;
+      neutralGamma = calibrationSumGamma / calibrationCount;
+      calibrating = false;
+      tiltCalibrated = true;
+    }
+    return;
   }
 
-  const dx = clampSigned((gamma - neutralGamma) / TILT_RANGE_DEG);
-  const dy = clampSigned((beta - neutralBeta) / TILT_RANGE_DEG);
-  current.x = clamp01(0.5 + dx * 0.5);
-  current.y = clamp01(0.5 + dy * 0.5);
-  crosshair.style.left = `${current.x * 100}%`;
-  crosshair.style.top = `${current.y * 100}%`;
+  if (!tiltCalibrated) {
+    beginTiltCalibration();
+    return;
+  }
+
+  // Slow pull toward the absolute-orientation-derived position -- this is
+  // the filter's drift correction, deliberately gentle so it corrects
+  // long-term error without fighting the gyro's short-term responsiveness.
+  const targetX = clamp01(0.5 + clampSigned((gamma - neutralGamma) / TILT_RANGE_DEG) * 0.5);
+  const targetY = clamp01(0.5 + clampSigned((beta - neutralBeta) / TILT_RANGE_DEG) * 0.5);
+  cursorX += (targetX - cursorX) * DRIFT_CORRECTION;
+  cursorY += (targetY - cursorY) * DRIFT_CORRECTION;
+  applyCursor();
+}
+
+function applyCursor(): void {
+  current.x = cursorX;
+  current.y = cursorY;
+  crosshair.style.left = `${cursorX * 100}%`;
+  crosshair.style.top = `${cursorY * 100}%`;
 }
 
 function clampSigned(v: number): number {
@@ -383,7 +467,7 @@ function clampSigned(v: number): number {
 }
 
 recalibrateBtn.addEventListener('click', () => {
-  tiltCalibrated = false; // next orientation sample re-zeroes neutral
+  beginTiltCalibration();
   navigator.vibrate?.(15);
 });
 
