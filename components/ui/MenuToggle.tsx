@@ -62,6 +62,7 @@ export default function MenuToggle({
 
   return (
     <motion.div
+      data-mascot-obstacle="hard"
       {...props}
       variants={lineContinerAnim}
       initial="hidden"

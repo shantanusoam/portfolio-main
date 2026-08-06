@@ -5,6 +5,7 @@ import PageScrollProgress from "@/components/ui/PageScrollProgress";
 import { displayFont, dataFont } from "@/lib/fonts";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import PageAtmosphere from "@/components/ui/PageAtmosphere";
+import ProceduralMascotLoader from "@/components/mascot/ProceduralMascotLoader";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -50,6 +51,7 @@ export default function RootLayout({
       >
         <PageAtmosphere />
         <PageScrollProgress />
+        <ProceduralMascotLoader />
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
     </html>

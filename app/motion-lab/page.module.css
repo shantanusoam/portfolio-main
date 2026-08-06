@@ -1,0 +1,85 @@
+.page {
+  position: relative;
+  min-height: 200vh;
+  background: #05050a;
+  color: #f2f4f8;
+  font-family: var(--font-data, monospace);
+  overflow-x: hidden;
+}
+
+.hud {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(10, 10, 12, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  max-width: 280px;
+}
+
+.title {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.playfield {
+  position: relative;
+  padding: 120px 48px;
+  display: grid;
+  gap: 48px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.card {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hardBox {
+  border-color: rgba(255, 61, 90, 0.5);
+}
+
+.softBox {
+  border-color: rgba(255, 170, 51, 0.5);
+}
+
+.interestBox {
+  border-color: rgba(56, 242, 216, 0.5);
+}
+
+.navMock {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  gap: 16px;
+  padding: 16px 48px;
+  background: rgba(5, 5, 10, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navButton {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}

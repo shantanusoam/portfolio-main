@@ -2,12 +2,13 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MenuToggle from "./ui/MenuToggle";
 import Socials from "./ui/Socials";
 import { Button } from "./ui/Buttons";
 import { ScrollText } from "lucide-react";
 import resume_link from "@/constants/resume";
+import { OBSTACLE_INVALIDATE_EVENT } from "@/lib/mascot/interaction/DomObstacleRegistry";
 
 import AboutmePic from "@/public/AboutMePic.jpg";
 import contact from "@/public/Fluency Zoom Logo.png";
@@ -51,6 +52,14 @@ const navSections = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // The full-screen mobile menu overlay mounts/unmounts obstacle-relevant
+  // markup outside of resize/scroll, so tell the mascot's obstacle registry
+  // to re-measure explicitly (spec: "a section opens or closes").
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new Event(OBSTACLE_INVALIDATE_EVENT));
+  }, [menuOpen]);
+
   const liHoverAnim = {
     color: "#fff",
     transition: { ease: "easeIn", duration: 0.3 },
@@ -72,7 +81,10 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="fixed left-[3%] top-8 z-[1001] scale-90 select-none text-xs sm:scale-100 md:top-12">
+      <div
+        data-mascot-obstacle="hard"
+        className="fixed left-[3%] top-8 z-[1001] scale-90 select-none text-xs sm:scale-100 md:top-12"
+      >
         <Link
           href={"/#hero"}
           className="group"
@@ -134,6 +146,7 @@ export default function Navbar() {
             }}
             transition={{ ease: "easeInOut", duration: 0.3 }}
             className="fixed left-0 top-0 z-[1000] h-[100dvh] w-screen bg-black px-[10%] sm:px-[15%]"
+            data-mascot-obstacle="hard"
           >
             {/* <HoverImageLinks/> */}
             <div

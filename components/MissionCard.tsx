@@ -71,6 +71,7 @@ export default function MissionCard({
         whileInView="show"
         viewport={{ once: true, margin: "0px 0px -40px 0px" }}
         className="group relative flex h-[330px] w-[260px] flex-col md:h-[356px] md:w-[288px]"
+        data-mascot-interest={isLocked ? undefined : "project"}
       >
         {(!mounted || !prefersReducedMotion) && (
           // Holo-card shimmer: one soft diagonal light sweep the first time
