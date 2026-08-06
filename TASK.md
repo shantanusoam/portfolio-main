@@ -2,6 +2,10 @@
 
 ## Active
 
+- [x] 2026-08-06: Add Cluckstorm juice pass — neon projectile trails, boss damage numbers, stronger warning entry, CRT scanlines
+- [x] 2026-08-06: Preserve previous enemy prints as a selectable Classic Flock skin
+- [x] 2026-08-06: Preserve the original courier print as a selectable ship skin and add Circuit, Ghost, and Solar variants
+- [x] 2026-08-06: Continue Cluckstorm — strict top-down Gemini sprites, nova bombs, smart enemy formations, and Easy/Hard modes
 - [x] 2026-08-05: Fix SecretArcade courier ship orientation — sprite faced bottom-left; rotate to nose-up for vertical shmup
 - [x] 2026-08-04: Restyle Experience to match the first archive mockup — glass logo rack, // CHECKPOINT labels, diagnostics footer polish
 - [x] 2026-08-03: Match About + Experience to the archive reference art — real tech brand icons, yarn patch assets, live career counter, logo tiles, IBM Plex Mono typography
