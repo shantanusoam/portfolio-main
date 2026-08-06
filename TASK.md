@@ -2,6 +2,7 @@
 
 ## Active
 
+- [x] 2026-08-06: Align diagonal enemy projectile artwork with top-down bullet trajectories
 - [x] 2026-08-06: Increase Cluckstorm enemy, projectile, and pickup visual sizes without changing hitboxes
 - [x] 2026-08-06: Add Cluckstorm juice pass — neon projectile trails, boss damage numbers, stronger warning entry, CRT scanlines
 - [x] 2026-08-06: Preserve previous enemy prints as a selectable Classic Flock skin
