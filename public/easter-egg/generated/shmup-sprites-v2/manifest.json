@@ -1,0 +1,21 @@
+{
+  "player-courier-topdown": "/easter-egg/generated/shmup-sprites-v2/player-courier-topdown.png",
+  "missile-projectile-topdown": "/easter-egg/generated/shmup-sprites-v2/missile-projectile-topdown.png",
+  "laser-bolt-topdown": "/easter-egg/generated/shmup-sprites-v2/laser-bolt-topdown.png",
+  "bomb-projectile-topdown": "/easter-egg/generated/shmup-sprites-v2/bomb-projectile-topdown.png",
+  "grunt-bird-topdown": "/easter-egg/generated/shmup-sprites-v2/grunt-bird-topdown.png",
+  "shooter-bird-topdown": "/easter-egg/generated/shmup-sprites-v2/shooter-bird-topdown.png",
+  "armored-bird-topdown": "/easter-egg/generated/shmup-sprites-v2/armored-bird-topdown.png",
+  "ufo-bird-topdown": "/easter-egg/generated/shmup-sprites-v2/ufo-bird-topdown.png",
+  "popcorn-asteroid-topdown": "/easter-egg/generated/shmup-sprites-v2/popcorn-asteroid-topdown.png",
+  "healer-support-bird": "/easter-egg/generated/shmup-sprites-v2/healer-support-bird.png",
+  "splitter-bird": "/easter-egg/generated/shmup-sprites-v2/splitter-bird.png",
+  "splitterling": "/easter-egg/generated/shmup-sprites-v2/splitterling.png",
+  "elite-bird": "/easter-egg/generated/shmup-sprites-v2/elite-bird.png",
+  "kamikaze-diver-bird": "/easter-egg/generated/shmup-sprites-v2/kamikaze-diver-bird.png",
+  "boss-admiral-drumstick": "/easter-egg/generated/shmup-sprites-v2/boss-admiral-drumstick.png",
+  "boss-omelette-engine": "/easter-egg/generated/shmup-sprites-v2/boss-omelette-engine.png",
+  "miniboss-sergeant-yolk": "/easter-egg/generated/shmup-sprites-v2/miniboss-sergeant-yolk.png",
+  "powerup-timewarp-icon": "/easter-egg/generated/shmup-sprites-v2/powerup-timewarp-icon.png",
+  "powerup-nova-icon": "/easter-egg/generated/shmup-sprites-v2/powerup-nova-icon.png"
+}

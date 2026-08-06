@@ -80,6 +80,36 @@
       "path": "/easter-egg/generated/shmup-sprites/comic-explosion-puff.png"
     }
   },
+  "shmupSpritesV2": {
+    "source": "gemini-2.5-flash-image generation, magenta-screen keyed to transparency locally with Pillow (scripts/generate-sprites.py)",
+    "playerCourierTopdown": "/easter-egg/generated/shmup-sprites-v2/player-courier-topdown.png",
+    "missileProjectileTopdown": "/easter-egg/generated/shmup-sprites-v2/missile-projectile-topdown.png",
+    "laserBoltTopdown": "/easter-egg/generated/shmup-sprites-v2/laser-bolt-topdown.png",
+    "bombProjectileTopdown": "/easter-egg/generated/shmup-sprites-v2/bomb-projectile-topdown.png",
+    "gruntBirdTopdown": "/easter-egg/generated/shmup-sprites-v2/grunt-bird-topdown.png",
+    "shooterBirdTopdown": "/easter-egg/generated/shmup-sprites-v2/shooter-bird-topdown.png",
+    "armoredBirdTopdown": "/easter-egg/generated/shmup-sprites-v2/armored-bird-topdown.png",
+    "ufoBirdTopdown": "/easter-egg/generated/shmup-sprites-v2/ufo-bird-topdown.png",
+    "popcornAsteroidTopdown": "/easter-egg/generated/shmup-sprites-v2/popcorn-asteroid-topdown.png",
+    "classicHealerSupportBird": "/easter-egg/generated/shmup-sprites-v2/classic-healer-support-bird.png",
+    "classicSplitterBird": "/easter-egg/generated/shmup-sprites-v2/classic-splitter-bird.png",
+    "classicSplitterling": "/easter-egg/generated/shmup-sprites-v2/classic-splitterling.png",
+    "classicEliteBird": "/easter-egg/generated/shmup-sprites-v2/classic-elite-bird.png",
+    "classicKamikazeDiverBird": "/easter-egg/generated/shmup-sprites-v2/classic-kamikaze-diver-bird.png",
+    "classicBossAdmiralDrumstick": "/easter-egg/generated/shmup-sprites-v2/classic-boss-admiral-drumstick.png",
+    "classicBossOmeletteEngine": "/easter-egg/generated/shmup-sprites-v2/classic-boss-omelette-engine.png",
+    "classicMiniBossSergeantYolk": "/easter-egg/generated/shmup-sprites-v2/classic-miniboss-sergeant-yolk.png",
+    "healerSupportBird": "/easter-egg/generated/shmup-sprites-v2/healer-support-bird.png",
+    "splitterBird": "/easter-egg/generated/shmup-sprites-v2/splitter-bird.png",
+    "splitterling": "/easter-egg/generated/shmup-sprites-v2/splitterling.png",
+    "eliteBird": "/easter-egg/generated/shmup-sprites-v2/elite-bird.png",
+    "kamikazeDiverBird": "/easter-egg/generated/shmup-sprites-v2/kamikaze-diver-bird.png",
+    "bossAdmiralDrumstick": "/easter-egg/generated/shmup-sprites-v2/boss-admiral-drumstick.png",
+    "bossOmeletteEngine": "/easter-egg/generated/shmup-sprites-v2/boss-omelette-engine.png",
+    "miniBossSergeantYolk": "/easter-egg/generated/shmup-sprites-v2/miniboss-sergeant-yolk.png",
+    "powerupTimewarpIcon": "/easter-egg/generated/shmup-sprites-v2/powerup-timewarp-icon.png",
+    "powerupNovaIcon": "/easter-egg/generated/shmup-sprites-v2/powerup-nova-icon.png"
+  },
   "sprites": {
     "courierShip": {
       "cell": [0, 0],
