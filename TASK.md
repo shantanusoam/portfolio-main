@@ -2,6 +2,7 @@
 
 ## Active
 
+- [x] 2026-08-06: Increase Cluckstorm enemy, projectile, and pickup visual sizes without changing hitboxes
 - [x] 2026-08-06: Add Cluckstorm juice pass — neon projectile trails, boss damage numbers, stronger warning entry, CRT scanlines
 - [x] 2026-08-06: Preserve previous enemy prints as a selectable Classic Flock skin
 - [x] 2026-08-06: Preserve the original courier print as a selectable ship skin and add Circuit, Ghost, and Solar variants
