@@ -532,7 +532,10 @@ function drawHazards(context: CanvasRenderingContext2D, model: GameModel) {
 }
 
 function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: GameAssets) {
-  const angle = Math.atan2(bullet.vy, bullet.vx) + Math.PI / 2;
+  const velocityAngle = Math.atan2(bullet.vy, bullet.vx);
+  const topDownAngle = velocityAngle + Math.PI / 2;
+  // ponytail: atlas enemy shots point up-right; generated top-down weapons point straight up.
+  const enemyAtlasAngle = velocityAngle + Math.PI / 4;
   const speed = Math.hypot(bullet.vx, bullet.vy) || 1;
   const trailLength =
     bullet.kind === "laser"
@@ -582,7 +585,7 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       bullet.y,
       bullet.r * 3.2 * PROJECTILE_VISUAL_SCALE,
       bullet.r * 3.2 * PROJECTILE_VISUAL_SCALE,
-      angle,
+      topDownAngle,
     )
   ) {
     return;
@@ -596,7 +599,7 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       bullet.y,
       bullet.r * 2.2 * PROJECTILE_VISUAL_SCALE,
       bullet.r * 5.2 * PROJECTILE_VISUAL_SCALE,
-      angle,
+      topDownAngle,
     )
   ) {
     return;
@@ -610,7 +613,7 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       bullet.y,
       bullet.r * 3 * PROJECTILE_VISUAL_SCALE,
       bullet.r * 3 * PROJECTILE_VISUAL_SCALE,
-      angle,
+      topDownAngle,
     )
   ) {
     return;
@@ -620,14 +623,14 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
     const sprite = bullet.kind === "feather" ? "feather" : bullet.kind === "meteor" ? "meteor" : "egg";
     const drawScale =
       (bullet.kind === "meteor" ? 3.7 : 3.1) * PROJECTILE_VISUAL_SCALE;
-    if (drawAtlasSprite(context, assets.cluckerAtlas, CLUCKER_SPRITES, sprite, bullet.x, bullet.y, bullet.r * drawScale, bullet.r * drawScale, angle)) {
+    if (drawAtlasSprite(context, assets.cluckerAtlas, CLUCKER_SPRITES, sprite, bullet.x, bullet.y, bullet.r * drawScale, bullet.r * drawScale, enemyAtlasAngle)) {
       return;
     }
   }
 
   context.save();
   context.translate(bullet.x, bullet.y);
-  context.rotate(angle);
+  context.rotate(topDownAngle);
   context.shadowBlur = bullet.kind === "laser" ? 16 : 9;
   context.shadowColor = bullet.kind === "laser" ? "#8df6ff" : bullet.source === "drone" ? "#c9a8ff" : "#ffd36a";
   context.fillStyle =
