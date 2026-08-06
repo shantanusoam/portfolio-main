@@ -12,10 +12,6 @@ import { getActiveBoss } from "./update";
 import type { Bullet, Enemy, GameModel, PowerKind, WeaponType } from "./types";
 import { clamp, randomBetween } from "./utils";
 
-const ENEMY_VISUAL_SCALE = 1.4;
-const PROJECTILE_VISUAL_SCALE = 1.4;
-const PICKUP_VISUAL_SCALE = 1.35;
-
 export type RenderOptions = {
   reducedMotion: boolean;
 };
@@ -424,13 +420,7 @@ const SHADOW_CAST_KINDS = new Set(["armored", "boss", "elite", "miniBoss", "ufo"
 function drawEnemy(context: CanvasRenderingContext2D, enemy: Enemy, model: GameModel, assets: GameAssets) {
   const pulse = 1 + Math.sin(model.elapsed * 5 + enemy.phase) * 0.035;
   const isBossTier = enemy.kind === "boss" || enemy.kind === "miniBoss";
-  // ponytail: visual-only scale keeps the forgiving collision radii unchanged.
-  const width =
-    (isBossTier
-      ? enemy.r * 2.7
-      : enemy.kind === "elite"
-        ? enemy.r * 2.3
-        : enemy.r * 2.15) * ENEMY_VISUAL_SCALE;
+  const width = isBossTier ? enemy.r * 2.7 : enemy.kind === "elite" ? enemy.r * 2.3 : enemy.r * 2.15;
   const height = width;
   const rotation =
     enemy.kind === "popcorn" ? enemy.age * 0.8 : Math.sin(enemy.age * 2 + enemy.phase) * 0.07;
@@ -532,10 +522,7 @@ function drawHazards(context: CanvasRenderingContext2D, model: GameModel) {
 }
 
 function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: GameAssets) {
-  const velocityAngle = Math.atan2(bullet.vy, bullet.vx);
-  const topDownAngle = velocityAngle + Math.PI / 2;
-  // ponytail: atlas enemy shots point up-right; generated top-down weapons point straight up.
-  const enemyAtlasAngle = velocityAngle + Math.PI / 4;
+  const angle = Math.atan2(bullet.vy, bullet.vx) + Math.PI / 2;
   const speed = Math.hypot(bullet.vx, bullet.vy) || 1;
   const trailLength =
     bullet.kind === "laser"
@@ -583,9 +570,9 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       assets.missileProjectileTopdown,
       bullet.x,
       bullet.y,
-      bullet.r * 3.2 * PROJECTILE_VISUAL_SCALE,
-      bullet.r * 3.2 * PROJECTILE_VISUAL_SCALE,
-      topDownAngle,
+      bullet.r * 3.2,
+      bullet.r * 3.2,
+      angle,
     )
   ) {
     return;
@@ -597,9 +584,9 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       assets.laserBoltTopdown,
       bullet.x,
       bullet.y,
-      bullet.r * 2.2 * PROJECTILE_VISUAL_SCALE,
-      bullet.r * 5.2 * PROJECTILE_VISUAL_SCALE,
-      topDownAngle,
+      bullet.r * 2.2,
+      bullet.r * 5.2,
+      angle,
     )
   ) {
     return;
@@ -611,9 +598,9 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       assets.bombProjectileTopdown,
       bullet.x,
       bullet.y,
-      bullet.r * 3 * PROJECTILE_VISUAL_SCALE,
-      bullet.r * 3 * PROJECTILE_VISUAL_SCALE,
-      topDownAngle,
+      bullet.r * 3,
+      bullet.r * 3,
+      angle,
     )
   ) {
     return;
@@ -621,16 +608,15 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
 
   if (bullet.source === "enemy") {
     const sprite = bullet.kind === "feather" ? "feather" : bullet.kind === "meteor" ? "meteor" : "egg";
-    const drawScale =
-      (bullet.kind === "meteor" ? 3.7 : 3.1) * PROJECTILE_VISUAL_SCALE;
-    if (drawAtlasSprite(context, assets.cluckerAtlas, CLUCKER_SPRITES, sprite, bullet.x, bullet.y, bullet.r * drawScale, bullet.r * drawScale, enemyAtlasAngle)) {
+    const drawScale = bullet.kind === "meteor" ? 3.7 : 3.1;
+    if (drawAtlasSprite(context, assets.cluckerAtlas, CLUCKER_SPRITES, sprite, bullet.x, bullet.y, bullet.r * drawScale, bullet.r * drawScale, angle)) {
       return;
     }
   }
 
   context.save();
   context.translate(bullet.x, bullet.y);
-  context.rotate(topDownAngle);
+  context.rotate(angle);
   context.shadowBlur = bullet.kind === "laser" ? 16 : 9;
   context.shadowColor = bullet.kind === "laser" ? "#8df6ff" : bullet.source === "drone" ? "#c9a8ff" : "#ffd36a";
   context.fillStyle =
@@ -931,17 +917,11 @@ export function renderGame(
   drawBackground(context, model, assets, options);
 
   model.weaponPickups.forEach((pickup) => {
-    const size =
-      pickup.r *
-      (3.4 + Math.sin(model.elapsed * 5 + pickup.age) * 0.12) *
-      PICKUP_VISUAL_SCALE;
+    const size = pickup.r * (3.4 + Math.sin(model.elapsed * 5 + pickup.age) * 0.12);
     drawWeaponIcon(context, pickup.weapon, pickup.x, pickup.y, size, pickup.age, model.elapsed, assets);
   });
   model.powerUps.forEach((power) => {
-    const size =
-      power.r *
-      (3.4 + Math.sin(model.elapsed * 5 + power.age) * 0.12) *
-      PICKUP_VISUAL_SCALE;
+    const size = power.r * (3.4 + Math.sin(model.elapsed * 5 + power.age) * 0.12);
     drawPowerIcon(context, power.kind, power.x, power.y, size, power.age, model.elapsed, assets);
   });
 
