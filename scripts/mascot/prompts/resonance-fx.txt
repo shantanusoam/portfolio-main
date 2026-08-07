@@ -1,0 +1,6 @@
+Create an FX sprite collection for an original musical
+sci-fi mascot. Isolated soft resonance rings, tiny spectral starbursts,
+crescent pulses, short waveform arcs, delicate harmonic spark clusters and
+small glowing impact petals. Cyan, cream, lavender and sparse magenta.
+No literal music-note emoji, no text, no logo, no character.
+Effects must read cleanly at 16 to 64 pixels. The background MUST be a single, perfectly flat, solid pure chroma-key green colour, hex 00FF00, completely uniform with zero gradient, zero texture, zero vignette, and zero shadow on the background itself — only the decal shapes may have their own soft drop shadow.

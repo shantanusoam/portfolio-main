@@ -1,0 +1,190 @@
+{
+  "atlasWidth": 1024,
+  "atlasHeight": 300,
+  "sprites": [
+    {
+      "id": "string-platform-ornaments-19",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 0,
+      "y": 0,
+      "width": 177,
+      "height": 158
+    },
+    {
+      "id": "string-platform-ornaments-11",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 177,
+      "y": 0,
+      "width": 271,
+      "height": 140
+    },
+    {
+      "id": "string-platform-ornaments-7",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 448,
+      "y": 0,
+      "width": 282,
+      "height": 135
+    },
+    {
+      "id": "string-platform-ornaments-3",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 730,
+      "y": 0,
+      "width": 270,
+      "height": 133
+    },
+    {
+      "id": "string-platform-ornaments-4",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 0,
+      "y": 158,
+      "width": 70,
+      "height": 106
+    },
+    {
+      "id": "string-platform-ornaments-12",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 70,
+      "y": 158,
+      "width": 88,
+      "height": 93
+    },
+    {
+      "id": "string-platform-ornaments-6",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 158,
+      "y": 158,
+      "width": 102,
+      "height": 83
+    },
+    {
+      "id": "string-platform-ornaments-16",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 260,
+      "y": 158,
+      "width": 80,
+      "height": 82
+    },
+    {
+      "id": "string-platform-ornaments-20",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 340,
+      "y": 158,
+      "width": 77,
+      "height": 81
+    },
+    {
+      "id": "string-platform-ornaments-8",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 417,
+      "y": 158,
+      "width": 101,
+      "height": 78
+    },
+    {
+      "id": "string-platform-ornaments-10",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 518,
+      "y": 158,
+      "width": 65,
+      "height": 69
+    },
+    {
+      "id": "string-platform-ornaments-14",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 583,
+      "y": 158,
+      "width": 90,
+      "height": 62
+    },
+    {
+      "id": "string-platform-ornaments-0",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 673,
+      "y": 158,
+      "width": 59,
+      "height": 47
+    },
+    {
+      "id": "string-platform-ornaments-9",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 732,
+      "y": 158,
+      "width": 28,
+      "height": 38
+    },
+    {
+      "id": "string-platform-ornaments-13",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 760,
+      "y": 158,
+      "width": 27,
+      "height": 38
+    },
+    {
+      "id": "string-platform-ornaments-22",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 787,
+      "y": 158,
+      "width": 197,
+      "height": 37
+    },
+    {
+      "id": "string-platform-ornaments-2",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 984,
+      "y": 158,
+      "width": 28,
+      "height": 36
+    },
+    {
+      "id": "string-platform-ornaments-15",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 0,
+      "y": 264,
+      "width": 37,
+      "height": 36
+    },
+    {
+      "id": "string-platform-ornaments-18",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 37,
+      "y": 264,
+      "width": 33,
+      "height": 35
+    },
+    {
+      "id": "string-platform-ornaments-17",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 70,
+      "y": 264,
+      "width": 30,
+      "height": 34
+    },
+    {
+      "id": "string-platform-ornaments-1",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 100,
+      "y": 264,
+      "width": 59,
+      "height": 32
+    },
+    {
+      "id": "string-platform-ornaments-5",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 159,
+      "y": 264,
+      "width": 33,
+      "height": 31
+    },
+    {
+      "id": "string-platform-ornaments-21",
+      "sourceSheet": "string-platform-ornaments",
+      "x": 192,
+      "y": 264,
+      "width": 19,
+      "height": 19
+    }
+  ]
+}

@@ -14,6 +14,7 @@ Use Canvas 2D (`lib/mascot/rendering/CanvasMascotRenderer.ts`,
 `CanvasDotRenderer.ts`) until profiling proves a GPU renderer is necessary.
 
 Consequences:
+
 - Simpler debugging — no shader toolchain.
 - Lower initial dependency cost — zero new runtime dependencies added by
   this work.

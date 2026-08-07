@@ -150,12 +150,12 @@ if (existsSync(path.join(root, "node_modules", ".bin", "prettier"))) {
 }
 
 // --- unit tests (already scoped) ---
-console.log("\n▶ test:mascot: npx tsx --test tests/mascot/*.test.ts");
+console.log("\n▶ test:mascot: npx tsx --test tests/mascot/**/*.test.ts");
 {
   const { status, error } = runInherited("npx", [
     "tsx",
     "--test",
-    "tests/mascot/*.test.ts",
+    "tests/mascot/**/*.test.ts",
   ]);
   results.push({ name: "test:mascot", ok: status === 0 && !error });
 }

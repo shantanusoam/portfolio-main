@@ -10,20 +10,20 @@ starting point for `/motion-lab` iteration, not final art direction.
 
 ## Second-order dynamics per behavior
 
-| Behavior | frequency | damping | response | Visual intention |
-|---|---|---|---|---|
-| `dormant` | 0.35 | 1.0 | 0 | Barely drifts; the character is "asleep," critically damped so it settles without overshoot before the user has interacted at all. |
-| `wake` | 1.1 | 0.9 | 0.12 | A brief, slightly anticipatory perk-up — small positive response gives a hint of overshoot, like startling awake. |
-| `follow` | 1.7 | 0.72 | 0.08 | Responsive to the pointer without feeling twitchy; damping under 1 allows a small, controlled overshoot so the chase reads as alive rather than robotically locked-on. |
-| `wander` | 1.05 | 0.62 | -0.12 | Slower and looser than follow; negative response makes the root anticipate *before* moving in the target's direction — a lazy, thoughtful quality suited to autonomous roaming. |
-| `inspect` | 1.3 | 0.86 | 0 | Higher damping than wander — settles cleanly when approaching a project card, no overshoot to disturb the "looking at something" pose. |
-| `orbit` | 1.2 | 0.75 | 0.05 | Close to inspect but slightly livelier, since orbit is actively circling rather than holding still. |
-| `avoid` | 2.6 | 0.78 | 0.15 | Fast and urgent — this is the escape response when a hard obstacle's steering force crosses `MASCOT_CONFIG.steering.avoidTriggerForce` (90). |
-| `sprint` | 2.4 | 0.52 | 0.3 | The fastest, loosest recipe — low damping and high positive response give a stretch-and-launch quality; only entered from a `"diagonal-sprint"` wander segment. |
-| `rest` | 0.5 | 1.15 | 0 | Slow and overdamped; paired with `stateStretch < 1` in `DotSkin` deformation for a slight compression, plus reduced solver work. |
-| `scatter` | 3.2 | 0.4 | 0.4 | Deliberately the least stable-looking recipe — this is the one state where visual "noise" is the point. |
-| `reform` | 1.4 | 0.9 | 0 | Controlled, clean settle back to a normal pose after scatter. |
-| `reducedMotion` | 0.25 | 1.2 | 0 | Slower than dormant, maximally damped — the reduced-motion state must read as nearly static. |
+| Behavior        | frequency | damping | response | Visual intention                                                                                                                                                                |
+| --------------- | --------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dormant`       | 0.35      | 1.0     | 0        | Barely drifts; the character is "asleep," critically damped so it settles without overshoot before the user has interacted at all.                                              |
+| `wake`          | 1.1       | 0.9     | 0.12     | A brief, slightly anticipatory perk-up — small positive response gives a hint of overshoot, like startling awake.                                                               |
+| `follow`        | 1.7       | 0.72    | 0.08     | Responsive to the pointer without feeling twitchy; damping under 1 allows a small, controlled overshoot so the chase reads as alive rather than robotically locked-on.          |
+| `wander`        | 1.05      | 0.62    | -0.12    | Slower and looser than follow; negative response makes the root anticipate _before_ moving in the target's direction — a lazy, thoughtful quality suited to autonomous roaming. |
+| `inspect`       | 1.3       | 0.86    | 0        | Higher damping than wander — settles cleanly when approaching a project card, no overshoot to disturb the "looking at something" pose.                                          |
+| `orbit`         | 1.2       | 0.75    | 0.05     | Close to inspect but slightly livelier, since orbit is actively circling rather than holding still.                                                                             |
+| `avoid`         | 2.6       | 0.78    | 0.15     | Fast and urgent — this is the escape response when a hard obstacle's steering force crosses `MASCOT_CONFIG.steering.avoidTriggerForce` (90).                                    |
+| `sprint`        | 2.4       | 0.52    | 0.3      | The fastest, loosest recipe — low damping and high positive response give a stretch-and-launch quality; only entered from a `"diagonal-sprint"` wander segment.                 |
+| `rest`          | 0.5       | 1.15    | 0        | Slow and overdamped; paired with `stateStretch < 1` in `DotSkin` deformation for a slight compression, plus reduced solver work.                                                |
+| `scatter`       | 3.2       | 0.4     | 0.4      | Deliberately the least stable-looking recipe — this is the one state where visual "noise" is the point.                                                                         |
+| `reform`        | 1.4       | 0.9     | 0        | Controlled, clean settle back to a normal pose after scatter.                                                                                                                   |
+| `reducedMotion` | 0.25      | 1.2     | 0        | Slower than dormant, maximally damped — the reduced-motion state must read as nearly static.                                                                                    |
 
 ## Heading (orientation) filter
 
@@ -63,20 +63,20 @@ assertion), tapering to near-zero at the tail tip.
 
 ## Behavior durations
 
-| Behavior | minimumDuration | maximumDuration | Why |
-|---|---|---|---|
-| `dormant` | 0.5s | — | Exits on first pointer activity, or automatically after 3s so the character isn't inert forever on a page nobody touches. |
-| `wake` | 0.4s | 1.2s | Brief transitional beat before follow/wander. |
-| `follow` | 0.4s | — | Exits once `pointerIdleSeconds > 2.5` (`MASCOT_CONFIG.pointerIdleThresholdSeconds`). |
-| `wander` | 0.5s | 40s | The long ceiling is a safety valve, not a target — normal exits happen via wander-segment hints (`rest-curl` → rest, `card-orbit`/`curiosity-circle` → inspect) or pointer activity. |
-| `sprint` | 0.5s | 3s | Short burst per spec ("Autonomous sprints must be brief"). |
-| `rest` | 2s | 12s | Long enough to read as genuine resting, not a glitch. |
-| `inspect` | 1.2s | 3s | "Inspection must end automatically" — capped well under user patience. |
-| `orbit` | 0.8s | 1.8s | A brief circling flourish after inspect settles, then back to wander. |
-| `avoid` | 0.3s | 2s | Fast entry (urgency), bounded exit once clear of the obstacle. |
-| `scatter` | 0.5s | 0.6s | Matches `scatterProgress`'s 0.5s ramp-up in `MascotRuntime`. |
-| `reform` | 0.7s | 1.2s | Matches `scatterProgress`'s 0.9s ramp-down. |
-| `reducedMotion` | 0s | — | No minimum — must be able to exit the instant the preference changes. |
+| Behavior        | minimumDuration | maximumDuration | Why                                                                                                                                                                                  |
+| --------------- | --------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `dormant`       | 0.5s            | —               | Exits on first pointer activity, or automatically after 3s so the character isn't inert forever on a page nobody touches.                                                            |
+| `wake`          | 0.4s            | 1.2s            | Brief transitional beat before follow/wander.                                                                                                                                        |
+| `follow`        | 0.4s            | —               | Exits once `pointerIdleSeconds > 2.5` (`MASCOT_CONFIG.pointerIdleThresholdSeconds`).                                                                                                 |
+| `wander`        | 0.5s            | 40s             | The long ceiling is a safety valve, not a target — normal exits happen via wander-segment hints (`rest-curl` → rest, `card-orbit`/`curiosity-circle` → inspect) or pointer activity. |
+| `sprint`        | 0.5s            | 3s              | Short burst per spec ("Autonomous sprints must be brief").                                                                                                                           |
+| `rest`          | 2s              | 12s             | Long enough to read as genuine resting, not a glitch.                                                                                                                                |
+| `inspect`       | 1.2s            | 3s              | "Inspection must end automatically" — capped well under user patience.                                                                                                               |
+| `orbit`         | 0.8s            | 1.8s            | A brief circling flourish after inspect settles, then back to wander.                                                                                                                |
+| `avoid`         | 0.3s            | 2s              | Fast entry (urgency), bounded exit once clear of the obstacle.                                                                                                                       |
+| `scatter`       | 0.5s            | 0.6s            | Matches `scatterProgress`'s 0.5s ramp-up in `MascotRuntime`.                                                                                                                         |
+| `reform`        | 0.7s            | 1.2s            | Matches `scatterProgress`'s 0.9s ramp-down.                                                                                                                                          |
+| `reducedMotion` | 0s              | —               | No minimum — must be able to exit the instant the preference changes.                                                                                                                |
 
 ## Glow intensity per behavior
 

@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import styles from "./stringInstrument.module.css";
 import {
@@ -13,6 +8,16 @@ import {
   type PluckBufferCache,
   playPhysicalString,
 } from "./stringSynth";
+import {
+  STRING_CONTACT_EVENT,
+  type StringContactEventDetail,
+} from "@/lib/mascot/music/StringRegistry";
+
+function stringRole(index: number): "bass" | "mid" | "treble" {
+  if (index <= 1) return "bass";
+  if (index <= 3) return "mid";
+  return "treble";
+}
 
 const STRINGS = [
   { gauge: 2.4 },
@@ -34,6 +39,8 @@ type StringMotion = {
   velocity: number;
   anchorX: number;
   held: boolean;
+  /** 0..1, set to 1 on a real pluck and decayed every frame — the "contact glow" from MASCOT_VISUAL_RESCUE_AND_GENERATED_ASSET_SPRINT.md. */
+  glow: number;
 };
 
 type PointerSession = {
@@ -50,12 +57,14 @@ function createMotion(): StringMotion[] {
     velocity: 0,
     anchorX: 0.5,
     held: false,
+    glow: 0,
   }));
 }
 
 export default function StringInstrument() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const pathRefs = useRef<(SVGPathElement | null)[]>([]);
+  const glowRefs = useRef<(SVGCircleElement | null)[]>([]);
   const pickRef = useRef<HTMLDivElement>(null);
   const motions = useRef<StringMotion[]>(createMotion());
   const pointers = useRef(new Map<number, PointerSession>());
@@ -70,7 +79,7 @@ export default function StringInstrument() {
   const [activeString, setActiveString] = useState<number>();
   const [hoveredString, setHoveredString] = useState<number>();
   const [status, setStatus] = useState<"ready" | "holding" | "strumming">(
-    "ready"
+    "ready",
   );
   const [showHint, setShowHint] = useState(true);
 
@@ -83,13 +92,30 @@ export default function StringInstrument() {
     const controlX = string.anchorX * VIEWBOX_WIDTH;
     path.setAttribute(
       "d",
-      `M 0 ${y} Q ${controlX} ${y + string.bend} ${VIEWBOX_WIDTH} ${y}`
+      `M 0 ${y} Q ${controlX} ${y + string.bend} ${VIEWBOX_WIDTH} ${y}`,
     );
+  }, []);
+
+  const drawGlow = useCallback((index: number) => {
+    const circle = glowRefs.current[index];
+    if (!circle) return;
+
+    const string = motions.current[index];
+    const y = FIRST_STRING_Y + index * STRING_GAP;
+    const controlX = string.anchorX * VIEWBOX_WIDTH;
+
+    circle.setAttribute("cx", String(controlX));
+    circle.setAttribute("cy", String(y + string.bend));
+    circle.setAttribute("r", String(6 + string.glow * 12));
+    circle.setAttribute("opacity", String(string.glow * 0.6));
   }, []);
 
   const animate = useCallback(
     (timestamp: number) => {
-      const elapsed = Math.min((timestamp - (previousFrame.current ?? timestamp)) / 16.67, 2);
+      const elapsed = Math.min(
+        (timestamp - (previousFrame.current ?? timestamp)) / 16.67,
+        2,
+      );
       previousFrame.current = timestamp;
       let moving = false;
 
@@ -112,6 +138,16 @@ export default function StringInstrument() {
           string.velocity = 0;
         }
         drawString(index);
+
+        if (prefersReducedMotion) {
+          string.glow = 0;
+        } else if (string.glow > 0.01) {
+          string.glow *= Math.pow(0.88, elapsed);
+          moving = true;
+        } else {
+          string.glow = 0;
+        }
+        drawGlow(index);
       });
 
       if (moving || pointers.current.size > 0) {
@@ -121,7 +157,7 @@ export default function StringInstrument() {
         previousFrame.current = undefined;
       }
     },
-    [drawString, prefersReducedMotion]
+    [drawString, drawGlow, prefersReducedMotion],
   );
 
   const startAnimation = useCallback(() => {
@@ -131,7 +167,10 @@ export default function StringInstrument() {
   }, [animate]);
 
   useEffect(() => {
-    STRINGS.forEach((_, index) => drawString(index));
+    STRINGS.forEach((_, index) => {
+      drawString(index);
+      drawGlow(index);
+    });
     try {
       if (window.sessionStorage.getItem("hero-string-hint-seen")) {
         setShowHint(false);
@@ -150,7 +189,39 @@ export default function StringInstrument() {
       if (hintTimer.current) clearTimeout(hintTimer.current);
       audioContext.current?.close().catch(() => undefined);
     };
-  }, [drawString]);
+  }, [drawString, drawGlow]);
+
+  // Lets the procedural mascot (lib/mascot/music/StringRegistry.ts) bend
+  // and pluck a real string via a DOM CustomEvent dispatched on that
+  // string's own path element — no ref plumbing across the separate
+  // root-layout/Hero component trees, and it reuses this component's own
+  // already-working bend + Karplus-Strong audio instead of duplicating it.
+  useEffect(() => {
+    const paths = pathRefs.current;
+    const handlers: Array<{
+      path: SVGPathElement;
+      handler: (event: Event) => void;
+    }> = [];
+
+    paths.forEach((path, index) => {
+      if (!path) return;
+      const handler = (event: Event) => {
+        const detail = (event as CustomEvent<StringContactEventDetail>).detail;
+        if (!detail) return;
+        const x = Math.min(Math.max(detail.normalizedX, 0), 1) * VIEWBOX_WIDTH;
+        const force = Math.min(Math.max(detail.intensity, 0), 1);
+        strumStringRef.current(index, detail.direction, force, x);
+      };
+      path.addEventListener(STRING_CONTACT_EVENT, handler);
+      handlers.push({ path, handler });
+    });
+
+    return () => {
+      for (const { path, handler } of handlers) {
+        path.removeEventListener(STRING_CONTACT_EVENT, handler);
+      }
+    };
+  }, []);
 
   const dismissHint = useCallback(() => {
     setShowHint(false);
@@ -165,7 +236,7 @@ export default function StringInstrument() {
   const setChordFromX = useCallback((x: number) => {
     const index = Math.min(
       CHORDS.length - 1,
-      Math.max(0, Math.floor((x / VIEWBOX_WIDTH) * CHORDS.length))
+      Math.max(0, Math.floor((x / VIEWBOX_WIDTH) * CHORDS.length)),
     );
     if (index !== chordIndexRef.current) {
       chordIndexRef.current = index;
@@ -192,7 +263,10 @@ export default function StringInstrument() {
     };
 
     if (context.state === "suspended") {
-      context.resume().then(startPlayback).catch(() => undefined);
+      context
+        .resume()
+        .then(startPlayback)
+        .catch(() => undefined);
     } else {
       startPlayback();
     }
@@ -210,7 +284,10 @@ export default function StringInstrument() {
   function nearestString(y: number) {
     return Math.max(
       0,
-      Math.min(STRINGS.length - 1, Math.round((y - FIRST_STRING_Y) / STRING_GAP))
+      Math.min(
+        STRINGS.length - 1,
+        Math.round((y - FIRST_STRING_Y) / STRING_GAP),
+      ),
     );
   }
 
@@ -228,35 +305,51 @@ export default function StringInstrument() {
     index: number,
     force = 0.5,
     x = VIEWBOX_WIDTH / 2,
-    withSound = true
+    withSound = true,
   ) {
     const string = motions.current[index];
     string.held = false;
-    string.velocity += Math.sign(string.bend || 1) * Math.min(8 + force * 10, 18);
-    if (withSound) playNote(index, force, x);
+    string.velocity +=
+      Math.sign(string.bend || 1) * Math.min(8 + force * 10, 18);
+    if (withSound) {
+      playNote(index, force, x);
+      string.glow = 1;
+    }
     startAnimation();
   }
 
-  function strumString(index: number, direction: number, force: number, x: number) {
+  function strumString(
+    index: number,
+    direction: number,
+    force: number,
+    x: number,
+  ) {
     const string = motions.current[index];
     string.held = false;
     string.anchorX = Math.min(Math.max(x / VIEWBOX_WIDTH, 0.08), 0.92);
     string.bend = direction * Math.min(9 + force * 8, 18);
     string.velocity = direction * Math.min(8 + force * 9, 17);
     playNote(index, force, x);
+    string.glow = 1;
     startAnimation();
   }
+
+  // Always-current ref so the mount-only mascot-contact listener below
+  // never closes over a stale strumString (it's a plain function, not
+  // useCallback, so it's redefined every render).
+  const strumStringRef = useRef(strumString);
+  strumStringRef.current = strumString;
 
   function positionPick(event: React.PointerEvent<SVGSVGElement>) {
     if (!pickRef.current) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     pickRef.current.style.setProperty(
       "--pick-x",
-      `${event.clientX - bounds.left}px`
+      `${event.clientX - bounds.left}px`,
     );
     pickRef.current.style.setProperty(
       "--pick-y",
-      `${event.clientY - bounds.top + 16}px`
+      `${event.clientY - bounds.top + 16}px`,
     );
     pickRef.current.dataset.visible = "true";
   }
@@ -380,8 +473,8 @@ export default function StringInstrument() {
           {status === "ready"
             ? "hold + pull · sweep to strum"
             : status === "holding"
-            ? "release to pluck"
-            : "keep sweeping"}
+              ? "release to pluck"
+              : "keep sweeping"}
         </span>
         <span className={styles.note}>
           {lastNote ? `${lastNote} · ` : ""}
@@ -421,13 +514,19 @@ export default function StringInstrument() {
         onContextMenu={(event) => event.preventDefault()}
         aria-hidden="true"
       >
-        <rect width={VIEWBOX_WIDTH} height={VIEWBOX_HEIGHT} fill="transparent" />
+        <rect
+          width={VIEWBOX_WIDTH}
+          height={VIEWBOX_HEIGHT}
+          fill="transparent"
+        />
         {STRINGS.map((string, index) => (
           <path
             key={index}
             ref={(element) => {
               pathRefs.current[index] = element;
             }}
+            data-mascot-string-index={index}
+            data-mascot-string-role={stringRole(index)}
             className={[
               styles.string,
               index === hoveredString ? styles.hoveredString : "",
@@ -439,11 +538,20 @@ export default function StringInstrument() {
             d=""
           />
         ))}
+        {STRINGS.map((_, index) => (
+          <circle
+            key={`glow-${index}`}
+            ref={(element) => {
+              glowRefs.current[index] = element;
+            }}
+            className={styles.stringGlow}
+            r={0}
+            opacity={0}
+          />
+        ))}
       </svg>
       <span className={styles.srStatus} aria-live="polite">
-        {lastNote
-          ? `Played ${lastNote} in ${CHORDS[currentChord].name}`
-          : ""}
+        {lastNote ? `Played ${lastNote} in ${CHORDS[currentChord].name}` : ""}
       </span>
     </div>
   );

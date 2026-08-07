@@ -18,7 +18,7 @@ With `npm run dev` running on `http://localhost:3002`:
   `application error` / `unhandled runtime error` / `error boundary`
   markers in the HTML.
 - `GET /motion-lab` → `HTTP 200`, `<canvas class="Mascot_canvas__V2Zve"
-  aria-hidden="true">` present in the server-rendered HTML.
+aria-hidden="true">` present in the server-rendered HTML.
 - `data-mascot-obstacle="hard"` present 6 times in the home page's
   server-rendered HTML (Navbar logo, resume button via the shared `Button`
   component, hamburger menu toggle — counted across both mobile/desktop
@@ -52,22 +52,22 @@ With `npm run dev` running on `http://localhost:3002`:
 The following require an actual rendered browser and were **not**
 performed. Do not treat them as passing.
 
-| Scenario | Status |
-|---|---|
-| Pointer follow feels responsive, not distracting | Not verified |
-| Idle → wander transition has no visible snap | Not verified |
-| Hard-turn spine/tail readability | Not verified |
-| Obstacle corner gliding (no jitter) | Not verified |
-| Project-card inspection (approach, orient, leave) | Not verified |
-| Fast scrolling → scroll-current visual response | Not verified |
-| Resize while moving | Not verified |
-| Hidden tab for 10s → pause/resume without a jump | Not verified |
-| Component unmount/remount → no duplicate loop | Not verified (code review only — see the lifecycle checklist) |
-| Route navigation cleanup | Not verified (code review only) |
-| `prefers-reduced-motion` end-to-end visual behavior | Not verified (code review only — `VisibilityController`/`reducedMotion` behavior state logic is unit-testable, but the actual on-screen result is not) |
-| Click scatter / reform visual quality | Not verified |
-| Console cleanliness during real interaction (not just initial SSR) | Not verified |
-| Desktop/mobile actual frame rate | Not verified |
+| Scenario                                                           | Status                                                                                                                                                 |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Pointer follow feels responsive, not distracting                   | Not verified                                                                                                                                           |
+| Idle → wander transition has no visible snap                       | Not verified                                                                                                                                           |
+| Hard-turn spine/tail readability                                   | Not verified                                                                                                                                           |
+| Obstacle corner gliding (no jitter)                                | Not verified                                                                                                                                           |
+| Project-card inspection (approach, orient, leave)                  | Not verified                                                                                                                                           |
+| Fast scrolling → scroll-current visual response                    | Not verified                                                                                                                                           |
+| Resize while moving                                                | Not verified                                                                                                                                           |
+| Hidden tab for 10s → pause/resume without a jump                   | Not verified                                                                                                                                           |
+| Component unmount/remount → no duplicate loop                      | Not verified (code review only — see the lifecycle checklist)                                                                                          |
+| Route navigation cleanup                                           | Not verified (code review only)                                                                                                                        |
+| `prefers-reduced-motion` end-to-end visual behavior                | Not verified (code review only — `VisibilityController`/`reducedMotion` behavior state logic is unit-testable, but the actual on-screen result is not) |
+| Click scatter / reform visual quality                              | Not verified                                                                                                                                           |
+| Console cleanliness during real interaction (not just initial SSR) | Not verified                                                                                                                                           |
+| Desktop/mobile actual frame rate                                   | Not verified                                                                                                                                           |
 
 ## How to complete this playtest
 

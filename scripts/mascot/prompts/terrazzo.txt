@@ -1,0 +1,9 @@
+Create a 2D decal sheet of original abstract terrazzo
+and confetti shapes for a cute futuristic mascot. Isolated rounded organic
+patches, small chips, dots, crescents and soft geometric fragments. Premium
+designer-toy surface graphics, tactile and playful, not childish. Palette:
+deep violet and muted lavender dominant, electric cyan secondary, sparse hot
+pink accents, a few warm cream highlights. No character, no face, no text,
+no logo, no shadows outside the individual decals.
+Clean high-resolution flat graphic shapes suitable for clipping onto a moving
+2D character body. The background MUST be a single, perfectly flat, solid pure chroma-key green colour, hex 00FF00, completely uniform with zero gradient, zero texture, zero vignette, and zero shadow on the background itself — only the decal shapes may have their own soft drop shadow.

@@ -1,20 +1,35 @@
 import { resolveSkinPointPosition } from "./character/DotSkin";
+import { clamp } from "./core/NumericGuards";
 import { FixedStepLoop } from "./core/FixedStepLoop";
 import { PerformanceGovernor } from "./core/PerformanceGovernor";
+import { resolveLayersForQuality } from "./appearance/AppearanceConfig";
+import { GeneratedDecalAtlas } from "./appearance/GeneratedDecalAtlas";
 import type { WanderBounds } from "./behavior/WanderPlanner";
 import { VisibilityController } from "./input/VisibilityController";
 import { DomObstacleRegistry } from "./interaction/DomObstacleRegistry";
+import { StringRegistry } from "./music/StringRegistry";
+import { AudioDirector } from "./music/AudioDirector";
+import { AudioGestureGate } from "./music/AudioGestureGate";
+import { resolveDefaultMusicalEvent } from "./music/DefaultNoteMapping";
+import { MascotPluckVoicePool } from "./music/MascotPluckVoice";
 import { MASCOT_CONFIG } from "./MascotConfig";
 import { MascotRuntime } from "./MascotRuntime";
 import { CanvasMascotRenderer } from "./rendering/CanvasMascotRenderer";
 import { QUALITY_PRESETS } from "./rendering/RenderQuality";
 import type {
+  AppearanceLayerName,
+  AppearancePresetName,
+  AppearanceTuningOverrides,
+  BodyDeformation,
   MascotAction,
   MascotDebugSnapshot,
   MascotEngine as MascotEngineContract,
   MascotEngineOptions,
+  MascotExpression,
   MascotQuality,
   MascotStatus,
+  MusicalEvent,
+  StringPluckEvent,
 } from "./types";
 
 /**
@@ -44,6 +59,11 @@ export class MascotEngine implements MascotEngineContract {
   private readonly visibility = new VisibilityController();
   private readonly governor: PerformanceGovernor;
   private readonly obstacles: DomObstacleRegistry;
+  private readonly stringRegistry: StringRegistry;
+  private readonly audioDirector: AudioDirector;
+  private readonly audioGestureGate: AudioGestureGate;
+  private readonly pluckVoices: MascotPluckVoicePool;
+  private readonly generatedDecalAtlas: GeneratedDecalAtlas;
   private readonly onStatus?: (status: MascotStatus) => void;
   private debug: boolean;
   private timeScale = 1;
@@ -73,6 +93,7 @@ export class MascotEngine implements MascotEngineContract {
     this.cssHeight = rect.height || 1;
 
     this.obstacles = new DomObstacleRegistry();
+    this.stringRegistry = new StringRegistry();
 
     this.runtime = new MascotRuntime({
       seed: options.seed,
@@ -81,6 +102,7 @@ export class MascotEngine implements MascotEngineContract {
       originY: this.cssHeight / 2,
       bounds: computeBounds(this.cssWidth, this.cssHeight),
       obstacles: this.obstacles,
+      strings: this.stringRegistry,
     });
 
     this.governor = new PerformanceGovernor({
@@ -119,6 +141,31 @@ export class MascotEngine implements MascotEngineContract {
     );
 
     this.obstacles.attach();
+    this.stringRegistry.attach();
+
+    // Independent audio subsystem: its own AudioContext, created lazily and
+    // only from a real user gesture (see AudioGestureGate). Reuses this
+    // engine's own VisibilityController instance instead of registering a
+    // second document-level listener.
+    this.audioDirector = new AudioDirector({
+      visibility: this.visibility,
+      quality: options.quality,
+    });
+    this.audioGestureGate = new AudioGestureGate(() =>
+      this.audioDirector.activate(),
+    );
+    this.pluckVoices = new MascotPluckVoicePool({
+      director: this.audioDirector,
+      quality: options.quality,
+    });
+
+    // Fire-and-forget network load — the print layer falls back to its
+    // procedural marks every frame until this resolves (see
+    // GeneratedDecalAtlas.isReady()), so this never blocks or gates start().
+    this.generatedDecalAtlas = new GeneratedDecalAtlas(
+      "/mascot/generated/runtime/mascot-decal-atlas",
+    );
+    this.generatedDecalAtlas.load();
   }
 
   start(): void {
@@ -143,6 +190,7 @@ export class MascotEngine implements MascotEngineContract {
     this.renderer.resize(this.cssWidth, this.cssHeight, dpr);
     this.runtime.setBounds(computeBounds(this.cssWidth, this.cssHeight));
     this.obstacles.refresh();
+    this.stringRegistry.refresh();
   }
 
   setPointer(x: number, y: number, active: boolean): void {
@@ -156,6 +204,8 @@ export class MascotEngine implements MascotEngineContract {
   setQuality(quality: MascotQuality): void {
     this.runtime.setQuality(quality);
     this.governor.setQuality(quality);
+    this.audioDirector.setQuality(quality);
+    this.pluckVoices.setQuality(quality);
   }
 
   setEnabled(enabled: boolean): void {
@@ -183,6 +233,61 @@ export class MascotEngine implements MascotEngineContract {
     if (Number.isFinite(scale) && scale >= 0) this.timeScale = scale;
   }
 
+  async setSoundEnabled(enabled: boolean): Promise<void> {
+    this.audioDirector.setMuted(!enabled);
+    if (enabled) {
+      await this.audioGestureGate.requestActivation();
+    }
+  }
+
+  setMasterVolume(value: number): void {
+    this.audioDirector.setMasterVolume(value);
+  }
+
+  triggerStringPluck(event: StringPluckEvent): void {
+    const musical = resolveDefaultMusicalEvent(event);
+    this.pluckVoices.play({
+      frequency: musical.frequency,
+      intensity: musical.velocity,
+      pan: musical.pan,
+    });
+  }
+
+  triggerMusicalEvent(event: MusicalEvent): void {
+    this.pluckVoices.play({
+      frequency: event.frequency,
+      intensity: event.velocity,
+      pan: event.pan,
+    });
+  }
+
+  /** Dev/motion-lab only: appearance lab palette + pattern recipe preset. */
+  setAppearancePreset(preset: AppearancePresetName): void {
+    this.runtime.setAppearancePreset(preset);
+  }
+
+  /** Dev/motion-lab only: per-layer render toggles (silhouette/print/rim/dots/face). */
+  setAppearanceLayers(
+    layers: Partial<Record<AppearanceLayerName, boolean>>,
+  ): void {
+    this.runtime.setAppearanceLayers(layers);
+  }
+
+  /** Dev/motion-lab only: continuous appearance tuning (dot density, opacity, rim width, etc). */
+  setAppearanceTuning(tuning: Partial<AppearanceTuningOverrides>): void {
+    this.runtime.setAppearanceTuning(tuning);
+  }
+
+  /** Dev/motion-lab only: forces a specific expression; null resumes automatic behavior mapping. */
+  setExpressionOverride(expression: MascotExpression | null): void {
+    this.runtime.setExpressionOverride(expression);
+  }
+
+  /** Dev/motion-lab only: forces specific squash/stretch/tumble fields; null resumes computed deformation. */
+  setDeformationOverride(deformation: Partial<BodyDeformation> | null): void {
+    this.runtime.setDeformationOverride(deformation);
+  }
+
   getDebugSnapshot(): MascotDebugSnapshot {
     return {
       behavior: this.runtime.behaviorMachine.getCurrent(),
@@ -203,6 +308,9 @@ export class MascotEngine implements MascotEngineContract {
     this.loop.stop();
     this.visibility.detach();
     this.obstacles.detach();
+    this.stringRegistry.detach();
+    this.pluckVoices.destroy();
+    this.audioDirector.destroy();
   }
 
   private maybeAdjustQuality(): void {
@@ -231,38 +339,37 @@ export class MascotEngine implements MascotEngineContract {
     this.renderer.clear();
     if (!this.runtime.enabled) return;
 
-    const dotRenderer = this.renderer.dotRenderer;
-    dotRenderer.beginFrame();
-
-    const deformation = this.runtime.getDotDeformation();
-    for (const point of this.runtime.skinPoints) {
-      resolveSkinPointPosition(
-        point,
-        this.runtime.ribs,
-        deformation,
-        this.scratchDot,
-      );
-      dotRenderer.push(
-        point.group,
-        this.scratchDot.x,
-        this.scratchDot.y,
-        point.radius,
-      );
-    }
-
-    const ctx = this.renderer.getContext();
-    dotRenderer.flushGroup(ctx, 0, { color: "#f5fbff", opacity: 0.95 });
-    dotRenderer.flushGroup(ctx, 1, { color: "#38f2d8", opacity: 0.85 });
-    dotRenderer.flushGroup(ctx, 2, { color: "#ff3ec9", opacity: 0.8 });
-
-    const root = this.runtime.pose.getRoot();
-    this.renderer.drawCore(
-      root.x,
-      root.y,
-      MASCOT_CONFIG.creature.coreRadius,
-      this.runtime.expression.glowIntensity,
-      "#ffffff",
+    const quality = this.runtime.quality;
+    const layers = resolveLayersForQuality(
+      quality,
+      this.runtime.appearanceLayerOverrides,
     );
+
+    // Silhouette -> internal gradient -> clipped print -> rim -> face —
+    // upgrade spec "APPEARANCE RENDER PIPELINE". Structural dots and
+    // particles stay batched through the existing renderers below.
+    this.renderer.drawAppearance({
+      ribs: this.runtime.ribs,
+      contourWidths: this.runtime.contourWidths,
+      faceFrame: this.runtime.faceFrame,
+      expression: this.runtime.expressionVisual,
+      deformation: this.runtime.bodyDeformation,
+      patternMarks: this.runtime.patternMarks,
+      palette: this.runtime.appearancePalette,
+      tuning: this.runtime.appearanceTuning,
+      layers,
+      quality,
+      fins: {
+        left: this.runtime.antennaeLeft,
+        right: this.runtime.antennaeRight,
+      },
+      patternRecipe: this.runtime.patternRecipe,
+      generatedDecalAtlas: this.generatedDecalAtlas,
+    });
+
+    if (layers.dots) {
+      this.renderSparseDots();
+    }
 
     this.renderer.drawParticles(this.runtime.particles, {
       clickScatter: { color: "#ff3ec9", opacity: 0.8 },
@@ -278,5 +385,55 @@ export class MascotEngine implements MascotEngineContract {
       this.renderer.drawDebugNormals(this.runtime.ribs);
       this.renderer.drawDebugObstacles(this.obstacles.getAll());
     }
+  }
+
+  /**
+   * Sparse structural-dot accent layer (upgrade spec Problem 1/Option C):
+   * stride-samples the existing skin-point cloud instead of pushing every
+   * point, and colours groups from the active palette instead of hardcoded
+   * equal-brightness cyan/magenta — the exact "uniform visual static"
+   * failure mode the upgrade spec calls out. Still exactly one fill() per
+   * group per frame via CanvasDotRenderer.
+   */
+  private renderSparseDots(): void {
+    const dotRenderer = this.renderer.dotRenderer;
+    dotRenderer.beginFrame();
+
+    const deformation = this.runtime.getDotDeformation();
+    const density = clamp(this.runtime.appearanceTuning.dotDensity, 0, 1);
+    const fraction = density * MASCOT_CONFIG.appearance.sparseDotFraction;
+    const stride =
+      fraction > 0 ? Math.max(1, Math.round(1 / fraction)) : Infinity;
+
+    const points = this.runtime.skinPoints;
+    if (Number.isFinite(stride)) {
+      for (let i = 0; i < points.length; i += stride) {
+        const point = points[i];
+        resolveSkinPointPosition(
+          point,
+          this.runtime.ribs,
+          deformation,
+          this.scratchDot,
+        );
+        dotRenderer.push(
+          point.group,
+          this.scratchDot.x,
+          this.scratchDot.y,
+          point.radius,
+        );
+      }
+    }
+
+    const ctx = this.renderer.getContext();
+    const palette = this.runtime.appearancePalette;
+    dotRenderer.flushGroup(ctx, 0, { color: palette.highlight, opacity: 0.5 });
+    dotRenderer.flushGroup(ctx, 1, {
+      color: palette.printPrimary,
+      opacity: 0.32,
+    });
+    dotRenderer.flushGroup(ctx, 2, {
+      color: palette.printSecondary,
+      opacity: 0.28,
+    });
   }
 }

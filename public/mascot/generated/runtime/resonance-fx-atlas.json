@@ -1,0 +1,518 @@
+{
+  "atlasWidth": 1024,
+  "atlasHeight": 346,
+  "sprites": [
+    {
+      "id": "resonance-fx-1",
+      "sourceSheet": "resonance-fx",
+      "x": 0,
+      "y": 0,
+      "width": 154,
+      "height": 154
+    },
+    {
+      "id": "resonance-fx-3",
+      "sourceSheet": "resonance-fx",
+      "x": 154,
+      "y": 0,
+      "width": 145,
+      "height": 144
+    },
+    {
+      "id": "resonance-fx-26",
+      "sourceSheet": "resonance-fx",
+      "x": 299,
+      "y": 0,
+      "width": 125,
+      "height": 138
+    },
+    {
+      "id": "resonance-fx-25",
+      "sourceSheet": "resonance-fx",
+      "x": 424,
+      "y": 0,
+      "width": 128,
+      "height": 135
+    },
+    {
+      "id": "resonance-fx-48",
+      "sourceSheet": "resonance-fx",
+      "x": 552,
+      "y": 0,
+      "width": 141,
+      "height": 134
+    },
+    {
+      "id": "resonance-fx-24",
+      "sourceSheet": "resonance-fx",
+      "x": 693,
+      "y": 0,
+      "width": 126,
+      "height": 133
+    },
+    {
+      "id": "resonance-fx-51",
+      "sourceSheet": "resonance-fx",
+      "x": 819,
+      "y": 0,
+      "width": 120,
+      "height": 130
+    },
+    {
+      "id": "resonance-fx-29",
+      "sourceSheet": "resonance-fx",
+      "x": 939,
+      "y": 0,
+      "width": 60,
+      "height": 128
+    },
+    {
+      "id": "resonance-fx-27",
+      "sourceSheet": "resonance-fx",
+      "x": 0,
+      "y": 154,
+      "width": 146,
+      "height": 125
+    },
+    {
+      "id": "resonance-fx-47",
+      "sourceSheet": "resonance-fx",
+      "x": 146,
+      "y": 154,
+      "width": 120,
+      "height": 121
+    },
+    {
+      "id": "resonance-fx-30",
+      "sourceSheet": "resonance-fx",
+      "x": 266,
+      "y": 154,
+      "width": 54,
+      "height": 120
+    },
+    {
+      "id": "resonance-fx-8",
+      "sourceSheet": "resonance-fx",
+      "x": 320,
+      "y": 154,
+      "width": 108,
+      "height": 108
+    },
+    {
+      "id": "resonance-fx-4",
+      "sourceSheet": "resonance-fx",
+      "x": 428,
+      "y": 154,
+      "width": 87,
+      "height": 106
+    },
+    {
+      "id": "resonance-fx-33",
+      "sourceSheet": "resonance-fx",
+      "x": 515,
+      "y": 154,
+      "width": 112,
+      "height": 103
+    },
+    {
+      "id": "resonance-fx-32",
+      "sourceSheet": "resonance-fx",
+      "x": 627,
+      "y": 154,
+      "width": 99,
+      "height": 101
+    },
+    {
+      "id": "resonance-fx-53",
+      "sourceSheet": "resonance-fx",
+      "x": 726,
+      "y": 154,
+      "width": 124,
+      "height": 85
+    },
+    {
+      "id": "resonance-fx-10",
+      "sourceSheet": "resonance-fx",
+      "x": 850,
+      "y": 154,
+      "width": 77,
+      "height": 81
+    },
+    {
+      "id": "resonance-fx-36",
+      "sourceSheet": "resonance-fx",
+      "x": 0,
+      "y": 279,
+      "width": 136,
+      "height": 51
+    },
+    {
+      "id": "resonance-fx-35",
+      "sourceSheet": "resonance-fx",
+      "x": 136,
+      "y": 279,
+      "width": 120,
+      "height": 50
+    },
+    {
+      "id": "resonance-fx-12",
+      "sourceSheet": "resonance-fx",
+      "x": 256,
+      "y": 279,
+      "width": 40,
+      "height": 41
+    },
+    {
+      "id": "resonance-fx-11",
+      "sourceSheet": "resonance-fx",
+      "x": 296,
+      "y": 279,
+      "width": 38,
+      "height": 40
+    },
+    {
+      "id": "resonance-fx-0",
+      "sourceSheet": "resonance-fx",
+      "x": 334,
+      "y": 279,
+      "width": 38,
+      "height": 39
+    },
+    {
+      "id": "resonance-fx-21",
+      "sourceSheet": "resonance-fx",
+      "x": 372,
+      "y": 279,
+      "width": 40,
+      "height": 37
+    },
+    {
+      "id": "resonance-fx-5",
+      "sourceSheet": "resonance-fx",
+      "x": 412,
+      "y": 279,
+      "width": 34,
+      "height": 35
+    },
+    {
+      "id": "resonance-fx-18",
+      "sourceSheet": "resonance-fx",
+      "x": 446,
+      "y": 279,
+      "width": 33,
+      "height": 34
+    },
+    {
+      "id": "resonance-fx-9",
+      "sourceSheet": "resonance-fx",
+      "x": 479,
+      "y": 279,
+      "width": 30,
+      "height": 32
+    },
+    {
+      "id": "resonance-fx-19",
+      "sourceSheet": "resonance-fx",
+      "x": 509,
+      "y": 279,
+      "width": 29,
+      "height": 31
+    },
+    {
+      "id": "resonance-fx-20",
+      "sourceSheet": "resonance-fx",
+      "x": 538,
+      "y": 279,
+      "width": 18,
+      "height": 25
+    },
+    {
+      "id": "resonance-fx-57",
+      "sourceSheet": "resonance-fx",
+      "x": 556,
+      "y": 279,
+      "width": 30,
+      "height": 24
+    },
+    {
+      "id": "resonance-fx-61",
+      "sourceSheet": "resonance-fx",
+      "x": 586,
+      "y": 279,
+      "width": 22,
+      "height": 23
+    },
+    {
+      "id": "resonance-fx-58",
+      "sourceSheet": "resonance-fx",
+      "x": 608,
+      "y": 279,
+      "width": 22,
+      "height": 22
+    },
+    {
+      "id": "resonance-fx-43",
+      "sourceSheet": "resonance-fx",
+      "x": 630,
+      "y": 279,
+      "width": 21,
+      "height": 21
+    },
+    {
+      "id": "resonance-fx-34",
+      "sourceSheet": "resonance-fx",
+      "x": 651,
+      "y": 279,
+      "width": 19,
+      "height": 20
+    },
+    {
+      "id": "resonance-fx-42",
+      "sourceSheet": "resonance-fx",
+      "x": 670,
+      "y": 279,
+      "width": 20,
+      "height": 20
+    },
+    {
+      "id": "resonance-fx-55",
+      "sourceSheet": "resonance-fx",
+      "x": 690,
+      "y": 279,
+      "width": 21,
+      "height": 20
+    },
+    {
+      "id": "resonance-fx-62",
+      "sourceSheet": "resonance-fx",
+      "x": 711,
+      "y": 279,
+      "width": 20,
+      "height": 19
+    },
+    {
+      "id": "resonance-fx-39",
+      "sourceSheet": "resonance-fx",
+      "x": 731,
+      "y": 279,
+      "width": 18,
+      "height": 18
+    },
+    {
+      "id": "resonance-fx-44",
+      "sourceSheet": "resonance-fx",
+      "x": 749,
+      "y": 279,
+      "width": 18,
+      "height": 18
+    },
+    {
+      "id": "resonance-fx-46",
+      "sourceSheet": "resonance-fx",
+      "x": 767,
+      "y": 279,
+      "width": 17,
+      "height": 18
+    },
+    {
+      "id": "resonance-fx-54",
+      "sourceSheet": "resonance-fx",
+      "x": 784,
+      "y": 279,
+      "width": 18,
+      "height": 18
+    },
+    {
+      "id": "resonance-fx-59",
+      "sourceSheet": "resonance-fx",
+      "x": 802,
+      "y": 279,
+      "width": 18,
+      "height": 18
+    },
+    {
+      "id": "resonance-fx-13",
+      "sourceSheet": "resonance-fx",
+      "x": 820,
+      "y": 279,
+      "width": 24,
+      "height": 17
+    },
+    {
+      "id": "resonance-fx-14",
+      "sourceSheet": "resonance-fx",
+      "x": 844,
+      "y": 279,
+      "width": 24,
+      "height": 17
+    },
+    {
+      "id": "resonance-fx-28",
+      "sourceSheet": "resonance-fx",
+      "x": 868,
+      "y": 279,
+      "width": 17,
+      "height": 17
+    },
+    {
+      "id": "resonance-fx-37",
+      "sourceSheet": "resonance-fx",
+      "x": 885,
+      "y": 279,
+      "width": 17,
+      "height": 17
+    },
+    {
+      "id": "resonance-fx-49",
+      "sourceSheet": "resonance-fx",
+      "x": 902,
+      "y": 279,
+      "width": 17,
+      "height": 17
+    },
+    {
+      "id": "resonance-fx-50",
+      "sourceSheet": "resonance-fx",
+      "x": 919,
+      "y": 279,
+      "width": 27,
+      "height": 17
+    },
+    {
+      "id": "resonance-fx-52",
+      "sourceSheet": "resonance-fx",
+      "x": 946,
+      "y": 279,
+      "width": 17,
+      "height": 17
+    },
+    {
+      "id": "resonance-fx-2",
+      "sourceSheet": "resonance-fx",
+      "x": 963,
+      "y": 279,
+      "width": 13,
+      "height": 16
+    },
+    {
+      "id": "resonance-fx-17",
+      "sourceSheet": "resonance-fx",
+      "x": 976,
+      "y": 279,
+      "width": 19,
+      "height": 16
+    },
+    {
+      "id": "resonance-fx-31",
+      "sourceSheet": "resonance-fx",
+      "x": 995,
+      "y": 279,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "resonance-fx-41",
+      "sourceSheet": "resonance-fx",
+      "x": 0,
+      "y": 330,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "resonance-fx-56",
+      "sourceSheet": "resonance-fx",
+      "x": 16,
+      "y": 330,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "resonance-fx-60",
+      "sourceSheet": "resonance-fx",
+      "x": 32,
+      "y": 330,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "resonance-fx-63",
+      "sourceSheet": "resonance-fx",
+      "x": 48,
+      "y": 330,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "id": "resonance-fx-38",
+      "sourceSheet": "resonance-fx",
+      "x": 64,
+      "y": 330,
+      "width": 15,
+      "height": 15
+    },
+    {
+      "id": "resonance-fx-40",
+      "sourceSheet": "resonance-fx",
+      "x": 79,
+      "y": 330,
+      "width": 15,
+      "height": 15
+    },
+    {
+      "id": "resonance-fx-45",
+      "sourceSheet": "resonance-fx",
+      "x": 94,
+      "y": 330,
+      "width": 15,
+      "height": 15
+    },
+    {
+      "id": "resonance-fx-23",
+      "sourceSheet": "resonance-fx",
+      "x": 109,
+      "y": 330,
+      "width": 12,
+      "height": 14
+    },
+    {
+      "id": "resonance-fx-6",
+      "sourceSheet": "resonance-fx",
+      "x": 121,
+      "y": 330,
+      "width": 13,
+      "height": 13
+    },
+    {
+      "id": "resonance-fx-7",
+      "sourceSheet": "resonance-fx",
+      "x": 134,
+      "y": 330,
+      "width": 13,
+      "height": 13
+    },
+    {
+      "id": "resonance-fx-15",
+      "sourceSheet": "resonance-fx",
+      "x": 147,
+      "y": 330,
+      "width": 15,
+      "height": 13
+    },
+    {
+      "id": "resonance-fx-22",
+      "sourceSheet": "resonance-fx",
+      "x": 162,
+      "y": 330,
+      "width": 14,
+      "height": 13
+    },
+    {
+      "id": "resonance-fx-16",
+      "sourceSheet": "resonance-fx",
+      "x": 176,
+      "y": 330,
+      "width": 14,
+      "height": 12
+    }
+  ]
+}

@@ -23,6 +23,15 @@
   max-width: 280px;
 }
 
+.appearancePanelWrap {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 60;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
 .title {
   font-size: 13px;
   letter-spacing: 0.04em;

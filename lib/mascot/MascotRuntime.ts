@@ -19,9 +19,28 @@ import {
   type DotSkinConfig,
 } from "./character/DotSkin";
 import {
-  computeExpression,
-  type ExpressionState,
-} from "./character/Expressions";
+  BodyDeformationController,
+  neutralBodyDeformation,
+} from "./appearance/BodyDeformation";
+import { computeContourWidths } from "./appearance/BodyContour";
+import { computeFaceFrame, type FaceFrame } from "./appearance/FaceRig";
+import {
+  ExpressionController,
+  type ExpressionVisualState,
+} from "./appearance/ExpressionController";
+import {
+  generatePatternMarks,
+  type PatternMark,
+} from "./appearance/PatternRecipes";
+import {
+  getAppearancePreset,
+  type AppearancePalette,
+} from "./appearance/AppearancePresets";
+import {
+  DEFAULT_APPEARANCE_LAYERS,
+  DEFAULT_APPEARANCE_TUNING,
+  type AppearanceLayerToggles,
+} from "./appearance/AppearanceConfig";
 import {
   BehaviorMachine,
   type BehaviorRegistry,
@@ -39,6 +58,12 @@ import {
   combineSteering,
   computeRectangleSteering,
 } from "./interaction/RectangleSteering";
+import {
+  StringContactDetector,
+  type ContactPoint,
+} from "./music/StringContactDetector";
+import type { StringRegistry } from "./music/StringRegistry";
+import { MusicalDirector, type StrumResult } from "./music/MusicalDirector";
 import { ParticlePool } from "./rendering/ParticlePool";
 import {
   MASCOT_CONFIG,
@@ -47,11 +72,17 @@ import {
   getSpineConfigForQuality,
 } from "./MascotConfig";
 import type {
+  AppearanceLayerName,
+  AppearancePresetName,
+  AppearanceTuningOverrides,
+  BodyDeformation,
   MascotAction,
   MascotBehavior,
+  MascotExpression,
   MascotObstacle,
   MascotQuality,
   Point,
+  StringPluckEvent,
   VerletNode,
   WanderSegment,
 } from "./types";
@@ -70,36 +101,7 @@ export interface MascotRuntimeOptions {
   originY: number;
   bounds: WanderBounds;
   obstacles?: DomObstacleRegistry | null;
-}
-
-function behaviorGlow(behavior: MascotBehavior): number {
-  switch (behavior) {
-    case "dormant":
-      return 0.08;
-    case "reducedMotion":
-      return 0.1;
-    case "rest":
-      return 0.15;
-    case "wander":
-      return 0.35;
-    case "wake":
-      return 0.4;
-    case "follow":
-      return 0.55;
-    case "inspect":
-    case "orbit":
-      return 0.7;
-    case "avoid":
-      return 0.6;
-    case "reform":
-      return 0.75;
-    case "sprint":
-      return 0.85;
-    case "scatter":
-      return 0.9;
-    default:
-      return 0.4;
-  }
+  strings?: StringRegistry | null;
 }
 
 function decideNextBehavior(
@@ -302,9 +304,17 @@ export class MascotRuntime {
 
   obstacles: DomObstacleRegistry | null;
 
+  strings: StringRegistry | null;
+  private readonly stringContactDetector = new StringContactDetector();
+  /** Events emitted this frame — bounded, cleared and replaced each `update()`. */
+  stringPluckEvents: StringPluckEvent[] = [];
+  private readonly musicalDirector = new MusicalDirector();
+  /** Set only on the frame a strum was recognized; null otherwise. */
+  lastStrum: StrumResult | null = null;
+  musicalCombo = 0;
+
   particles: ParticlePool;
 
-  expression: ExpressionState;
   breathingPhase = 0;
 
   simTime = 0;
@@ -319,6 +329,33 @@ export class MascotRuntime {
   scatterProgress = 0;
   orbitAngle = 0;
 
+  // --- Appearance state (silhouette/face/print/rim/dots) ---------------
+  /** Squash/stretch/tumble performance, computed each frame from behavior/velocity signals. */
+  bodyDeformation: BodyDeformation = neutralBodyDeformation();
+  private readonly bodyDeformationController = new BodyDeformationController();
+  private deformationOverride: Partial<BodyDeformation> | null = null;
+
+  /** Stable head coordinate frame for face features — see appearance/FaceRig.ts. */
+  faceFrame: FaceFrame;
+  private readonly expressionController: ExpressionController;
+  expressionVisual: ExpressionVisualState;
+  private expressionOverride: MascotExpression | null = null;
+
+  /** Compact three-zone silhouette half-widths per rib — see appearance/BodyContour.ts. */
+  contourWidths: number[] = [];
+
+  appearancePresetId: AppearancePresetName;
+  appearancePalette: AppearancePalette;
+  patternRecipe: ReturnType<typeof getAppearancePreset>["patternRecipe"];
+  patternMarks: PatternMark[] = [];
+  appearanceLayerOverrides: AppearanceLayerToggles = {
+    ...DEFAULT_APPEARANCE_LAYERS,
+  };
+
+  appearanceTuning: AppearanceTuningOverrides = {
+    ...DEFAULT_APPEARANCE_TUNING,
+  };
+
   private readonly rng: SeededRandom;
 
   constructor(options: MascotRuntimeOptions) {
@@ -326,6 +363,7 @@ export class MascotRuntime {
     this.quality = options.quality;
     this.bounds = options.bounds;
     this.obstacles = options.obstacles ?? null;
+    this.strings = options.strings ?? null;
 
     const recipe = MASCOT_CONFIG.creature;
     this.pose = new PoseController(
@@ -381,13 +419,33 @@ export class MascotRuntime {
 
     this.particles = new ParticlePool(getQualityParticleCapacity(this.quality));
 
-    this.expression = computeExpression({
-      behaviorGlow: 0.2,
+    this.appearancePresetId = MASCOT_CONFIG.appearance.defaultPresetId;
+    const initialPreset = getAppearancePreset(this.appearancePresetId);
+    this.appearancePalette = initialPreset.palette;
+    this.patternRecipe = initialPreset.patternRecipe;
+    this.patternMarks = generatePatternMarks(
+      this.patternRecipe,
+      options.seed + MASCOT_CONFIG.appearance.patternSeedOffset,
+      this.quality,
+    );
+
+    this.expressionController = new ExpressionController(
+      options.seed + MASCOT_CONFIG.appearance.expressionSeedOffset,
+    );
+    this.expressionVisual = this.expressionController.update(1 / 60, {
+      behavior: "dormant",
       headingX: 0,
       headingY: -1,
       coreX: options.originX,
       coreY: options.originY,
       breathingPhase: 0,
+      impactWave: 0,
+    });
+    this.faceFrame = computeFaceFrame({
+      ribs: [],
+      headRegion: MASCOT_CONFIG.creature.regions.head,
+      headingX: 0,
+      headingY: -1,
     });
 
     this.behaviorMachine = new BehaviorMachine<MascotRuntime>({
@@ -431,6 +489,16 @@ export class MascotRuntime {
     const targetLean = clamp(turnRate / 3, -1, 1);
     this.ribLean = lerp(this.ribLean, targetLean, clamp(dt * 6, 0, 1));
 
+    const velocity = this.pose.getVelocity();
+    this.bodyDeformation = this.bodyDeformationController.update({
+      behavior: this.behaviorMachine.getCurrent(),
+      speed: Math.hypot(velocity.x, velocity.y),
+      turnRate,
+      scatterProgress: this.scatterProgress,
+      dt,
+      manualOverride: this.deformationOverride,
+    });
+
     this.ribs = computeRibs(
       this.pose.joints,
       {
@@ -446,8 +514,83 @@ export class MascotRuntime {
     }
     applyRibLean(this.ribs, this.ribLean);
 
+    this.contourWidths = computeContourWidths(
+      this.ribs,
+      MASCOT_CONFIG.appearance.contour,
+      this.bodyDeformation,
+    );
+
     this.updateSecondaryMotion(dt);
-    this.updateExpression();
+    this.updateStringContacts(dt);
+    this.updateAppearance(dt);
+  }
+
+  private updateStringContacts(dt: number): void {
+    if (!this.strings) {
+      this.stringPluckEvents = [];
+      return;
+    }
+    const strings = this.strings.getAll();
+    if (strings.length === 0) {
+      this.stringPluckEvents = [];
+      return;
+    }
+
+    const joints = this.pose.joints;
+    const contactPoints: ContactPoint[] = [];
+
+    const root = this.pose.getRoot();
+    contactPoints.push({ id: "core", type: "core", x: root.x, y: root.y });
+
+    if (joints.length > 0) {
+      const tail = joints[joints.length - 1];
+      contactPoints.push({ id: "tail", type: "tail", x: tail.x, y: tail.y });
+    }
+
+    const leftTip = this.antennaeLeft[this.antennaeLeft.length - 1];
+    const rightTip = this.antennaeRight[this.antennaeRight.length - 1];
+    if (leftTip)
+      contactPoints.push({
+        id: "fin-left",
+        type: "fin",
+        x: leftTip.x,
+        y: leftTip.y,
+      });
+    if (rightTip)
+      contactPoints.push({
+        id: "fin-right",
+        type: "fin",
+        x: rightTip.x,
+        y: rightTip.y,
+      });
+
+    const events = this.stringContactDetector.detect(
+      this.simTime,
+      dt,
+      strings,
+      contactPoints,
+      {
+        cooldownSeconds: MASCOT_CONFIG.strings.cooldownSeconds,
+        minSpeed: MASCOT_CONFIG.strings.minContactSpeed,
+      },
+    );
+
+    for (const event of events) {
+      this.strings.triggerContact(
+        event.stringIndex,
+        event.velocity,
+        event.contactPosition,
+        event.direction,
+      );
+    }
+
+    this.stringPluckEvents = events;
+    this.lastStrum = this.musicalDirector.process(
+      this.simTime,
+      events,
+      MASCOT_CONFIG.strings.strum,
+    );
+    this.musicalCombo = this.musicalDirector.getCombo();
   }
 
   private getWanderBlendTarget(): number {
@@ -601,10 +744,25 @@ export class MascotRuntime {
     const tailJoint = joints[joints.length - 1];
     const heading = this.pose.getHeading();
 
-    const leftRootX = headJoint.x + Math.cos(heading + Math.PI / 2) * 4;
-    const leftRootY = headJoint.y + Math.sin(heading + Math.PI / 2) * 4;
-    const rightRootX = headJoint.x + Math.cos(heading - Math.PI / 2) * 4;
-    const rightRootY = headJoint.y + Math.sin(heading - Math.PI / 2) * 4;
+    // Fin/ear root pin, biased by two real signals rather than a fixed
+    // perpendicular offset — MASCOT_VISUAL_RESCUE spec "FIN / EAR DESIGN"
+    // states (sprint sweeps back, rest/dormant folds in, avoid/scatter
+    // spread wide) fall out of forward speed + the existing
+    // `bodyDeformation.finSpread` signal (already computed per-behavior in
+    // BodyDeformation.ts) without any new state machinery. The chain's own
+    // gravity/drag Verlet physics still does all the actual settling.
+    const velocity = this.pose.getVelocity();
+    const forwardSpeed =
+      velocity.x * Math.cos(heading) + velocity.y * Math.sin(heading);
+    const sweepBack = clamp(forwardSpeed / 220, -0.3, 0.5);
+    const finReach = 4 + clamp(this.bodyDeformation.finSpread, -1, 1) * 2.5;
+
+    const leftAngle = heading + Math.PI / 2 + sweepBack;
+    const rightAngle = heading - Math.PI / 2 - sweepBack;
+    const leftRootX = headJoint.x + Math.cos(leftAngle) * finReach;
+    const leftRootY = headJoint.y + Math.sin(leftAngle) * finReach;
+    const rightRootX = headJoint.x + Math.cos(rightAngle) * finReach;
+    const rightRootY = headJoint.y + Math.sin(rightAngle) * finReach;
 
     pinVerletNode(this.antennaeLeft[0], leftRootX, leftRootY);
     pinVerletNode(this.antennaeRight[0], rightRootX, rightRootY);
@@ -634,13 +792,27 @@ export class MascotRuntime {
     );
   }
 
-  private updateExpression(): void {
+  /**
+   * Face frame + expression, resolved fresh each frame from the current
+   * ribs/heading — simulation-side, per this codebase's
+   * simulation/render-separation rule (CanvasMascotRenderer only reads
+   * `faceFrame`/`expressionVisual`, never computes them).
+   */
+  private updateAppearance(dt: number): void {
     const root = this.pose.getRoot();
     const heading = this.pose.getHeading();
     const behavior = this.behaviorMachine.getCurrent();
 
-    this.expression = computeExpression({
-      behaviorGlow: behaviorGlow(behavior),
+    this.faceFrame = computeFaceFrame({
+      ribs: this.ribs,
+      headRegion: MASCOT_CONFIG.creature.regions.head,
+      headingX: Math.cos(heading),
+      headingY: Math.sin(heading),
+      deformation: this.bodyDeformation,
+    });
+
+    this.expressionVisual = this.expressionController.update(dt, {
+      behavior,
       headingX: Math.cos(heading),
       headingY: Math.sin(heading),
       interestX: this.currentInterest?.centerX,
@@ -648,7 +820,8 @@ export class MascotRuntime {
       coreX: root.x,
       coreY: root.y,
       breathingPhase: this.breathingPhase,
-      breathingAmount: MASCOT_CONFIG.breathingAmount,
+      impactWave: this.bodyDeformation.impactWave,
+      overrideExpression: this.expressionOverride,
     });
   }
 
@@ -714,6 +887,14 @@ export class MascotRuntime {
       this.particles = new ParticlePool(newParticleCapacity);
     }
 
+    // Pattern mark budget depends on quality tier too — regenerate once here
+    // (never per frame), mirroring the skinPoints regeneration above.
+    this.patternMarks = generatePatternMarks(
+      this.patternRecipe,
+      this.dotSkinConfig.seed + MASCOT_CONFIG.appearance.patternSeedOffset,
+      quality,
+    );
+
     this.pose.setSpineConfig(getSpineConfigForQuality(quality));
   }
 
@@ -727,6 +908,41 @@ export class MascotRuntime {
 
   teleport(x: number, y: number): void {
     this.pose.teleport(x, y);
+  }
+
+  // --- Appearance lab controls (dev/motion-lab only) --------------------
+
+  setAppearancePreset(id: AppearancePresetName): void {
+    const preset = getAppearancePreset(id);
+    this.appearancePresetId = id;
+    this.appearancePalette = preset.palette;
+    this.patternRecipe = preset.patternRecipe;
+    this.patternMarks = generatePatternMarks(
+      this.patternRecipe,
+      this.dotSkinConfig.seed + MASCOT_CONFIG.appearance.patternSeedOffset,
+      this.quality,
+    );
+  }
+
+  setAppearanceLayers(
+    layers: Partial<Record<AppearanceLayerName, boolean>>,
+  ): void {
+    this.appearanceLayerOverrides = {
+      ...this.appearanceLayerOverrides,
+      ...layers,
+    };
+  }
+
+  setAppearanceTuning(tuning: Partial<AppearanceTuningOverrides>): void {
+    this.appearanceTuning = { ...this.appearanceTuning, ...tuning };
+  }
+
+  setExpressionOverride(expression: MascotExpression | null): void {
+    this.expressionOverride = expression;
+  }
+
+  setDeformationOverride(deformation: Partial<BodyDeformation> | null): void {
+    this.deformationOverride = deformation;
   }
 
   trigger(action: MascotAction): void {

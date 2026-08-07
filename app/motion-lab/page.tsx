@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import ProceduralMascotCanvas from "@/components/mascot/ProceduralMascotCanvas";
 import MascotAccessibilityControls from "@/components/mascot/MascotAccessibilityControls";
 import MascotDebugPanel from "@/components/mascot/MascotDebugPanel";
+import MascotAppearancePanel from "@/components/mascot/MascotAppearancePanel";
+import MascotSoundControl from "@/components/mascot/MascotSoundControl";
 import { playScenario } from "@/lib/mascot/debug/DeterministicScenarios";
 import type {
   MascotEngine,
@@ -74,6 +76,7 @@ export default function MotionLabPage() {
           quality={quality}
           onQualityChange={setQuality}
         />
+        <MascotSoundControl engine={engine} showHint={false} />
       </div>
 
       <MascotDebugPanel
@@ -81,6 +84,10 @@ export default function MotionLabPage() {
         debugOverlay={debugOverlay}
         onDebugOverlayChange={setDebugOverlay}
       />
+
+      <div className={styles.appearancePanelWrap}>
+        <MascotAppearancePanel engine={engine} />
+      </div>
 
       <nav className={styles.navMock} data-mascot-obstacle="hard">
         <button type="button" className={styles.navButton}>

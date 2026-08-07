@@ -1,0 +1,6 @@
+Create an ornament sheet for a futuristic musical
+vertical platform game. Small tuning beads, glowing harmonic nodes, muted
+string wraps, tiny fret markers, soft amplifier-like caps, constellation
+charms and compact resonance emitters. Original abstract design, no real
+guitar brand parts, no text, no logo, no character. Dark
+violet, warm cream, cyan and controlled magenta accents. The background MUST be a single, perfectly flat, solid pure chroma-key green colour, hex 00FF00, completely uniform with zero gradient, zero texture, zero vignette, and zero shadow on the background itself — only the decal shapes may have their own soft drop shadow.

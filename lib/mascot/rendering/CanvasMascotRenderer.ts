@@ -2,6 +2,10 @@ import { clamp } from "../core/NumericGuards";
 import type { RibPoint } from "../character/CreatureRig";
 import type { SpineJoint } from "../motion/SpineSolver";
 import type { MascotObstacle } from "../types";
+import {
+  drawAppearance as drawAppearanceLayers,
+  type AppearanceRenderInput,
+} from "../appearance/SilhouetteRenderer";
 import { CanvasDotRenderer, type DotLayerStyle } from "./CanvasDotRenderer";
 import type { Particle, ParticleCategory, ParticlePool } from "./ParticlePool";
 
@@ -81,6 +85,17 @@ export class CanvasMascotRenderer {
     ctx.globalAlpha = 1;
   }
 
+  /**
+   * Draws the full layered appearance pipeline (silhouette -> gradient ->
+   * clipped print -> rim -> face) for one frame. Thin forwarder to
+   * `appearance/SilhouetteRenderer.drawAppearance` — this class stays the
+   * ctx owner, the actual layer logic lives in `lib/mascot/appearance/`.
+   */
+  drawAppearance(input: AppearanceRenderInput): void {
+    drawAppearanceLayers(this.ctx, input);
+  }
+
+  /** @deprecated superseded by drawAppearance's contour+gradient fill; kept for any external/debug caller still passing raw ribs. */
   drawCore(
     x: number,
     y: number,

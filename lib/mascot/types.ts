@@ -8,6 +8,30 @@ export interface Point {
   y: number;
 }
 
+/**
+ * A physical contact between the mascot and a homepage guitar string
+ * (`lib/mascot/music/StringContactDetector.ts`). Semantic and DSP-free —
+ * the musical/audio layer converts this into a `MusicalEvent` separately,
+ * per the upgrade spec's "keep physical collision independent from DSP
+ * implementation."
+ */
+export interface StringPluckEvent {
+  stringId: string;
+  stringIndex: number;
+  contactType: "core" | "tail" | "fin" | "landing" | "drag";
+  /** 0..1 position along the string. */
+  contactPosition: number;
+  /** 0..1 perceptual intensity, already curved — never raw velocity. */
+  velocity: number;
+  direction: -1 | 1;
+  worldX: number;
+  worldY: number;
+  gameMode: boolean;
+  combo: number;
+  /** Seconds, MascotRuntime's simulation clock. */
+  timestamp: number;
+}
+
 export type MascotQuality = "reduced" | "low" | "medium" | "high";
 
 export interface QualityPreset {
@@ -64,6 +88,101 @@ export type MascotAction =
   | { type: "wake" }
   | { type: "rest" };
 
+/**
+ * Body-local squash/stretch/tumble performance parameters — see the upgrade
+ * spec's "SQUASH, STRETCH, AND TUMBLE". Computed once per frame in
+ * `MascotRuntime.update()` (via `lib/mascot/appearance/BodyDeformation.ts`'s
+ * `BodyDeformationController`) from existing behavior/velocity signals, then
+ * applied when resolving rib/silhouette geometry — never mutates spine
+ * joints directly, only how ribs/contour are drawn.
+ */
+export interface BodyDeformation {
+  /** 1 = neutral, >1 stretched along the spine (sprint), <1 compressed (impact). */
+  longitudinalScale: number;
+  /** 1 = neutral, >1 widened (impact squash), <1 narrowed (stretch). */
+  lateralScale: number;
+  /** 0 = neutral, >0 head compresses/widens (impact reaction). */
+  headSquash: number;
+  /** 0 = neutral, >0 tail elongates (sprint trail), <0 tail curls (rest). */
+  tailStretch: number;
+  /** 0 = neutral, signed spread of the fin/antennae silhouette. */
+  finSpread: number;
+  /** 0..1 pulse intensity from a recent impact/dodge, decays over time. */
+  impactWave: number;
+  /** Bounded rotation offset (radians) for controlled tumble — never a constant spin. */
+  tumbleRotation: number;
+}
+
+export type MascotExpression =
+  | "neutral"
+  | "curious"
+  | "happy"
+  | "focused"
+  | "surprised"
+  | "squint"
+  | "sleepy"
+  | "dizzy"
+  | "determined";
+
+export type AppearanceLayerName =
+  | "silhouette"
+  | "print"
+  | "rim"
+  | "dots"
+  | "face";
+
+export type AppearancePresetName =
+  | "cute-bean"
+  | "signal-manta"
+  | "velvet-comet";
+
+export type AppearancePatternRecipeName =
+  | "terrazzo-confetti"
+  | "constellation-freckles"
+  | "soft-stripes";
+
+/** Continuous appearance-lab tuning knobs — see MascotAppearancePanel.tsx. */
+export interface AppearanceTuningOverrides {
+  /** 0..1 multiplier on how many sparse accent dots render (quality tier still gates whether dots render at all). */
+  dotDensity: number;
+  /** 0..1 opacity of the base silhouette fill. */
+  bodyOpacity: number;
+  /** 0..2 multiplier on rim stroke width. */
+  rimWidth: number;
+  /** 0..2 multiplier on face/glow luminosity. */
+  glowIntensity: number;
+  /** 0.4..2.2 multiplier on procedural print mark size. */
+  patternScale: number;
+  /** 0..1 print opacity/contrast. */
+  patternContrast: number;
+}
+
+/**
+ * What a harmony/quantization layer derives from a `StringPluckEvent`
+ * before handing bounded, clamped parameters to a voice. Keep physical
+ * collision independent from DSP implementation: nothing in
+ * `lib/mascot/music` should construct a `StringPluckEvent`, and nothing
+ * outside `lib/mascot/music` should need to know about voice pools,
+ * buffers, or `AudioContext`.
+ */
+export interface MusicalEvent {
+  midiNote: number;
+  frequency: number;
+  /** 0-1, already perceptually curved — never raw linear speed. */
+  velocity: number;
+  /** 0-1, maps to filter brightness/pick position. */
+  brightness: number;
+  /** 0-1, higher damps the pluck's high end faster. */
+  damping: number;
+  /** -1 (left) to 1 (right). */
+  pan: number;
+  /** 0-1 send level to an optional reverb/delay bus. */
+  reverbSend: number;
+  articulation: "pluck" | "harmonic" | "muted" | "strum" | "bass";
+  /** `audioContext.currentTime`-based, not a visual timestamp. */
+  scheduledTime: number;
+}
+
 export interface MascotStatus {
   behavior: MascotBehavior;
   quality: MascotQuality;
@@ -106,6 +225,44 @@ export interface MascotEngine {
   setDebug(enabled: boolean): void;
   /** Dev/motion-lab only: simulation speed multiplier for slow-motion review. */
   setTimeScale(scale: number): void;
+  /**
+   * Enables or mutes the mascot's own string-contact audio. Turning sound ON
+   * lazily creates/resumes its independent `AudioContext` — callers MUST
+   * invoke this only from inside a real user-gesture event handler (click,
+   * tap, keydown), never from an effect, timer, or on mount. Turning sound
+   * OFF is always safe to call from anywhere. Never rejects; resolves once
+   * activation has settled (including a no-op resolve when unsupported).
+   */
+  setSoundEnabled(enabled: boolean): Promise<void>;
+  /** Sets the master output level (0-1) for the mascot's own audio bus. */
+  setMasterVolume(value: number): void;
+  /**
+   * Feeds a physical string-contact event into the mascot's audio system.
+   * Uses a minimal built-in note mapping (see lib/mascot/music/DefaultNoteMapping.ts)
+   * until the harmony/quantization layer lands — see docs/mascot/AUDIO_ARCHITECTURE.md.
+   */
+  triggerStringPluck(event: StringPluckEvent): void;
+  /**
+   * Plays an already-resolved `MusicalEvent` directly through the mascot's
+   * voice pool, bypassing `DefaultNoteMapping`'s guitar-chord lookup.
+   * Strumrise (which quantizes its own portfolio-mode/pentatonic notes via
+   * `lib/mascot/music/HarmonyMap.ts`) uses this instead of
+   * `triggerStringPluck` so the game reuses the same voice-capped audio
+   * engine without duplicating it — see docs/mascot/STRUMRISE_DESIGN.md.
+   */
+  triggerMusicalEvent(event: MusicalEvent): void;
+  /** Dev/motion-lab only: appearance lab palette + pattern recipe preset. */
+  setAppearancePreset(preset: AppearancePresetName): void;
+  /** Dev/motion-lab only: per-layer render toggles (silhouette/print/rim/dots/face). */
+  setAppearanceLayers(
+    layers: Partial<Record<AppearanceLayerName, boolean>>,
+  ): void;
+  /** Dev/motion-lab only: continuous appearance tuning (dot density, opacity, rim width, etc). */
+  setAppearanceTuning(tuning: Partial<AppearanceTuningOverrides>): void;
+  /** Dev/motion-lab only: forces a specific expression instead of the behavior-driven one; null resumes automatic mapping. */
+  setExpressionOverride(expression: MascotExpression | null): void;
+  /** Dev/motion-lab only: forces specific squash/stretch/tumble fields instead of the computed ones; null (or omitted keys) resumes automatic behavior-driven deformation. */
+  setDeformationOverride(deformation: Partial<BodyDeformation> | null): void;
 }
 
 export type ObstacleMode = "hard" | "soft" | "interest";

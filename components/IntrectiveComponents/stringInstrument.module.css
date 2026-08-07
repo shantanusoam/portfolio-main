@@ -136,6 +136,18 @@
   filter: drop-shadow(0 0 6px rgb(255 111 61 / 72%));
 }
 
+/*
+  Temporary contact-glow pulse at a pluck point — set to r/opacity 0 by
+  default and only animated imperatively via drawGlow() in
+  StringInstrument.tsx (same ref-driven, no-React-render pattern as
+  .string's own path). See MASCOT_VISUAL_RESCUE spec "MUSICAL CONTACT POSE".
+*/
+.stringGlow {
+  fill: rgb(255 154 112 / 90%);
+  pointer-events: none;
+  filter: blur(2px);
+}
+
 .chordRail {
   position: absolute;
   z-index: 3;

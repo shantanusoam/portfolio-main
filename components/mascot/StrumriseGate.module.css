@@ -1,0 +1,36 @@
+/*
+  Fixed bottom-right, mirroring the sound control's bottom-left placement
+  (see Mascot.module.css's layer-stack comment) — above main content,
+  below the full-screen Strumrise overlay itself (z-index 100+).
+*/
+.launchButton {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(56, 242, 216, 0.16);
+  color: #f5fbff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.65s cubic-bezier(0.55, 0, 0.85, 0.35),
+    opacity 0.65s ease;
+}
+
+.launchButton:hover:not(:disabled) {
+  background: rgba(56, 242, 216, 0.28);
+}
+
+.launchButton:disabled {
+  cursor: not-allowed;
+}
+
+/* Small explicit "drop" tumble — deliberately brief, skipped entirely under reduced motion (see StrumriseGate.tsx). */
+.launchButton[data-entering="true"] {
+  transform: translateY(140px) rotate(220deg) scale(0.6);
+  opacity: 0;
+}

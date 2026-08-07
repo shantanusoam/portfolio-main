@@ -12,12 +12,12 @@
 
 From `npm run build`'s own per-route output:
 
-| Route | Own size | First Load JS |
-|---|---|---|
-| `/` (portfolio home, includes the mascot loader) | 110 kB | 258 kB |
-| `/motion-lab` | 17.9 kB | 96.3 kB |
-| `/testing` (pre-existing, unrelated — uses `@splinetool/react-spline`) | 1.82 kB | 84 kB |
-| Shared by all routes | — | 78.4 kB |
+| Route                                                                  | Own size | First Load JS |
+| ---------------------------------------------------------------------- | -------- | ------------- |
+| `/` (portfolio home, includes the mascot loader)                       | 110 kB   | 258 kB        |
+| `/motion-lab`                                                          | 17.9 kB  | 96.3 kB       |
+| `/testing` (pre-existing, unrelated — uses `@splinetool/react-spline`) | 1.82 kB  | 84 kB         |
+| Shared by all routes                                                   | —        | 78.4 kB       |
 
 `/motion-lab` reporting its own, much smaller First Load JS than `/`
 despite containing the full debug panel, accessibility controls, and
@@ -49,7 +49,7 @@ Tests" list: `SecondOrderDynamics`, `SpineSolver`, `VerletChain`,
 `DomObstacleRegistry` (the pure `resolveObstacleMode` helper only — the
 DOM-coupled class itself needs a real browser, see below).
 
-These tests assert the performance-relevant invariants that *can* be
+These tests assert the performance-relevant invariants that _can_ be
 checked without a browser: bounded solver iterations regardless of
 requested `iterations` value (`SpineSolver.test.ts`, `VerletChain.test.ts`,
 `FabrikSolver.test.ts` all assert completion in well under 500ms even when
@@ -61,12 +61,12 @@ batching (`CanvasDotRenderer.test.ts`).
 
 From `lib/mascot/rendering/RenderQuality.ts`:
 
-| Tier | Dots | Particles | Solver iters | DPR cap | Target FPS |
-|---|---|---|---|---|---|
-| reduced | 0 | 0 | 1 | 1 | 15 |
-| low | 700 | 120 | 2 | 1.25 | 45 |
-| medium (default) | 1800 | 300 | 3 | 1.5 | 60 |
-| high | 3800 | 650 | 4-5 | 2 | 60 |
+| Tier             | Dots | Particles | Solver iters | DPR cap | Target FPS |
+| ---------------- | ---- | --------- | ------------ | ------- | ---------- |
+| reduced          | 0    | 0         | 1            | 1       | 15         |
+| low              | 700  | 120       | 2            | 1.25    | 45         |
+| medium (default) | 1800 | 300       | 3            | 1.5     | 60         |
+| high             | 3800 | 650       | 4-5          | 2       | 60         |
 
 `PerformanceGovernor` (`lib/mascot/core/PerformanceGovernor.ts`) downgrades
 after sustained >20ms average frame time (past a 4s cooldown), never

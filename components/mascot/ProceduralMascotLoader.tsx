@@ -2,7 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import type { MascotQuality } from "@/lib/mascot/types";
+import type { MascotEngine, MascotQuality } from "@/lib/mascot/types";
+import MascotSoundControl from "./MascotSoundControl";
+import StrumriseGate from "./StrumriseGate";
+import styles from "./Mascot.module.css";
 
 const ProceduralMascotCanvas = dynamic(
   () => import("./ProceduralMascotCanvas"),
@@ -39,6 +42,7 @@ export default function ProceduralMascotLoader({
 }: ProceduralMascotLoaderProps) {
   const [ready, setReady] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [engine, setEngine] = useState<MascotEngine | null>(null);
 
   useEffect(() => {
     setDisabled(readStoredDisabled());
@@ -65,5 +69,13 @@ export default function ProceduralMascotLoader({
 
   if (!ready || disabled) return null;
 
-  return <ProceduralMascotCanvas quality={quality} />;
+  return (
+    <>
+      <ProceduralMascotCanvas quality={quality} onEngineReady={setEngine} />
+      <div className={styles.soundControlFixed}>
+        <MascotSoundControl engine={engine} />
+      </div>
+      <StrumriseGate engine={engine} quality={quality} />
+    </>
+  );
 }
