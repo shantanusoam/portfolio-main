@@ -1,6 +1,7 @@
 import { clamp } from "../core/NumericGuards";
 import type { Point } from "../types";
 import type { BodyContourPoints } from "./BodyContour";
+import { sampleCatmullRomRail } from "./ContourPath";
 import type { AppearancePalette } from "./AppearancePresets";
 
 /**
@@ -20,7 +21,7 @@ export interface RimConfig {
 }
 
 export const DEFAULT_RIM_CONFIG: RimConfig = {
-  baseWidth: 2.2,
+  baseWidth: 2.4,
   faceThinningEnd: 0.22,
   faceThinningFactor: 0.4,
 };
@@ -47,7 +48,9 @@ function drawRail(
   config: RimConfig,
   widthMultiplier: number,
 ): void {
-  const count = rail.length;
+  // Match silhouette smoothing so the rim doesn't reintroduce polygonal facets.
+  const smooth = sampleCatmullRomRail(rail, 4);
+  const count = smooth.length;
   if (count < 2) return;
 
   const splitIndex = clamp(
@@ -57,17 +60,19 @@ function drawRail(
   );
 
   ctx.lineWidth = computeRimWidthAt(0, config, widthMultiplier);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
   ctx.beginPath();
-  ctx.moveTo(rail[0].x, rail[0].y);
-  for (let i = 1; i <= splitIndex; i += 1) ctx.lineTo(rail[i].x, rail[i].y);
+  ctx.moveTo(smooth[0].x, smooth[0].y);
+  for (let i = 1; i <= splitIndex; i += 1) ctx.lineTo(smooth[i].x, smooth[i].y);
   ctx.stroke();
 
   if (splitIndex < count - 1) {
     ctx.lineWidth = computeRimWidthAt(1, config, widthMultiplier);
     ctx.beginPath();
-    ctx.moveTo(rail[splitIndex].x, rail[splitIndex].y);
+    ctx.moveTo(smooth[splitIndex].x, smooth[splitIndex].y);
     for (let i = splitIndex + 1; i < count; i += 1)
-      ctx.lineTo(rail[i].x, rail[i].y);
+      ctx.lineTo(smooth[i].x, smooth[i].y);
     ctx.stroke();
   }
 }

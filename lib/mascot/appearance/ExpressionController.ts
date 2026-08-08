@@ -1,12 +1,20 @@
 import { clamp, lerp } from "../core/NumericGuards";
 import { SeededRandom } from "../core/SeededRandom";
 import { SecondOrderDynamics } from "../motion/SecondOrderDynamics";
-import type { MascotBehavior, MascotExpression } from "../types";
+import type {
+  FacialMotionInput,
+  FacialPose,
+  MascotBehavior,
+  MascotExpression,
+} from "../types";
+import { computeFacialPose, neutralFacialPose } from "./FacialMotionMatrix";
 
 /**
  * The 9 required expressions (upgrade spec "EXPRESSIONS"), mapped from the
  * existing 12-state `MascotBehavior`, with bounded/smoothed transitions
  * (never a per-frame snap) and deterministic, state-aware blinking.
+ * V2 §5–6: also blends a velocity-driven `FacialPose` from FacialMotionMatrix
+ * so eyes/mouth act on drag/fall/impact — not only behavior timers.
  */
 
 export interface ExpressionVisualState {
@@ -15,6 +23,10 @@ export interface ExpressionVisualState {
   transitionBlend: number;
   /** 0..1, product of the expression's resting eye openness and the current blink. */
   eyeOpenness: number;
+  /** Lateral eye squash/stretch from the facial matrix (1 = neutral). */
+  eyeScaleX: number;
+  /** Vertical eye squash/stretch from the facial matrix (1 = neutral). */
+  eyeScaleY: number;
   /** -1..1, negative = soft/worried, positive = focused/determined. */
   browTilt: number;
   pupilOffsetX: number;
@@ -23,6 +35,14 @@ export interface ExpressionVisualState {
   cheekIntensity: number;
   glowIntensity: number;
   coreScale: number;
+  /** 0..1 mouth aperture from FacialPose.mouthOpen. */
+  mouthOpen: number;
+  /** -1..1 frown↔smile from FacialPose.mouthCurve. */
+  mouthCurve: number;
+  /** -1..1 head lean into motion (applied to face-frame rotation). */
+  headLean: number;
+  /** Latest smoothed facial pose (debug / lab). */
+  facialPose: FacialPose;
 }
 
 export interface ExpressionUpdateInput {
@@ -38,6 +58,8 @@ export interface ExpressionUpdateInput {
   impactWave: number;
   /** Dev/appearance-lab manual override; null resumes automatic behavior mapping. */
   overrideExpression?: MascotExpression | null;
+  /** Velocity/interaction drivers for FacialMotionMatrix (V2 §5). */
+  facialMotion?: FacialMotionInput | null;
 }
 
 const TRANSITION_SECONDS = 0.35;
@@ -136,6 +158,8 @@ export function mapBehaviorToExpression(
 
 type BlinkPhase = "open" | "closing" | "closed" | "opening";
 
+const FACIAL_BLEND_RATE = 10;
+
 export class ExpressionController {
   private current: MascotExpression = "neutral";
   private previous: MascotExpression = "neutral";
@@ -146,6 +170,7 @@ export class ExpressionController {
   private blinkTimer: number;
   private blinkPhase: BlinkPhase = "open";
   private blinkProgress = 0;
+  private smoothedFacial: FacialPose = neutralFacialPose();
 
   constructor(seed: number) {
     this.rng = new SeededRandom(seed);
@@ -177,7 +202,7 @@ export class ExpressionController {
       EXPRESSION_BROW_TILT[this.current],
       this.transitionT,
     );
-    const cheekIntensity = lerp(
+    const expressionCheek = lerp(
       EXPRESSION_CHEEK[this.previous],
       EXPRESSION_CHEEK[this.current],
       this.transitionT,
@@ -190,6 +215,17 @@ export class ExpressionController {
 
     this.updateBlink(dt, input.impactWave);
 
+    const facialTarget = input.facialMotion
+      ? computeFacialPose(input.facialMotion)
+      : neutralFacialPose();
+    const facialRate = clamp(dt * FACIAL_BLEND_RATE, 0, 1);
+    this.smoothedFacial = blendFacialPose(
+      this.smoothedFacial,
+      facialTarget,
+      facialRate,
+    );
+    const facial = this.smoothedFacial;
+
     let lookX = input.headingX;
     let lookY = input.headingY;
     if (input.interestX !== undefined && input.interestY !== undefined) {
@@ -199,27 +235,62 @@ export class ExpressionController {
       lookX = dx / len;
       lookY = dy / len;
     }
-    const pupilOffsetX = this.gazeX.update(
-      dt,
-      clamp(lookX, -1, 1) * MAX_PUPIL_OFFSET,
+    // Gaze from interest/heading, then pull toward facial-matrix pupil targets.
+    const gazeTargetX = clamp(
+      lookX * MAX_PUPIL_OFFSET + facial.pupilX * 0.55,
+      -1,
+      1,
     );
-    const pupilOffsetY = this.gazeY.update(
-      dt,
-      clamp(lookY, -1, 1) * MAX_PUPIL_OFFSET,
+    const gazeTargetY = clamp(
+      lookY * MAX_PUPIL_OFFSET + facial.pupilY * 0.55,
+      -1,
+      1,
+    );
+    const pupilOffsetX = this.gazeX.update(dt, gazeTargetX);
+    const pupilOffsetY = this.gazeY.update(dt, gazeTargetY);
+
+    const coreScale =
+      (1 + Math.sin(input.breathingPhase) * 0.04) *
+      (1 + facial.cheekIntensity * 0.04 + facial.mouthOpen * 0.03);
+
+    const eyelidClose = facial.eyelid * 0.65;
+    const eyeOpenness = clamp(
+      stateEyeOpenness *
+        (1 - this.blinkProgress) *
+        (1 - eyelidClose) *
+        facial.eyeScaleY,
+      0,
+      1,
     );
 
-    const coreScale = 1 + Math.sin(input.breathingPhase) * 0.04;
+    // Happy expression still contributes a smile bias when the matrix is calm.
+    const expressionMouthBias =
+      this.current === "happy" ? 0.45 : this.current === "surprised" ? 0.2 : 0;
 
     return {
       expression: this.current,
       transitionBlend: this.transitionT,
-      eyeOpenness: clamp(stateEyeOpenness * (1 - this.blinkProgress), 0, 1),
+      eyeOpenness,
+      eyeScaleX: facial.eyeScaleX,
+      eyeScaleY: facial.eyeScaleY,
       browTilt,
       pupilOffsetX,
       pupilOffsetY,
-      cheekIntensity,
-      glowIntensity,
+      cheekIntensity: clamp(
+        Math.max(expressionCheek, facial.cheekIntensity),
+        0,
+        1,
+      ),
+      glowIntensity: clamp(
+        glowIntensity + facial.cheekIntensity * 0.15 + facial.mouthOpen * 0.1,
+        0,
+        1,
+      ),
       coreScale,
+      mouthOpen: clamp(facial.mouthOpen + expressionMouthBias * 0.15, 0, 1),
+      mouthCurve: clamp(facial.mouthCurve + expressionMouthBias, -1, 1),
+      headLean: facial.headLean,
+      facialPose: facial,
     };
   }
 
@@ -260,4 +331,22 @@ export class ExpressionController {
         break;
     }
   }
+}
+
+function blendFacialPose(
+  current: FacialPose,
+  target: FacialPose,
+  t: number,
+): FacialPose {
+  return {
+    pupilX: lerp(current.pupilX, target.pupilX, t),
+    pupilY: lerp(current.pupilY, target.pupilY, t),
+    eyeScaleX: lerp(current.eyeScaleX, target.eyeScaleX, t),
+    eyeScaleY: lerp(current.eyeScaleY, target.eyeScaleY, t),
+    eyelid: lerp(current.eyelid, target.eyelid, t),
+    mouthOpen: lerp(current.mouthOpen, target.mouthOpen, t),
+    mouthCurve: lerp(current.mouthCurve, target.mouthCurve, t),
+    headLean: lerp(current.headLean, target.headLean, t),
+    cheekIntensity: lerp(current.cheekIntensity, target.cheekIntensity, t),
+  };
 }

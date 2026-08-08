@@ -29,6 +29,7 @@ import type {
   MascotQuality,
   MascotStatus,
   MusicalEvent,
+  ResonanceGateState,
   StringPluckEvent,
 } from "./types";
 
@@ -64,6 +65,7 @@ export class MascotEngine implements MascotEngineContract {
   private readonly audioGestureGate: AudioGestureGate;
   private readonly pluckVoices: MascotPluckVoicePool;
   private readonly generatedDecalAtlas: GeneratedDecalAtlas;
+  private velvetMicrotexture: HTMLImageElement | null = null;
   private readonly onStatus?: (status: MascotStatus) => void;
   private debug: boolean;
   private timeScale = 1;
@@ -166,6 +168,17 @@ export class MascotEngine implements MascotEngineContract {
       "/mascot/generated/runtime/mascot-decal-atlas",
     );
     this.generatedDecalAtlas.load();
+    this.loadVelvetMicrotexture();
+  }
+
+  /** Soft fabric grain — fire-and-forget; silhouette stays solid until ready. */
+  private loadVelvetMicrotexture(): void {
+    if (typeof Image === "undefined") return;
+    const image = new Image();
+    image.onload = () => {
+      this.velvetMicrotexture = image;
+    };
+    image.src = "/mascot/generated/runtime/velvet-microtexture.webp";
   }
 
   start(): void {
@@ -288,6 +301,26 @@ export class MascotEngine implements MascotEngineContract {
     this.runtime.setDeformationOverride(deformation);
   }
 
+  getDragTension(): number {
+    return this.runtime.getDragTension();
+  }
+
+  getStringTension(): number {
+    return this.runtime.getStringTension();
+  }
+
+  getResonanceGateState(): ResonanceGateState {
+    return this.runtime.getResonanceGateState();
+  }
+
+  /**
+   * Pollable slingshot-ready latch (V2 Phase 5). Returns true once per
+   * armed high-tension string release — does not start hero fracture.
+   */
+  consumeSlingshotTrigger(): boolean {
+    return this.runtime.consumeSlingshotTrigger();
+  }
+
   getDebugSnapshot(): MascotDebugSnapshot {
     return {
       behavior: this.runtime.behaviorMachine.getCurrent(),
@@ -299,6 +332,9 @@ export class MascotEngine implements MascotEngineContract {
         y: joint.y,
       })),
       timestamp: now(),
+      dragTension: this.runtime.getDragTension(),
+      stringTension: this.runtime.getStringTension(),
+      slingshotReady: this.runtime.stringTensionGate.isSlingshotReady(),
     };
   }
 
@@ -365,6 +401,7 @@ export class MascotEngine implements MascotEngineContract {
       },
       patternRecipe: this.runtime.patternRecipe,
       generatedDecalAtlas: this.generatedDecalAtlas,
+      velvetMicrotexture: this.velvetMicrotexture,
     });
 
     if (layers.dots) {

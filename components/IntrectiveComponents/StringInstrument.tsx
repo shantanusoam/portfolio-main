@@ -209,7 +209,13 @@ export default function StringInstrument() {
         const detail = (event as CustomEvent<StringContactEventDetail>).detail;
         if (!detail) return;
         const x = Math.min(Math.max(detail.normalizedX, 0), 1) * VIEWBOX_WIDTH;
-        const force = Math.min(Math.max(detail.intensity, 0), 1);
+        // Additive: optional pull tension amplifies bend/force without
+        // changing the hand-played path (which never sets tension).
+        const tension = Math.min(Math.max(detail.tension ?? 0, 0), 1);
+        const force = Math.min(
+          Math.max(detail.intensity, 0) * (1 + tension * 0.85),
+          1,
+        );
         strumStringRef.current(index, detail.direction, force, x);
       };
       path.addEventListener(STRING_CONTACT_EVENT, handler);

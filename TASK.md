@@ -2,6 +2,12 @@
 
 ## Active
 
+- [x] 2026-08-07: Fix mascot janky polygonal body — denser spine nodes, Catmull-Rom silhouette, plumper structure, generated soft texture pass
+- [x] 2026-08-07: Execute FINAL_MASCOT_HERO_TO_GAME_REDESIGN_MASTER_SPEC_V2 — Musical Signal Familiar + hero→Resonance Weaver (no modal)
+- [x] 2026-08-07: V2 Phases 1–3 — Musical Signal Familiar anatomy, FacialMotionMatrix, Soft Signal Plush surface
+- [x] 2026-08-07: V2 Phase 4–5 foundations — hero perch/slide/inspect/drag resistance + string tension gate / slingshot-ready signal
+- [x] 2026-08-07: V2 Phases 6–7 — slingshot/snap HeroFractureTransition + DomShadowProxy snapshot/world + Enter Resonance gate
+- [x] 2026-08-07: V2 Phases 8–13 — Resonance Weaver MVP, restore, a11y, verify + FINAL_V2_REPORT
 - [x] 2026-08-06: Align diagonal enemy projectile artwork with top-down bullet trajectories
 - [x] 2026-08-06: Increase Cluckstorm enemy, projectile, and pickup visual sizes without changing hitboxes
 - [x] 2026-08-06: Add Cluckstorm juice pass — neon projectile trails, boss damage numbers, stronger warning entry, CRT scanlines
@@ -36,6 +42,8 @@
 
 ## Discovered During Work
 
+- V2 2026-08-07: CSS Modules reject top-level `:global([data-…])` — hero fracture fade lives in `components/resonance-weaver/hero-fracture-global.css`
+- `MascotRuntime.ts` is well over the soft 500-line budget; Phase 4/5 wiring stayed thin via additive directors — a later split of targeting/contact update paths would help
 - ComboTrail was painting a ~14k-px-tall SVG with `mix-blend-screen` (primary scroll jank source)
 - CSS `scroll-behavior: smooth` was stacking with Lenis
 - Film-grain `mix-blend-mode: overlay` forced a full-viewport composite every frame
@@ -59,5 +67,9 @@
 
 ## Follow-ups
 
+- [ ] 2026-08-07: V2 browser playtest — visual gates §45–48, screenshots/recordings for FINAL_V2_REPORT
+- [ ] 2026-08-07: Split `MascotRuntime.ts` (~1330 lines) into targeting/contact/update modules
+- [ ] 2026-08-07: Motion-lab `?panel=resonance-weaver` debug panel
+- [ ] 2026-08-07: Touch-first weave UX + Phase 12 FX polish for Resonance Weaver
 - [ ] Re-export About stickers at 256px (or WebP) — files are still 512px / ~1.6MB total
 - [x] 2026-07-25: Rebuild sticky cursor + magnetic physics — soft capture field, held-wrap without stretch glitch, fluid free motion

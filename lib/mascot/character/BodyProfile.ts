@@ -2,17 +2,16 @@ import { clamp } from "../core/NumericGuards";
 import type { BodyProfileConfig } from "../types";
 
 /**
- * Front-weighted body-width profile: head/shoulder growth via a clipped
- * sine ramp, tail taper via a power curve, plus an optional Gaussian
- * "belly" bump centered on shoulderPosition. Not a symmetric sine — the
- * mass sits forward, matching a fish/eel silhouette rather than a balloon.
+ * Compact bean/manta width profile for the Musical Signal Familiar (V2 §3–4):
+ * round head via clipped sine + high headScale, plush belly bias, aggressive
+ * tail power taper so the secondary tail never dominates the silhouette.
  */
 export const DEFAULT_BODY_PROFILE: BodyProfileConfig = {
   maxWidth: 1,
-  headScale: 1.9,
-  shoulderPosition: 0.3,
+  headScale: 2.9,
+  shoulderPosition: 0.24,
   tailExponent: 1.35,
-  bellyBias: 0,
+  bellyBias: 0.24,
 };
 
 export function bodyWidth(

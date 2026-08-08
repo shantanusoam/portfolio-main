@@ -1,0 +1,27 @@
+/*
+  Visual-only hero fade while Canvas proxies are authoritative (V2 §12 / §42).
+  Semantic DOM stays mounted — mute visuals on marked proxy/perch nodes only.
+  Non-module stylesheet: attribute selectors must not live in *.module.css.
+*/
+
+[data-resonance-fractured] [data-mascot-proxy],
+[data-resonance-fractured] [data-mascot-perch] {
+  opacity: 0 !important;
+  filter: blur(0.4px);
+  transition:
+    opacity 0.22s ease,
+    filter 0.22s ease;
+  pointer-events: none;
+}
+
+[data-resonance-fractured] {
+  --resonance-fracture-dim: 0.22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-resonance-fractured] [data-mascot-proxy],
+  [data-resonance-fractured] [data-mascot-perch] {
+    filter: none;
+    transition: opacity 0.15s ease;
+  }
+}

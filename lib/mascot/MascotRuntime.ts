@@ -58,11 +58,16 @@ import {
   combineSteering,
   computeRectangleSteering,
 } from "./interaction/RectangleSteering";
+import { HeroInteractionDirector } from "./interaction/HeroInteractionDirector";
 import {
   StringContactDetector,
   type ContactPoint,
 } from "./music/StringContactDetector";
 import type { StringRegistry } from "./music/StringRegistry";
+import {
+  amplifyContactVelocity,
+  StringTensionGate,
+} from "./music/StringTensionGate";
 import { MusicalDirector, type StrumResult } from "./music/MusicalDirector";
 import { ParticlePool } from "./rendering/ParticlePool";
 import {
@@ -76,12 +81,14 @@ import type {
   AppearancePresetName,
   AppearanceTuningOverrides,
   BodyDeformation,
+  FacialMotionInput,
   MascotAction,
   MascotBehavior,
   MascotExpression,
   MascotObstacle,
   MascotQuality,
   Point,
+  ResonanceGateState,
   StringPluckEvent,
   VerletNode,
   WanderSegment,
@@ -293,12 +300,24 @@ export class MascotRuntime {
   pendingWanderHint: MascotBehavior | null = null;
   readonly targetDirector: TargetDirector;
   readonly interestDirector: InterestDirector;
+  readonly heroInteraction: HeroInteractionDirector;
+  readonly stringTensionGate: StringTensionGate;
   currentInterest: MascotObstacle | null = null;
 
   pointerX: number;
   pointerY: number;
   pointerActive = false;
   pointerIdleSeconds = 999;
+
+  /** 0..1 — hard-obstacle drag stretch for face / deformation consumers. */
+  dragTension = 0;
+  /** 0..1 — string pull tension for face / deformation consumers. */
+  stringTension = 0;
+
+  private heroSurfaceTarget: Point | null = null;
+  private heroAdjustedPointer: Point | null = null;
+  private heroReboundOffset: Point | null = null;
+  private heroPerched = false;
 
   scrollVelocity = 0;
 
@@ -340,6 +359,26 @@ export class MascotRuntime {
   private readonly expressionController: ExpressionController;
   expressionVisual: ExpressionVisualState;
   private expressionOverride: MascotExpression | null = null;
+
+  /** Previous root velocity — used to derive acceleration for FacialMotionMatrix. */
+  private previousVelocityX = 0;
+  private previousVelocityY = 0;
+  /** Decaying 0..1 collision pulse for V2 facial/squash matrices. */
+  private collisionImpulse = 0;
+  /** Latest facial-matrix input (debug / coordinator visibility). */
+  facialMotionInput: FacialMotionInput = {
+    velocityX: 0,
+    velocityY: 0,
+    accelerationX: 0,
+    accelerationY: 0,
+    speed: 0,
+    fallingSpeed: 0,
+    dragTension: 0,
+    collisionImpulse: 0,
+    stringTension: 0,
+    targetDirectionX: 0,
+    targetDirectionY: 0,
+  };
 
   /** Compact three-zone silhouette half-widths per rib — see appearance/BodyContour.ts. */
   contourWidths: number[] = [];
@@ -416,6 +455,10 @@ export class MascotRuntime {
       cooldownSeconds: MASCOT_CONFIG.interest.cooldownSeconds,
       minRevisitGap: MASCOT_CONFIG.interest.minRevisitGap,
     });
+    this.heroInteraction = new HeroInteractionDirector(
+      MASCOT_CONFIG.heroInteraction,
+    );
+    this.stringTensionGate = new StringTensionGate(MASCOT_CONFIG.stringTension);
 
     this.particles = new ParticlePool(getQualityParticleCapacity(this.quality));
 
@@ -467,6 +510,8 @@ export class MascotRuntime {
     this.interestDirector.tick(dt);
     this.particles.update(dt, MASCOT_CONFIG.particleDrag);
 
+    this.updateHeroInteractions(dt);
+
     this.behaviorMachine.update(this, dt);
     if (this.behaviorMachine.getCurrent() === "orbit") {
       this.orbitAngle += dt * 1.6;
@@ -490,14 +535,37 @@ export class MascotRuntime {
     this.ribLean = lerp(this.ribLean, targetLean, clamp(dt * 6, 0, 1));
 
     const velocity = this.pose.getVelocity();
+    const accelerationX =
+      (velocity.x - this.previousVelocityX) / Math.max(dt, 1e-4);
+    const accelerationY =
+      (velocity.y - this.previousVelocityY) / Math.max(dt, 1e-4);
+    this.facialMotionInput = {
+      ...this.facialMotionInput,
+      accelerationX: Number.isFinite(accelerationX) ? accelerationX : 0,
+      accelerationY: Number.isFinite(accelerationY) ? accelerationY : 0,
+    };
+    this.previousVelocityX = velocity.x;
+    this.previousVelocityY = velocity.y;
+
+    this.updateMotionImpulses(dt);
+
+    const fallingSpeed = Math.max(0, velocity.y);
+    const dragTension = this.computeDragTension(velocity);
+    const speed = Math.hypot(velocity.x, velocity.y);
+
     this.bodyDeformation = this.bodyDeformationController.update({
       behavior: this.behaviorMachine.getCurrent(),
-      speed: Math.hypot(velocity.x, velocity.y),
+      speed,
       turnRate,
       scatterProgress: this.scatterProgress,
       dt,
+      dragTension,
+      collisionImpulse: this.collisionImpulse,
+      stringTension: this.stringTension,
+      fallingSpeed,
       manualOverride: this.deformationOverride,
     });
+    this.applyTensionDeformation();
 
     this.ribs = computeRibs(
       this.pose.joints,
@@ -525,14 +593,96 @@ export class MascotRuntime {
     this.updateAppearance(dt);
   }
 
+  private updateHeroInteractions(dt: number): void {
+    const root = this.pose.getRoot();
+    const hardForce = this.computeHardSteeringForce(root);
+    const behavior = this.behaviorMachine.getCurrent();
+    const allowPerch =
+      !this.pointerActive &&
+      (behavior === "wander" ||
+        behavior === "rest" ||
+        behavior === "sprint" ||
+        behavior === "wake" ||
+        behavior === "dormant");
+
+    const obstacles = this.obstacles?.getAll() ?? [];
+    const frame = this.heroInteraction.update({
+      dt,
+      rootX: root.x,
+      rootY: root.y,
+      pointerX: this.pointerX,
+      pointerY: this.pointerY,
+      pointerActive: this.pointerActive,
+      allowPerch,
+      obstacles,
+      hardForceX: hardForce.x,
+      hardForceY: hardForce.y,
+      // Gentle lateral cruise while perched — sin is deterministic in simTime.
+      desiredSlideX: this.pointerActive
+        ? this.pointerX
+        : root.x + Math.sin(this.simTime * 0.65) * 48,
+    });
+
+    this.dragTension = frame.dragTension;
+    this.heroSurfaceTarget = frame.surfaceTarget;
+    this.heroAdjustedPointer = frame.adjustedPointer;
+    this.heroReboundOffset = frame.reboundOffset;
+    this.heroPerched = frame.perched;
+
+    // Sparse: when we just latched a perch during wander, settle into rest.
+    if (
+      frame.perched &&
+      frame.surfaceMode === "perch" &&
+      behavior === "wander" &&
+      this.behaviorMachine.getElapsed() > 1.2
+    ) {
+      this.pendingWanderHint = "rest";
+    }
+  }
+
+  private applyTensionDeformation(): void {
+    const tension = Math.max(this.dragTension, this.stringTension);
+    if (tension < 0.04) return;
+    this.bodyDeformation = {
+      ...this.bodyDeformation,
+      longitudinalScale:
+        this.bodyDeformation.longitudinalScale * (1 + tension * 0.24),
+      lateralScale: this.bodyDeformation.lateralScale * (1 - tension * 0.12),
+      headSquash: Math.max(this.bodyDeformation.headSquash, tension * 0.4),
+      finSpread: this.bodyDeformation.finSpread + tension * 0.25,
+    };
+  }
+
   private updateStringContacts(dt: number): void {
     if (!this.strings) {
       this.stringPluckEvents = [];
+      this.stringTension = 0;
+      this.stringTensionGate.update({
+        dt,
+        pointerActive: this.pointerActive,
+        pointerX: this.pointerX,
+        pointerY: this.pointerY,
+        rootX: this.pose.getRoot().x,
+        rootY: this.pose.getRoot().y,
+        strings: [],
+        contactThisFrame: false,
+      });
       return;
     }
     const strings = this.strings.getAll();
     if (strings.length === 0) {
       this.stringPluckEvents = [];
+      this.stringTensionGate.update({
+        dt,
+        pointerActive: this.pointerActive,
+        pointerX: this.pointerX,
+        pointerY: this.pointerY,
+        rootX: this.pose.getRoot().x,
+        rootY: this.pose.getRoot().y,
+        strings: [],
+        contactThisFrame: false,
+      });
+      this.stringTension = this.stringTensionGate.getPullTension();
       return;
     }
 
@@ -575,22 +725,102 @@ export class MascotRuntime {
       },
     );
 
-    for (const event of events) {
+    this.stringTensionGate.update({
+      dt,
+      pointerActive: this.pointerActive,
+      pointerX: this.pointerX,
+      pointerY: this.pointerY,
+      rootX: root.x,
+      rootY: root.y,
+      strings,
+      contactThisFrame: events.length > 0,
+      contactStringIndex: events[0]?.stringIndex,
+    });
+    this.stringTension = this.stringTensionGate.getPullTension();
+
+    const amplifiedEvents = events.map((event) => {
+      const velocity = amplifyContactVelocity(
+        event.velocity,
+        this.stringTension,
+      );
+      return { ...event, velocity };
+    });
+
+    for (const event of amplifiedEvents) {
       this.strings.triggerContact(
         event.stringIndex,
         event.velocity,
         event.contactPosition,
         event.direction,
+        this.stringTension,
       );
     }
 
-    this.stringPluckEvents = events;
+    this.stringPluckEvents = amplifiedEvents;
     this.lastStrum = this.musicalDirector.process(
       this.simTime,
-      events,
+      amplifiedEvents,
       MASCOT_CONFIG.strings.strum,
     );
     this.musicalCombo = this.musicalDirector.getCombo();
+
+    // String impacts feed the facial matrix's collisionImpulse (1–2 frame compress).
+    for (const event of amplifiedEvents) {
+      this.collisionImpulse = Math.max(
+        this.collisionImpulse,
+        clamp(event.velocity * 0.9, 0, 1),
+      );
+    }
+    if (this.lastStrum) {
+      // Successful chord — keep stringTension high (gate already set); soft joy pulse.
+      this.collisionImpulse = Math.min(this.collisionImpulse, 0.3);
+    }
+  }
+
+  /**
+   * Decays collision impulse and boosts it on avoid / hard-obstacle spikes
+   * (V2 facial + squash drivers). `stringTension` / `dragTension` are owned
+   * by StringTensionGate / HeroInteractionDirector respectively.
+   */
+  private updateMotionImpulses(dt: number): void {
+    const decay = Math.exp(-dt * 4.5);
+    this.collisionImpulse *= decay;
+
+    const behavior = this.behaviorMachine.getCurrent();
+    if (behavior === "avoid") {
+      this.collisionImpulse = Math.max(this.collisionImpulse, 0.75);
+    } else {
+      const hardForce = this.getHardObstacleForce();
+      if (hardForce > MASCOT_CONFIG.steering.avoidTriggerForce * 0.7) {
+        this.collisionImpulse = Math.max(
+          this.collisionImpulse,
+          clamp(hardForce / (MASCOT_CONFIG.steering.maxForce + 1e-4), 0, 1),
+        );
+      }
+    }
+  }
+
+  /**
+   * Merges hero-interaction dragTension with pointer-follow stretch so the
+   * facial/squash matrices still respond when the hero director is idle.
+   */
+  private computeDragTension(velocity: { x: number; y: number }): number {
+    const heroDrag = clamp(this.dragTension, 0, 1);
+    if (!this.pointerActive) return heroDrag;
+
+    const root = this.pose.getRoot();
+    const dx = this.pointerX - root.x;
+    const dy = this.pointerY - root.y;
+    const distanceFactor = clamp(Math.hypot(dx, dy) / 140, 0, 1);
+    const speedFactor = clamp(Math.hypot(velocity.x, velocity.y) / 220, 0, 1);
+    const followBoost =
+      this.behaviorMachine.getCurrent() === "follow" ||
+      this.behaviorMachine.getCurrent() === "sprint"
+        ? 1
+        : 0.55;
+    const pointerDrag =
+      clamp(distanceFactor * 0.75 + speedFactor * 0.35, 0, 1) * followBoost;
+    return Math.max(heroDrag, pointerDrag);
   }
 
   private getWanderBlendTarget(): number {
@@ -602,26 +832,67 @@ export class MascotRuntime {
 
   private computeRawTarget(): Point {
     const behavior = this.behaviorMachine.getCurrent();
+    let target: Point;
+
     switch (behavior) {
       case "inspect":
       case "orbit":
-        return this.getInterestTarget(behavior === "orbit");
+        target = this.getInterestTarget(behavior === "orbit");
+        break;
       case "avoid":
-        return this.getAvoidanceTarget();
+        target = this.getAvoidanceTarget();
+        break;
       case "scatter":
       case "reform":
       case "dormant":
-        return this.pose.getRoot();
+        target = this.pose.getRoot();
+        break;
+      case "rest":
+        if (this.heroSurfaceTarget) {
+          target = this.heroSurfaceTarget;
+          break;
+        }
+      // falls through
       default: {
-        const pointerPoint: Point = { x: this.pointerX, y: this.pointerY };
-        const wanderPoint = this.sampleWander();
-        return blendTargets(
-          pointerPoint,
-          wanderPoint,
-          this.targetDirector.getBlend(),
-        );
+        const pointerPoint: Point = this.heroAdjustedPointer ?? {
+          x: this.pointerX,
+          y: this.pointerY,
+        };
+        if (this.heroPerched && this.heroSurfaceTarget && !this.pointerActive) {
+          // Slide/perch: hold the bar Y, allow lateral desired X from wander.
+          const wanderPoint = this.sampleWander();
+          target = {
+            x: this.heroSurfaceTarget.x * 0.35 + wanderPoint.x * 0.65,
+            y: this.heroSurfaceTarget.y,
+          };
+          // Re-clamp through the surface target's Y; X was already inset.
+          target = {
+            x: clamp(
+              target.x,
+              this.heroSurfaceTarget.x - 80,
+              this.heroSurfaceTarget.x + 80,
+            ),
+            y: this.heroSurfaceTarget.y,
+          };
+        } else {
+          const wanderPoint = this.sampleWander();
+          target = blendTargets(
+            pointerPoint,
+            wanderPoint,
+            this.targetDirector.getBlend(),
+          );
+        }
+        break;
       }
     }
+
+    if (this.heroReboundOffset) {
+      target = {
+        x: target.x + this.heroReboundOffset.x,
+        y: target.y + this.heroReboundOffset.y,
+      };
+    }
+    return target;
   }
 
   private sampleWander(): Point {
@@ -711,7 +982,10 @@ export class MascotRuntime {
       root.y,
       MASCOT_CONFIG.steering.influenceRadius.hard * 1.5,
     );
-    const relevant = nearby.filter((o) => o.mode !== "interest");
+    // Perch/interest are attractors — never feed them into repulsion.
+    const relevant = nearby.filter(
+      (o) => o.mode !== "interest" && o.mode !== "perch",
+    );
     if (relevant.length === 0) return rawTarget;
 
     const velocity = this.pose.getVelocity();
@@ -740,29 +1014,33 @@ export class MascotRuntime {
     const joints = this.pose.joints;
     if (joints.length === 0) return;
 
-    const headJoint = joints[Math.min(1, joints.length - 1)];
+    // Reason: fins were pinned at joint 1 (nose tip) and read as fangs/horns
+    // next to the face — attach at the shoulder region instead (V2 / visual rescue).
+    const shoulderIndex = clamp(
+      MASCOT_CONFIG.creature.regions.shoulders.start,
+      0,
+      joints.length - 1,
+    );
+    const shoulderJoint = joints[shoulderIndex];
+    const shoulderRib = this.ribs[shoulderIndex];
     const tailJoint = joints[joints.length - 1];
     const heading = this.pose.getHeading();
 
-    // Fin/ear root pin, biased by two real signals rather than a fixed
-    // perpendicular offset — MASCOT_VISUAL_RESCUE spec "FIN / EAR DESIGN"
-    // states (sprint sweeps back, rest/dormant folds in, avoid/scatter
-    // spread wide) fall out of forward speed + the existing
-    // `bodyDeformation.finSpread` signal (already computed per-behavior in
-    // BodyDeformation.ts) without any new state machinery. The chain's own
-    // gravity/drag Verlet physics still does all the actual settling.
     const velocity = this.pose.getVelocity();
     const forwardSpeed =
       velocity.x * Math.cos(heading) + velocity.y * Math.sin(heading);
-    const sweepBack = clamp(forwardSpeed / 220, -0.3, 0.5);
-    const finReach = 4 + clamp(this.bodyDeformation.finSpread, -1, 1) * 2.5;
+    const sweepBack = clamp(forwardSpeed / 220, -0.2, 0.45);
+    // Reach scales with local body half-width so ears sit on the silhouette edge.
+    const halfWidth = Math.max(6, shoulderRib?.width ?? 10);
+    const finReach =
+      halfWidth * 0.92 + clamp(this.bodyDeformation.finSpread, -1, 1) * 2;
 
-    const leftAngle = heading + Math.PI / 2 + sweepBack;
-    const rightAngle = heading - Math.PI / 2 - sweepBack;
-    const leftRootX = headJoint.x + Math.cos(leftAngle) * finReach;
-    const leftRootY = headJoint.y + Math.sin(leftAngle) * finReach;
-    const rightRootX = headJoint.x + Math.cos(rightAngle) * finReach;
-    const rightRootY = headJoint.y + Math.sin(rightAngle) * finReach;
+    const leftAngle = heading + Math.PI / 2 + sweepBack * 0.6;
+    const rightAngle = heading - Math.PI / 2 - sweepBack * 0.6;
+    const leftRootX = shoulderJoint.x + Math.cos(leftAngle) * finReach;
+    const leftRootY = shoulderJoint.y + Math.sin(leftAngle) * finReach;
+    const rightRootX = shoulderJoint.x + Math.cos(rightAngle) * finReach;
+    const rightRootY = shoulderJoint.y + Math.sin(rightAngle) * finReach;
 
     pinVerletNode(this.antennaeLeft[0], leftRootX, leftRootY);
     pinVerletNode(this.antennaeRight[0], rightRootX, rightRootY);
@@ -802,6 +1080,41 @@ export class MascotRuntime {
     const root = this.pose.getRoot();
     const heading = this.pose.getHeading();
     const behavior = this.behaviorMachine.getCurrent();
+    const velocity = this.pose.getVelocity();
+    const speed = Math.hypot(velocity.x, velocity.y);
+    const fallingSpeed = Math.max(0, velocity.y);
+    const dragTension = this.computeDragTension(velocity);
+
+    let targetDirectionX = Math.cos(heading);
+    let targetDirectionY = Math.sin(heading);
+    if (this.pointerActive) {
+      const dx = this.pointerX - root.x;
+      const dy = this.pointerY - root.y;
+      const len = Math.max(1e-6, Math.hypot(dx, dy));
+      targetDirectionX = dx / len;
+      targetDirectionY = dy / len;
+    } else if (this.currentInterest) {
+      const dx = this.currentInterest.centerX - root.x;
+      const dy = this.currentInterest.centerY - root.y;
+      const len = Math.max(1e-6, Math.hypot(dx, dy));
+      targetDirectionX = dx / len;
+      targetDirectionY = dy / len;
+    }
+
+    const facialMotion: FacialMotionInput = {
+      velocityX: velocity.x,
+      velocityY: velocity.y,
+      accelerationX: this.facialMotionInput.accelerationX,
+      accelerationY: this.facialMotionInput.accelerationY,
+      speed,
+      fallingSpeed,
+      dragTension,
+      collisionImpulse: this.collisionImpulse,
+      stringTension: this.stringTension,
+      targetDirectionX,
+      targetDirectionY,
+    };
+    this.facialMotionInput = facialMotion;
 
     this.faceFrame = computeFaceFrame({
       ribs: this.ribs,
@@ -820,8 +1133,12 @@ export class MascotRuntime {
       coreX: root.x,
       coreY: root.y,
       breathingPhase: this.breathingPhase,
-      impactWave: this.bodyDeformation.impactWave,
+      impactWave: Math.max(
+        this.bodyDeformation.impactWave,
+        this.collisionImpulse,
+      ),
       overrideExpression: this.expressionOverride,
+      facialMotion,
     });
   }
 
@@ -844,10 +1161,39 @@ export class MascotRuntime {
   trySelectInterest(): boolean {
     if (!this.obstacles) return false;
     const candidates = this.obstacles.getByMode("interest");
-    const chosen = this.interestDirector.select(candidates);
+    const root = this.pose.getRoot();
+    const preferredTag = MASCOT_CONFIG.heroInteraction.preferredInterestTag;
+    const preferredWeight =
+      MASCOT_CONFIG.heroInteraction.preferredInterestWeight;
+    const chosen = this.interestDirector.select(candidates, (candidate) => {
+      const tagBonus =
+        candidate.interestTag === preferredTag ? preferredWeight : 1;
+      const dist = Math.hypot(
+        candidate.centerX - root.x,
+        candidate.centerY - root.y,
+      );
+      const proximity = 1 / (1 + dist / 280);
+      return tagBonus * (0.55 + proximity);
+    });
     if (!chosen) return false;
     this.currentInterest = chosen;
     return true;
+  }
+
+  getDragTension(): number {
+    return this.dragTension;
+  }
+
+  getStringTension(): number {
+    return this.stringTension;
+  }
+
+  getResonanceGateState(): ResonanceGateState {
+    return this.stringTensionGate.getState();
+  }
+
+  consumeSlingshotTrigger(): boolean {
+    return this.stringTensionGate.consumeSlingshotTrigger();
   }
 
   setPointer(x: number, y: number, active: boolean): void {

@@ -25,6 +25,8 @@ export interface StringContactEventDetail {
   /** 0..1 position along the string, left to right. */
   normalizedX: number;
   direction: 1 | -1;
+  /** Optional 0..1 pull tension — listeners may amplify bend when present. */
+  tension?: number;
 }
 
 export type StringRole = "bass" | "mid" | "treble";
@@ -149,6 +151,7 @@ export class StringRegistry {
     intensity: number,
     normalizedX: number,
     direction: 1 | -1,
+    tension?: number,
   ): boolean {
     const string = this.strings.find((s) => s.index === index);
     if (!string) return false;
@@ -158,6 +161,9 @@ export class StringRegistry {
       normalizedX,
       direction,
     };
+    if (tension !== undefined && Number.isFinite(tension)) {
+      detail.tension = Math.min(1, Math.max(0, tension));
+    }
     string.element.dispatchEvent(
       new CustomEvent(STRING_CONTACT_EVENT, { detail }),
     );

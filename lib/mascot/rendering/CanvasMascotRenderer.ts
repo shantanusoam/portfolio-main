@@ -206,7 +206,9 @@ export class CanvasMascotRenderer {
           ? "#ff3355"
           : obstacle.mode === "soft"
             ? "#ffaa33"
-            : "#33ddff";
+            : obstacle.mode === "perch"
+              ? "#9d6bff"
+              : "#33ddff";
       ctx.strokeRect(
         obstacle.left,
         obstacle.top,

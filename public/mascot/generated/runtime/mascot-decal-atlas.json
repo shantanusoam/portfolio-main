@@ -1,6 +1,6 @@
 {
   "atlasWidth": 1024,
-  "atlasHeight": 1362,
+  "atlasHeight": 1584,
   "sprites": [
     {
       "id": "circuit-garden-decals-7",
@@ -43,858 +43,978 @@
       "height": 219
     },
     {
+      "id": "soft-plush-decals-7",
+      "sourceSheet": "soft-plush-decals",
+      "x": 233,
+      "y": 266,
+      "width": 190,
+      "height": 191
+    },
+    {
       "id": "circuit-garden-decals-1",
       "sourceSheet": "circuit-garden-decals",
-      "x": 233,
+      "x": 423,
       "y": 266,
       "width": 236,
       "height": 184
     },
     {
+      "id": "soft-plush-decals-0",
+      "sourceSheet": "soft-plush-decals",
+      "x": 659,
+      "y": 266,
+      "width": 211,
+      "height": 180
+    },
+    {
+      "id": "soft-plush-decals-8",
+      "sourceSheet": "soft-plush-decals",
+      "x": 0,
+      "y": 485,
+      "width": 180,
+      "height": 165
+    },
+    {
       "id": "terrazzo-decals-30",
       "sourceSheet": "terrazzo-decals",
-      "x": 469,
-      "y": 266,
+      "x": 180,
+      "y": 485,
       "width": 134,
       "height": 156
     },
     {
+      "id": "soft-plush-decals-1",
+      "sourceSheet": "soft-plush-decals",
+      "x": 314,
+      "y": 485,
+      "width": 138,
+      "height": 152
+    },
+    {
+      "id": "soft-plush-decals-4",
+      "sourceSheet": "soft-plush-decals",
+      "x": 452,
+      "y": 485,
+      "width": 201,
+      "height": 151
+    },
+    {
       "id": "terrazzo-decals-20",
       "sourceSheet": "terrazzo-decals",
-      "x": 603,
-      "y": 266,
+      "x": 653,
+      "y": 485,
       "width": 126,
       "height": 150
     },
     {
       "id": "terrazzo-decals-1",
       "sourceSheet": "terrazzo-decals",
-      "x": 729,
-      "y": 266,
+      "x": 779,
+      "y": 485,
       "width": 132,
       "height": 149
     },
     {
       "id": "terrazzo-decals-18",
       "sourceSheet": "terrazzo-decals",
-      "x": 861,
-      "y": 266,
+      "x": 0,
+      "y": 650,
       "width": 126,
       "height": 149
     },
     {
       "id": "terrazzo-decals-19",
       "sourceSheet": "terrazzo-decals",
-      "x": 0,
-      "y": 485,
+      "x": 126,
+      "y": 650,
       "width": 126,
       "height": 149
     },
     {
       "id": "terrazzo-decals-21",
       "sourceSheet": "terrazzo-decals",
-      "x": 126,
-      "y": 485,
+      "x": 252,
+      "y": 650,
       "width": 127,
       "height": 149
     },
     {
       "id": "terrazzo-decals-24",
       "sourceSheet": "terrazzo-decals",
-      "x": 253,
-      "y": 485,
+      "x": 379,
+      "y": 650,
       "width": 135,
       "height": 149
     },
     {
       "id": "terrazzo-decals-31",
       "sourceSheet": "terrazzo-decals",
-      "x": 388,
-      "y": 485,
+      "x": 514,
+      "y": 650,
       "width": 135,
       "height": 149
     },
     {
       "id": "terrazzo-decals-0",
       "sourceSheet": "terrazzo-decals",
-      "x": 523,
-      "y": 485,
+      "x": 649,
+      "y": 650,
       "width": 132,
       "height": 148
     },
     {
       "id": "terrazzo-decals-2",
       "sourceSheet": "terrazzo-decals",
-      "x": 655,
-      "y": 485,
+      "x": 781,
+      "y": 650,
       "width": 133,
       "height": 148
     },
     {
       "id": "terrazzo-decals-6",
       "sourceSheet": "terrazzo-decals",
-      "x": 788,
-      "y": 485,
+      "x": 0,
+      "y": 799,
       "width": 132,
       "height": 148
     },
     {
       "id": "terrazzo-decals-7",
       "sourceSheet": "terrazzo-decals",
-      "x": 0,
-      "y": 634,
+      "x": 132,
+      "y": 799,
       "width": 125,
       "height": 148
     },
     {
       "id": "terrazzo-decals-9",
       "sourceSheet": "terrazzo-decals",
-      "x": 125,
-      "y": 634,
+      "x": 257,
+      "y": 799,
       "width": 132,
       "height": 148
     },
     {
+      "id": "soft-plush-decals-13",
+      "sourceSheet": "soft-plush-decals",
+      "x": 389,
+      "y": 799,
+      "width": 169,
+      "height": 147
+    },
+    {
       "id": "terrazzo-decals-3",
       "sourceSheet": "terrazzo-decals",
-      "x": 257,
-      "y": 634,
+      "x": 558,
+      "y": 799,
       "width": 133,
       "height": 147
     },
     {
       "id": "terrazzo-decals-4",
       "sourceSheet": "terrazzo-decals",
-      "x": 390,
-      "y": 634,
+      "x": 691,
+      "y": 799,
       "width": 133,
       "height": 147
     },
     {
       "id": "terrazzo-decals-8",
       "sourceSheet": "terrazzo-decals",
-      "x": 523,
-      "y": 634,
+      "x": 824,
+      "y": 799,
       "width": 132,
       "height": 147
     },
     {
       "id": "terrazzo-decals-32",
       "sourceSheet": "terrazzo-decals",
-      "x": 655,
-      "y": 634,
+      "x": 0,
+      "y": 947,
       "width": 132,
       "height": 147
     },
     {
       "id": "terrazzo-decals-10",
       "sourceSheet": "terrazzo-decals",
-      "x": 787,
-      "y": 634,
+      "x": 132,
+      "y": 947,
       "width": 131,
       "height": 146
     },
     {
       "id": "terrazzo-decals-15",
       "sourceSheet": "terrazzo-decals",
-      "x": 0,
-      "y": 782,
+      "x": 263,
+      "y": 947,
       "width": 132,
       "height": 146
     },
     {
       "id": "terrazzo-decals-22",
       "sourceSheet": "terrazzo-decals",
-      "x": 132,
-      "y": 782,
+      "x": 395,
+      "y": 947,
       "width": 133,
       "height": 146
     },
     {
       "id": "terrazzo-decals-25",
       "sourceSheet": "terrazzo-decals",
-      "x": 265,
-      "y": 782,
+      "x": 528,
+      "y": 947,
       "width": 132,
       "height": 146
     },
     {
       "id": "terrazzo-decals-34",
       "sourceSheet": "terrazzo-decals",
-      "x": 397,
-      "y": 782,
+      "x": 660,
+      "y": 947,
       "width": 132,
       "height": 146
     },
     {
       "id": "terrazzo-decals-12",
       "sourceSheet": "terrazzo-decals",
-      "x": 529,
-      "y": 782,
+      "x": 792,
+      "y": 947,
       "width": 131,
       "height": 145
     },
     {
       "id": "terrazzo-decals-13",
       "sourceSheet": "terrazzo-decals",
-      "x": 660,
-      "y": 782,
+      "x": 0,
+      "y": 1094,
       "width": 133,
       "height": 145
     },
     {
       "id": "terrazzo-decals-14",
       "sourceSheet": "terrazzo-decals",
-      "x": 793,
-      "y": 782,
+      "x": 133,
+      "y": 1094,
       "width": 132,
       "height": 145
     },
     {
       "id": "terrazzo-decals-16",
       "sourceSheet": "terrazzo-decals",
-      "x": 0,
-      "y": 928,
+      "x": 265,
+      "y": 1094,
       "width": 131,
       "height": 145
     },
     {
       "id": "terrazzo-decals-26",
       "sourceSheet": "terrazzo-decals",
-      "x": 131,
-      "y": 928,
+      "x": 396,
+      "y": 1094,
       "width": 132,
       "height": 145
     },
     {
       "id": "terrazzo-decals-11",
       "sourceSheet": "terrazzo-decals",
-      "x": 263,
-      "y": 928,
+      "x": 528,
+      "y": 1094,
       "width": 123,
       "height": 139
     },
     {
       "id": "terrazzo-decals-33",
       "sourceSheet": "terrazzo-decals",
-      "x": 386,
-      "y": 928,
+      "x": 651,
+      "y": 1094,
       "width": 65,
       "height": 139
     },
     {
       "id": "terrazzo-decals-36",
       "sourceSheet": "terrazzo-decals",
-      "x": 451,
-      "y": 928,
+      "x": 716,
+      "y": 1094,
       "width": 134,
       "height": 139
     },
     {
       "id": "terrazzo-decals-5",
       "sourceSheet": "terrazzo-decals",
-      "x": 585,
-      "y": 928,
+      "x": 850,
+      "y": 1094,
       "width": 124,
       "height": 138
     },
     {
       "id": "terrazzo-decals-35",
       "sourceSheet": "terrazzo-decals",
-      "x": 709,
-      "y": 928,
+      "x": 0,
+      "y": 1239,
       "width": 64,
       "height": 138
     },
     {
       "id": "terrazzo-decals-23",
       "sourceSheet": "terrazzo-decals",
-      "x": 773,
-      "y": 928,
+      "x": 64,
+      "y": 1239,
       "width": 131,
       "height": 136
     },
     {
       "id": "terrazzo-decals-27",
       "sourceSheet": "terrazzo-decals",
-      "x": 0,
-      "y": 1073,
+      "x": 195,
+      "y": 1239,
       "width": 123,
       "height": 136
     },
     {
       "id": "terrazzo-decals-28",
       "sourceSheet": "terrazzo-decals",
-      "x": 123,
-      "y": 1073,
+      "x": 318,
+      "y": 1239,
       "width": 123,
       "height": 136
     },
     {
       "id": "terrazzo-decals-17",
       "sourceSheet": "terrazzo-decals",
-      "x": 246,
-      "y": 1073,
+      "x": 441,
+      "y": 1239,
       "width": 132,
       "height": 133
     },
     {
       "id": "terrazzo-decals-29",
       "sourceSheet": "terrazzo-decals",
-      "x": 378,
-      "y": 1073,
+      "x": 573,
+      "y": 1239,
       "width": 132,
       "height": 131
     },
     {
+      "id": "soft-plush-decals-3",
+      "sourceSheet": "soft-plush-decals",
+      "x": 705,
+      "y": 1239,
+      "width": 117,
+      "height": 118
+    },
+    {
+      "id": "soft-plush-decals-10",
+      "sourceSheet": "soft-plush-decals",
+      "x": 822,
+      "y": 1239,
+      "width": 93,
+      "height": 96
+    },
+    {
       "id": "constellation-decals-7",
       "sourceSheet": "constellation-decals",
-      "x": 510,
-      "y": 1073,
+      "x": 915,
+      "y": 1239,
       "width": 80,
       "height": 81
     },
     {
       "id": "constellation-decals-46",
       "sourceSheet": "constellation-decals",
-      "x": 590,
-      "y": 1073,
+      "x": 0,
+      "y": 1377,
       "width": 81,
       "height": 81
     },
     {
       "id": "constellation-decals-20",
       "sourceSheet": "constellation-decals",
-      "x": 671,
-      "y": 1073,
+      "x": 81,
+      "y": 1377,
       "width": 81,
       "height": 80
     },
     {
       "id": "constellation-decals-33",
       "sourceSheet": "constellation-decals",
-      "x": 752,
-      "y": 1073,
+      "x": 162,
+      "y": 1377,
       "width": 59,
       "height": 79
     },
     {
       "id": "constellation-decals-37",
       "sourceSheet": "constellation-decals",
-      "x": 811,
-      "y": 1073,
+      "x": 221,
+      "y": 1377,
       "width": 167,
       "height": 79
     },
     {
       "id": "constellation-decals-41",
       "sourceSheet": "constellation-decals",
-      "x": 0,
-      "y": 1209,
+      "x": 388,
+      "y": 1377,
       "width": 80,
       "height": 73
     },
     {
       "id": "constellation-decals-40",
       "sourceSheet": "constellation-decals",
-      "x": 80,
-      "y": 1209,
+      "x": 468,
+      "y": 1377,
       "width": 72,
       "height": 72
     },
     {
       "id": "constellation-decals-24",
       "sourceSheet": "constellation-decals",
-      "x": 152,
-      "y": 1209,
+      "x": 540,
+      "y": 1377,
       "width": 70,
       "height": 71
     },
     {
       "id": "constellation-decals-30",
       "sourceSheet": "constellation-decals",
-      "x": 222,
-      "y": 1209,
+      "x": 610,
+      "y": 1377,
       "width": 69,
       "height": 71
     },
     {
       "id": "constellation-decals-44",
       "sourceSheet": "constellation-decals",
-      "x": 291,
-      "y": 1209,
+      "x": 679,
+      "y": 1377,
       "width": 72,
       "height": 70
     },
     {
       "id": "constellation-decals-50",
       "sourceSheet": "constellation-decals",
-      "x": 363,
-      "y": 1209,
+      "x": 751,
+      "y": 1377,
       "width": 55,
       "height": 68
     },
     {
       "id": "constellation-decals-38",
       "sourceSheet": "constellation-decals",
-      "x": 418,
-      "y": 1209,
+      "x": 806,
+      "y": 1377,
       "width": 78,
       "height": 61
     },
     {
+      "id": "soft-plush-decals-11",
+      "sourceSheet": "soft-plush-decals",
+      "x": 884,
+      "y": 1377,
+      "width": 56,
+      "height": 57
+    },
+    {
+      "id": "soft-plush-decals-2",
+      "sourceSheet": "soft-plush-decals",
+      "x": 940,
+      "y": 1377,
+      "width": 55,
+      "height": 56
+    },
+    {
+      "id": "soft-plush-decals-6",
+      "sourceSheet": "soft-plush-decals",
+      "x": 0,
+      "y": 1458,
+      "width": 56,
+      "height": 56
+    },
+    {
+      "id": "soft-plush-decals-5",
+      "sourceSheet": "soft-plush-decals",
+      "x": 56,
+      "y": 1458,
+      "width": 55,
+      "height": 55
+    },
+    {
+      "id": "soft-plush-decals-9",
+      "sourceSheet": "soft-plush-decals",
+      "x": 111,
+      "y": 1458,
+      "width": 55,
+      "height": 55
+    },
+    {
+      "id": "soft-plush-decals-14",
+      "sourceSheet": "soft-plush-decals",
+      "x": 166,
+      "y": 1458,
+      "width": 55,
+      "height": 55
+    },
+    {
       "id": "circuit-garden-decals-15",
       "sourceSheet": "circuit-garden-decals",
-      "x": 496,
-      "y": 1209,
+      "x": 221,
+      "y": 1458,
       "width": 59,
       "height": 55
     },
     {
+      "id": "soft-plush-decals-12",
+      "sourceSheet": "soft-plush-decals",
+      "x": 280,
+      "y": 1458,
+      "width": 55,
+      "height": 54
+    },
+    {
       "id": "circuit-garden-decals-4",
       "sourceSheet": "circuit-garden-decals",
-      "x": 555,
-      "y": 1209,
+      "x": 335,
+      "y": 1458,
       "width": 32,
       "height": 54
     },
     {
       "id": "constellation-decals-23",
       "sourceSheet": "constellation-decals",
-      "x": 587,
-      "y": 1209,
+      "x": 367,
+      "y": 1458,
       "width": 54,
       "height": 53
     },
     {
       "id": "constellation-decals-25",
       "sourceSheet": "constellation-decals",
-      "x": 641,
-      "y": 1209,
+      "x": 421,
+      "y": 1458,
       "width": 54,
       "height": 51
     },
     {
       "id": "constellation-decals-31",
       "sourceSheet": "constellation-decals",
-      "x": 695,
-      "y": 1209,
+      "x": 475,
+      "y": 1458,
       "width": 51,
       "height": 50
     },
     {
       "id": "constellation-decals-32",
       "sourceSheet": "constellation-decals",
-      "x": 746,
-      "y": 1209,
+      "x": 526,
+      "y": 1458,
       "width": 51,
       "height": 50
     },
     {
       "id": "constellation-decals-42",
       "sourceSheet": "constellation-decals",
-      "x": 797,
-      "y": 1209,
+      "x": 577,
+      "y": 1458,
       "width": 50,
       "height": 50
     },
     {
       "id": "constellation-decals-18",
       "sourceSheet": "constellation-decals",
-      "x": 847,
-      "y": 1209,
+      "x": 627,
+      "y": 1458,
       "width": 55,
       "height": 49
     },
     {
       "id": "constellation-decals-8",
       "sourceSheet": "constellation-decals",
-      "x": 902,
-      "y": 1209,
+      "x": 682,
+      "y": 1458,
       "width": 49,
       "height": 47
     },
     {
       "id": "constellation-decals-22",
       "sourceSheet": "constellation-decals",
-      "x": 951,
-      "y": 1209,
+      "x": 731,
+      "y": 1458,
       "width": 48,
       "height": 47
     },
     {
       "id": "constellation-decals-26",
       "sourceSheet": "constellation-decals",
-      "x": 0,
-      "y": 1282,
+      "x": 779,
+      "y": 1458,
       "width": 46,
       "height": 47
     },
     {
       "id": "constellation-decals-2",
       "sourceSheet": "constellation-decals",
-      "x": 46,
-      "y": 1282,
+      "x": 825,
+      "y": 1458,
       "width": 46,
       "height": 44
     },
     {
       "id": "constellation-decals-6",
       "sourceSheet": "constellation-decals",
-      "x": 92,
-      "y": 1282,
+      "x": 871,
+      "y": 1458,
       "width": 47,
       "height": 44
     },
     {
       "id": "constellation-decals-12",
       "sourceSheet": "constellation-decals",
-      "x": 139,
-      "y": 1282,
+      "x": 918,
+      "y": 1458,
       "width": 50,
       "height": 44
     },
     {
       "id": "constellation-decals-54",
       "sourceSheet": "constellation-decals",
-      "x": 189,
-      "y": 1282,
+      "x": 968,
+      "y": 1458,
       "width": 44,
       "height": 42
     },
     {
       "id": "constellation-decals-43",
       "sourceSheet": "constellation-decals",
-      "x": 233,
-      "y": 1282,
+      "x": 0,
+      "y": 1514,
       "width": 39,
       "height": 41
     },
     {
       "id": "constellation-decals-48",
       "sourceSheet": "constellation-decals",
-      "x": 272,
-      "y": 1282,
+      "x": 39,
+      "y": 1514,
       "width": 43,
       "height": 41
     },
     {
       "id": "constellation-decals-53",
       "sourceSheet": "constellation-decals",
-      "x": 315,
-      "y": 1282,
+      "x": 82,
+      "y": 1514,
       "width": 44,
       "height": 40
     },
     {
       "id": "circuit-garden-decals-6",
       "sourceSheet": "circuit-garden-decals",
-      "x": 359,
-      "y": 1282,
+      "x": 126,
+      "y": 1514,
       "width": 33,
       "height": 40
     },
     {
       "id": "circuit-garden-decals-2",
       "sourceSheet": "circuit-garden-decals",
-      "x": 392,
-      "y": 1282,
+      "x": 159,
+      "y": 1514,
       "width": 33,
       "height": 39
     },
     {
       "id": "constellation-decals-1",
       "sourceSheet": "constellation-decals",
-      "x": 425,
-      "y": 1282,
+      "x": 192,
+      "y": 1514,
       "width": 39,
       "height": 38
     },
     {
       "id": "constellation-decals-47",
       "sourceSheet": "constellation-decals",
-      "x": 464,
-      "y": 1282,
+      "x": 231,
+      "y": 1514,
       "width": 41,
       "height": 38
     },
     {
       "id": "circuit-garden-decals-17",
       "sourceSheet": "circuit-garden-decals",
-      "x": 505,
-      "y": 1282,
+      "x": 272,
+      "y": 1514,
       "width": 264,
       "height": 37
     },
     {
       "id": "constellation-decals-4",
       "sourceSheet": "constellation-decals",
-      "x": 769,
-      "y": 1282,
+      "x": 536,
+      "y": 1514,
       "width": 35,
       "height": 35
     },
     {
       "id": "constellation-decals-19",
       "sourceSheet": "constellation-decals",
-      "x": 804,
-      "y": 1282,
+      "x": 571,
+      "y": 1514,
       "width": 35,
       "height": 35
     },
     {
       "id": "circuit-garden-decals-0",
       "sourceSheet": "circuit-garden-decals",
-      "x": 839,
-      "y": 1282,
+      "x": 606,
+      "y": 1514,
       "width": 32,
       "height": 35
     },
     {
       "id": "constellation-decals-51",
       "sourceSheet": "constellation-decals",
-      "x": 871,
-      "y": 1282,
+      "x": 638,
+      "y": 1514,
       "width": 35,
       "height": 34
     },
     {
       "id": "constellation-decals-39",
       "sourceSheet": "constellation-decals",
-      "x": 906,
-      "y": 1282,
+      "x": 673,
+      "y": 1514,
       "width": 41,
       "height": 33
     },
     {
       "id": "circuit-garden-decals-3",
       "sourceSheet": "circuit-garden-decals",
-      "x": 947,
-      "y": 1282,
+      "x": 714,
+      "y": 1514,
       "width": 47,
       "height": 33
     },
     {
       "id": "circuit-garden-decals-12",
       "sourceSheet": "circuit-garden-decals",
-      "x": 0,
-      "y": 1329,
+      "x": 761,
+      "y": 1514,
       "width": 36,
       "height": 33
     },
     {
       "id": "constellation-decals-36",
       "sourceSheet": "constellation-decals",
-      "x": 36,
-      "y": 1329,
+      "x": 797,
+      "y": 1514,
       "width": 31,
       "height": 32
     },
     {
       "id": "constellation-decals-52",
       "sourceSheet": "constellation-decals",
-      "x": 67,
-      "y": 1329,
+      "x": 828,
+      "y": 1514,
       "width": 34,
       "height": 32
     },
     {
       "id": "circuit-garden-decals-14",
       "sourceSheet": "circuit-garden-decals",
-      "x": 101,
-      "y": 1329,
+      "x": 862,
+      "y": 1514,
       "width": 36,
       "height": 32
     },
     {
       "id": "circuit-garden-decals-10",
       "sourceSheet": "circuit-garden-decals",
-      "x": 137,
-      "y": 1329,
+      "x": 898,
+      "y": 1514,
       "width": 40,
       "height": 31
     },
     {
       "id": "constellation-decals-0",
       "sourceSheet": "constellation-decals",
-      "x": 177,
-      "y": 1329,
+      "x": 938,
+      "y": 1514,
       "width": 31,
       "height": 30
     },
     {
       "id": "constellation-decals-9",
       "sourceSheet": "constellation-decals",
-      "x": 208,
-      "y": 1329,
+      "x": 969,
+      "y": 1514,
       "width": 31,
       "height": 30
     },
     {
       "id": "constellation-decals-17",
       "sourceSheet": "constellation-decals",
-      "x": 239,
-      "y": 1329,
+      "x": 0,
+      "y": 1555,
       "width": 29,
       "height": 29
     },
     {
       "id": "constellation-decals-28",
       "sourceSheet": "constellation-decals",
-      "x": 268,
-      "y": 1329,
+      "x": 29,
+      "y": 1555,
       "width": 27,
       "height": 29
     },
     {
       "id": "constellation-decals-3",
       "sourceSheet": "constellation-decals",
-      "x": 295,
-      "y": 1329,
+      "x": 56,
+      "y": 1555,
       "width": 27,
       "height": 28
     },
     {
       "id": "circuit-garden-decals-13",
       "sourceSheet": "circuit-garden-decals",
-      "x": 322,
-      "y": 1329,
+      "x": 83,
+      "y": 1555,
       "width": 26,
       "height": 27
     },
     {
       "id": "constellation-decals-16",
       "sourceSheet": "constellation-decals",
-      "x": 348,
-      "y": 1329,
+      "x": 109,
+      "y": 1555,
       "width": 20,
       "height": 22
     },
     {
       "id": "constellation-decals-55",
       "sourceSheet": "constellation-decals",
-      "x": 368,
-      "y": 1329,
+      "x": 129,
+      "y": 1555,
       "width": 18,
       "height": 20
     },
     {
       "id": "constellation-decals-14",
       "sourceSheet": "constellation-decals",
-      "x": 386,
-      "y": 1329,
+      "x": 147,
+      "y": 1555,
       "width": 19,
       "height": 19
     },
     {
       "id": "constellation-decals-21",
       "sourceSheet": "constellation-decals",
-      "x": 405,
-      "y": 1329,
+      "x": 166,
+      "y": 1555,
       "width": 18,
       "height": 19
     },
     {
       "id": "constellation-decals-5",
       "sourceSheet": "constellation-decals",
-      "x": 423,
-      "y": 1329,
+      "x": 184,
+      "y": 1555,
       "width": 18,
       "height": 18
     },
     {
       "id": "constellation-decals-15",
       "sourceSheet": "constellation-decals",
-      "x": 441,
-      "y": 1329,
+      "x": 202,
+      "y": 1555,
       "width": 17,
       "height": 18
     },
     {
       "id": "constellation-decals-34",
       "sourceSheet": "constellation-decals",
-      "x": 458,
-      "y": 1329,
+      "x": 219,
+      "y": 1555,
       "width": 17,
       "height": 18
     },
     {
       "id": "constellation-decals-56",
       "sourceSheet": "constellation-decals",
-      "x": 475,
-      "y": 1329,
+      "x": 236,
+      "y": 1555,
       "width": 18,
       "height": 18
     },
     {
       "id": "constellation-decals-27",
       "sourceSheet": "constellation-decals",
-      "x": 493,
-      "y": 1329,
+      "x": 254,
+      "y": 1555,
       "width": 17,
       "height": 17
     },
     {
       "id": "constellation-decals-35",
       "sourceSheet": "constellation-decals",
-      "x": 510,
-      "y": 1329,
+      "x": 271,
+      "y": 1555,
       "width": 17,
       "height": 17
     },
     {
       "id": "constellation-decals-49",
       "sourceSheet": "constellation-decals",
-      "x": 527,
-      "y": 1329,
+      "x": 288,
+      "y": 1555,
       "width": 17,
       "height": 17
     },
     {
       "id": "constellation-decals-10",
       "sourceSheet": "constellation-decals",
-      "x": 544,
-      "y": 1329,
+      "x": 305,
+      "y": 1555,
       "width": 15,
       "height": 16
     },
     {
       "id": "constellation-decals-11",
       "sourceSheet": "constellation-decals",
-      "x": 559,
-      "y": 1329,
+      "x": 320,
+      "y": 1555,
       "width": 15,
       "height": 16
     },
     {
       "id": "constellation-decals-13",
       "sourceSheet": "constellation-decals",
-      "x": 574,
-      "y": 1329,
+      "x": 335,
+      "y": 1555,
       "width": 17,
       "height": 16
     },
     {
       "id": "constellation-decals-29",
       "sourceSheet": "constellation-decals",
-      "x": 591,
-      "y": 1329,
+      "x": 352,
+      "y": 1555,
       "width": 13,
       "height": 14
     },
     {
       "id": "constellation-decals-45",
       "sourceSheet": "constellation-decals",
-      "x": 604,
-      "y": 1329,
+      "x": 365,
+      "y": 1555,
       "width": 14,
       "height": 14
     },
     {
       "id": "circuit-garden-decals-16",
       "sourceSheet": "circuit-garden-decals",
-      "x": 618,
-      "y": 1329,
+      "x": 379,
+      "y": 1555,
       "width": 11,
       "height": 11
     }

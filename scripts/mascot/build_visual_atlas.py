@@ -44,6 +44,7 @@ DILATE_RADIUS = 3
 
 ATLAS_GROUPS = {
     "mascot-decal-atlas": [
+        "soft-plush-decals.png",
         "terrazzo-decals.png",
         "constellation-decals.png",
         "circuit-garden-decals.png",

@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { MascotEngine, MascotQuality } from "@/lib/mascot/types";
 import MascotSoundControl from "./MascotSoundControl";
-import StrumriseGate from "./StrumriseGate";
+// StrumriseGate kept on disk for reference; V2 primary entry is Enter Resonance.
+import EnterResonanceControl from "@/components/resonance-weaver/EnterResonanceControl";
 import styles from "./Mascot.module.css";
 
 const ProceduralMascotCanvas = dynamic(
@@ -75,7 +76,7 @@ export default function ProceduralMascotLoader({
       <div className={styles.soundControlFixed}>
         <MascotSoundControl engine={engine} />
       </div>
-      <StrumriseGate engine={engine} quality={quality} />
+      <EnterResonanceControl engine={engine} quality={quality} />
     </>
   );
 }

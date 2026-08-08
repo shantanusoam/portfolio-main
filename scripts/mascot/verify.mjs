@@ -33,7 +33,7 @@ const args = process.argv.slice(2);
 const fast = args.includes("--fast");
 
 const MASCOT_PATH_PATTERN =
-  /^(\.\/)?(lib\/mascot|components\/mascot|app\/motion-lab|tests\/mascot|tests\/e2e\/mascot)/;
+  /^(\.\/)?(lib\/mascot|components\/mascot|components\/resonance-weaver|app\/motion-lab|tests\/mascot|tests\/e2e\/mascot)/;
 
 function isMascotPath(p) {
   return MASCOT_PATH_PATTERN.test(p.replace(/\\/g, "/"));
@@ -142,6 +142,7 @@ if (existsSync(path.join(root, "node_modules", ".bin", "prettier"))) {
     "--check",
     "lib/mascot",
     "components/mascot",
+    "components/resonance-weaver",
     "app/motion-lab",
     "tests/mascot",
     "scripts/mascot",

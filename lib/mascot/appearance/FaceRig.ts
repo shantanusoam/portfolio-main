@@ -32,9 +32,9 @@ export interface FaceRigInput {
   aspectRatio?: number;
 }
 
-const DEFAULT_ASPECT_RATIO = 0.82;
-/** How far to bias the frame's anchor toward the frontmost head rib (0 = geometric centroid, 1 = nose tip). */
-const NOSE_BIAS = 0.35;
+const DEFAULT_ASPECT_RATIO = 0.9;
+/** Bias toward nose tip — keep low so the face sits in the bulbous head mass, not on the pin tip. */
+const NOSE_BIAS = 0.08;
 
 function degenerateFrame(input: FaceRigInput): FaceFrame {
   const forward = normalize(input.headingX, input.headingY);

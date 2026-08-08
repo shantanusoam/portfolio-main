@@ -90,16 +90,22 @@ export type MascotAction =
 
 /**
  * Body-local squash/stretch/tumble performance parameters — see the upgrade
- * spec's "SQUASH, STRETCH, AND TUMBLE". Computed once per frame in
- * `MascotRuntime.update()` (via `lib/mascot/appearance/BodyDeformation.ts`'s
- * `BodyDeformationController`) from existing behavior/velocity signals, then
- * applied when resolving rib/silhouette geometry — never mutates spine
- * joints directly, only how ribs/contour are drawn.
+ * spec's "SQUASH, STRETCH, AND TUMBLE" and V2 §8 CharacterDeformation.
+ * Field mapping from V2 CharacterDeformation:
+ *   scaleForward → longitudinalScale
+ *   scaleNormal  → lateralScale
+ *   headScaleX/Y → headSquash (derived squash amount)
+ *   tailStretch / finSpread / impactWave / rotation(tumbleRotation) — same names
+ *
+ * Computed once per frame in `MascotRuntime.update()` (via
+ * `BodyDeformationController`) from behavior/velocity/drag/collision/string
+ * signals, then applied when resolving rib/silhouette geometry — never
+ * mutates spine joints directly, only how ribs/contour are drawn.
  */
 export interface BodyDeformation {
-  /** 1 = neutral, >1 stretched along the spine (sprint), <1 compressed (impact). */
+  /** 1 = neutral, >1 stretched along the spine (sprint/drag), <1 compressed (impact). Alias: scaleForward. */
   longitudinalScale: number;
-  /** 1 = neutral, >1 widened (impact squash), <1 narrowed (stretch). */
+  /** 1 = neutral, >1 widened (impact squash), <1 narrowed (stretch). Alias: scaleNormal. */
   lateralScale: number;
   /** 0 = neutral, >0 head compresses/widens (impact reaction). */
   headSquash: number;
@@ -111,6 +117,47 @@ export interface BodyDeformation {
   impactWave: number;
   /** Bounded rotation offset (radians) for controlled tumble — never a constant spin. */
   tumbleRotation: number;
+}
+
+/**
+ * Velocity/interaction drivers for the facial acting matrix (V2 §5).
+ * Filled each frame by `MascotRuntime` from pose velocity, pointer drag,
+ * obstacle force, and string-contact impulses.
+ */
+export interface FacialMotionInput {
+  velocityX: number;
+  velocityY: number;
+  accelerationX: number;
+  accelerationY: number;
+
+  speed: number;
+  fallingSpeed: number;
+
+  dragTension: number;
+  collisionImpulse: number;
+  stringTension: number;
+
+  targetDirectionX: number;
+  targetDirectionY: number;
+}
+
+/**
+ * Continuous face pose produced by `FacialMotionMatrix` (V2 §5). Blended into
+ * `ExpressionVisualState` so eyes/mouth respond to motion, not only behavior timers.
+ */
+export interface FacialPose {
+  pupilX: number;
+  pupilY: number;
+
+  eyeScaleX: number;
+  eyeScaleY: number;
+
+  eyelid: number;
+  mouthOpen: number;
+  mouthCurve: number;
+
+  headLean: number;
+  cheekIntensity: number;
 }
 
 export type MascotExpression =
@@ -197,6 +244,25 @@ export interface MascotDebugSnapshot {
   rootPosition: Point;
   spinePoints: readonly Point[];
   timestamp: number;
+  /** 0..1 — hard-obstacle drag stretch (Phase 4). */
+  dragTension?: number;
+  /** 0..1 — string pull tension (Phase 5). */
+  stringTension?: number;
+  /** True when a slingshot release is latched awaiting consume. */
+  slingshotReady?: boolean;
+}
+
+/**
+ * V2 Phase 5 slingshot gate snapshot — see
+ * `lib/mascot/music/StringTensionGate.ts`. Transition choreography polls
+ * `consumeSlingshotTrigger()` rather than reading this every frame.
+ */
+export interface ResonanceGateState {
+  attachedToString: boolean;
+  pullTension: number;
+  releaseVelocity: number;
+  pointerReleased: boolean;
+  triggerCooldown: number;
 }
 
 export interface MascotEngineOptions {
@@ -263,9 +329,20 @@ export interface MascotEngine {
   setExpressionOverride(expression: MascotExpression | null): void;
   /** Dev/motion-lab only: forces specific squash/stretch/tumble fields instead of the computed ones; null (or omitted keys) resumes automatic behavior-driven deformation. */
   setDeformationOverride(deformation: Partial<BodyDeformation> | null): void;
+  /** 0..1 drag resistance stretch while pulling into hard UI (V2 Phase 4). */
+  getDragTension(): number;
+  /** 0..1 string pull tension while attached to a hero string (V2 Phase 5). */
+  getStringTension(): number;
+  /** Resonance / slingshot gate fields for transition choreography. */
+  getResonanceGateState(): ResonanceGateState;
+  /**
+   * Returns true once when a high-tension string release armed the
+   * slingshot — clears the latch. Does not start fracture itself.
+   */
+  consumeSlingshotTrigger(): boolean;
 }
 
-export type ObstacleMode = "hard" | "soft" | "interest";
+export type ObstacleMode = "hard" | "soft" | "interest" | "perch";
 
 export interface MascotObstacle {
   id: string;
@@ -280,6 +357,8 @@ export interface MascotObstacle {
   padding: number;
   influence: number;
   priority: number;
+  /** Value of `data-mascot-interest` when mode is interest (e.g. "hero", "project"). */
+  interestTag?: string;
 }
 
 export type WanderPathKind =

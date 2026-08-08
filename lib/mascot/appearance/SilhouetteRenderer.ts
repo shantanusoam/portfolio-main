@@ -8,6 +8,7 @@ import type {
 } from "../types";
 import type { AppearanceLayerToggles } from "./AppearanceConfig";
 import { buildBodyContourPoints, type BodyContourPoints } from "./BodyContour";
+import { pathFromContour } from "./ContourPath";
 import type { ExpressionVisualState } from "./ExpressionController";
 import {
   computeCheekAnchors,
@@ -48,14 +49,18 @@ export interface AppearanceRenderInput {
   patternRecipe: PatternRecipeName;
   /** Optional — null/undefined/not-yet-loaded all safely fall back to the procedural print. */
   generatedDecalAtlas?: GeneratedDecalAtlas | null;
+  /** Optional soft fabric overlay (velvet microtexture) — clipped to silhouette at low opacity. */
+  velvetMicrotexture?: CanvasImageSource | null;
 }
 
-const EYE_SPACING_FRACTION = 0.34;
-const EYE_FORWARD_FRACTION = 0.18;
-const MOUTH_FORWARD_FRACTION = 0.55;
-const CHEEK_OUTWARD_FRACTION = 0.12;
-/** Half-width (px) at a fin's root — modest by design ("Use 1-2 procedural joints each"), scaled against the ~26px body maxWidth. */
-const FIN_BASE_WIDTH = 3.4;
+const EYE_SPACING_FRACTION = 0.28;
+const EYE_FORWARD_FRACTION = 0.02;
+const MOUTH_FORWARD_FRACTION = 0.32;
+const CHEEK_OUTWARD_FRACTION = 0.1;
+/** Half-width (px) at a fin's root — soft ear lobes at the shoulders. */
+const FIN_BASE_WIDTH = 6.5;
+/** Soft velvet overlay opacity — V2 §9 / visual-rescue texture hierarchy (8–15%). */
+const VELVET_OVERLAY_OPACITY = 0.12;
 
 export function drawAppearance(
   ctx: CanvasRenderingContext2D,
@@ -76,6 +81,9 @@ export function drawAppearance(
     if (path) {
       ctx.save();
       ctx.clip(path);
+      if (input.velvetMicrotexture) {
+        drawVelvetOverlay(ctx, contour, input.velvetMicrotexture);
+      }
       drawProceduralPrint(
         ctx,
         input.patternMarks,
@@ -111,18 +119,6 @@ export function drawAppearance(
   }
 }
 
-function pathFromContour(contour: BodyContourPoints): Path2D | null {
-  if (typeof Path2D === "undefined" || contour.left.length < 2) return null;
-  const path = new Path2D();
-  path.moveTo(contour.left[0].x, contour.left[0].y);
-  for (let i = 1; i < contour.left.length; i += 1)
-    path.lineTo(contour.left[i].x, contour.left[i].y);
-  for (let i = contour.right.length - 1; i >= 0; i -= 1)
-    path.lineTo(contour.right[i].x, contour.right[i].y);
-  path.closePath();
-  return path;
-}
-
 function drawSilhouetteFill(
   ctx: CanvasRenderingContext2D,
   contour: BodyContourPoints,
@@ -135,12 +131,13 @@ function drawSilhouetteFill(
   // Internal base gradient (pipeline step 3): highlight along the dorsal
   // rail, base colour toward the ventral rail — adds dimensionality to the
   // flat fill without a per-frame blur.
-  const shoulderIndex = Math.floor((contour.left.length - 1) * 0.32);
+  const shoulderIndex = Math.floor((contour.left.length - 1) * 0.28);
   const from = contour.left[shoulderIndex] ?? contour.left[0];
   const to = contour.right[shoulderIndex] ?? contour.right[0];
   const gradient = ctx.createLinearGradient(from.x, from.y, to.x, to.y);
   gradient.addColorStop(0, palette.highlight);
-  gradient.addColorStop(1, palette.base);
+  gradient.addColorStop(0.55, palette.base);
+  gradient.addColorStop(1, palette.shadow);
 
   ctx.save();
   ctx.globalAlpha = clamp(opacity, 0, 1);
@@ -149,13 +146,42 @@ function drawSilhouetteFill(
   ctx.restore();
 }
 
+/** Subtle tileable fabric grain clipped to the body — never world-space pasted. */
+function drawVelvetOverlay(
+  ctx: CanvasRenderingContext2D,
+  contour: BodyContourPoints,
+  texture: CanvasImageSource,
+): void {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const rail of [contour.left, contour.right]) {
+    for (const p of rail) {
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
+    }
+  }
+  if (!Number.isFinite(minX) || maxX <= minX || maxY <= minY) return;
+
+  ctx.save();
+  ctx.globalAlpha = VELVET_OVERLAY_OPACITY;
+  ctx.globalCompositeOperation = "soft-light";
+  // Reason: cover the AABB with a few tiled draws — microtexture is seamless.
+  const tile = 128;
+  for (let x = minX - tile; x < maxX + tile; x += tile) {
+    for (let y = minY - tile; y < maxY + tile; y += tile) {
+      ctx.drawImage(texture, x, y, tile, tile);
+    }
+  }
+  ctx.restore();
+}
+
 /**
- * Draws one side fin/ear as a tapered teardrop from its Verlet chain's root
- * to tip — the chain's existing secondary-motion physics (gravity, drag,
- * and the behavior-driven spread bias `MascotRuntime` now applies to the
- * root pin) is the only thing that ever moves it; this function only
- * renders whatever shape it's already settled into. No FABRIK, no new
- * solver — see MASCOT_VISUAL_RESCUE spec "FIN / EAR DESIGN".
+ * Draws one side fin/ear as a soft rounded lobe from its Verlet chain —
+ * rooted at the shoulders (not the nose), so it never reads as fangs.
  */
 function drawFin(
   ctx: CanvasRenderingContext2D,
@@ -170,29 +196,41 @@ function drawFin(
     points[Math.floor(points.length / 2)] ?? points[points.length - 1];
   const tip = points[points.length - 1];
 
-  const tangentX = mid.x - root.x;
-  const tangentY = mid.y - root.y;
+  const tangentX = tip.x - root.x;
+  const tangentY = tip.y - root.y;
   const tangentLength = Math.max(0.0001, Math.hypot(tangentX, tangentY));
+  // Cap fin length so secondary motion can't stretch ears into spikes.
+  const maxLen = baseWidth * 3.2;
+  const lenScale = Math.min(1, maxLen / tangentLength);
+  const tipX = root.x + tangentX * lenScale;
+  const tipY = root.y + tangentY * lenScale;
+  const midX = root.x + (mid.x - root.x) * lenScale;
+  const midY = root.y + (mid.y - root.y) * lenScale;
+
   const normalX = (-tangentY / tangentLength) * mirror;
   const normalY = (tangentX / tangentLength) * mirror;
 
   const rootOuterX = root.x + normalX * baseWidth;
   const rootOuterY = root.y + normalY * baseWidth;
-  const rootInnerX = root.x - normalX * baseWidth * 0.4;
-  const rootInnerY = root.y - normalY * baseWidth * 0.4;
-  const midOuterX = mid.x + normalX * baseWidth * 0.5;
-  const midOuterY = mid.y + normalY * baseWidth * 0.5;
+  const rootInnerX = root.x - normalX * baseWidth * 0.45;
+  const rootInnerY = root.y - normalY * baseWidth * 0.45;
+  const midOuterX = midX + normalX * baseWidth * 0.7;
+  const midOuterY = midY + normalY * baseWidth * 0.7;
+  const midInnerX = midX - normalX * baseWidth * 0.2;
+  const midInnerY = midY - normalY * baseWidth * 0.2;
+  const tipPadX = tipX - (tangentX / tangentLength) * baseWidth * 0.35;
+  const tipPadY = tipY - (tangentY / tangentLength) * baseWidth * 0.35;
 
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(rootInnerX, rootInnerY);
-  ctx.quadraticCurveTo(mid.x, mid.y, tip.x, tip.y);
+  ctx.quadraticCurveTo(midInnerX, midInnerY, tipPadX, tipPadY);
   ctx.quadraticCurveTo(midOuterX, midOuterY, rootOuterX, rootOuterY);
   ctx.closePath();
   ctx.fillStyle = palette.base;
   ctx.fill();
   ctx.strokeStyle = palette.rim;
-  ctx.globalAlpha = 0.75;
+  ctx.globalAlpha = 0.4;
   ctx.lineWidth = 1;
   ctx.stroke();
   ctx.restore();
@@ -205,45 +243,78 @@ function drawFace(
   palette: AppearancePalette,
   glowMultiplier: number,
 ): void {
+  // Apply velocity-driven head lean in local face space (V2 FacialPose.headLean).
+  const lean = clamp(expression.headLean, -1, 1) * 0.22;
+  const leaned: FaceFrame = {
+    ...frame,
+    rotation: frame.rotation + lean,
+    normalX: frame.normalX * Math.cos(lean) - frame.forwardX * Math.sin(lean),
+    normalY: frame.normalY * Math.cos(lean) - frame.forwardY * Math.sin(lean),
+  };
+
   const eyes = computeEyeAnchors(
-    frame,
+    leaned,
     EYE_SPACING_FRACTION,
     EYE_FORWARD_FRACTION,
   );
-  const mouth = computeMouthAnchor(frame, MOUTH_FORWARD_FRACTION);
-  const eyeRadius = Math.max(1.4, frame.width * 0.16);
+  const mouth = computeMouthAnchor(leaned, MOUTH_FORWARD_FRACTION);
+  // Larger eyes so the face reads in still frames (visual rescue gate).
+  const eyeRadius = Math.max(2.4, leaned.width * 0.22);
 
-  // Luminous core, anchored to the face frame — the old lone white circle's
-  // role, now the face's glow rather than the whole face (skill:
-  // "drawCore becomes the eye/face anchor, not the whole face").
-  if (expression.glowIntensity > 0) {
-    ctx.save();
-    ctx.globalAlpha = clamp(
-      expression.glowIntensity * glowMultiplier * 0.4,
-      0,
-      1,
-    );
-    ctx.fillStyle = palette.highlight;
-    ctx.beginPath();
-    ctx.arc(
-      frame.centerX,
-      frame.centerY,
-      eyeRadius * 2.6 * expression.coreScale,
-      0,
-      Math.PI * 2,
-    );
-    ctx.fill();
-    ctx.restore();
-  }
+  // Embedded resonance core — small torso/head glow, never a floating white
+  // orb that replaces the face (V2 §7 / §3 Phase 3).
+  drawResonanceCore(
+    ctx,
+    leaned,
+    expression,
+    palette,
+    glowMultiplier,
+    eyeRadius,
+  );
 
   if (expression.cheekIntensity > 0.02) {
-    drawCheeks(ctx, frame, eyes, eyeRadius, expression.cheekIntensity, palette);
+    drawCheeks(
+      ctx,
+      leaned,
+      eyes,
+      eyeRadius,
+      expression.cheekIntensity,
+      palette,
+    );
   }
 
-  drawEye(ctx, eyes.left, eyeRadius, expression, palette, frame, 1);
-  drawEye(ctx, eyes.right, eyeRadius, expression, palette, frame, -1);
+  drawEye(ctx, eyes.left, eyeRadius, expression, palette, leaned, 1);
+  drawEye(ctx, eyes.right, eyeRadius, expression, palette, leaned, -1);
 
-  drawMouth(ctx, mouth, frame, expression, palette);
+  drawMouth(ctx, mouth, leaned, expression, palette);
+}
+
+function drawResonanceCore(
+  ctx: CanvasRenderingContext2D,
+  frame: FaceFrame,
+  expression: ExpressionVisualState,
+  palette: AppearancePalette,
+  glowMultiplier: number,
+  eyeRadius: number,
+): void {
+  if (expression.glowIntensity <= 0.02) return;
+
+  // Sit the core slightly behind the eye line (toward torso along -forward).
+  const coreX = frame.centerX - frame.forwardX * frame.height * 0.22;
+  const coreY = frame.centerY - frame.forwardY * frame.height * 0.22;
+  const radius = eyeRadius * 0.75 * expression.coreScale;
+
+  ctx.save();
+  ctx.globalAlpha = clamp(
+    expression.glowIntensity * glowMultiplier * 0.18,
+    0,
+    0.35,
+  );
+  ctx.fillStyle = palette.highlight;
+  ctx.beginPath();
+  ctx.arc(coreX, coreY, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawEye(
@@ -256,20 +327,21 @@ function drawEye(
   side: 1 | -1,
 ): void {
   const openness = clamp(expression.eyeOpenness, 0.04, 1);
+  const scaleX = clamp(expression.eyeScaleX ?? 1, 0.35, 1.6);
 
   ctx.save();
   ctx.translate(anchor.x, anchor.y);
   ctx.rotate(frame.rotation - Math.PI / 2);
   ctx.fillStyle = palette.face;
   ctx.beginPath();
-  ctx.ellipse(0, 0, radius, radius * openness, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 0, radius * scaleX, radius * openness, 0, 0, Math.PI * 2);
   ctx.fill();
 
   if (openness > 0.15) {
     ctx.fillStyle = palette.shadow;
     ctx.beginPath();
     ctx.arc(
-      expression.pupilOffsetX * radius,
+      expression.pupilOffsetX * radius * scaleX,
       expression.pupilOffsetY * radius * openness,
       radius * 0.42 * openness,
       0,
@@ -325,29 +397,43 @@ function drawMouth(
   expression: ExpressionVisualState,
   palette: AppearancePalette,
 ): void {
-  const size = Math.max(1, frame.width * 0.12);
+  const size = Math.max(1.6, frame.width * 0.14);
+  const mouthOpen = clamp(expression.mouthOpen ?? 0, 0, 1);
+  const mouthCurve = clamp(expression.mouthCurve ?? 0, -1, 1);
 
   ctx.save();
   ctx.translate(mouth.x, mouth.y);
   ctx.rotate(frame.rotation - Math.PI / 2);
   ctx.strokeStyle = palette.shadow;
-  ctx.lineWidth = Math.max(0.6, size * 0.28);
+  ctx.fillStyle = palette.shadow;
+  ctx.lineWidth = Math.max(0.8, size * 0.22);
   ctx.lineCap = "round";
-  ctx.globalAlpha = 0.75;
+  ctx.globalAlpha = 0.7;
 
-  if (
-    expression.expression === "surprised" ||
-    expression.expression === "dizzy"
-  ) {
+  // Keep a soft smile/curve by default — wide open ellipses read as fangs/teeth
+  // at small sizes. Only gently open for strong mouthOpen.
+  const curve =
+    mouthCurve !== 0
+      ? mouthCurve
+      : expression.expression === "happy"
+        ? 0.7
+        : expression.browTilt >= 0
+          ? 0.25
+          : -0.2;
+
+  if (mouthOpen > 0.55) {
+    const rx = size * (0.4 + mouthOpen * 0.2);
+    const ry = size * (0.12 + mouthOpen * 0.22);
     ctx.beginPath();
-    ctx.arc(0, 0, size * 0.45, 0, Math.PI * 2);
+    ctx.ellipse(0, size * 0.08, rx, ry, 0, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.45;
+    ctx.fill();
+    ctx.globalAlpha = 0.75;
     ctx.stroke();
   } else {
-    const curve =
-      expression.browTilt >= 0 || expression.expression === "happy" ? 1 : -0.4;
     ctx.beginPath();
-    ctx.moveTo(-size * 0.6, 0);
-    ctx.quadraticCurveTo(0, curve * size * 0.5, size * 0.6, 0);
+    ctx.moveTo(-size * 0.55, 0);
+    ctx.quadraticCurveTo(0, curve * size * 0.5, size * 0.55, 0);
     ctx.stroke();
   }
 

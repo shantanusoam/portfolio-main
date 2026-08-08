@@ -2,13 +2,15 @@ import type { MascotObstacle, ObstacleMode } from "../types";
 import { SpatialGrid } from "./SpatialGrid";
 
 /**
- * Caches rectangles for every `[data-mascot-obstacle]` / `[data-mascot-interest]`
- * element. Measurement (`getBoundingClientRect`) only ever happens inside
- * `refresh()`, which runs on mount, resize, a throttled scroll tick, and
- * explicit invalidation — never inside the animation loop.
+ * Caches rectangles for every `[data-mascot-obstacle]` /
+ * `[data-mascot-interest]` / `[data-mascot-perch]` element. Measurement
+ * (`getBoundingClientRect`) only ever happens inside `refresh()`, which
+ * runs on mount, resize, a throttled scroll tick, and explicit
+ * invalidation — never inside the animation loop.
  */
 
-const MODE_SELECTOR = "[data-mascot-obstacle], [data-mascot-interest]";
+const MODE_SELECTOR =
+  "[data-mascot-obstacle], [data-mascot-interest], [data-mascot-perch]";
 
 /**
  * Dispatch this on `window` after a section opens/closes or otherwise
@@ -32,7 +34,15 @@ export function resolveObstacleMode(element: {
   hasAttribute(name: string): boolean;
 }): ObstacleMode | null {
   const obstacleAttr = element.getAttribute("data-mascot-obstacle");
-  if (obstacleAttr === "hard" || obstacleAttr === "soft") return obstacleAttr;
+  if (
+    obstacleAttr === "hard" ||
+    obstacleAttr === "soft" ||
+    obstacleAttr === "perch"
+  ) {
+    return obstacleAttr;
+  }
+  // Explicit perch markup (decorative bars) — never treated as hard UI.
+  if (element.hasAttribute("data-mascot-perch")) return "perch";
   if (element.hasAttribute("data-mascot-interest")) return "interest";
   return null;
 }
@@ -42,9 +52,11 @@ export interface DomObstacleRegistryOptions {
   hardPadding?: number;
   softPadding?: number;
   interestPadding?: number;
+  perchPadding?: number;
   hardInfluence?: number;
   softInfluence?: number;
   interestInfluence?: number;
+  perchInfluence?: number;
   gridCellSize?: number;
   scrollThrottleMs?: number;
 }
@@ -54,9 +66,11 @@ interface ResolvedOptions {
   hardPadding: number;
   softPadding: number;
   interestPadding: number;
+  perchPadding: number;
   hardInfluence: number;
   softInfluence: number;
   interestInfluence: number;
+  perchInfluence: number;
   gridCellSize: number;
   scrollThrottleMs: number;
 }
@@ -77,9 +91,13 @@ export class DomObstacleRegistry {
       hardPadding: options.hardPadding ?? 12,
       softPadding: options.softPadding ?? 6,
       interestPadding: options.interestPadding ?? 24,
+      perchPadding: options.perchPadding ?? 4,
       hardInfluence: options.hardInfluence ?? 90,
       softInfluence: options.softInfluence ?? 50,
       interestInfluence: options.interestInfluence ?? 140,
+      // Reason: perch is an attractor surface, not a repulsor — keep
+      // influence tiny so steering does not fight landing.
+      perchInfluence: options.perchInfluence ?? 8,
       gridCellSize: options.gridCellSize ?? 200,
       scrollThrottleMs: options.scrollThrottleMs ?? 120,
     };
@@ -170,13 +188,22 @@ export class DomObstacleRegistry {
           ? this.options.hardPadding
           : mode === "soft"
             ? this.options.softPadding
-            : this.options.interestPadding;
+            : mode === "perch"
+              ? this.options.perchPadding
+              : this.options.interestPadding;
       const influence =
         mode === "hard"
           ? this.options.hardInfluence
           : mode === "soft"
             ? this.options.softInfluence
-            : this.options.interestInfluence;
+            : mode === "perch"
+              ? this.options.perchInfluence
+              : this.options.interestInfluence;
+
+      const interestTag =
+        mode === "interest"
+          ? element.getAttribute("data-mascot-interest") ?? undefined
+          : undefined;
 
       next.set(id, {
         id,
@@ -190,7 +217,10 @@ export class DomObstacleRegistry {
         centerY: rect.top + rect.height / 2,
         padding,
         influence,
-        priority: mode === "hard" ? 2 : mode === "soft" ? 1 : 0,
+        // Perch is below soft so hard/soft steering still wins nearby.
+        priority:
+          mode === "hard" ? 2 : mode === "soft" ? 1 : mode === "perch" ? 0 : 0,
+        interestTag,
       });
 
       this.resizeObserver?.observe(element);

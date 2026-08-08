@@ -25,9 +25,10 @@ export const MASCOT_CONFIG = {
   pointerIdleThresholdSeconds: 2.5,
 
   interest: {
-    cooldownSeconds: 14,
+    // Slightly snappier so hero inspect feels present without becoming constant.
+    cooldownSeconds: 10,
     minRevisitGap: 2,
-    approachDistance: 70,
+    approachDistance: 56,
   },
 
   steering: {
@@ -37,12 +38,43 @@ export const MASCOT_CONFIG = {
     avoidTriggerForce: 90,
   },
 
+  /**
+   * V2 Phase 4 — sparse hero perch / slide / drag resistance.
+   * See `lib/mascot/interaction/HeroInteractionDirector.ts`.
+   */
+  heroInteraction: {
+    perchSnapDistance: 36,
+    perchSurfaceSlack: 14,
+    perchEdgeInset: 18,
+    maxDragStretch: 90,
+    dragResistGain: 0.85,
+    reboundTensionThreshold: 0.35,
+    reboundGain: 55,
+    reboundDuration: 0.28,
+    preferredInterestTag: "hero",
+    preferredInterestWeight: 2.5,
+  },
+
+  /**
+   * V2 Phase 5 — string pull tension + slingshot-ready gate.
+   * See `lib/mascot/music/StringTensionGate.ts`.
+   */
+  stringTension: {
+    maxStringPull: 110,
+    attachBand: 28,
+    slingshotTensionThreshold: 0.82,
+    slingshotReleaseVelocity: 1.4,
+    triggerCooldownSeconds: 2.5,
+    tensionDecayPerSecond: 3.5,
+  },
+
   dotSkin: {
     coreDotRatio: 0.12,
     accentDotRatio: 0.18,
   },
 
-  normalSmoothing: 0.35,
+  // Reason: higher blend kills per-rib normal flicker that showed as silhouette facets.
+  normalSmoothing: 0.55,
 
   breathingRateRadiansPerSecond: 1.1,
   breathingAmount: 0.05,

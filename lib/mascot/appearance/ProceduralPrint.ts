@@ -14,7 +14,8 @@ import type { PatternMark, PatternRecipeName } from "./PatternRecipes";
  * (see docs/mascot/GENERATED_ASSET_MANIFEST.md) — available for a future preset.
  */
 const RECIPE_TO_GENERATED_SHEET: Partial<Record<PatternRecipeName, string>> = {
-  "terrazzo-confetti": "terrazzo-decals",
+  // Soft Signal Plush default — sparse fabric patches, not dense bubble terrazzo.
+  "terrazzo-confetti": "soft-plush-decals",
   "constellation-freckles": "constellation-decals",
 };
 

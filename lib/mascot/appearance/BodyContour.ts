@@ -30,14 +30,12 @@ export interface BodyContourConfig {
 }
 
 export const DEFAULT_BODY_CONTOUR_CONFIG: BodyContourConfig = {
-  // head 30% / torso 42% / tail 28% — matches
-  // MASCOT_VISUAL_RESCUE_AND_GENERATED_ASSET_SPRINT.md's target proportions
-  // exactly (was headEnd 0.3/torsoEnd 0.66, i.e. a 34%-long tail).
-  zones: { headEnd: 0.3, torsoEnd: 0.72 },
-  headBulge: 0.12,
-  tailTaperPower: 1.6,
-  tailVisualCap: 0.22,
-  minWidth: 0.6,
+  // Larger head mass + short blunt tail — kills the tadpole/whip read.
+  zones: { headEnd: 0.34, torsoEnd: 0.8 },
+  headBulge: 0.42,
+  tailTaperPower: 1.25,
+  tailVisualCap: 0.42,
+  minWidth: 2.2,
 };
 
 /**

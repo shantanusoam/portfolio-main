@@ -6,8 +6,9 @@ import type { PatternRecipeName } from "./PatternRecipes";
  * (upgrade spec: "Do not allow a preset to change engine architecture.
  * Presets are configuration recipes."). Colour hierarchy per palette: one
  * dominant body colour (`base`), one support (`highlight`), one accent pair
- * for print (`printPrimary`/`printSecondary`) — replacing the old build's
- * equal-density cyan/magenta noise.
+ * for print (`printPrimary`/`printSecondary`) — V2 §9 Soft Signal Plush
+ * hierarchy: deep-violet silhouette → warm-cream face → muted lavender
+ * texture → sparse cyan/magenta accents.
  */
 
 export interface AppearancePalette {
@@ -23,19 +24,26 @@ export interface AppearancePalette {
   rim: string;
 }
 
-/** "Night Candy" family from the upgrade spec's BASE BODY COLOUR section. */
-export const NIGHT_CANDY_PALETTE: AppearancePalette = {
-  name: "Night Candy",
+/**
+ * Preferred default material — Soft Signal Plush (V2 §9 / §36).
+ * Deep violet body, warm-cream face, muted lavender support, desaturated
+ * cyan/magenta print accents (coverage kept sparse via PatternRecipes budgets).
+ */
+export const SOFT_SIGNAL_PLUSH_PALETTE: AppearancePalette = {
+  name: "Soft Signal Plush",
   base: "#2f1f52",
-  highlight: "#c9b6ff",
-  printPrimary: "#38f2d8",
-  printSecondary: "#ff3ec9",
+  highlight: "#b8a4d9",
+  printPrimary: "#5ecfc0",
+  printSecondary: "#d478b0",
   face: "#fff8ec",
   shadow: "#140c2b",
-  rim: "#e7d9ff",
+  rim: "#d4c4ef",
 };
 
-/** "Deep Sea Toy" family. */
+/** @deprecated Alias kept for existing print tests — prefer SOFT_SIGNAL_PLUSH_PALETTE. */
+export const NIGHT_CANDY_PALETTE: AppearancePalette = SOFT_SIGNAL_PLUSH_PALETTE;
+
+/** "Deep Sea Toy" family — alternate lab preset. */
 export const DEEP_SEA_TOY_PALETTE: AppearancePalette = {
   name: "Deep Sea Toy",
   base: "#0d2b2e",
@@ -47,7 +55,7 @@ export const DEEP_SEA_TOY_PALETTE: AppearancePalette = {
   rim: "#9be8d3",
 };
 
-/** "Signal Plush" family. */
+/** "Signal Manta" family — cooler charcoal plush alternate. */
 export const SIGNAL_PLUSH_PALETTE: AppearancePalette = {
   name: "Signal Plush",
   base: "#2b2b31",
@@ -72,8 +80,9 @@ export const APPEARANCE_PRESETS: Record<
 > = {
   "cute-bean": {
     id: "cute-bean",
-    label: "Cute Bean",
-    palette: NIGHT_CANDY_PALETTE,
+    label: "Soft Signal Plush",
+    palette: SOFT_SIGNAL_PLUSH_PALETTE,
+    // Reason: soft-plush fabric patches via terrazzo placement budget (mapped in ProceduralPrint).
     patternRecipe: "terrazzo-confetti",
   },
   "signal-manta": {

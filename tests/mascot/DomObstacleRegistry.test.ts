@@ -31,6 +31,20 @@ test("resolves the interest mode from a bare attribute", () => {
   );
 });
 
+test("resolves perch from data-mascot-perch", () => {
+  assert.equal(
+    resolveObstacleMode(fakeElement({ "data-mascot-perch": "rail" })),
+    "perch",
+  );
+});
+
+test("resolves perch from data-mascot-obstacle=perch", () => {
+  assert.equal(
+    resolveObstacleMode(fakeElement({ "data-mascot-obstacle": "perch" })),
+    "perch",
+  );
+});
+
 test("an invalid data-mascot-obstacle value resolves to null", () => {
   assert.equal(
     resolveObstacleMode(fakeElement({ "data-mascot-obstacle": "medium" })),

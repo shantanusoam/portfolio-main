@@ -36,10 +36,11 @@ export interface PatternMark {
   layer: 0 | 1;
 }
 
+/** Sparse accent budgets — V2 §9 reduces saturated print coverage heavily. */
 const RECIPE_BUDGET: Record<PatternRecipeName, number> = {
-  "terrazzo-confetti": 34,
-  "constellation-freckles": 26,
-  "soft-stripes": 7,
+  "terrazzo-confetti": 12,
+  "constellation-freckles": 14,
+  "soft-stripes": 5,
 };
 
 /** Mark count budget per quality tier — "low" gets one flat print (a couple of large marks), reduced gets none. */
@@ -76,8 +77,8 @@ function generateTerrazzoConfetti(
       v: rng.range(-0.75, 0.75),
       seed: rng.next() * 1000,
       colorRole: rng.next() < 0.5 ? "primary" : "secondary",
-      along: rng.range(0.35, 0.9),
-      across: rng.range(0.12, 0.28),
+      along: rng.range(0.18, 0.42),
+      across: rng.range(0.08, 0.18),
       rotation: rng.angle(),
       shape: "blob",
       layer: 0,
