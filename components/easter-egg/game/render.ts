@@ -13,8 +13,8 @@ import type { Bullet, Enemy, GameModel, PowerKind, WeaponType } from "./types";
 import { clamp, randomBetween } from "./utils";
 
 const ENEMY_VISUAL_SCALE = 1.4;
-const PROJECTILE_VISUAL_SCALE = 1.4;
-const PICKUP_VISUAL_SCALE = 1.35;
+const PROJECTILE_VISUAL_SCALE = 1.6; // ponytail: increased from 1.4 (14% boost for better visibility)
+const PICKUP_VISUAL_SCALE = 1.46; // ponytail: increased from 1.35 (8% boost)
 
 export type RenderOptions = {
   reducedMotion: boolean;
@@ -425,12 +425,13 @@ function drawEnemy(context: CanvasRenderingContext2D, enemy: Enemy, model: GameM
   const pulse = 1 + Math.sin(model.elapsed * 5 + enemy.phase) * 0.035;
   const isBossTier = enemy.kind === "boss" || enemy.kind === "miniBoss";
   // ponytail: visual-only scale keeps the forgiving collision radii unchanged.
+  // Increased base multipliers: regular +12%, elite +10%, boss +8%.
   const width =
     (isBossTier
-      ? enemy.r * 2.7
+      ? enemy.r * 2.92
       : enemy.kind === "elite"
-        ? enemy.r * 2.3
-        : enemy.r * 2.15) * ENEMY_VISUAL_SCALE;
+        ? enemy.r * 2.53
+        : enemy.r * 2.41) * ENEMY_VISUAL_SCALE;
   const height = width;
   const rotation =
     enemy.kind === "popcorn" ? enemy.age * 0.8 : Math.sin(enemy.age * 2 + enemy.phase) * 0.07;
@@ -583,8 +584,8 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       assets.missileProjectileTopdown,
       bullet.x,
       bullet.y,
-      bullet.r * 3.2 * PROJECTILE_VISUAL_SCALE,
-      bullet.r * 3.2 * PROJECTILE_VISUAL_SCALE,
+      bullet.r * 3.65 * PROJECTILE_VISUAL_SCALE,
+      bullet.r * 3.65 * PROJECTILE_VISUAL_SCALE,
       topDownAngle,
     )
   ) {
@@ -597,8 +598,8 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       assets.laserBoltTopdown,
       bullet.x,
       bullet.y,
-      bullet.r * 2.2 * PROJECTILE_VISUAL_SCALE,
-      bullet.r * 5.2 * PROJECTILE_VISUAL_SCALE,
+      bullet.r * 2.51 * PROJECTILE_VISUAL_SCALE,
+      bullet.r * 5.94 * PROJECTILE_VISUAL_SCALE,
       topDownAngle,
     )
   ) {
@@ -611,8 +612,8 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
       assets.bombProjectileTopdown,
       bullet.x,
       bullet.y,
-      bullet.r * 3 * PROJECTILE_VISUAL_SCALE,
-      bullet.r * 3 * PROJECTILE_VISUAL_SCALE,
+      bullet.r * 3.43 * PROJECTILE_VISUAL_SCALE,
+      bullet.r * 3.43 * PROJECTILE_VISUAL_SCALE,
       topDownAngle,
     )
   ) {
@@ -622,7 +623,7 @@ function drawBullet(context: CanvasRenderingContext2D, bullet: Bullet, assets: G
   if (bullet.source === "enemy") {
     const sprite = bullet.kind === "feather" ? "feather" : bullet.kind === "meteor" ? "meteor" : "egg";
     const drawScale =
-      (bullet.kind === "meteor" ? 3.7 : 3.1) * PROJECTILE_VISUAL_SCALE;
+      (bullet.kind === "meteor" ? 4.23 : 3.54) * PROJECTILE_VISUAL_SCALE;
     if (drawAtlasSprite(context, assets.cluckerAtlas, CLUCKER_SPRITES, sprite, bullet.x, bullet.y, bullet.r * drawScale, bullet.r * drawScale, enemyAtlasAngle)) {
       return;
     }
@@ -705,8 +706,8 @@ function drawPlayerShip(
       "courierShip",
       player.x,
       player.y,
-      player.r * 5.35,
-      player.r * 4.75,
+      player.r * 5.83,
+      player.r * 5.18,
       SHIP_BASE_ROTATION + player.bankTilt,
       alpha,
     );
@@ -724,8 +725,8 @@ function drawPlayerShip(
     assets.playerCourierTopdown,
     player.x,
     player.y,
-    player.r * 4.6,
-    player.r * 4.6,
+    player.r * 5.01,
+    player.r * 5.01,
     player.bankTilt,
     alpha,
   );
@@ -933,14 +934,14 @@ export function renderGame(
   model.weaponPickups.forEach((pickup) => {
     const size =
       pickup.r *
-      (3.4 + Math.sin(model.elapsed * 5 + pickup.age) * 0.12) *
+      (3.68 + Math.sin(model.elapsed * 5 + pickup.age) * 0.12) *
       PICKUP_VISUAL_SCALE;
     drawWeaponIcon(context, pickup.weapon, pickup.x, pickup.y, size, pickup.age, model.elapsed, assets);
   });
   model.powerUps.forEach((power) => {
     const size =
       power.r *
-      (3.4 + Math.sin(model.elapsed * 5 + power.age) * 0.12) *
+      (3.68 + Math.sin(model.elapsed * 5 + power.age) * 0.12) *
       PICKUP_VISUAL_SCALE;
     drawPowerIcon(context, power.kind, power.x, power.y, size, power.age, model.elapsed, assets);
   });

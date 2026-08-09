@@ -67,6 +67,7 @@
 
 ## Follow-ups
 
+- [ ] 2026-08-08: Validate enlarged game art on both Top-down and Classic Flock skins — boss HUD overlap, enemy projectile patterns, readability
 - [ ] 2026-08-07: V2 browser playtest — visual gates §45–48, screenshots/recordings for FINAL_V2_REPORT
 - [ ] 2026-08-07: Split `MascotRuntime.ts` (~1330 lines) into targeting/contact/update modules
 - [ ] 2026-08-07: Motion-lab `?panel=resonance-weaver` debug panel
