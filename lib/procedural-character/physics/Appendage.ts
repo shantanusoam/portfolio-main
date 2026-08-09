@@ -5,6 +5,7 @@ import {
   solveFabrik,
   type FabrikSolverOptions,
 } from "./FabrikSolver";
+import { SoftChain } from "./SoftChain";
 
 /**
  * Mutable per-leg state. One instance is created at engine initialization and
@@ -23,6 +24,7 @@ export class AppendageRuntime {
   readonly stepStart = vec2();
   readonly stepDestination = vec2();
   readonly points: Vec2Like[];
+  readonly softPoints: readonly Vec2Like[];
 
   stepping = false;
   stepProgress = 1;
@@ -37,6 +39,7 @@ export class AppendageRuntime {
   triggerReason = "planted";
 
   private readonly solverOptions: FabrikSolverOptions;
+  private readonly softChain: SoftChain;
   private readonly scratchDirection = vec2();
   private readonly scratchOffset = vec2();
 
@@ -68,6 +71,8 @@ export class AppendageRuntime {
       spec.preferredBendDirection,
     );
     this.solve(solverIterations);
+    this.softChain = new SoftChain(this.points, this.segmentLengths);
+    this.softPoints = this.softChain.points;
   }
 
   placeAnchor(
@@ -117,5 +122,19 @@ export class AppendageRuntime {
       this.foot,
       this.solverOptions,
     );
+  }
+
+  updateSecondaryMotion(
+    dt: number,
+    elapsedTime: number,
+    reducedMotion: boolean,
+  ): void {
+    this.softChain.update(this.points, this.anchor, this.foot, {
+      dt,
+      elapsedTime,
+      phase: this.spec.gaitPhase,
+      reducedMotion,
+      spring: this.spec.spring,
+    });
   }
 }

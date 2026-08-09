@@ -1,5 +1,6 @@
 import { FixedStepLoop } from "@/lib/mascot/core/FixedStepLoop";
 import { GaitPlanner } from "./behavior/GaitPlanner";
+import { PersonalityController } from "./behavior/PersonalityController";
 import {
   SecondOrderDynamics2D,
   type SecondOrderDynamicsConfig,
@@ -60,6 +61,7 @@ export class ProceduralCharacterEngine {
   private readonly targetDriver: TargetDriver;
   private readonly dynamics: SecondOrderDynamics2D;
   private readonly gaitPlanner: GaitPlanner;
+  private readonly personalityController: PersonalityController;
   private readonly loop: FixedStepLoop;
   private readonly targetVelocity = vec2();
   private readonly movementIntentDirection = vec2(1, 0);
@@ -115,15 +117,32 @@ export class ProceduralCharacterEngine {
           solverIterations,
         ),
     );
+    this.personalityController = new PersonalityController(this.spec.seed);
     this.gaitPlanner = new GaitPlanner(this.spec.seed, {
       onStep: options.onStep,
-      onLand: options.onLand,
+      onLand: (appendageId, position) => {
+        const landingStrength = clamp(
+          0.12 +
+            this.body.normalizedSpeed * 0.5 +
+            (Math.abs(this.body.acceleration.y) /
+              Math.max(1, this.spec.dynamics.maxAcceleration)) *
+              0.35,
+          0,
+          1,
+        );
+        this.personalityController.reactToLanding(
+          landingStrength,
+          this.body.velocity.x / Math.max(1, this.spec.dynamics.maxSpeed),
+        );
+        options.onLand?.(appendageId, position);
+      },
     });
 
     this.renderState = {
       spec: this.spec,
       target: this.targetDriver.target,
       body: this.body,
+      pose: this.personalityController.pose,
       appendages: this.appendages,
       performance: this.performance,
       elapsedTime: 0,
@@ -248,10 +267,25 @@ export class ProceduralCharacterEngine {
       reducedMotion: this.reducedMotion,
     });
 
+    this.personalityController.update(
+      dt,
+      this.elapsedTime,
+      this.body,
+      this.spec,
+      this.gaitPlanner.activeSteps,
+      this.reducedMotion,
+    );
+
     const solverStartedAt = now();
     const solverIterations = this.resolveSolverIterations();
     for (let index = 0; index < this.appendages.length; index += 1) {
+      this.enforceAppendageReach(this.appendages[index]);
       this.appendages[index].solve(solverIterations);
+      this.appendages[index].updateSecondaryMotion(
+        dt,
+        this.elapsedTime,
+        this.reducedMotion,
+      );
     }
     this.performance.solverTimeMs = now() - solverStartedAt;
     this.performance.activeSteps = this.gaitPlanner.activeSteps;
@@ -270,17 +304,38 @@ export class ProceduralCharacterEngine {
     if (this.body.speed > 1) {
       this.body.movementDirection.x = this.body.velocity.x / this.body.speed;
       this.body.movementDirection.y = this.body.velocity.y / this.body.speed;
-      const desiredFacing = Math.atan2(
-        this.body.movementDirection.y,
-        this.body.movementDirection.x,
-      );
+      const desiredFacing =
+        this.spec.body.orientationMode === "upright"
+          ? clamp(
+              (this.body.velocity.x / Math.max(1, maximumSpeed)) *
+                this.spec.body.maxLean +
+                (this.body.acceleration.x /
+                  Math.max(1, this.spec.dynamics.maxAcceleration)) *
+                  this.spec.body.maxLean *
+                  0.38,
+              -this.spec.body.maxLean,
+              this.spec.body.maxLean,
+            )
+          : Math.atan2(
+              this.body.movementDirection.y,
+              this.body.movementDirection.x,
+            );
       const response =
         1 - Math.exp(-this.spec.dynamics.facingResponsiveness * dt);
       this.body.facingAngle +=
         shortestAngleDelta(this.body.facingAngle, desiredFacing) * response;
     } else {
-      this.body.movementDirection.x = Math.cos(this.body.facingAngle);
-      this.body.movementDirection.y = Math.sin(this.body.facingAngle);
+      if (this.spec.body.orientationMode === "upright") {
+        const response =
+          1 - Math.exp(-this.spec.dynamics.facingResponsiveness * dt);
+        this.body.facingAngle +=
+          shortestAngleDelta(this.body.facingAngle, 0) * response;
+        this.body.movementDirection.x = 1;
+        this.body.movementDirection.y = 0;
+      } else {
+        this.body.movementDirection.x = Math.cos(this.body.facingAngle);
+        this.body.movementDirection.y = Math.sin(this.body.facingAngle);
+      }
     }
 
     this.body.angularVelocity =
@@ -352,6 +407,20 @@ export class ProceduralCharacterEngine {
         appendage.idealFootTarget.y = appendage.anchor.y + reachY * ratio;
       }
     }
+  }
+
+  private enforceAppendageReach(appendage: AppendageRuntime): void {
+    const deltaX = appendage.foot.x - appendage.anchor.x;
+    const deltaY = appendage.foot.y - appendage.anchor.y;
+    const distance = Math.hypot(deltaX, deltaY);
+    const safeReach = appendage.maxReach * 0.995;
+    if (distance <= safeReach) return;
+
+    const ratio = safeReach / Math.max(EPSILON, distance);
+    appendage.foot.x = appendage.anchor.x + deltaX * ratio;
+    appendage.foot.y = appendage.anchor.y + deltaY * ratio;
+    if (!appendage.stepping) copy(appendage.lockedFootPosition, appendage.foot);
+    appendage.triggerReason = "reach-limited toe slip";
   }
 
   private updateMovementIntent(): void {

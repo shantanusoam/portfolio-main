@@ -2,103 +2,117 @@
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  color: #e2e8f0;
-  background-color: #050816;
-  background-image: linear-gradient(
-      rgba(148, 163, 184, 0.07) 1px,
-      transparent 1px
+  color: #dce8ed;
+  background: radial-gradient(
+      circle at 54% 44%,
+      rgba(42, 76, 96, 0.18),
+      transparent 34%
     ),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
-    radial-gradient(circle at 50% 45%, rgba(76, 29, 149, 0.2), transparent 48%);
-  background-size:
-    40px 40px,
-    40px 40px,
-    100% 100%;
+    radial-gradient(circle at 12% 88%, rgba(27, 54, 76, 0.22), transparent 28%),
+    #07111d;
   font-family: var(--font-data, ui-monospace, monospace);
+}
+
+.page::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: radial-gradient(
+    circle at center,
+    rgba(164, 197, 211, 0.12) 0.6px,
+    transparent 0.8px
+  );
+  background-size: 26px 26px;
+  content: "";
+  mask-image: linear-gradient(to bottom, transparent, black 35%, transparent);
+  opacity: 0.24;
+  pointer-events: none;
+}
+
+.ambient {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(62vw, 720px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(154, 194, 210, 0.06);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 70px rgba(154, 194, 210, 0.018),
+    0 0 0 150px rgba(154, 194, 210, 0.012);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .instructions {
   position: fixed;
-  top: 16px;
-  left: 16px;
+  bottom: 22px;
+  left: 22px;
   z-index: 30;
-  width: min(340px, calc(100vw - 32px));
-  padding: 16px 18px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 12px;
-  background: rgba(2, 6, 23, 0.8);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(10px);
+  display: grid;
+  width: min(420px, calc(100vw - 44px));
+  padding: 15px 17px;
+  border: 1px solid rgba(151, 185, 200, 0.16);
+  border-radius: 14px;
+  background: rgba(5, 15, 27, 0.68);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(14px);
 }
 
 .instructions h1 {
-  margin: 3px 0 8px;
-  color: #f8fafc;
+  margin: 2px 0 9px;
+  color: #f2f7f9;
   font-family: var(--font-display, sans-serif);
-  font-size: 20px;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-size: 19px;
+  font-weight: 620;
+  letter-spacing: -0.025em;
 }
 
 .instructions p {
   margin: 0;
-  color: #aebbd0;
-  font-size: 12px;
+  color: #8fa8b6;
+  font-size: 11px;
   line-height: 1.6;
 }
 
 .instructions .eyebrow {
-  color: #a78bfa;
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  color: #9ed2df;
+  font-size: 9px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.legend {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px 14px;
-  margin: 14px 0 0;
+.debugLink {
+  justify-self: start;
+  margin-top: 12px;
+  color: #cceaf1;
   font-size: 10px;
+  text-decoration: none;
+  text-underline-offset: 3px;
 }
 
-.legend div {
-  min-width: 0;
+.debugLink:hover {
+  text-decoration: underline;
 }
 
-.legend dt {
-  color: #f8fafc;
-}
-
-.legend dd {
-  margin: 1px 0 0;
-  color: #7f8ca3;
-}
-
-.axisLabelX,
-.axisLabelY {
+.hint {
   position: fixed;
-  z-index: 1;
-  color: rgba(148, 163, 184, 0.4);
+  right: 20px;
+  bottom: 18px;
+  z-index: 2;
+  margin: 0;
+  color: rgba(159, 189, 201, 0.44);
   font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.axisLabelX {
-  right: 18px;
-  bottom: 10px;
-}
-
-.axisLabelY {
-  bottom: 48px;
-  left: 8px;
-  transform: rotate(-90deg);
-  transform-origin: left bottom;
-}
-
 @media (max-width: 720px) {
   .instructions {
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+    width: auto;
     padding: 12px 14px;
   }
 
@@ -107,10 +121,10 @@
   }
 
   .instructions p {
-    font-size: 11px;
+    font-size: 10px;
   }
 
-  .legend {
+  .hint {
     display: none;
   }
 }

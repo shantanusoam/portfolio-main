@@ -1,48 +1,46 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import ProceduralCharacter from "@/components/procedural-character/ProceduralCharacter";
 import { octopodPreset } from "@/lib/procedural-character/presets/octopod";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Procedural Octopod Gait Lab",
-  description: "Debug view of planted procedural feet and FABRIK legs.",
+  title: "Soft Procedural Octopus Lab",
+  description:
+    "A fluid octopus driven by planted feet, FABRIK reach constraints and Verlet spring tentacles.",
 };
 
-export default function OctopodLabPage() {
+interface OctopodLabPageProps {
+  searchParams?: { debug?: string };
+}
+
+export default function OctopodLabPage({ searchParams }: OctopodLabPageProps) {
+  const debug = searchParams?.debug === "1";
+
   return (
     <main className={styles.page}>
-      <ProceduralCharacter spec={octopodPreset} debug />
+      <div className={styles.ambient} aria-hidden="true" />
+      <ProceduralCharacter spec={octopodPreset} debug={debug} />
 
       <section className={styles.instructions}>
-        <p className={styles.eyebrow}>First physics deliverable</p>
-        <h1>Procedural octopod gait lab</h1>
+        <div>
+          <p className={styles.eyebrow}>Soft-body motion study</p>
+          <h1>Spring octopus</h1>
+        </div>
         <p>
-          Move the pointer sharply, reverse direction, and draw tight circles.
-          Feet stay locked until their colored ideal target crosses the dashed
-          threshold.
+          Sweep the pointer, reverse suddenly, then draw tight loops. The feet
+          stay planted while each visible arm trails its IK guide like an
+          elastic ribbon.
         </p>
-        <dl className={styles.legend}>
-          <div>
-            <dt>Cross</dt>
-            <dd>ideal foot target</dd>
-          </div>
-          <div>
-            <dt>Dashed ring</dt>
-            <dd>step threshold</dd>
-          </div>
-          <div>
-            <dt>White foot</dt>
-            <dd>currently stepping</dd>
-          </div>
-          <div>
-            <dt>Red vector</dt>
-            <dd>body velocity</dd>
-          </div>
-        </dl>
+        <Link
+          className={styles.debugLink}
+          href={debug ? "/octopod-lab" : "/octopod-lab?debug=1"}
+        >
+          {debug ? "Hide physics rig" : "Show physics rig"}
+        </Link>
       </section>
 
-      <div className={styles.axisLabelX}>world x</div>
-      <div className={styles.axisLabelY}>world y</div>
+      <p className={styles.hint}>move anywhere · stop sharply · reverse</p>
     </main>
   );
 }

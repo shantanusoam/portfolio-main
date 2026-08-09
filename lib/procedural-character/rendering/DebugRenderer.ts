@@ -48,6 +48,41 @@ export class DebugRenderer {
       const groupColor =
         palette[Math.abs(appendage.spec.gaitGroup) % palette.length];
 
+      // The dashed polyline is the FABRIK reach guide. The solid line is the
+      // visible Verlet chain, making secondary lag and overshoot inspectable.
+      context.strokeStyle = `${groupColor}70`;
+      context.setLineDash([3, 3]);
+      context.beginPath();
+      context.moveTo(appendage.points[0].x, appendage.points[0].y);
+      for (let point = 1; point < appendage.points.length; point += 1) {
+        context.lineTo(appendage.points[point].x, appendage.points[point].y);
+      }
+      context.stroke();
+      context.setLineDash([]);
+      context.strokeStyle = groupColor;
+      context.beginPath();
+      context.moveTo(appendage.softPoints[0].x, appendage.softPoints[0].y);
+      for (let point = 1; point < appendage.softPoints.length; point += 1) {
+        context.lineTo(
+          appendage.softPoints[point].x,
+          appendage.softPoints[point].y,
+        );
+      }
+      context.stroke();
+
+      context.fillStyle = groupColor;
+      for (let point = 1; point < appendage.softPoints.length - 1; point += 1) {
+        context.beginPath();
+        context.arc(
+          appendage.softPoints[point].x,
+          appendage.softPoints[point].y,
+          2.2,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      }
+
       // Trigger threshold: a step becomes eligible when the ideal cross exits
       // this world-space circle around the locked foot.
       context.strokeStyle = `${groupColor}66`;
@@ -95,6 +130,9 @@ export class DebugRenderer {
 
       context.fillStyle = "#f8fafc";
       context.fillRect(appendage.anchor.x - 2, appendage.anchor.y - 2, 4, 4);
+      context.beginPath();
+      context.arc(appendage.foot.x, appendage.foot.y, 3.2, 0, Math.PI * 2);
+      context.fill();
     }
 
     this.drawReadout(context, state);

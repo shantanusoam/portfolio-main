@@ -1,6 +1,7 @@
 import type {
   CharacterKinematics,
   CharacterPerformanceSnapshot,
+  CharacterPose,
   CharacterSpec,
   Vec2Like,
 } from "../types";
@@ -10,6 +11,7 @@ export interface CharacterRenderState {
   readonly spec: CharacterSpec;
   readonly target: Vec2Like;
   readonly body: CharacterKinematics;
+  readonly pose: CharacterPose;
   readonly appendages: readonly AppendageRuntime[];
   readonly performance: CharacterPerformanceSnapshot;
   elapsedTime: number;

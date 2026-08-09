@@ -14,11 +14,12 @@ import type {
 import { TAU } from "./math/Vec2";
 
 type AppendageTemplate = Partial<
-  Omit<AppendageSpec, "anchor" | "preferredFoot" | "step">
+  Omit<AppendageSpec, "anchor" | "preferredFoot" | "step" | "spring">
 > & {
   anchor?: Partial<AppendageSpec["anchor"]>;
   preferredFoot?: Partial<AppendageSpec["preferredFoot"]>;
   step?: Partial<AppendageSpec["step"]>;
+  spring?: Partial<AppendageSpec["spring"]>;
 };
 
 export interface CreateCharacterSpecOptions {
@@ -48,6 +49,8 @@ export interface CreateCharacterSpecOptions {
 
 const DEFAULT_BODY: BodySpec = {
   shape: "radial",
+  orientationMode: "velocity",
+  maxLean: 0.3,
   radius: 26,
   squashAmount: 0.12,
   segmentCount: 1,
@@ -172,6 +175,13 @@ function makeDefaultAppendage(
       cooldown: template.step?.cooldown ?? 0.06,
       variation: template.step?.variation ?? 3,
     },
+    spring: {
+      damping: template.spring?.damping ?? 0.92,
+      guideStrength: template.spring?.guideStrength ?? 0.3,
+      gravity: template.spring?.gravity ?? 180,
+      curl: template.spring?.curl ?? 240,
+      constraintIterations: template.spring?.constraintIterations ?? 4,
+    },
     gaitPhase: template.gaitPhase ?? index / Math.max(1, count),
     gaitGroup: template.gaitGroup ?? index % 2,
     preferredBendDirection:
@@ -210,6 +220,7 @@ export function createCharacterSpec(
           anchor: { ...appendage.anchor },
           preferredFoot: { ...appendage.preferredFoot },
           step: { ...appendage.step },
+          spring: { ...appendage.spring },
           segmentLengths: [...appendage.segmentLengths],
         }));
 

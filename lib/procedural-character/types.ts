@@ -12,6 +12,7 @@ export interface Vec2Like {
 
 export type CharacterMode = "follow" | "wander" | "manual";
 export type BodyShape = "radial" | "chain";
+export type BodyOrientationMode = "velocity" | "upright";
 export type AppendageMode = "planted" | "trailing" | "free";
 export type GaitStyle = "wave" | "alternating" | "diagonal" | "tripod" | "free";
 
@@ -27,6 +28,9 @@ export type BodyWidthProfile =
 
 export interface BodySpec {
   shape: BodyShape;
+  orientationMode: BodyOrientationMode;
+  /** Maximum world-space lean used by upright creatures. */
+  maxLean: number;
   radius: number;
   squashAmount: number;
   segmentCount: number;
@@ -82,6 +86,18 @@ export interface StepSpec {
   variation: number;
 }
 
+export interface AppendageSpringSpec {
+  /** Velocity retained by the Verlet particles at a 120 Hz reference step. */
+  damping: number;
+  /** Attraction to the collision-safe FABRIK guide, in the range 0..1. */
+  guideStrength: number;
+  /** World-space downward acceleration in CSS pixels per second squared. */
+  gravity: number;
+  /** Low-amplitude curl force used to keep a chain from looking mechanical. */
+  curl: number;
+  constraintIterations: number;
+}
+
 export interface AppendageSpec {
   id: string;
   mode: AppendageMode;
@@ -91,6 +107,7 @@ export interface AppendageSpec {
   restingFootRadius: number;
   preferredFoot: PreferredFootSpec;
   step: StepSpec;
+  spring: AppendageSpringSpec;
   gaitPhase: number;
   gaitGroup: number;
   /** Stable 2D pole direction used to stop knees from flipping. */
@@ -190,6 +207,17 @@ export interface CharacterKinematics {
   normalizedSpeed: number;
   facingAngle: number;
   angularVelocity: number;
+}
+
+/** Continuously blended animation signals calculated outside the renderer. */
+export interface CharacterPose {
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
+  eyeOpen: number;
+  breathingOffset: number;
+  impact: number;
+  wobble: number;
 }
 
 export interface CharacterPerformanceSnapshot {
