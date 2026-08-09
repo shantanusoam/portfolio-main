@@ -2,7 +2,13 @@
 
 ## Active
 
-- [x] 2026-08-11: 404 Brick Breaker — breakable 404 blocks, power-ups, win/lose overlays
+- [x] 2026-08-09: Fix Vercel pnpm frozen-lockfile failure — sync lockfile after adding tsx
+- [x] 2026-08-09: Fix adult mascot silhouette — ~60-joint long cute tail + smaller mouth as it grows
+- [x] 2026-08-09: Compact Cluckstorm mobile + desktop HUD — thinner combat chrome, smaller menu, protect playfield
+- [x] 2026-08-09: Remove Resonance Weaver mini-game entry + string-tension/slingshot weirdness
+- [x] 2026-08-09: Multi-fry egg school + predictive shy-flee steering for Signal Shoal
+- [x] 2026-08-09: Repair mascot fish ecosystem — egg pointer suppress, auto hunt/flee, 20-meal anatomy growth, independent fission offspring
+- [x] 2026-08-09: Fix adult mascot silhouette — compact cute fish growth, not long tadpole ribbon
 - [x] 2026-08-07: Fix mascot janky polygonal body — denser spine nodes, Catmull-Rom silhouette, plumper structure, generated soft texture pass
 - [x] 2026-08-07: Execute FINAL_MASCOT_HERO_TO_GAME_REDESIGN_MASTER_SPEC_V2 — Musical Signal Familiar + hero→Resonance Weaver (no modal)
 - [x] 2026-08-07: V2 Phases 1–3 — Musical Signal Familiar anatomy, FacialMotionMatrix, Soft Signal Plush surface
