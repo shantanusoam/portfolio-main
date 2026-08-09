@@ -518,10 +518,10 @@ export default function SecretArcade() {
     hud.status === "ended" ? "The flock got through" : hud.status === "paused" ? "Paused" : "Cluckstorm";
   const menuCopy =
     hud.status === "ended"
-      ? `Rank achieved: ${hud.rank}. Restart with your weapon memory fresh — the flock only gets angrier.`
+      ? `Rank: ${hud.rank}. Restart fresh — the flock only gets angrier.`
       : hud.status === "paused"
         ? "Catch your breath. The eggs can wait."
-        : "A hidden vertical shooter with goofy alien space-birds, six weapons, smart formations, and boss waves across 5 sectors.";
+        : "Goofy space-birds, six weapons, smart formations, and boss waves across 5 sectors.";
 
   const weaponPips = Array.from({ length: WEAPON_MAX_LEVEL }, (_, index) => index < hud.weaponLevel);
   const activePowers: string[] = [];
@@ -547,7 +547,11 @@ export default function SecretArcade() {
       {open && (
         <div className={styles.overlay} role="dialog" aria-modal="true">
           <div className={styles.backdrop} aria-hidden="true" />
-          <section className={styles.panel} aria-label="Cluckstorm private arcade">
+          <section
+            className={styles.panel}
+            data-status={hud.status}
+            aria-label="Cluckstorm private arcade"
+          >
             <canvas
               ref={canvasRef}
               className={styles.canvas}
@@ -568,7 +572,7 @@ export default function SecretArcade() {
                   <span>Score</span>
                   <strong>{formatNumber(hud.score)}</strong>
                 </div>
-                <div className={styles.stat}>
+                <div className={`${styles.stat} ${styles.statSecondary}`}>
                   <span>Best</span>
                   <strong>{formatNumber(hud.best)}</strong>
                 </div>
@@ -576,7 +580,7 @@ export default function SecretArcade() {
                   <span>Combo</span>
                   <strong>{hud.combo}x</strong>
                 </div>
-                <div className={styles.stat}>
+                <div className={`${styles.stat} ${styles.statSecondary}`}>
                   <span>Mult</span>
                   <strong>{hud.multiplier.toFixed(1)}x</strong>
                 </div>
@@ -603,6 +607,17 @@ export default function SecretArcade() {
                   <X size={18} />
                 </button>
               </div>
+
+              {hud.bossMaxHp > 0 && (
+                <div className={styles.bossMeter}>
+                  <span>
+                    {hud.bossName} · Phase {hud.bossPhase}/{hud.bossPhaseMax}
+                  </span>
+                  <div>
+                    <i style={{ transform: `scaleX(${hud.bossHp / hud.bossMaxHp})` }} />
+                  </div>
+                </div>
+              )}
             </header>
 
             <div className={styles.sideHud}>
@@ -634,27 +649,17 @@ export default function SecretArcade() {
                   </div>
                 </div>
               )}
-              <div className={styles.pill}>{hud.rank}</div>
-              <div className={styles.pill}>{DIFFICULTY_PRESETS[hud.difficulty].label}</div>
-              <div className={styles.pill}>{SHIP_SKIN_NAMES[hud.shipSkin]}</div>
-              <div className={styles.pill}>{ENEMY_SKIN_NAMES[hud.enemySkin]}</div>
+              <div className={`${styles.pill} ${styles.wavePill}`}>{statusText[hud.status]}</div>
+              <div className={`${styles.pill} ${styles.metaPill}`}>{hud.rank}</div>
+              <div className={`${styles.pill} ${styles.metaPill}`}>{DIFFICULTY_PRESETS[hud.difficulty].label}</div>
+              <div className={`${styles.pill} ${styles.metaPill}`}>{SHIP_SKIN_NAMES[hud.shipSkin]}</div>
+              <div className={`${styles.pill} ${styles.metaPill}`}>{ENEMY_SKIN_NAMES[hud.enemySkin]}</div>
               {activePowers.map((label) => (
                 <div key={label} className={styles.pillActive}>
                   {label}
                 </div>
               ))}
             </div>
-
-            {hud.bossMaxHp > 0 && (
-              <div className={styles.bossMeter}>
-                <span>
-                  {hud.bossName} · Phase {hud.bossPhase}/{hud.bossPhaseMax}
-                </span>
-                <div>
-                  <i style={{ transform: `scaleX(${hud.bossHp / hud.bossMaxHp})` }} />
-                </div>
-              </div>
-            )}
 
             <div className={styles.superWrap}>
               <button
@@ -672,8 +677,9 @@ export default function SecretArcade() {
             </div>
 
             <footer className={styles.bottomBar}>
-              <span>{statusText[hud.status]}</span>
-              <span>Move: WASD / arrows / drag · SPACE super · P pause</span>
+              <span className={styles.footerStatus}>{statusText[hud.status]}</span>
+              <span className={styles.controlsDesktop}>Move: WASD / arrows / drag · SPACE super · P pause</span>
+              <span className={styles.controlsTouch}>Drag to move · Tap ⚡ for super</span>
               <span className={styles.assetChip}>
                 <Volume2 size={13} aria-hidden="true" />
                 Assets {assetCount}/{GAME_ASSET_COUNT}
@@ -685,11 +691,10 @@ export default function SecretArcade() {
                 <div className={styles.menuCard}>
                   <span className={styles.eyebrow}>Funny vertical shooter</span>
                   <h3>{menuTitle}</h3>
-                  <p>{menuCopy}</p>
+                  <p className={styles.menuCopy}>{menuCopy}</p>
                   {hud.status === "ready" && (
                     <p className={styles.controlsHint}>
-                      5 sectors, 6 weapons, mini-bosses, and 3 boss types. Grazing bullets and combos charge your
-                      Cluckocalypse super.
+                      Graze bullets and chain combos to charge Cluckocalypse.
                     </p>
                   )}
                   {hud.status === "ready" && (

@@ -248,8 +248,12 @@ export type EcosystemFissionPhase =
 
 /** Low-frequency public state for the hidden Signal Shoal interaction. */
 export interface MascotEcosystemStatus {
-  population: 1 | 2 | 4;
+  /** Adult count in the shoal (1–4). */
+  population: number;
   activeFry: boolean;
+  /** How many tiny prey fish are currently swimming. */
+  activeFryCount: number;
+  /** Meals eaten by the current leader toward the next fission. */
   growthStage: number;
   mealsToNextFission: number;
   fissionPhase: EcosystemFissionPhase | null;
@@ -302,6 +306,8 @@ export interface MascotEngine {
   resume(): void;
   resize(width: number, height: number, dpr: number): void;
   setPointer(x: number, y: number, active: boolean): void;
+  /** While true, the leader ignores user pointer follow (roe egg hover). */
+  setPointerSuppressed(suppressed: boolean): void;
   setScrollVelocity(value: number): void;
   setQuality(quality: MascotQuality): void;
   setEnabled(enabled: boolean): void;
@@ -459,5 +465,7 @@ export type ScenarioName =
   | "scatter-reform"
   | "fry-chase"
   | "ecosystem-growth"
+  | "egg-hover"
+  | "sibling-independence"
   | "resize"
   | "reduced-motion";

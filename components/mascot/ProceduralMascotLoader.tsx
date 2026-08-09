@@ -9,13 +9,14 @@ import type {
 } from "@/lib/mascot/types";
 import {
   MASCOT_ECOSYSTEM_COMMAND_EVENT,
+  MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
   MASCOT_ECOSYSTEM_STATUS_EVENT,
   type EcosystemCommandDetail,
+  type EcosystemPointerHintDetail,
   type EcosystemStatusEventDetail,
 } from "@/lib/mascot/ecosystem/events";
+import { MEALS_TO_FISSION } from "@/lib/mascot/ecosystem/AnatomyGrowth";
 import MascotSoundControl from "./MascotSoundControl";
-// StrumriseGate kept on disk for reference; V2 primary entry is Enter Resonance.
-import EnterResonanceControl from "@/components/resonance-weaver/EnterResonanceControl";
 import styles from "./Mascot.module.css";
 
 const ProceduralMascotCanvas = dynamic(
@@ -63,8 +64,9 @@ export default function ProceduralMascotLoader({
             ready: false,
             population: 1,
             activeFry: false,
+            activeFryCount: 0,
             growthStage: 0,
-            mealsToNextFission: 3,
+            mealsToNextFission: MEALS_TO_FISSION,
             fissionPhase: null,
             capped: false,
             canReleaseFry: false,
@@ -114,10 +116,24 @@ export default function ProceduralMascotLoader({
         engine.trigger({ type: "releaseFry", x: detail.x, y: detail.y });
       }
     };
+    const handlePointerHint = (event: Event) => {
+      const detail = (event as CustomEvent<EcosystemPointerHintDetail>).detail;
+      if (!detail) return;
+      engine.setPointerSuppressed(detail.overEgg);
+    };
     window.addEventListener(MASCOT_ECOSYSTEM_COMMAND_EVENT, handleCommand);
+    window.addEventListener(
+      MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
+      handlePointerHint,
+    );
     broadcastEcosystemStatus(engine.getEcosystemStatus());
     return () => {
       window.removeEventListener(MASCOT_ECOSYSTEM_COMMAND_EVENT, handleCommand);
+      window.removeEventListener(
+        MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
+        handlePointerHint,
+      );
+      engine.setPointerSuppressed(false);
     };
   }, [broadcastEcosystemStatus, engine]);
 
@@ -133,7 +149,6 @@ export default function ProceduralMascotLoader({
       <div className={styles.soundControlFixed}>
         <MascotSoundControl engine={engine} />
       </div>
-      <EnterResonanceControl engine={engine} quality={quality} />
     </>
   );
 }

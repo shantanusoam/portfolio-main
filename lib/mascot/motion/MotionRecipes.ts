@@ -20,6 +20,16 @@ export const MOTION_RECIPES: Record<MascotBehavior, MotionRecipe> = {
   reducedMotion: { frequency: 0.25, damping: 1.2, response: 0 },
 };
 
+/**
+ * Deliberate prey chase — slower than pointer follow so shy fry get a real
+ * escape window before the adult closes in.
+ */
+export const HUNT_MOTION_RECIPE: MotionRecipe = {
+  frequency: 0.68,
+  damping: 1.08,
+  response: -0.05,
+};
+
 export function getMotionRecipe(behavior: MascotBehavior): MotionRecipe {
   return MOTION_RECIPES[behavior];
 }

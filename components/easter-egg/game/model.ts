@@ -1,4 +1,4 @@
-import { PLAYER_TUNING } from "./config";
+import { PLAYER_TUNING, getPlayerYBounds } from "./config";
 import type {
   EnemySkin,
   GameDifficulty,
@@ -8,6 +8,7 @@ import type {
 } from "./types";
 
 export function createPlayer(width: number, height: number): Player {
+  const spawnY = getPlayerYBounds(width, height).respawnY;
   return {
     bankTilt: 0,
     drones: [],
@@ -30,7 +31,7 @@ export function createPlayer(width: number, height: number): Player {
     weapon: "pulse",
     weaponLevel: 1,
     x: width / 2,
-    y: height - 76,
+    y: spawnY,
   };
 }
 
@@ -69,7 +70,7 @@ export function createModel(
     noDamageStreakWaves: 0,
     particles: [],
     player: createPlayer(width, height),
-    pointer: { active: false, x: width / 2, y: height - 76 },
+    pointer: { active: false, x: width / 2, y: getPlayerYBounds(width, height).respawnY },
     powerUps: [],
     score: 0,
     screenFlash: null,

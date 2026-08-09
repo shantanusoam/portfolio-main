@@ -132,13 +132,9 @@ export default function Hero({ masked }: HeroProps) {
         {/* Reason: one centered column keeps name + CTAs + instrument as a
             single composition — avoids the old 1fr/self-end stack that left
             a large empty band above the copy. */}
-        <div
-          className="relative z-[996] mx-auto flex w-full max-w-[1200px] flex-col items-center justify-center gap-[clamp(1.25rem,3.5vh,2.75rem)]"
-          data-resonance-stage
-        >
+        <div className="relative z-[996] mx-auto flex w-full max-w-[1200px] flex-col items-center justify-center gap-[clamp(1.25rem,3.5vh,2.75rem)]">
           {/* Decorative perch rails — pointer-events none so they never steal
-              CTA clicks; mascot lands on top edges via data-mascot-perch.
-              Also curated fracture proxies (V2 §13 / §19). */}
+              CTA clicks; mascot lands on top edges via data-mascot-perch. */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-[8%] top-[18%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
@@ -153,27 +149,6 @@ export default function Hero({ masked }: HeroProps) {
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-[12%] bottom-[22%] h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
             data-mascot-perch="rail"
-          />
-          {/* Sparse decorative dots for DomShadowProxy fracture — curated, not every node. */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute left-[12%] top-[28%] size-1.5 rounded-full bg-primary/50"
-            data-mascot-proxy="dot"
-          />
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute right-[14%] top-[34%] size-1 rounded-full bg-white/35"
-            data-mascot-proxy="dot"
-          />
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute left-[22%] bottom-[30%] size-1 rounded-full bg-white/30"
-            data-mascot-proxy="dot"
-          />
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute right-[20%] bottom-[36%] size-1.5 rounded-full bg-primary/40"
-            data-mascot-proxy="dot"
           />
 
           <SignalRoeButton />
@@ -208,24 +183,8 @@ export default function Hero({ masked }: HeroProps) {
                 isIdle && "animate-breathe",
               )}
               data-mascot-interest="hero"
-              aria-label="Shantanu Soam"
             >
-              {/* Letter spans are curated fracture proxies — semantic name stays on aria-label. */}
-              {Array.from("Shantanu Soam").map((ch, i) =>
-                ch === " " ? (
-                  <span key={`sp-${i}`} className="inline-block w-[0.35em]" />
-                ) : (
-                  <span
-                    key={`ch-${i}`}
-                    className="inline-block"
-                    data-mascot-proxy="letter"
-                    data-proxy-label={ch}
-                    aria-hidden="true"
-                  >
-                    {ch}
-                  </span>
-                ),
-              )}
+              Shantanu Soam
             </motion.h1>
 
             <motion.div
@@ -272,15 +231,6 @@ export default function Hero({ masked }: HeroProps) {
           <div className="mx-auto w-full max-w-[1100px]">
             <StringInstrument />
           </div>
-
-          {/* EnterResonanceControl lives in the root mascot loader so it can
-              own the engine, but portals its trigger here. The game therefore
-              begins from the instrument instead of from a detached fixed pill. */}
-          <div
-            id="resonance-entry-slot"
-            className="flex min-h-10 w-full items-center justify-center"
-            data-resonance-control
-          />
         </div>
       </motion.section>
     </div>

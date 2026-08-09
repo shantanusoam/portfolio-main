@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { createBoss, updateBoss } from "./bosses";
-import { WEAPON_MAX_LEVEL } from "./config";
+import { WEAPON_MAX_LEVEL, getPlayerYBounds } from "./config";
 import { buildFormation } from "./formations";
 import { createModel, createPlayer } from "./model";
 import { applyPowerUp } from "./powerups";
@@ -21,6 +21,22 @@ test("getMultiplier scales with combo and caps at 5x", () => {
   assert.equal(getMultiplier({ combo: 8 }), 1.5);
   assert.equal(getMultiplier({ combo: 32 }), 3);
   assert.equal(getMultiplier({ combo: 999 }), 5);
+});
+
+test("getPlayerYBounds leaves extra bottom clearance on portrait phones", () => {
+  const portrait = getPlayerYBounds(390, 844);
+  assert.ok(portrait.bottom < 844 - 100);
+  assert.ok(portrait.respawnY < portrait.bottom);
+  assert.ok(portrait.top > 0);
+
+  const landscape = getPlayerYBounds(1200, 700);
+  assert.equal(landscape.bottom, 700 - 72);
+});
+
+test("getPlayerYBounds rejects inverted dimensions without throwing", () => {
+  const bounds = getPlayerYBounds(0, 500);
+  assert.ok(Number.isFinite(bounds.top));
+  assert.ok(bounds.bottom <= 500);
 });
 
 test("getRank climbs the rank table and never drops below Egg Cadet", () => {

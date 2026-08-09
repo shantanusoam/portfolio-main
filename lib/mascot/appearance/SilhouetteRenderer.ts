@@ -53,14 +53,26 @@ export interface AppearanceRenderInput {
   velvetMicrotexture?: CanvasImageSource | null;
 }
 
-const EYE_SPACING_FRACTION = 0.27;
-const EYE_FORWARD_FRACTION = 0.035;
-const MOUTH_FORWARD_FRACTION = 0.34;
+const EYE_SPACING_FRACTION = 0.24;
+const EYE_FORWARD_FRACTION = 0.02;
+const MOUTH_FORWARD_FRACTION = 0.28;
 const CHEEK_OUTWARD_FRACTION = 0.1;
+/** Reference head width (px) for cute face proportions at spawn size. */
+const FACE_REF_WIDTH = 36;
 /** Half-width (px) at a fin's root — soft ear lobes at the shoulders. */
 const FIN_BASE_WIDTH = 6.5;
 /** Legacy lab-only velvet overlay opacity; production uses local marks. */
 const VELVET_OVERLAY_OPACITY = 0.035;
+
+/**
+ * Sub-linear face scale so eyes/mouth stay cute as the body grows —
+ * prevents the wide flat mouth wall the length growth used to create.
+ */
+function faceFeatureWidth(frameWidth: number): number {
+  const w = Math.max(1, frameWidth);
+  const scaled = FACE_REF_WIDTH * Math.sqrt(w / FACE_REF_WIDTH);
+  return clamp(scaled, 18, 48);
+}
 
 export function drawAppearance(
   ctx: CanvasRenderingContext2D,
@@ -252,18 +264,20 @@ function drawFace(
     normalY: frame.normalY * Math.cos(lean) - frame.forwardY * Math.sin(lean),
   };
 
-  const eyes = computeEyeAnchors(
-    leaned,
-    EYE_SPACING_FRACTION,
-    EYE_FORWARD_FRACTION,
-  );
+  const featureWidth = faceFeatureWidth(leaned.width);
+  // Keep eye separation tied to the cute feature scale, not the fattened
+  // head rib max — otherwise growth spreads the face into a wide mask.
+  const eyeSpacing =
+    EYE_SPACING_FRACTION *
+    clamp(featureWidth / Math.max(1, leaned.width), 0.55, 1);
+  const eyes = computeEyeAnchors(leaned, eyeSpacing, EYE_FORWARD_FRACTION);
   const mouth = computeMouthAnchor(leaned, MOUTH_FORWARD_FRACTION);
-  const eyeRadius = Math.max(3, leaned.width * 0.21);
+  const eyeRadius = clamp(featureWidth * 0.2, 3, 8.5);
 
   // A quiet bone face panel gives the moving features one stable graphic
   // home. This is what makes the character readable at portfolio scale even
   // when its dark body crosses a dark part of the hero.
-  drawFacePlate(ctx, leaned, palette);
+  drawFacePlate(ctx, leaned, palette, featureWidth);
 
   // Embedded resonance core — small torso/head glow, never a floating white
   // orb that replaces the face (V2 §7 / §3 Phase 3).
@@ -290,25 +304,26 @@ function drawFace(
   drawEye(ctx, eyes.left, eyeRadius, expression, palette, leaned, 1);
   drawEye(ctx, eyes.right, eyeRadius, expression, palette, leaned, -1);
 
-  drawMouth(ctx, mouth, leaned, expression, palette);
+  drawMouth(ctx, mouth, leaned, expression, palette, featureWidth);
 }
 
 function drawFacePlate(
   ctx: CanvasRenderingContext2D,
   frame: FaceFrame,
   palette: AppearancePalette,
+  featureWidth: number,
 ): void {
   ctx.save();
   ctx.translate(frame.centerX, frame.centerY);
   ctx.rotate(frame.rotation - Math.PI / 2);
 
   const plate = ctx.createRadialGradient(
-    -frame.width * 0.18,
+    -featureWidth * 0.16,
     -frame.height * 0.12,
-    frame.width * 0.08,
+    featureWidth * 0.08,
     0,
     0,
-    frame.width * 0.8,
+    featureWidth * 0.72,
   );
   plate.addColorStop(0, "rgba(243, 237, 228, 0.2)");
   plate.addColorStop(0.72, "rgba(243, 237, 228, 0.1)");
@@ -317,9 +332,9 @@ function drawFacePlate(
   ctx.beginPath();
   ctx.ellipse(
     0,
-    frame.height * 0.035,
-    frame.width * 0.78,
-    frame.height * 0.6,
+    frame.height * 0.03,
+    featureWidth * 0.52,
+    frame.height * 0.48,
     0,
     0,
     Math.PI * 2,
@@ -328,19 +343,19 @@ function drawFacePlate(
 
   // One restrained seam connects the face material to the hero's orange
   // instrument language without covering the body in decorative decals.
-  ctx.globalAlpha = 0.38;
+  ctx.globalAlpha = 0.32;
   ctx.strokeStyle = palette.printPrimary;
-  ctx.lineWidth = Math.max(0.7, frame.width * 0.025);
-  ctx.setLineDash([Math.max(1.5, frame.width * 0.08), frame.width * 0.07]);
+  ctx.lineWidth = Math.max(0.7, featureWidth * 0.022);
+  ctx.setLineDash([Math.max(1.5, featureWidth * 0.07), featureWidth * 0.06]);
   ctx.beginPath();
   ctx.ellipse(
     0,
-    frame.height * 0.035,
-    frame.width * 0.68,
-    frame.height * 0.5,
+    frame.height * 0.03,
+    featureWidth * 0.44,
+    frame.height * 0.4,
     0,
-    Math.PI * 0.12,
-    Math.PI * 0.88,
+    Math.PI * 0.18,
+    Math.PI * 0.82,
   );
   ctx.stroke();
   ctx.setLineDash([]);
@@ -484,8 +499,10 @@ function drawMouth(
   frame: FaceFrame,
   expression: ExpressionVisualState,
   palette: AppearancePalette,
+  featureWidth: number,
 ): void {
-  const size = Math.max(1.6, frame.width * 0.14);
+  // Small soft smile — never a wide bar across the face as the body grows.
+  const size = clamp(featureWidth * 0.1, 1.6, 5.2);
   const mouthOpen = clamp(expression.mouthOpen ?? 0, 0, 1);
   const mouthCurve = clamp(expression.mouthCurve ?? 0, -1, 1);
 
@@ -494,9 +511,9 @@ function drawMouth(
   ctx.rotate(frame.rotation - Math.PI / 2);
   ctx.strokeStyle = palette.shadow;
   ctx.fillStyle = palette.shadow;
-  ctx.lineWidth = Math.max(0.8, size * 0.22);
+  ctx.lineWidth = Math.max(0.75, size * 0.2);
   ctx.lineCap = "round";
-  ctx.globalAlpha = 0.92;
+  ctx.globalAlpha = 0.88;
 
   // Keep a soft smile/curve by default — wide open ellipses read as fangs/teeth
   // at small sizes. Only gently open for strong mouthOpen.
@@ -504,24 +521,24 @@ function drawMouth(
     mouthCurve !== 0
       ? mouthCurve
       : expression.expression === "happy"
-        ? 0.7
+        ? 0.65
         : expression.browTilt >= 0
-          ? 0.25
-          : -0.2;
+          ? 0.22
+          : -0.18;
 
   if (mouthOpen > 0.55) {
-    const rx = size * (0.4 + mouthOpen * 0.2);
-    const ry = size * (0.12 + mouthOpen * 0.22);
+    const rx = size * (0.32 + mouthOpen * 0.14);
+    const ry = size * (0.1 + mouthOpen * 0.18);
     ctx.beginPath();
-    ctx.ellipse(0, size * 0.08, rx, ry, 0, 0, Math.PI * 2);
-    ctx.globalAlpha = 0.45;
+    ctx.ellipse(0, size * 0.06, rx, ry, 0, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.4;
     ctx.fill();
-    ctx.globalAlpha = 0.75;
+    ctx.globalAlpha = 0.7;
     ctx.stroke();
   } else {
     ctx.beginPath();
-    ctx.moveTo(-size * 0.55, 0);
-    ctx.quadraticCurveTo(0, curve * size * 0.5, size * 0.55, 0);
+    ctx.moveTo(-size * 0.4, 0);
+    ctx.quadraticCurveTo(0, curve * size * 0.42, size * 0.4, 0);
     ctx.stroke();
   }
 

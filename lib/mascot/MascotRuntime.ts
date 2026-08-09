@@ -1,7 +1,7 @@
 import { clamp, lerp, wrapAngle } from "./core/NumericGuards";
 import { SeededRandom } from "./core/SeededRandom";
 import { PoseController } from "./motion/PoseController";
-import { MOTION_RECIPES } from "./motion/MotionRecipes";
+import { MOTION_RECIPES, HUNT_MOTION_RECIPE } from "./motion/MotionRecipes";
 import {
   createVerletNodes,
   integrateVerlet,
@@ -76,6 +76,10 @@ import {
   getQualityParticleCapacity,
   getSpineConfigForQuality,
 } from "./MascotConfig";
+import {
+  createBaseAnatomy,
+  type AnatomyState,
+} from "./ecosystem/AnatomyGrowth";
 import type {
   AppearanceLayerName,
   AppearancePresetName,
@@ -308,6 +312,11 @@ export class MascotRuntime {
   pointerY: number;
   pointerActive = false;
   pointerIdleSeconds = 999;
+  /** Ecosystem-driven target that must not look like user pointer follow. */
+  private autonomousTarget: Point | null = null;
+  private autonomousChase = false;
+  /** Per-runtime grown anatomy — defaults to the base creature recipe. */
+  private anatomy: AnatomyState = createBaseAnatomy(0);
 
   /** 0..1 — hard-obstacle drag stretch for face / deformation consumers. */
   dragTension = 0;
@@ -405,8 +414,15 @@ export class MascotRuntime {
     this.strings = options.strings ?? null;
 
     const recipe = MASCOT_CONFIG.creature;
+    this.anatomy = createBaseAnatomy(0);
     this.pose = new PoseController(
-      { spine: getSpineConfigForQuality(this.quality) },
+      {
+        spine: {
+          ...getSpineConfigForQuality(this.quality),
+          jointCount: this.anatomy.jointCount,
+          segmentLength: this.anatomy.segmentLength,
+        },
+      },
       options.originX,
       options.originY,
       MOTION_RECIPES.dormant,
@@ -434,7 +450,7 @@ export class MascotRuntime {
       accentDotRatio: MASCOT_CONFIG.dotSkin.accentDotRatio,
     };
     this.skinPoints = generateSkinPoints(
-      recipe.spine.jointCount,
+      this.anatomy.jointCount,
       this.dotSkinConfig,
     );
 
@@ -486,7 +502,7 @@ export class MascotRuntime {
     });
     this.faceFrame = computeFaceFrame({
       ribs: [],
-      headRegion: MASCOT_CONFIG.creature.regions.head,
+      headRegion: this.anatomy.regions.head,
       headingX: 0,
       headingY: -1,
     });
@@ -497,6 +513,48 @@ export class MascotRuntime {
       decide: decideNextBehavior,
     });
     this.behaviorMachine.start(this);
+  }
+
+  getAnatomy(): AnatomyState {
+    return this.anatomy;
+  }
+
+  /**
+   * Applies per-adult anatomy growth. Rebuilds the spine when joint count
+   * changes; segment-length-only updates reuse the existing joint array.
+   */
+  applyAnatomy(next: AnatomyState): void {
+    const previousJointCount = this.anatomy.jointCount;
+    this.anatomy = next;
+    const spine = {
+      ...getSpineConfigForQuality(this.quality),
+      jointCount: next.jointCount,
+      segmentLength: next.segmentLength,
+    };
+    if (next.jointCount !== previousJointCount) {
+      this.pose.rebuildSpine(spine);
+      this.skinPoints = generateSkinPoints(
+        next.jointCount,
+        this.dotSkinConfig,
+      );
+    } else {
+      this.pose.setSpineConfig(spine);
+    }
+  }
+
+  /**
+   * Autonomous ecosystem steering. Does not mark the user pointer active, so
+   * companions can chase prey or wander without entering user-follow mode.
+   */
+  setSteerTarget(x: number, y: number, chase = false): void {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    this.autonomousTarget = { x, y };
+    this.autonomousChase = chase;
+  }
+
+  clearSteerTarget(): void {
+    this.autonomousTarget = null;
+    this.autonomousChase = false;
   }
 
   update(dt: number): void {
@@ -517,9 +575,11 @@ export class MascotRuntime {
       this.orbitAngle += dt * 1.6;
     }
 
-    const recipe = this.behaviorMachine.getMotionRecipe();
+    const recipe = this.autonomousChase
+      ? HUNT_MOTION_RECIPE
+      : this.behaviorMachine.getMotionRecipe();
     this.pose.setRecipe(recipe);
-    this.pose.setHeadingRecipe(recipe.frequency * 0.8, recipe.damping);
+    this.pose.setHeadingRecipe(recipe.frequency * 0.75, recipe.damping);
 
     this.targetDirector.update(dt, this.getWanderBlendTarget());
 
@@ -570,7 +630,7 @@ export class MascotRuntime {
     this.ribs = computeRibs(
       this.pose.joints,
       {
-        bodyProfile: MASCOT_CONFIG.creature.bodyProfile,
+        bodyProfile: this.anatomy.bodyProfile,
         normalSmoothing: MASCOT_CONFIG.normalSmoothing,
       },
       this.previousNormalX,
@@ -657,32 +717,12 @@ export class MascotRuntime {
     if (!this.strings) {
       this.stringPluckEvents = [];
       this.stringTension = 0;
-      this.stringTensionGate.update({
-        dt,
-        pointerActive: this.pointerActive,
-        pointerX: this.pointerX,
-        pointerY: this.pointerY,
-        rootX: this.pose.getRoot().x,
-        rootY: this.pose.getRoot().y,
-        strings: [],
-        contactThisFrame: false,
-      });
       return;
     }
     const strings = this.strings.getAll();
     if (strings.length === 0) {
       this.stringPluckEvents = [];
-      this.stringTensionGate.update({
-        dt,
-        pointerActive: this.pointerActive,
-        pointerX: this.pointerX,
-        pointerY: this.pointerY,
-        rootX: this.pose.getRoot().x,
-        rootY: this.pose.getRoot().y,
-        strings: [],
-        contactThisFrame: false,
-      });
-      this.stringTension = this.stringTensionGate.getPullTension();
+      this.stringTension = 0;
       return;
     }
 
@@ -727,22 +767,20 @@ export class MascotRuntime {
 
     this.stringTensionGate.update({
       dt,
-      pointerActive: this.pointerActive,
+      pointerActive: false,
       pointerX: this.pointerX,
       pointerY: this.pointerY,
       rootX: root.x,
       rootY: root.y,
       strings,
-      contactThisFrame: events.length > 0,
-      contactStringIndex: events[0]?.stringIndex,
+      contactThisFrame: false,
     });
-    this.stringTension = this.stringTensionGate.getPullTension();
+    // Resonance Weaver / slingshot pull is retired — keep plucks musical but
+    // never feed string-tension squash or slingshot latch into the body.
+    this.stringTension = 0;
 
     const amplifiedEvents = events.map((event) => {
-      const velocity = amplifyContactVelocity(
-        event.velocity,
-        this.stringTension,
-      );
+      const velocity = amplifyContactVelocity(event.velocity, 0);
       return { ...event, velocity };
     });
 
@@ -752,7 +790,7 @@ export class MascotRuntime {
         event.velocity,
         event.contactPosition,
         event.direction,
-        this.stringTension,
+        0,
       );
     }
 
@@ -764,7 +802,6 @@ export class MascotRuntime {
     );
     this.musicalCombo = this.musicalDirector.getCombo();
 
-    // String impacts feed the facial matrix's collisionImpulse (1–2 frame compress).
     for (const event of amplifiedEvents) {
       this.collisionImpulse = Math.max(
         this.collisionImpulse,
@@ -772,7 +809,6 @@ export class MascotRuntime {
       );
     }
     if (this.lastStrum) {
-      // Successful chord — keep stringTension high (gate already set); soft joy pulse.
       this.collisionImpulse = Math.min(this.collisionImpulse, 0.3);
     }
   }
@@ -825,6 +861,8 @@ export class MascotRuntime {
 
   private getWanderBlendTarget(): number {
     const behavior = this.behaviorMachine.getCurrent();
+    if (this.pointerActive || this.autonomousChase) return 0;
+    if (this.autonomousTarget) return 0.22;
     if (behavior === "follow" || behavior === "avoid") return 0;
     if (behavior === "wake") return this.pointerActive ? 0 : 1;
     return 1;
@@ -854,11 +892,13 @@ export class MascotRuntime {
         }
       // falls through
       default: {
-        const pointerPoint: Point = this.heroAdjustedPointer ?? {
-          x: this.pointerX,
-          y: this.pointerY,
-        };
-        if (this.heroPerched && this.heroSurfaceTarget && !this.pointerActive) {
+        const drivePoint = this.getDrivePoint();
+        if (
+          this.heroPerched &&
+          this.heroSurfaceTarget &&
+          !this.pointerActive &&
+          !this.autonomousChase
+        ) {
           // Slide/perch: hold the bar Y, allow lateral desired X from wander.
           const wanderPoint = this.sampleWander();
           target = {
@@ -877,7 +917,7 @@ export class MascotRuntime {
         } else {
           const wanderPoint = this.sampleWander();
           target = blendTargets(
-            pointerPoint,
+            drivePoint,
             wanderPoint,
             this.targetDirector.getBlend(),
           );
@@ -893,6 +933,21 @@ export class MascotRuntime {
       };
     }
     return target;
+  }
+
+  private getDrivePoint(): Point {
+    if (this.pointerActive) {
+      return (
+        this.heroAdjustedPointer ?? {
+          x: this.pointerX,
+          y: this.pointerY,
+        }
+      );
+    }
+    if (this.autonomousTarget) {
+      return { x: this.autonomousTarget.x, y: this.autonomousTarget.y };
+    }
+    return { x: this.pointerX, y: this.pointerY };
   }
 
   private sampleWander(): Point {
@@ -1017,7 +1072,7 @@ export class MascotRuntime {
     // Reason: fins were pinned at joint 1 (nose tip) and read as fangs/horns
     // next to the face — attach at the shoulder region instead (V2 / visual rescue).
     const shoulderIndex = clamp(
-      MASCOT_CONFIG.creature.regions.shoulders.start,
+      this.anatomy.regions.shoulders.start,
       0,
       joints.length - 1,
     );
@@ -1118,7 +1173,7 @@ export class MascotRuntime {
 
     this.faceFrame = computeFaceFrame({
       ribs: this.ribs,
-      headRegion: MASCOT_CONFIG.creature.regions.head,
+      headRegion: this.anatomy.regions.head,
       headingX: Math.cos(heading),
       headingY: Math.sin(heading),
       deformation: this.bodyDeformation,
@@ -1189,11 +1244,17 @@ export class MascotRuntime {
   }
 
   getResonanceGateState(): ResonanceGateState {
-    return this.stringTensionGate.getState();
+    return {
+      attachedToString: false,
+      pullTension: 0,
+      releaseVelocity: 0,
+      pointerReleased: false,
+      triggerCooldown: 0,
+    };
   }
 
   consumeSlingshotTrigger(): boolean {
-    return this.stringTensionGate.consumeSlingshotTrigger();
+    return false;
   }
 
   setPointer(x: number, y: number, active: boolean): void {
@@ -1203,6 +1264,9 @@ export class MascotRuntime {
       }
       this.pointerX = x;
       this.pointerY = y;
+      // User pointer ownership clears autonomous chase for this runtime.
+      this.autonomousTarget = null;
+      this.autonomousChase = false;
     }
     this.pointerActive = active;
   }
@@ -1223,7 +1287,7 @@ export class MascotRuntime {
     if (newDotCount !== this.dotSkinConfig.dotCount) {
       this.dotSkinConfig = { ...this.dotSkinConfig, dotCount: newDotCount };
       this.skinPoints = generateSkinPoints(
-        MASCOT_CONFIG.creature.spine.jointCount,
+        this.anatomy.jointCount,
         this.dotSkinConfig,
       );
     }
@@ -1241,7 +1305,11 @@ export class MascotRuntime {
       quality,
     );
 
-    this.pose.setSpineConfig(getSpineConfigForQuality(quality));
+    this.pose.setSpineConfig({
+      ...getSpineConfigForQuality(quality),
+      jointCount: this.anatomy.jointCount,
+      segmentLength: this.anatomy.segmentLength,
+    });
   }
 
   setEnabled(enabled: boolean): void {

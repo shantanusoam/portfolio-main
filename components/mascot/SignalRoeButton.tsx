@@ -3,18 +3,22 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import {
   MASCOT_ECOSYSTEM_COMMAND_EVENT,
+  MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
   MASCOT_ECOSYSTEM_STATUS_EVENT,
   type EcosystemCommandDetail,
+  type EcosystemPointerHintDetail,
   type EcosystemStatusEventDetail,
 } from "@/lib/mascot/ecosystem/events";
+import { MEALS_TO_FISSION } from "@/lib/mascot/ecosystem/AnatomyGrowth";
 import styles from "./Mascot.module.css";
 
 const INITIAL_STATUS: EcosystemStatusEventDetail = {
   ready: false,
   population: 1,
   activeFry: false,
+  activeFryCount: 0,
   growthStage: 0,
-  mealsToNextFission: 3,
+  mealsToNextFission: MEALS_TO_FISSION,
   fissionPhase: null,
   capped: false,
   canReleaseFry: false,
@@ -33,26 +37,54 @@ export default function SignalRoeButton() {
       window.removeEventListener(MASCOT_ECOSYSTEM_STATUS_EVENT, handleStatus);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent<EcosystemPointerHintDetail>(
+          MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
+          { detail: { overEgg: false } },
+        ),
+      );
+    };
+  }, []);
+
   const disabled =
     !status.ready ||
     status.fissionPhase !== null ||
-    (!status.activeFry && !status.canReleaseFry);
-  const label = status.activeFry
-    ? "Call the mascot toward the tiny signal fish"
-    : status.capped
-      ? "Release a tiny signal fish for the shoal"
-      : "Release a tiny signal fish";
+    status.activeFry ||
+    !status.canReleaseFry;
+  const label = status.capped
+    ? "Release a school of tiny signal fish for the shoal"
+    : "Release a school of tiny signal fish";
+
+  function broadcastPointerHint(overEgg: boolean) {
+    window.dispatchEvent(
+      new CustomEvent<EcosystemPointerHintDetail>(
+        MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
+        { detail: { overEgg } },
+      ),
+    );
+  }
 
   function handleActivate(event: MouseEvent<HTMLButtonElement>) {
+    if (status.activeFry) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const detail: EcosystemCommandDetail = {
-      intent: status.activeFry ? "call" : "release",
+      intent: "release",
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2,
     };
     window.dispatchEvent(
       new CustomEvent(MASCOT_ECOSYSTEM_COMMAND_EVENT, { detail }),
     );
+  }
+
+  function handlePointerEnter() {
+    broadcastPointerHint(true);
+  }
+
+  function handlePointerLeave() {
+    broadcastPointerHint(false);
   }
 
   return (
@@ -65,7 +97,14 @@ export default function SignalRoeButton() {
       data-ready={status.ready}
       data-active={status.activeFry}
       data-population={status.population}
+      data-mascot-obstacle="soft"
+      data-mascot-interest="roe"
+      data-mascot-pointer-suppress="true"
       onClick={handleActivate}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+      onPointerCancel={handlePointerLeave}
+      onBlur={handlePointerLeave}
     >
       <span className={styles.roeCluster} aria-hidden="true">
         <span />
@@ -75,7 +114,9 @@ export default function SignalRoeButton() {
       <span className={styles.srStatus} aria-live="polite">
         {status.fissionPhase
           ? "The signal fish is dividing"
-          : `${status.population} fish in the hidden shoal`}
+          : status.activeFry
+            ? `${status.activeFryCount} tiny signal fish are fleeing`
+            : `${status.population} fish in the hidden shoal`}
       </span>
     </button>
   );

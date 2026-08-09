@@ -8,10 +8,11 @@ import type { BodyProfileConfig } from "../types";
  */
 export const DEFAULT_BODY_PROFILE: BodyProfileConfig = {
   maxWidth: 1,
-  headScale: 3.4,
-  shoulderPosition: 0.28,
-  tailExponent: 1.7,
-  bellyBias: 0.2,
+  // Gentler head ramp → rounder nose, less flat “wide mouth” wall.
+  headScale: 2.85,
+  shoulderPosition: 0.24,
+  tailExponent: 1.45,
+  bellyBias: 0.18,
 };
 
 export function bodyWidth(
@@ -37,7 +38,15 @@ export function bodyWidth(
   );
   const belly = 1 + config.bellyBias * bellyFalloff;
 
+  // Soft nose pinch on the first ~7% — closes the silhouette without a flat
+  // wall of max head width (which made mouths look huge as the fish grew).
+  const nosePinch =
+    normalized < 0.07
+      ? Math.sin((normalized / 0.07) * Math.PI * 0.5)
+      : 1;
+
   return (
-    Math.max(0, headGrowth * tailTaper * belly) * Math.max(0, config.maxWidth)
+    Math.max(0, headGrowth * tailTaper * belly * nosePinch) *
+    Math.max(0, config.maxWidth)
   );
 }

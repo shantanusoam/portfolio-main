@@ -30,6 +30,18 @@ export const PLAYER_TUNING = {
   shieldMax: 60,
 };
 
+/** Keep the ship clear of DOM HUD chrome (taller bottom pad on portrait phones). */
+export function getPlayerYBounds(width: number, height: number) {
+  const portrait = height / Math.max(1, width) >= 1.3;
+  const top = height * (portrait ? 0.4 : 0.42);
+  const bottomPad = portrait ? Math.max(108, Math.round(height * 0.14)) : 72;
+  return {
+    bottom: height - bottomPad,
+    respawnY: height - bottomPad - 28,
+    top,
+  };
+}
+
 export const WEAPON_MAX_LEVEL = 5;
 
 export const WEAPON_NAMES: Record<WeaponType, string> = {

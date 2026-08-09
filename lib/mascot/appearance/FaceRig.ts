@@ -69,6 +69,7 @@ export function computeFaceFrame(input: FaceRigInput): FaceFrame {
 
   let sumX = 0;
   let sumY = 0;
+  let sumWidth = 0;
   let maxWidth = 0;
   let normalX = 0;
   let normalY = 0;
@@ -79,6 +80,7 @@ export function computeFaceFrame(input: FaceRigInput): FaceFrame {
     if (!rib) continue;
     sumX += rib.center.x;
     sumY += rib.center.y;
+    sumWidth += rib.width;
     maxWidth = Math.max(maxWidth, rib.width);
     normalX += rib.normalX;
     normalY += rib.normalY;
@@ -101,8 +103,11 @@ export function computeFaceFrame(input: FaceRigInput): FaceFrame {
 
   const deformation = input.deformation;
   const headSquash = deformation ? deformation.headSquash : 0;
-  const baseWidth = Math.max(1, maxWidth);
-  const width = baseWidth * (1 + headSquash * 0.6);
+  // Reason: max head rib alone balloons the mouth/eyes as the fish grows;
+  // bias toward average mid-head volume so the face stays cute and compact.
+  const avgWidth = sumWidth / count;
+  const baseWidth = Math.max(1, lerp(avgWidth, maxWidth, 0.28));
+  const width = baseWidth * (1 + headSquash * 0.45);
   const aspect = input.aspectRatio ?? DEFAULT_ASPECT_RATIO;
   const height = Math.max(1, baseWidth * aspect * (1 - headSquash * 0.35));
 

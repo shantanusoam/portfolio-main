@@ -30,12 +30,12 @@ export interface BodyContourConfig {
 }
 
 export const DEFAULT_BODY_CONTOUR_CONFIG: BodyContourConfig = {
-  // A broad head cap and compact torso make the face the first read. The
-  // final quarter is allowed to taper cleanly but never dominates the pose.
-  zones: { headEnd: 0.36, torsoEnd: 0.76 },
-  headBulge: 0.22,
-  tailTaperPower: 1.75,
-  tailVisualCap: 0.18,
+  // Compact rounded head, mid body, then a long soft tail that stays
+  // readable — not a flat wide face-wall or a vanishing thread tip.
+  zones: { headEnd: 0.28, torsoEnd: 0.58 },
+  headBulge: 0.12,
+  tailTaperPower: 1.35,
+  tailVisualCap: 0.28,
   minWidth: 2.5,
 };
 

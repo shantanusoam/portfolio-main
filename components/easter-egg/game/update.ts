@@ -16,6 +16,7 @@ import {
   SUPER_TUNING,
   WEAPON_COLORS,
   WEAPON_NAMES,
+  getPlayerYBounds,
   getSectorForWave,
   getWaveInSector,
 } from "./config";
@@ -130,8 +131,9 @@ function updatePlayerMovement(model: GameModel, keys: Set<string>, dt: number) {
   const drag = Math.pow(dragPerSecond, dt);
   player.vx *= drag;
   player.vy *= drag;
+  const yBounds = getPlayerYBounds(model.width, model.height);
   player.x = clamp(player.x + player.vx * dt, 24, model.width - 24);
-  player.y = clamp(player.y + player.vy * dt, model.height * 0.42, model.height - 34);
+  player.y = clamp(player.y + player.vy * dt, yBounds.top, yBounds.bottom);
 
   const targetTilt = clamp(-player.vx / 420, -0.42, 0.42);
   player.bankTilt += (targetTilt - player.bankTilt) * Math.min(1, dt * 8);
@@ -283,7 +285,7 @@ export function damagePlayer(model: GameModel, x: number, y: number, amount: num
     player.vx = 0;
     player.vy = 0;
     player.x = model.width / 2;
-    player.y = model.height - 76;
+    player.y = getPlayerYBounds(model.width, model.height).respawnY;
     createParticles(model, player.x, player.y, "#ff486f", 40, 100, 420);
     return;
   }

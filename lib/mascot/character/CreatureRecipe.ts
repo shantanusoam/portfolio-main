@@ -3,8 +3,8 @@ import type { VerletChainConfig } from "../motion/VerletChain";
 import type { BodyProfileConfig, MascotQuality } from "../types";
 
 /**
- * Musical Signal Familiar — compact bean/manta anatomy (V2 §3–4):
- * head 28–32%, torso 40–45%, short secondary tail 25–30%. Two side fins/ears
+ * Musical Signal Familiar — cute fish anatomy (V2 §3–4):
+ * compact rounded head, mid torso, long soft secondary tail. Two side fins/ears
  * come from the antennae Verlet chains. Not a ribbon/comet; not a copy of
  * the reference video's character.
  */
@@ -45,18 +45,18 @@ export const DEFAULT_CREATURE_RECIPE: CreatureRecipe = {
   },
   bodyProfile: {
     maxWidth: 40,
-    headScale: 3.4,
-    shoulderPosition: 0.28,
-    tailExponent: 1.7,
-    bellyBias: 0.2,
+    headScale: 2.85,
+    shoulderPosition: 0.24,
+    tailExponent: 1.45,
+    bellyBias: 0.18,
   },
   regions: {
-    // ~34% head / ~45% torso / ~21% short tail across 30 joints.
-    head: { start: 0, end: 9 },
-    shoulders: { start: 8, end: 11 },
-    torso: { start: 12, end: 22 },
-    tailBase: { start: 23, end: 26 },
-    tailTip: { start: 27, end: 29 },
+    // ~24% head / ~28% torso / ~42% long cute tail across 30 joints.
+    head: { start: 0, end: 7 },
+    shoulders: { start: 6, end: 9 },
+    torso: { start: 9, end: 17 },
+    tailBase: { start: 17, end: 24 },
+    tailTip: { start: 25, end: 29 },
   },
   antennaeCount: 2,
   // Short soft ears — not long triangular spikes.

@@ -63,7 +63,6 @@ export const SCENARIOS: Partial<Record<ScenarioName, ScenarioRunner>> = {
         y: height * 0.3,
       });
     }
-    if (cycle > 0.4) engine.trigger({ type: "callFish" });
   },
 
   "ecosystem-growth": (engine, t, width, height) => {
@@ -75,7 +74,21 @@ export const SCENARIOS: Partial<Record<ScenarioName, ScenarioRunner>> = {
         y: height * 0.36,
       });
     }
-    if (cycle > 0.35) engine.trigger({ type: "callFish" });
+  },
+
+  "egg-hover": (engine) => {
+    engine.setPointerSuppressed(true);
+  },
+
+  "sibling-independence": (engine, t, width, height) => {
+    const cycle = t % 8;
+    if (cycle < 0.05) {
+      engine.trigger({
+        type: "releaseFry",
+        x: width * 0.55,
+        y: height * 0.4,
+      });
+    }
   },
 
   "reduced-motion": (engine) => {

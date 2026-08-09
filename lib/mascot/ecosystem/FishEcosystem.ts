@@ -11,14 +11,32 @@ import type {
   MascotQuality,
   Point,
 } from "../types";
-import { PopulationModel } from "./PopulationModel";
+import {
+  anatomyAfterFission,
+  createBaseAnatomy,
+  maxSpineLengthForBounds,
+  MEALS_TO_FISSION,
+  resolveAnatomyForMeals,
+  spineLengthPx,
+  type AnatomyState,
+} from "./AnatomyGrowth";
+import {
+  FRY_SCHOOL_SIZE,
+  MAX_ADULT_FISH,
+  PopulationModel,
+} from "./PopulationModel";
+import { computeFryDesiredVelocity } from "./FrySteering";
 
-const FRY_CATCH_RADIUS = 24;
-const FRY_FLEE_RADIUS = 118;
-const POINTER_FLEE_RADIUS = 72;
-const FRY_MIN_CATCH_AGE = 0.72;
+const FRY_CATCH_RADIUS = 22;
+const FRY_MIN_CATCH_AGE = 1.35;
+const FRY_FATIGUE_AGE = 11;
+const FRY_HUNT_GRACE_SECONDS = 2.1;
 const FISSION_DURATION = 2.2;
-const REDUCED_FISSION_DURATION = 0.9;
+const REDUCED_FISSION_DURATION = 0.85;
+const REDUCED_CATCH_ASSIST_RADIUS = 90;
+const FRY_COLORS = ["#ffb178", "#8fe9c9", "#cbb2ff", "#91d9dc", "#ffd27a"] as const;
+/** Tight drop radius around the egg click — user places the school. */
+const FRY_DROP_RADIUS = 54;
 
 const MOONLIT_KOI_PALETTE: AppearancePalette = {
   name: "Moonlit Koi",
@@ -42,14 +60,20 @@ export interface EcosystemAdult {
   id: string;
   role: "leader" | "companion";
   runtime: MascotRuntime;
+  mealsEaten: number;
+  anatomy: AnatomyState;
+  /** Soft visual pulse only — simulated size comes from anatomy. */
   scale: number;
   targetScale: number;
   feedPulse: number;
   preferredSide: 1 | -1;
-  orbitSpeed: number;
+  phaseOffset: number;
+  laneBias: number;
+  preferredSpeed: number;
 }
 
 export interface EcosystemFry {
+  id: string;
   x: number;
   y: number;
   vx: number;
@@ -58,6 +82,10 @@ export interface EcosystemFry {
   age: number;
   tailPhase: number;
   color: string;
+  dodgeSign: 1 | -1;
+  hideTarget: Point | null;
+  nextHideAt: number;
+  burstCooldown: number;
 }
 
 export interface EcosystemFissionVisual {
@@ -69,10 +97,13 @@ export interface EcosystemFissionVisual {
 interface FissionState {
   elapsed: number;
   duration: number;
-  sourcePopulation: 1 | 2;
+  parentIndex: number;
   spawned: boolean;
-  parentOrigins: Point[];
+  parentOrigin: Point;
   axisAngle: number;
+  parentWasLeader: boolean;
+  childAnatomy: AnatomyState;
+  parentMeals: number;
 }
 
 export interface FishEcosystemOptions {
@@ -104,18 +135,20 @@ export class FishEcosystem {
   private readonly adults: EcosystemAdult[];
   private bounds: WanderBounds;
   private quality: MascotQuality;
-  private fry: EcosystemFry | null = null;
+  private fry: EcosystemFry[] = [];
   private fission: FissionState | null = null;
   private pointer = { x: 0, y: 0, active: false };
+  private pointerSuppressed = false;
   private simTime = 0;
   private spawnCooldown = 0;
-  private assistSeconds = 0;
   private bloomSeconds = 0;
   private reducedMotion = false;
   private enabled = true;
   private lastStatusKey = "";
-  private fryHideTarget: Point | null = null;
-  private nextFryHideAt = 0;
+  /** adult index -> fry index they are currently hunting */
+  private huntAssignments: Array<number | null> = [];
+  private divergenceSeconds = 0;
+  private nextFryId = 1;
 
   constructor(options: FishEcosystemOptions) {
     this.rng = new SeededRandom(options.seed + 0x5f3759df);
@@ -124,16 +157,22 @@ export class FishEcosystem {
     this.getHideTargets = options.getHideTargets;
     this.bounds = options.bounds;
     this.quality = options.quality;
+    const anatomy = createBaseAnatomy(0);
+    options.leader.applyAnatomy(anatomy);
     this.adults = [
       {
         id: "signal-leader",
         role: "leader",
         runtime: options.leader,
+        mealsEaten: 0,
+        anatomy,
         scale: 1,
         targetScale: 1,
         feedPulse: 0,
         preferredSide: 1,
-        orbitSpeed: 0.38,
+        phaseOffset: 0,
+        laneBias: 0,
+        preferredSpeed: 1,
       },
     ];
     this.emitStatus(true);
@@ -144,6 +183,10 @@ export class FishEcosystem {
   }
 
   getFry(): EcosystemFry | null {
+    return this.fry[0] ?? null;
+  }
+
+  getAllFry(): readonly EcosystemFry[] {
     return this.fry;
   }
 
@@ -162,7 +205,7 @@ export class FishEcosystem {
     return {
       phase: phaseForProgress(progress),
       progress,
-      parentOrigins: this.fission.parentOrigins,
+      parentOrigins: [this.fission.parentOrigin],
     };
   }
 
@@ -170,10 +213,16 @@ export class FishEcosystem {
     const canRelease =
       this.enabled &&
       this.spawnCooldown <= 0 &&
-      !this.fry &&
+      this.fry.length === 0 &&
       !this.fission &&
       !this.population.isFissionPending();
-    const status = this.population.getStatus(canRelease);
+    const leader = this.adults.find((adult) => adult.role === "leader");
+    const meals = leader?.mealsEaten ?? 0;
+    const status = this.population.getStatus(
+      canRelease,
+      meals,
+      Math.max(0, MEALS_TO_FISSION - meals),
+    );
     status.fissionPhase = this.getFissionVisual()?.phase ?? null;
     return status;
   }
@@ -184,6 +233,14 @@ export class FishEcosystem {
     this.pointer.active = active;
   }
 
+  setPointerSuppressed(suppressed: boolean): void {
+    this.pointerSuppressed = suppressed;
+  }
+
+  isPointerSuppressed(): boolean {
+    return this.pointerSuppressed;
+  }
+
   setScrollVelocity(value: number): void {
     for (const adult of this.adults) adult.runtime.setScrollVelocity(value);
   }
@@ -191,9 +248,9 @@ export class FishEcosystem {
   setBounds(bounds: WanderBounds): void {
     this.bounds = bounds;
     for (const adult of this.adults) adult.runtime.setBounds(bounds);
-    if (this.fry) {
-      this.fry.x = clamp(this.fry.x, bounds.minX, bounds.maxX);
-      this.fry.y = clamp(this.fry.y, bounds.minY, bounds.maxY);
+    for (const fry of this.fry) {
+      fry.x = clamp(fry.x, bounds.minX, bounds.maxX);
+      fry.y = clamp(fry.y, bounds.minY, bounds.maxY);
     }
   }
 
@@ -219,70 +276,73 @@ export class FishEcosystem {
       return;
     }
     if (action.type === "callFish") {
+      // Retained for motion-lab / debug; normal UX hunts automatically.
       this.callFish();
       return;
     }
 
     if (action.type === "click") {
-      this.adults[0].runtime.trigger(action);
+      this.adults[0]?.runtime.trigger(action);
       return;
     }
     for (const adult of this.adults) adult.runtime.trigger(action);
   }
 
-  releaseFry(x?: number, y?: number): boolean {
-    if (
-      !this.enabled ||
-      this.spawnCooldown > 0 ||
-      !this.population.requestFry()
-    ) {
+  /**
+   * One egg click scatters a school of shy fry across the page. Pass `count`
+   * to override (tests often use 1 for precise meal accounting).
+   */
+  releaseFry(x?: number, y?: number, count: number = FRY_SCHOOL_SIZE): boolean {
+    if (!this.enabled || this.spawnCooldown > 0 || this.fission) {
       return false;
     }
+    const granted = this.population.requestSchool(count);
+    if (granted <= 0) return false;
 
-    const spawnX = clamp(
+    const originX = clamp(
       Number.isFinite(x)
         ? (x as number)
         : lerp(this.bounds.minX, this.bounds.maxX, 0.78),
       this.bounds.minX,
       this.bounds.maxX,
     );
-    const spawnY = clamp(
+    const originY = clamp(
       Number.isFinite(y)
         ? (y as number)
         : lerp(this.bounds.minY, this.bounds.maxY, 0.3),
       this.bounds.minY,
       this.bounds.maxY,
     );
-    const heading = this.rng.angle();
-    this.fry = {
-      x: spawnX,
-      y: spawnY,
-      vx: Math.cos(heading) * 12,
-      vy: Math.sin(heading) * 12,
-      heading,
-      age: 0,
-      tailPhase: this.rng.angle(),
-      color: this.rng.pick(["#ffb178", "#8fe9c9", "#cbb2ff", "#91d9dc"]),
-    };
-    this.spawnCooldown = 2;
-    this.selectFryHideTarget();
+
+    this.fry = [];
+    for (let index = 0; index < granted; index += 1) {
+      this.fry.push(this.createDroppedFry(originX, originY, index, granted));
+    }
+    this.spawnCooldown = 2.4;
+    this.huntAssignments = this.adults.map(() => null);
     this.emitStatus();
     return true;
   }
 
   callFish(): void {
-    if (!this.fry || this.fission) return;
-    this.assistSeconds = 3.5;
+    if (this.fry.length === 0 || this.fission) return;
+    this.assignHunters();
   }
 
   update(dt: number): void {
     if (!this.enabled || !Number.isFinite(dt) || dt <= 0) return;
     this.simTime += dt;
     this.spawnCooldown = Math.max(0, this.spawnCooldown - dt);
-    this.assistSeconds = Math.max(0, this.assistSeconds - dt);
     this.bloomSeconds = Math.max(0, this.bloomSeconds - dt);
+    this.divergenceSeconds = Math.max(0, this.divergenceSeconds - dt);
 
     if (this.fission) this.updateFission(dt);
+
+    // Reason: fry move first so predators chase current positions.
+    if (this.fry.length > 0 && !this.fission) {
+      for (const fry of this.fry) this.updateFry(dt, fry);
+    }
+
     this.routeAdultTargets();
 
     for (const adult of this.adults) {
@@ -292,12 +352,52 @@ export class FishEcosystem {
       adult.runtime.update(dt);
     }
 
-    if (this.fry && !this.fission) {
-      this.updateFry(dt, this.fry);
-      this.checkFryCatch();
-    }
+    if (this.fry.length > 0 && !this.fission) this.checkFryCatch();
 
     this.emitStatus();
+  }
+
+  private createDroppedFry(
+    originX: number,
+    originY: number,
+    index: number,
+    total: number,
+  ): EcosystemFry {
+    // Reason: fry must appear where the user clicked the egg — a tight ring,
+    // not a random page-wide scatter.
+    const angle =
+      (index / Math.max(1, total)) * Math.PI * 2 + this.rng.range(-0.25, 0.25);
+    const radius =
+      total <= 1 ? 0 : 16 + (index / Math.max(1, total - 1)) * FRY_DROP_RADIUS;
+    const x = clamp(
+      originX + Math.cos(angle) * radius + this.rng.range(-6, 6),
+      this.bounds.minX,
+      this.bounds.maxX,
+    );
+    const y = clamp(
+      originY + Math.sin(angle) * radius + this.rng.range(-6, 6),
+      this.bounds.minY,
+      this.bounds.maxY,
+    );
+    const heading = angle + Math.PI + this.rng.range(-0.4, 0.4);
+    const speed = this.rng.range(22, 36);
+    const fry: EcosystemFry = {
+      id: `fry-${this.nextFryId++}`,
+      x,
+      y,
+      vx: Math.cos(heading) * speed,
+      vy: Math.sin(heading) * speed,
+      heading,
+      age: 0,
+      tailPhase: this.rng.angle(),
+      color: FRY_COLORS[index % FRY_COLORS.length],
+      dodgeSign: index % 2 === 0 ? 1 : -1,
+      hideTarget: null,
+      nextHideAt: this.rng.range(0.6, 1.4),
+      burstCooldown: 0,
+    };
+    this.refreshFryHideTarget(fry);
+    return fry;
   }
 
   private routeAdultTargets(): void {
@@ -306,74 +406,129 @@ export class FishEcosystem {
       return;
     }
 
-    const leader = this.adults[0];
-    if (this.fry && this.assistSeconds > 0) {
-      leader.runtime.setPointer(this.fry.x, this.fry.y, true);
-    } else {
-      leader.runtime.setPointer(
-        this.pointer.x,
-        this.pointer.y,
-        this.pointer.active,
-      );
-    }
+    if (this.fry.length > 0 && this.canHuntYet()) this.assignHunters();
+    else this.huntAssignments = this.adults.map(() => null);
 
-    for (let index = 1; index < this.adults.length; index += 1) {
-      const target = this.socialTarget(index);
-      this.adults[index].runtime.setPointer(target.x, target.y, true);
+    for (let index = 0; index < this.adults.length; index += 1) {
+      const adult = this.adults[index];
+      const preyIndex = this.huntAssignments[index];
+      const prey =
+        preyIndex !== null && preyIndex !== undefined
+          ? this.fry[preyIndex]
+          : null;
+
+      if (adult.role === "leader") {
+        if (prey) {
+          adult.runtime.clearSteerTarget();
+          adult.runtime.setPointer(prey.x, prey.y, false);
+          adult.runtime.setSteerTarget(prey.x, prey.y, true);
+        } else if (this.pointerSuppressed) {
+          adult.runtime.clearSteerTarget();
+          adult.runtime.setPointer(this.pointer.x, this.pointer.y, false);
+        } else {
+          adult.runtime.clearSteerTarget();
+          adult.runtime.setPointer(
+            this.pointer.x,
+            this.pointer.y,
+            this.pointer.active,
+          );
+        }
+        continue;
+      }
+
+      adult.runtime.setPointer(0, 0, false);
+      if (prey) {
+        adult.runtime.setSteerTarget(prey.x, prey.y, true);
+      } else {
+        const target = this.independentTarget(index);
+        adult.runtime.setSteerTarget(target.x, target.y, false);
+      }
     }
   }
 
-  private socialTarget(index: number): Point {
-    const leader = this.adults[0].runtime;
-    const root = leader.pose.getRoot();
-    const heading = leader.pose.getHeading();
-    const forwardX = Math.cos(heading);
-    const forwardY = Math.sin(heading);
-    const normalX = -forwardY;
-    const normalY = forwardX;
-    const mode = Math.floor(this.simTime / 9) % 3;
-    let target: Point;
+  private canHuntYet(): boolean {
+    if (this.fry.length === 0) return false;
+    // Give freshly dropped fry a head start before adults commit to chase.
+    return this.fry.some((fry) => fry.age >= FRY_HUNT_GRACE_SECONDS);
+  }
 
-    if (this.adults.length === 2) {
-      const sway = Math.sin(this.simTime * 0.7) * 14;
-      target = {
-        x: root.x + normalX * 62 + forwardX * sway,
-        y: root.y + normalY * 62 + forwardY * sway,
-      };
-    } else if (mode === 0) {
-      const angle =
-        this.simTime * this.adults[index].orbitSpeed +
-        (index * Math.PI * 2) / this.adults.length;
-      target = {
-        x: root.x + Math.cos(angle) * 76,
-        y: root.y + Math.sin(angle) * 58,
-      };
-    } else if (mode === 1) {
-      const side = this.adults[index].preferredSide;
-      target = {
-        x: root.x - forwardX * (34 + index * 20) + normalX * side * 28,
-        y: root.y - forwardY * (34 + index * 20) + normalY * side * 28,
-      };
-    } else {
-      const lane = index - (this.adults.length - 1) / 2;
-      target = {
-        x: root.x + normalX * lane * 48 - forwardX * 18,
-        y: root.y + normalY * lane * 48 - forwardY * 18,
-      };
+  private assignHunters(): void {
+    this.huntAssignments = this.adults.map(() => null);
+    if (this.fry.length === 0 || this.adults.length === 0) return;
+
+    const claimed = new Set<number>();
+    const adultsByHunger = this.adults
+      .map((adult, index) => ({ adult, index }))
+      .sort((a, b) => a.index - b.index);
+
+    for (const { index } of adultsByHunger) {
+      const root = this.adults[index].runtime.pose.getRoot();
+      let bestFry = -1;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      for (let fryIndex = 0; fryIndex < this.fry.length; fryIndex += 1) {
+        if (claimed.has(fryIndex)) continue;
+        const fry = this.fry[fryIndex];
+        if (fry.age < FRY_HUNT_GRACE_SECONDS) continue;
+        const distance = Math.hypot(root.x - fry.x, root.y - fry.y);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestFry = fryIndex;
+        }
+      }
+      if (bestFry >= 0) {
+        claimed.add(bestFry);
+        this.huntAssignments[index] = bestFry;
+      }
+    }
+  }
+
+  private independentTarget(index: number): Point {
+    const adult = this.adults[index];
+    const root = adult.runtime.pose.getRoot();
+    const phase = this.simTime * adult.preferredSpeed + adult.phaseOffset;
+    const wanderRadius = 70 + adult.laneBias * 18;
+    let target: Point = {
+      x:
+        root.x +
+        Math.cos(phase * 0.55 + adult.phaseOffset) * wanderRadius +
+        Math.sin(phase * 0.21) * 24,
+      y:
+        root.y +
+        Math.sin(phase * 0.47 + adult.phaseOffset * 1.3) * wanderRadius * 0.72 +
+        Math.cos(phase * 0.19) * 18,
+    };
+
+    // Soft attraction to leader so the shoal stays related without lockstep.
+    const leader = this.adults.find((entry) => entry.role === "leader");
+    if (leader && this.divergenceSeconds <= 0) {
+      const leaderRoot = leader.runtime.pose.getRoot();
+      const toLeaderX = leaderRoot.x - root.x;
+      const toLeaderY = leaderRoot.y - root.y;
+      const leaderDistance = Math.hypot(toLeaderX, toLeaderY);
+      if (leaderDistance > 160) {
+        target.x += toLeaderX * 0.18;
+        target.y += toLeaderY * 0.18;
+      }
     }
 
     for (let otherIndex = 0; otherIndex < this.adults.length; otherIndex += 1) {
       if (otherIndex === index) continue;
       const other = this.adults[otherIndex].runtime.pose.getRoot();
-      const own = this.adults[index].runtime.pose.getRoot();
-      const dx = own.x - other.x;
-      const dy = own.y - other.y;
+      const dx = root.x - other.x;
+      const dy = root.y - other.y;
       const distance = Math.max(1, Math.hypot(dx, dy));
-      if (distance < 48) {
-        const push = (48 - distance) * 1.1;
+      if (distance < 56) {
+        const push = (56 - distance) * 1.35;
         target.x += (dx / distance) * push;
         target.y += (dy / distance) * push;
       }
+    }
+
+    if (this.divergenceSeconds > 0) {
+      const burst =
+        Math.sin(adult.phaseOffset) * 90 * (this.divergenceSeconds / 0.7);
+      target.x += Math.cos(adult.phaseOffset) * burst;
+      target.y += Math.sin(adult.phaseOffset * 1.7) * burst;
     }
 
     return {
@@ -384,128 +539,212 @@ export class FishEcosystem {
 
   private updateFry(dt: number, fry: EcosystemFry): void {
     fry.age += dt;
-    fry.tailPhase += dt * 8;
-    if (fry.age >= this.nextFryHideAt) this.selectFryHideTarget();
-    const fatigued = fry.age > 11 || this.assistSeconds > 0;
-    const hideDistance = this.fryHideTarget
-      ? Math.hypot(this.fryHideTarget.x - fry.x, this.fryHideTarget.y - fry.y)
-      : Infinity;
-    const tuckedAway = hideDistance < 24;
-    const baseSpeed = this.reducedMotion
-      ? 5
-      : tuckedAway
-        ? 7
-        : fatigued
-          ? 18
-          : 28;
-    const wanderAngle =
-      fry.heading + Math.sin(fry.age * 1.7 + fry.tailPhase) * 0.9;
-    let desiredX = Math.cos(wanderAngle) * baseSpeed;
-    let desiredY = Math.sin(wanderAngle) * baseSpeed;
+    fry.tailPhase += dt * (fry.burstCooldown > 0 ? 14 : 9);
+    fry.burstCooldown = Math.max(0, fry.burstCooldown - dt);
+    if (fry.age >= fry.nextHideAt) this.refreshFryHideTarget(fry);
 
-    if (this.fryHideTarget && hideDistance > 12) {
-      desiredX += ((this.fryHideTarget.x - fry.x) / hideDistance) * 19;
-      desiredY += ((this.fryHideTarget.y - fry.y) / hideDistance) * 19;
+    const fatigue = clamp(
+      (fry.age - FRY_FATIGUE_AGE * 0.28) / FRY_FATIGUE_AGE,
+      0,
+      1,
+    );
+
+    const assignedHunterIndex = this.huntAssignments.findIndex(
+      (preyIndex) =>
+        preyIndex !== null && this.fry[preyIndex]?.id === fry.id,
+    );
+    const hunter =
+      assignedHunterIndex >= 0 ? this.adults[assignedHunterIndex] : null;
+    if (
+      this.reducedMotion &&
+      hunter &&
+      Math.hypot(
+        hunter.runtime.pose.getRoot().x - fry.x,
+        hunter.runtime.pose.getRoot().y - fry.y,
+      ) < REDUCED_CATCH_ASSIST_RADIUS
+    ) {
+      const root = hunter.runtime.pose.getRoot();
+      fry.x = lerp(fry.x, root.x, clamp(dt * 2.4, 0, 1));
+      fry.y = lerp(fry.y, root.y, clamp(dt * 2.4, 0, 1));
+      fry.vx *= 0.8;
+      fry.vy *= 0.8;
+      return;
     }
 
-    for (const adult of this.adults) {
+    const threats = this.adults.map((adult) => {
       const root = adult.runtime.pose.getRoot();
-      const dx = fry.x - root.x;
-      const dy = fry.y - root.y;
-      const distance = Math.max(1, Math.hypot(dx, dy));
-      if (distance < FRY_FLEE_RADIUS) {
-        const strength =
-          (1 - distance / FRY_FLEE_RADIUS) *
-          (this.reducedMotion ? 5 : fatigued ? 44 : 82);
-        desiredX += (dx / distance) * strength;
-        desiredY += (dy / distance) * strength;
-      }
+      const velocity = adult.runtime.pose.getVelocity();
+      return {
+        x: root.x,
+        y: root.y,
+        vx: velocity.x,
+        vy: velocity.y,
+      };
+    });
+    const neighbors = this.fry
+      .filter((other) => other.id !== fry.id)
+      .map((other) => ({ x: other.x, y: other.y }));
+
+    const steered = computeFryDesiredVelocity({
+      x: fry.x,
+      y: fry.y,
+      vx: fry.vx,
+      vy: fry.vy,
+      age: fry.age,
+      fatigue,
+      dodgeSign: fry.dodgeSign,
+      reducedMotion: this.reducedMotion,
+      threats,
+      pointer:
+        this.pointer.active && !this.pointerSuppressed
+          ? this.pointer
+          : null,
+      hideTarget: fry.hideTarget,
+      neighbors,
+      bounds: this.bounds,
+    });
+
+    let desiredX = steered.desiredVx;
+    let desiredY = steered.desiredVy;
+    let maxSpeed = steered.maxSpeed;
+    if (steered.burst && fry.burstCooldown <= 0) {
+      fry.burstCooldown = 0.55;
+    }
+    if (fry.burstCooldown > 0) {
+      maxSpeed *= 1.2;
     }
 
-    if (this.pointer.active && this.assistSeconds <= 0) {
-      const dx = fry.x - this.pointer.x;
-      const dy = fry.y - this.pointer.y;
-      const distance = Math.max(1, Math.hypot(dx, dy));
-      if (distance < POINTER_FLEE_RADIUS) {
-        const strength = (1 - distance / POINTER_FLEE_RADIUS) * 34;
-        desiredX += (dx / distance) * strength;
-        desiredY += (dy / distance) * strength;
-      }
-    }
-
-    const edge = 46;
-    if (fry.x < this.bounds.minX + edge) desiredX += 55;
-    if (fry.x > this.bounds.maxX - edge) desiredX -= 55;
-    if (fry.y < this.bounds.minY + edge) desiredY += 55;
-    if (fry.y > this.bounds.maxY - edge) desiredY -= 55;
-
-    const maxSpeed = this.reducedMotion ? 8 : fatigued ? 54 : 92;
     const speed = Math.hypot(desiredX, desiredY);
-    if (speed > maxSpeed) {
+    if (speed > maxSpeed && speed > 0) {
       desiredX = (desiredX / speed) * maxSpeed;
       desiredY = (desiredY / speed) * maxSpeed;
     }
 
-    fry.vx = lerp(fry.vx, desiredX, clamp(dt * 3.2, 0, 1));
-    fry.vy = lerp(fry.vy, desiredY, clamp(dt * 3.2, 0, 1));
+    // Snappier acceleration while bursting so escape reads as a dart, not a drift.
+    const accel = fry.burstCooldown > 0 ? 7.5 : 4.4;
+    fry.vx = lerp(fry.vx, desiredX, clamp(dt * accel, 0, 1));
+    fry.vy = lerp(fry.vy, desiredY, clamp(dt * accel, 0, 1));
     fry.x = clamp(fry.x + fry.vx * dt, this.bounds.minX, this.bounds.maxX);
     fry.y = clamp(fry.y + fry.vy * dt, this.bounds.minY, this.bounds.maxY);
-    if (Math.hypot(fry.vx, fry.vy) > 1)
+    if (Math.hypot(fry.vx, fry.vy) > 1) {
       fry.heading = Math.atan2(fry.vy, fry.vx);
-  }
-
-  private checkFryCatch(): void {
-    if (!this.fry || this.fry.age < FRY_MIN_CATCH_AGE) return;
-    for (const adult of this.adults) {
-      const root = adult.runtime.pose.getRoot();
-      if (
-        Math.hypot(root.x - this.fry.x, root.y - this.fry.y) > FRY_CATCH_RADIUS
-      ) {
-        continue;
-      }
-
-      const caughtAt = { x: this.fry.x, y: this.fry.y };
-      const outcome = this.population.consumeFry();
-      this.fry = null;
-      this.fryHideTarget = null;
-      this.assistSeconds = 0;
-      adult.feedPulse = 1;
-      adult.runtime.trigger({ type: "click", x: caughtAt.x, y: caughtAt.y });
-
-      if (outcome === "fission") this.beginFission();
-      if (outcome === "bloom") {
-        this.bloomSeconds = 1.25;
-        for (const member of this.adults) member.feedPulse = 1;
-      }
-      this.emitStatus(true);
-      return;
     }
   }
 
-  private beginFission(): void {
-    const sourcePopulation = this.population.getPopulation();
-    if (sourcePopulation === 4) return;
-    const parentOrigins = this.adults.map((adult) =>
-      adult.runtime.pose.getRoot(),
+  private checkFryCatch(): void {
+    if (this.fry.length === 0) return;
+    // One catch per adult per frame keeps multi-hunter schools fair.
+    const adultsBusy = new Set<number>();
+
+    for (let fryIndex = 0; fryIndex < this.fry.length; fryIndex += 1) {
+      const fry = this.fry[fryIndex];
+      if (fry.age < FRY_MIN_CATCH_AGE) continue;
+
+      for (let adultIndex = 0; adultIndex < this.adults.length; adultIndex += 1) {
+        if (adultsBusy.has(adultIndex)) continue;
+        const adult = this.adults[adultIndex];
+        const root = adult.runtime.pose.getRoot();
+        const catchRadius =
+          FRY_CATCH_RADIUS *
+          (0.85 + adult.anatomy.bodyProfile.maxWidth / 40) *
+          (this.reducedMotion ? 1.35 : 1);
+        if (Math.hypot(root.x - fry.x, root.y - fry.y) > catchRadius) {
+          continue;
+        }
+
+        const caughtAt = { x: fry.x, y: fry.y };
+        adult.mealsEaten = Math.min(MEALS_TO_FISSION, adult.mealsEaten + 1);
+        this.applyGrowthToAdult(adult);
+
+        const canSplit =
+          adult.mealsEaten >= MEALS_TO_FISSION &&
+          this.population.canSplitOneAdult();
+        const outcome = this.population.consumeFry(adult.mealsEaten, canSplit);
+        this.fry.splice(fryIndex, 1);
+        adultsBusy.add(adultIndex);
+        adult.feedPulse = 1;
+        adult.runtime.trigger({ type: "click", x: caughtAt.x, y: caughtAt.y });
+
+        if (outcome === "fission") {
+          this.beginFission(adult);
+          this.emitStatus(true);
+          return;
+        }
+        if (outcome === "bloom") {
+          this.bloomSeconds = 1.25;
+          for (const member of this.adults) member.feedPulse = 1;
+        }
+        this.emitStatus(true);
+        fryIndex -= 1;
+        break;
+      }
+    }
+  }
+
+  private refreshFryHideTarget(fry: EcosystemFry): void {
+    const candidates = this.getHideTargets?.() ?? [];
+    if (candidates.length === 0) {
+      fry.hideTarget = {
+        x: this.rng.range(this.bounds.minX, this.bounds.maxX),
+        y: this.rng.range(this.bounds.minY, this.bounds.maxY),
+      };
+    } else {
+      // Prefer cover far from the nearest adult when possible.
+      let best = candidates[0];
+      let bestScore = -Infinity;
+      for (const candidate of candidates) {
+        let nearestAdult = Infinity;
+        for (const adult of this.adults) {
+          const root = adult.runtime.pose.getRoot();
+          nearestAdult = Math.min(
+            nearestAdult,
+            Math.hypot(candidate.x - root.x, candidate.y - root.y),
+          );
+        }
+        const score = nearestAdult + this.rng.range(0, 40);
+        if (score > bestScore) {
+          bestScore = score;
+          best = candidate;
+        }
+      }
+      fry.hideTarget = { x: best.x, y: best.y };
+    }
+    fry.nextHideAt = fry.age + this.rng.range(1.8, 3.6);
+  }
+
+  private applyGrowthToAdult(adult: EcosystemAdult): void {
+    const maxLength = maxSpineLengthForBounds(
+      this.bounds.maxX - this.bounds.minX,
+      this.bounds.maxY - this.bounds.minY,
     );
-    const heading = this.adults[0].runtime.pose.getHeading();
+    const next = resolveAnatomyForMeals(adult.mealsEaten, {
+      maxSpineLength: maxLength,
+    });
+    adult.anatomy = next;
+    adult.runtime.applyAnatomy(next);
+  }
+
+  private beginFission(parent: EcosystemAdult): void {
+    if (!this.population.canSplitOneAdult() && !this.population.isFissionPending()) {
+      return;
+    }
+    const parentIndex = this.adults.indexOf(parent);
+    if (parentIndex < 0) return;
+    const origin = parent.runtime.pose.getRoot();
+    const heading = parent.runtime.pose.getHeading();
     this.fission = {
       elapsed: 0,
       duration: this.reducedMotion
         ? REDUCED_FISSION_DURATION
         : FISSION_DURATION,
-      sourcePopulation,
+      parentIndex,
       spawned: false,
-      parentOrigins,
+      parentOrigin: { x: origin.x, y: origin.y },
       axisAngle: heading + Math.PI / 2,
+      parentWasLeader: parent.role === "leader",
+      childAnatomy: anatomyAfterFission(parent.mealsEaten),
+      parentMeals: parent.mealsEaten,
     };
-  }
-
-  private selectFryHideTarget(): void {
-    const candidates = this.getHideTargets?.() ?? [];
-    this.fryHideTarget =
-      candidates.length > 0 ? { ...this.rng.pick(candidates) } : null;
-    this.nextFryHideAt = (this.fry?.age ?? 0) + this.rng.range(3.2, 5.4);
   }
 
   private updateFission(dt: number): void {
@@ -522,42 +761,76 @@ export class FishEcosystem {
   private spawnChildren(): void {
     if (!this.fission || this.fission.spawned) return;
     this.fission.spawned = true;
-    const sourcePopulation = this.fission.sourcePopulation;
-    const newPopulation = this.population.completeFission();
-    const childScale = baseScaleForPopulation(newPopulation);
+    const parentIndex = this.fission.parentIndex;
+    const parent = this.adults[parentIndex];
+    if (!parent) return;
 
-    for (let index = 0; index < sourcePopulation; index += 1) {
-      const origin = this.fission.parentOrigins[index];
-      const childIndex = this.adults.length;
+    const origin = this.fission.parentOrigin;
+    const childAnatomy = this.fission.childAnatomy;
+    const parentWasLeader = this.fission.parentWasLeader;
+    const axis = this.fission.axisAngle;
+
+    // Remove the dividing parent, then insert two equal children.
+    parent.runtime.clearSteerTarget();
+    this.adults.splice(parentIndex, 1);
+
+    const children: EcosystemAdult[] = [];
+    for (let side = 0; side < 2; side += 1) {
+      const childIndex = this.adults.length + children.length;
+      const seed =
+        (this.rng.next() * 0x7fffffff) ^ (childIndex * 0x9e3779b9);
+      const offset = (side === 0 ? -1 : 1) * 18;
       const runtime = this.createRuntime(
-        Math.floor(this.rng.next() * 0x7fffffff),
-        origin.x,
-        origin.y,
+        Math.floor(seed) >>> 0,
+        origin.x + Math.cos(axis) * offset,
+        origin.y + Math.sin(axis) * offset,
         childIndex,
       );
       runtime.setQuality(this.quality);
       runtime.setEnabled(this.enabled);
       runtime.setReducedMotion(this.reducedMotion);
-      runtime.setAppearancePreset(COMPANION_PRESETS[childIndex]);
-      if (childIndex === 3) runtime.appearancePalette = MOONLIT_KOI_PALETTE;
+      runtime.applyAnatomy(childAnatomy);
+      runtime.setAppearancePreset(COMPANION_PRESETS[childIndex % 4]);
+      if (childIndex % 4 === 3) runtime.appearancePalette = MOONLIT_KOI_PALETTE;
 
-      this.adults.push({
-        id: `signal-sibling-${childIndex}`,
+      children.push({
+        id: `signal-sibling-${childIndex}-${side}`,
         role: "companion",
         runtime,
-        scale: childScale,
-        targetScale: childScale,
+        mealsEaten: 0,
+        anatomy: childAnatomy,
+        scale: 1,
+        targetScale: 1,
         feedPulse: 0,
-        preferredSide: childIndex % 2 === 0 ? -1 : 1,
-        orbitSpeed: 0.28 + this.rng.next() * 0.22,
+        preferredSide: side === 0 ? -1 : 1,
+        phaseOffset: this.rng.range(0, Math.PI * 2),
+        laneBias: this.rng.range(-1, 1),
+        preferredSpeed: 0.75 + this.rng.next() * 0.55,
       });
     }
 
-    for (const adult of this.adults) {
-      adult.scale = childScale;
-      adult.targetScale = childScale;
-      adult.feedPulse = 0;
+    if (parentWasLeader) {
+      children[0].role = "leader";
+      children[0].id = "signal-leader";
+      this.adults.unshift(...children);
+    } else {
+      this.adults.splice(parentIndex, 0, ...children);
     }
+
+    // Ensure exactly one leader at index 0.
+    const leaderIndex = this.adults.findIndex((adult) => adult.role === "leader");
+    if (leaderIndex > 0) {
+      const [leader] = this.adults.splice(leaderIndex, 1);
+      this.adults.unshift(leader);
+    } else if (leaderIndex < 0 && this.adults.length > 0) {
+      this.adults[0].role = "leader";
+    }
+    for (let i = 1; i < this.adults.length; i += 1) {
+      this.adults[i].role = "companion";
+    }
+
+    this.population.completeFission();
+    this.divergenceSeconds = 0.7;
     this.emitStatus(true);
   }
 
@@ -565,15 +838,24 @@ export class FishEcosystem {
     if (!this.fission) return;
     const normalX = Math.cos(this.fission.axisAngle);
     const normalY = Math.sin(this.fission.axisAngle);
-    const sourcePopulation = this.fission.sourcePopulation;
     const progress = clamp(this.fission.elapsed / this.fission.duration, 0, 1);
-    const separation = progress < 0.52 ? 0 : ((progress - 0.52) / 0.48) * 58;
+    const separation = progress < 0.52 ? 0 : ((progress - 0.52) / 0.48) * 64;
+    const origin = this.fission.parentOrigin;
 
-    for (let index = 0; index < this.adults.length; index += 1) {
-      const parentIndex = index % sourcePopulation;
-      const origin = this.fission.parentOrigins[parentIndex];
-      const side = index < sourcePopulation ? -1 : 1;
-      this.adults[index].runtime.setPointer(
+    if (!this.fission.spawned) {
+      const parent = this.adults[this.fission.parentIndex];
+      if (!parent) return;
+      parent.runtime.setPointer(0, 0, false);
+      parent.runtime.setSteerTarget(origin.x, origin.y, false);
+      return;
+    }
+
+    // After spawn, push the two newest siblings apart along the fission axis.
+    const start = Math.max(0, this.adults.length - 2);
+    for (let index = start; index < this.adults.length; index += 1) {
+      const side = index === start ? -1 : 1;
+      this.adults[index].runtime.setPointer(0, 0, false);
+      this.adults[index].runtime.setSteerTarget(
         origin.x + normalX * separation * side,
         origin.y + normalY * separation * side,
         true,
@@ -582,21 +864,22 @@ export class FishEcosystem {
   }
 
   private resolveTargetScale(adult: EcosystemAdult): number {
-    const population = this.population.getPopulation();
-    let scale = baseScaleForPopulation(population);
-    const meals = this.population.getStageMeals();
-    if (population === 1) scale += meals * 0.08;
-    if (population === 2) scale += meals * 0.045;
-    scale += adult.feedPulse * 0.045;
-    scale += this.getBloomStrength() * 0.04;
+    let scale = 1;
+    scale += adult.feedPulse * 0.04;
+    scale += this.getBloomStrength() * 0.035;
+    // Tiny population shrink so four large anatomies stay readable.
+    if (this.adults.length >= 4) scale *= 0.94;
+    else if (this.adults.length >= 2) scale *= 0.97;
 
-    if (this.fission) {
+    if (this.fission && !this.fission.spawned) {
       const progress = clamp(
         this.fission.elapsed / this.fission.duration,
         0,
         1,
       );
-      if (!this.fission.spawned) scale += Math.sin(progress * Math.PI) * 0.12;
+      if (this.adults[this.fission.parentIndex] === adult) {
+        scale += Math.sin(progress * Math.PI) * 0.1;
+      }
     }
     return scale;
   }
@@ -611,10 +894,15 @@ export class FishEcosystem {
   }
 }
 
-export function baseScaleForPopulation(population: 1 | 2 | 4): number {
-  if (population === 1) return 1;
+/** @deprecated Prefer anatomy growth; kept for tests that assert bounded scales. */
+export function baseScaleForPopulation(population: number): number {
+  if (population <= 1) return 1;
   if (population === 2) return 0.92;
   return 0.8;
+}
+
+export function adultSpineLength(adult: EcosystemAdult): number {
+  return spineLengthPx(adult.anatomy);
 }
 
 function phaseForProgress(progress: number): EcosystemFissionPhase {
@@ -624,3 +912,5 @@ function phaseForProgress(progress: number): EcosystemFissionPhase {
   if (progress < 0.84) return "separate";
   return "recover";
 }
+
+export { FRY_SCHOOL_SIZE, MAX_ADULT_FISH, MEALS_TO_FISSION };

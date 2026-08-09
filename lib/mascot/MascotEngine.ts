@@ -122,9 +122,9 @@ export class MascotEngine implements MascotEngineContract {
             x: obstacle.centerX,
             y: obstacle.centerY,
           })),
-      createRuntime: (seed, originX, originY) =>
+      createRuntime: (seed, originX, originY, index) =>
         new MascotRuntime({
-          seed,
+          seed: seed ^ (index * 0x9e3779b9),
           quality: options.quality,
           originX,
           originY,
@@ -218,6 +218,10 @@ export class MascotEngine implements MascotEngineContract {
 
   setPointer(x: number, y: number, active: boolean): void {
     this.ecosystem.setPointer(x, y, active);
+  }
+
+  setPointerSuppressed(suppressed: boolean): void {
+    this.ecosystem.setPointerSuppressed(suppressed);
   }
 
   setScrollVelocity(value: number): void {
@@ -347,8 +351,8 @@ export class MascotEngine implements MascotEngineContract {
       })),
       timestamp: now(),
       dragTension: this.runtime.getDragTension(),
-      stringTension: this.runtime.getStringTension(),
-      slingshotReady: this.runtime.stringTensionGate.isSlingshotReady(),
+      stringTension: 0,
+      slingshotReady: false,
       ecosystem: this.ecosystem.getStatus(),
     };
   }
@@ -393,8 +397,9 @@ export class MascotEngine implements MascotEngineContract {
     this.renderer.clear();
     if (!this.runtime.enabled) return;
 
-    const fry = this.ecosystem.getFry();
-    if (fry) this.renderer.drawFry(fry);
+    for (const fry of this.ecosystem.getAllFry()) {
+      this.renderer.drawFry(fry);
+    }
 
     const adults = this.ecosystem.getAdults();
     for (const adult of adults) this.renderAdult(adult, adults.length);
