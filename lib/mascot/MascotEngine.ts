@@ -13,6 +13,7 @@ import { resolveDefaultMusicalEvent } from "./music/DefaultNoteMapping";
 import { MascotPluckVoicePool } from "./music/MascotPluckVoice";
 import { MASCOT_CONFIG } from "./MascotConfig";
 import { MascotRuntime } from "./MascotRuntime";
+import { FishEcosystem, type EcosystemAdult } from "./ecosystem/FishEcosystem";
 import { CanvasMascotRenderer } from "./rendering/CanvasMascotRenderer";
 import { QUALITY_PRESETS } from "./rendering/RenderQuality";
 import type {
@@ -22,6 +23,7 @@ import type {
   BodyDeformation,
   MascotAction,
   MascotDebugSnapshot,
+  MascotEcosystemStatus,
   MascotEngine as MascotEngineContract,
   MascotEngineOptions,
   MascotExpression,
@@ -55,6 +57,7 @@ function computeBounds(width: number, height: number): WanderBounds {
 export class MascotEngine implements MascotEngineContract {
   private readonly renderer: CanvasMascotRenderer;
   private readonly runtime: MascotRuntime;
+  private readonly ecosystem: FishEcosystem;
   private readonly loop: FixedStepLoop;
   private readonly visibility = new VisibilityController();
   private readonly governor: PerformanceGovernor;
@@ -104,6 +107,35 @@ export class MascotEngine implements MascotEngineContract {
       strings: this.stringRegistry,
     });
 
+    const initialBounds = computeBounds(this.cssWidth, this.cssHeight);
+    this.ecosystem = new FishEcosystem({
+      leader: this.runtime,
+      seed: options.seed,
+      quality: options.quality,
+      bounds: initialBounds,
+      onStatus: options.onEcosystemStatus,
+      getHideTargets: () =>
+        this.obstacles
+          .getAll()
+          .filter((obstacle) => obstacle.mode !== "hard")
+          .map((obstacle) => ({
+            x: obstacle.centerX,
+            y: obstacle.centerY,
+          })),
+      createRuntime: (seed, originX, originY) =>
+        new MascotRuntime({
+          seed,
+          quality: options.quality,
+          originX,
+          originY,
+          bounds: initialBounds,
+          obstacles: this.obstacles,
+          // Keep string/audio ownership with the leader so a four-fish school
+          // cannot multiply contact voices or slingshot state.
+          strings: null,
+        }),
+    });
+
     this.governor = new PerformanceGovernor({
       initialQuality: options.quality,
     });
@@ -111,7 +143,7 @@ export class MascotEngine implements MascotEngineContract {
     this.loop = new FixedStepLoop({
       update: (dt) => {
         const t0 = now();
-        this.runtime.update(dt * this.timeScale);
+        this.ecosystem.update(dt * this.timeScale);
         this.simMsAccumulator += now() - t0;
       },
       render: () => {
@@ -133,9 +165,9 @@ export class MascotEngine implements MascotEngineContract {
       else this.loop.stop();
     });
     this.visibility.onReducedMotionChange((reduced) =>
-      this.runtime.setReducedMotion(reduced),
+      this.ecosystem.setReducedMotion(reduced),
     );
-    this.runtime.setReducedMotion(
+    this.ecosystem.setReducedMotion(
       options.reducedMotion ?? this.visibility.isReducedMotion(),
     );
 
@@ -179,21 +211,21 @@ export class MascotEngine implements MascotEngineContract {
     this.cssWidth = Math.max(1, width);
     this.cssHeight = Math.max(1, height);
     this.renderer.resize(this.cssWidth, this.cssHeight, dpr);
-    this.runtime.setBounds(computeBounds(this.cssWidth, this.cssHeight));
+    this.ecosystem.setBounds(computeBounds(this.cssWidth, this.cssHeight));
     this.obstacles.refresh();
     this.stringRegistry.refresh();
   }
 
   setPointer(x: number, y: number, active: boolean): void {
-    this.runtime.setPointer(x, y, active);
+    this.ecosystem.setPointer(x, y, active);
   }
 
   setScrollVelocity(value: number): void {
-    this.runtime.setScrollVelocity(value);
+    this.ecosystem.setScrollVelocity(value);
   }
 
   setQuality(quality: MascotQuality): void {
-    this.runtime.setQuality(quality);
+    this.ecosystem.setQuality(quality);
     this.governor.setQuality(quality);
     this.audioDirector.setQuality(quality);
     this.pluckVoices.setQuality(quality);
@@ -201,17 +233,21 @@ export class MascotEngine implements MascotEngineContract {
 
   setEnabled(enabled: boolean): void {
     this.userEnabled = enabled;
-    this.runtime.setEnabled(enabled);
+    this.ecosystem.setEnabled(enabled);
     if (enabled) this.resume();
     else this.pause("disabled");
   }
 
   setReducedMotion(reduced: boolean): void {
-    this.runtime.setReducedMotion(reduced);
+    this.ecosystem.setReducedMotion(reduced);
   }
 
   trigger(action: MascotAction): void {
-    this.runtime.trigger(action);
+    this.ecosystem.trigger(action);
+  }
+
+  getEcosystemStatus(): MascotEcosystemStatus {
+    return this.ecosystem.getStatus();
   }
 
   /** Dev/motion-lab only: toggles the spine/normals/obstacle debug overlay live. */
@@ -313,6 +349,7 @@ export class MascotEngine implements MascotEngineContract {
       dragTension: this.runtime.getDragTension(),
       stringTension: this.runtime.getStringTension(),
       slingshotReady: this.runtime.stringTensionGate.isSlingshotReady(),
+      ecosystem: this.ecosystem.getStatus(),
     };
   }
 
@@ -330,7 +367,10 @@ export class MascotEngine implements MascotEngineContract {
   private maybeAdjustQuality(): void {
     const behavior = this.runtime.behaviorMachine.getCurrent();
     const blocked =
-      behavior === "sprint" || behavior === "scatter" || behavior === "reform";
+      behavior === "sprint" ||
+      behavior === "scatter" ||
+      behavior === "reform" ||
+      this.ecosystem.getStatus().fissionPhase !== null;
     const next = this.governor.evaluate(blocked);
     if (next) this.setQuality(next);
   }
@@ -353,31 +393,68 @@ export class MascotEngine implements MascotEngineContract {
     this.renderer.clear();
     if (!this.runtime.enabled) return;
 
-    const quality = this.runtime.quality;
+    const fry = this.ecosystem.getFry();
+    if (fry) this.renderer.drawFry(fry);
+
+    const adults = this.ecosystem.getAdults();
+    for (const adult of adults) this.renderAdult(adult, adults.length);
+
+    const fission = this.ecosystem.getFissionVisual();
+    if (fission) {
+      for (const adult of adults) {
+        const root = adult.runtime.pose.getRoot();
+        this.renderer.drawFissionSeam(
+          root.x,
+          root.y,
+          adult.runtime.pose.getHeading(),
+          adult.scale,
+          fission.phase,
+          fission.progress,
+        );
+      }
+    }
+
+    this.renderer.drawEcosystemBloom(
+      adults.map((adult) => adult.runtime.pose.getRoot()),
+      this.ecosystem.getBloomStrength(),
+    );
+
+    if (this.debug) this.renderer.drawDebugObstacles(this.obstacles.getAll());
+  }
+
+  private renderAdult(adult: EcosystemAdult, population: number): void {
+    const runtime = adult.runtime;
+    const quality = runtime.quality;
     const layers = resolveLayersForQuality(
       quality,
-      this.runtime.appearanceLayerOverrides,
+      runtime.appearanceLayerOverrides,
     );
+    const root = runtime.pose.getRoot();
+    const ctx = this.renderer.getContext();
+    ctx.save();
+    ctx.translate(root.x, root.y);
+    ctx.scale(adult.scale, adult.scale);
+    ctx.translate(-root.x, -root.y);
 
     // Silhouette -> internal gradient -> clipped print -> rim -> face —
     // upgrade spec "APPEARANCE RENDER PIPELINE". Structural dots and
     // particles stay batched through the existing renderers below.
     this.renderer.drawAppearance({
-      ribs: this.runtime.ribs,
-      contourWidths: this.runtime.contourWidths,
-      faceFrame: this.runtime.faceFrame,
-      expression: this.runtime.expressionVisual,
-      deformation: this.runtime.bodyDeformation,
-      patternMarks: this.runtime.patternMarks,
-      palette: this.runtime.appearancePalette,
-      tuning: this.runtime.appearanceTuning,
+      ribs: runtime.ribs,
+      contourWidths: runtime.contourWidths,
+      faceFrame: runtime.faceFrame,
+      expression: runtime.expressionVisual,
+      deformation: runtime.bodyDeformation,
+      patternMarks: runtime.patternMarks,
+      palette: runtime.appearancePalette,
+      tuning: runtime.appearanceTuning,
       layers,
       quality,
       fins: {
-        left: this.runtime.antennaeLeft,
-        right: this.runtime.antennaeRight,
+        left: runtime.antennaeLeft,
+        right: runtime.antennaeRight,
       },
-      patternRecipe: this.runtime.patternRecipe,
+      patternRecipe: runtime.patternRecipe,
       // Production material is intentionally local/procedural; this prevents
       // generated decals or a world-tiled texture from sliding across the
       // moving homepage character.
@@ -386,10 +463,10 @@ export class MascotEngine implements MascotEngineContract {
     });
 
     if (layers.dots) {
-      this.renderSparseDots();
+      this.renderSparseDots(runtime, population);
     }
 
-    this.renderer.drawParticles(this.runtime.particles, {
+    this.renderer.drawParticles(runtime.particles, {
       clickScatter: { color: "#ff6b3d", opacity: 0.72 },
       spark: { color: "#f3ede4", opacity: 0.68 },
       reformTrail: { color: "#c8bbae", opacity: 0.46 },
@@ -399,10 +476,10 @@ export class MascotEngine implements MascotEngineContract {
     });
 
     if (this.debug) {
-      this.renderer.drawDebugSpine(this.runtime.pose.joints);
-      this.renderer.drawDebugNormals(this.runtime.ribs);
-      this.renderer.drawDebugObstacles(this.obstacles.getAll());
+      this.renderer.drawDebugSpine(runtime.pose.joints);
+      this.renderer.drawDebugNormals(runtime.ribs);
     }
+    ctx.restore();
   }
 
   /**
@@ -413,23 +490,27 @@ export class MascotEngine implements MascotEngineContract {
    * failure mode the upgrade spec calls out. Still exactly one fill() per
    * group per frame via CanvasDotRenderer.
    */
-  private renderSparseDots(): void {
+  private renderSparseDots(runtime: MascotRuntime, population: number): void {
     const dotRenderer = this.renderer.dotRenderer;
     dotRenderer.beginFrame();
 
-    const deformation = this.runtime.getDotDeformation();
-    const density = clamp(this.runtime.appearanceTuning.dotDensity, 0, 1);
-    const fraction = density * MASCOT_CONFIG.appearance.sparseDotFraction;
+    const deformation = runtime.getDotDeformation();
+    const density = clamp(runtime.appearanceTuning.dotDensity, 0, 1);
+    // Keep the existing quality budget fleet-wide instead of multiplying it
+    // by the number of visible siblings.
+    const fraction =
+      (density * MASCOT_CONFIG.appearance.sparseDotFraction) /
+      Math.max(1, population);
     const stride =
       fraction > 0 ? Math.max(1, Math.round(1 / fraction)) : Infinity;
 
-    const points = this.runtime.skinPoints;
+    const points = runtime.skinPoints;
     if (Number.isFinite(stride)) {
       for (let i = 0; i < points.length; i += stride) {
         const point = points[i];
         resolveSkinPointPosition(
           point,
-          this.runtime.ribs,
+          runtime.ribs,
           deformation,
           this.scratchDot,
         );
@@ -443,7 +524,7 @@ export class MascotEngine implements MascotEngineContract {
     }
 
     const ctx = this.renderer.getContext();
-    const palette = this.runtime.appearancePalette;
+    const palette = runtime.appearancePalette;
     dotRenderer.flushGroup(ctx, 0, { color: palette.highlight, opacity: 0.5 });
     dotRenderer.flushGroup(ctx, 1, {
       color: palette.printPrimary,

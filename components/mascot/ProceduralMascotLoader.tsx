@@ -1,8 +1,18 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
-import type { MascotEngine, MascotQuality } from "@/lib/mascot/types";
+import { useCallback, useEffect, useState } from "react";
+import type {
+  MascotEcosystemStatus,
+  MascotEngine,
+  MascotQuality,
+} from "@/lib/mascot/types";
+import {
+  MASCOT_ECOSYSTEM_COMMAND_EVENT,
+  MASCOT_ECOSYSTEM_STATUS_EVENT,
+  type EcosystemCommandDetail,
+  type EcosystemStatusEventDetail,
+} from "@/lib/mascot/ecosystem/events";
 import MascotSoundControl from "./MascotSoundControl";
 // StrumriseGate kept on disk for reference; V2 primary entry is Enter Resonance.
 import EnterResonanceControl from "@/components/resonance-weaver/EnterResonanceControl";
@@ -45,6 +55,27 @@ export default function ProceduralMascotLoader({
   const [disabled, setDisabled] = useState(false);
   const [engine, setEngine] = useState<MascotEngine | null>(null);
 
+  const broadcastEcosystemStatus = useCallback(
+    (status: MascotEcosystemStatus | null) => {
+      const detail: EcosystemStatusEventDetail = status
+        ? { ...status, ready: true }
+        : {
+            ready: false,
+            population: 1,
+            activeFry: false,
+            growthStage: 0,
+            mealsToNextFission: 3,
+            fissionPhase: null,
+            capped: false,
+            canReleaseFry: false,
+          };
+      window.dispatchEvent(
+        new CustomEvent(MASCOT_ECOSYSTEM_STATUS_EVENT, { detail }),
+      );
+    },
+    [],
+  );
+
   useEffect(() => {
     setDisabled(readStoredDisabled());
 
@@ -68,11 +99,37 @@ export default function ProceduralMascotLoader({
     };
   }, []);
 
+  useEffect(() => {
+    if (!engine) {
+      broadcastEcosystemStatus(null);
+      return undefined;
+    }
+
+    const handleCommand = (event: Event) => {
+      const detail = (event as CustomEvent<EcosystemCommandDetail>).detail;
+      if (!detail) return;
+      if (detail.intent === "call") {
+        engine.trigger({ type: "callFish" });
+      } else {
+        engine.trigger({ type: "releaseFry", x: detail.x, y: detail.y });
+      }
+    };
+    window.addEventListener(MASCOT_ECOSYSTEM_COMMAND_EVENT, handleCommand);
+    broadcastEcosystemStatus(engine.getEcosystemStatus());
+    return () => {
+      window.removeEventListener(MASCOT_ECOSYSTEM_COMMAND_EVENT, handleCommand);
+    };
+  }, [broadcastEcosystemStatus, engine]);
+
   if (!ready || disabled) return null;
 
   return (
     <>
-      <ProceduralMascotCanvas quality={quality} onEngineReady={setEngine} />
+      <ProceduralMascotCanvas
+        quality={quality}
+        onEngineReady={setEngine}
+        onEcosystemStatus={broadcastEcosystemStatus}
+      />
       <div className={styles.soundControlFixed}>
         <MascotSoundControl engine={engine} />
       </div>

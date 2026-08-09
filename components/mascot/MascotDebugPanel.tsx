@@ -127,6 +127,26 @@ export default function MascotDebugPanel({
         >
           Rest
         </button>
+        <button
+          type="button"
+          className={styles.debugButton}
+          onClick={() =>
+            engine.trigger({
+              type: "releaseFry",
+              x: window.innerWidth * 0.7,
+              y: window.innerHeight * 0.3,
+            })
+          }
+        >
+          Release fry
+        </button>
+        <button
+          type="button"
+          className={styles.debugButton}
+          onClick={() => engine.trigger({ type: "callFish" })}
+        >
+          Call fish
+        </button>
       </div>
 
       <div className={styles.debugRow}>

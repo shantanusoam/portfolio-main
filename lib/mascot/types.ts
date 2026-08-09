@@ -83,6 +83,8 @@ export interface MotionRecipe {
 
 export type MascotAction =
   | { type: "click"; x: number; y: number }
+  | { type: "releaseFry"; x?: number; y?: number }
+  | { type: "callFish" }
   | { type: "scatter" }
   | { type: "reform" }
   | { type: "wake" }
@@ -237,6 +239,24 @@ export interface MascotStatus {
   performance: PerformanceState;
 }
 
+export type EcosystemFissionPhase =
+  | "settle"
+  | "round"
+  | "seam"
+  | "separate"
+  | "recover";
+
+/** Low-frequency public state for the hidden Signal Shoal interaction. */
+export interface MascotEcosystemStatus {
+  population: 1 | 2 | 4;
+  activeFry: boolean;
+  growthStage: number;
+  mealsToNextFission: number;
+  fissionPhase: EcosystemFissionPhase | null;
+  capped: boolean;
+  canReleaseFry: boolean;
+}
+
 export interface MascotDebugSnapshot {
   behavior: MascotBehavior;
   quality: MascotQuality;
@@ -250,6 +270,7 @@ export interface MascotDebugSnapshot {
   stringTension?: number;
   /** True when a slingshot release is latched awaiting consume. */
   slingshotReady?: boolean;
+  ecosystem?: MascotEcosystemStatus;
 }
 
 /**
@@ -272,6 +293,7 @@ export interface MascotEngineOptions {
   debug?: boolean;
   reducedMotion?: boolean;
   onStatus?: (status: MascotStatus) => void;
+  onEcosystemStatus?: (status: MascotEcosystemStatus) => void;
 }
 
 export interface MascotEngine {
@@ -285,6 +307,7 @@ export interface MascotEngine {
   setEnabled(enabled: boolean): void;
   setReducedMotion(reduced: boolean): void;
   trigger(action: MascotAction): void;
+  getEcosystemStatus(): MascotEcosystemStatus;
   getDebugSnapshot(): MascotDebugSnapshot;
   destroy(): void;
   /** Dev/motion-lab only: live toggle for the spine/normals/obstacle debug overlay. */
@@ -434,5 +457,7 @@ export type ScenarioName =
   | "rectangle-corner"
   | "inspect-card"
   | "scatter-reform"
+  | "fry-chase"
+  | "ecosystem-growth"
   | "resize"
   | "reduced-motion";

@@ -1,13 +1,14 @@
 import { clamp } from "../core/NumericGuards";
 import type { RibPoint } from "../character/CreatureRig";
 import type { SpineJoint } from "../motion/SpineSolver";
-import type { MascotObstacle } from "../types";
+import type { EcosystemFissionPhase, MascotObstacle, Point } from "../types";
 import {
   drawAppearance as drawAppearanceLayers,
   type AppearanceRenderInput,
 } from "../appearance/SilhouetteRenderer";
 import { CanvasDotRenderer, type DotLayerStyle } from "./CanvasDotRenderer";
 import type { Particle, ParticleCategory, ParticlePool } from "./ParticlePool";
+import type { EcosystemFry } from "../ecosystem/FishEcosystem";
 
 /**
  * Owns the canvas's backing-store sizing (CSS size vs DPR-scaled backing
@@ -151,6 +152,99 @@ export class CanvasMascotRenderer {
       }
     }
     ctx.globalAlpha = 1;
+  }
+
+  drawFry(fry: EcosystemFry): void {
+    const ctx = this.ctx;
+    const emerge = clamp(fry.age / 0.45, 0, 1);
+    const tailWag = Math.sin(fry.tailPhase) * 2.2;
+    ctx.save();
+    ctx.translate(fry.x, fry.y);
+    ctx.rotate(fry.heading);
+    ctx.globalAlpha = emerge;
+
+    ctx.shadowColor = fry.color;
+    ctx.shadowBlur = 9;
+    ctx.fillStyle = fry.color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7.5, 4.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(-6, 0);
+    ctx.lineTo(-12, -4 + tailWag);
+    ctx.lineTo(-11, 4 + tailWag);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#181312";
+    ctx.beginPath();
+    ctx.arc(3.2, -1.25, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawFissionSeam(
+    x: number,
+    y: number,
+    heading: number,
+    scale: number,
+    phase: EcosystemFissionPhase,
+    progress: number,
+  ): void {
+    if (phase === "settle") return;
+    const ctx = this.ctx;
+    const visibility = Math.sin(clamp(progress, 0, 1) * Math.PI);
+    const normalX = -Math.sin(heading);
+    const normalY = Math.cos(heading);
+    const forwardX = Math.cos(heading);
+    const forwardY = Math.sin(heading);
+    const seamHalf = 22 * scale;
+    const nucleusOffset =
+      (phase === "separate" || phase === "recover" ? 13 : 8) * scale;
+
+    ctx.save();
+    ctx.globalAlpha = 0.25 + visibility * 0.65;
+    ctx.strokeStyle = "#fff2df";
+    ctx.lineWidth = 1.2;
+    ctx.shadowColor = "#ff9c70";
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.moveTo(x - normalX * seamHalf, y - normalY * seamHalf);
+    ctx.lineTo(x + normalX * seamHalf, y + normalY * seamHalf);
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff2df";
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.arc(
+        x + forwardX * nucleusOffset * side,
+        y + forwardY * nucleusOffset * side,
+        2.5 + visibility * 1.5,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawEcosystemBloom(points: readonly Point[], strength: number): void {
+    if (strength <= 0) return;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = strength * 0.5;
+    ctx.strokeStyle = "#ffb178";
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = "#ff8a61";
+    ctx.shadowBlur = 10;
+    for (const point of points) {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 20 + (1 - strength) * 34, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   drawDebugSpine(joints: readonly SpineJoint[], color = "#00ff88"): void {

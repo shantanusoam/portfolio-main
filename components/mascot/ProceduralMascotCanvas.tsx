@@ -7,6 +7,7 @@ import { PointerInput } from "@/lib/mascot/input/PointerInput";
 import { ScrollInput } from "@/lib/mascot/input/ScrollInput";
 import type {
   MascotEngine as MascotEngineContract,
+  MascotEcosystemStatus,
   MascotQuality,
   MascotStatus,
 } from "@/lib/mascot/types";
@@ -20,6 +21,7 @@ export interface ProceduralMascotCanvasProps {
   seed?: number;
   onEngineReady?: (engine: MascotEngineContract | null) => void;
   onStatus?: (status: MascotStatus) => void;
+  onEcosystemStatus?: (status: MascotEcosystemStatus | null) => void;
 }
 
 /**
@@ -36,6 +38,7 @@ export default function ProceduralMascotCanvas({
   seed = 1337,
   onEngineReady,
   onStatus,
+  onEcosystemStatus,
 }: ProceduralMascotCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<MascotEngineContract | null>(null);
@@ -56,6 +59,7 @@ export default function ProceduralMascotCanvas({
       debug,
       reducedMotion,
       onStatus,
+      onEcosystemStatus,
     });
     engineRef.current = engine;
     onEngineReady?.(engine);
@@ -103,6 +107,7 @@ export default function ProceduralMascotCanvas({
       engine.destroy();
       engineRef.current = null;
       onEngineReady?.(null);
+      onEcosystemStatus?.(null);
     };
     // Engine identity is tied to `seed` only; quality/enabled/reducedMotion/debug
     // are pushed to the running engine imperatively below instead of remounting it.

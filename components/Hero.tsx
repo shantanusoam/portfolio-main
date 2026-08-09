@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import { cn } from "@/lib/utils";
+import SignalRoeButton from "./mascot/SignalRoeButton";
 
 interface HeroProps {
   masked: boolean;
@@ -34,7 +35,13 @@ const ROLE_LINES = [
 // for a single big rotating word, but with a short role line in a small box
 // it read as two words ghosting on top of each other. AnimatePresence's
 // `mode="wait"` guarantees only one is ever mounted at a time.
-function RoleTicker({ lines, className }: { lines: string[]; className?: string }) {
+function RoleTicker({
+  lines,
+  className,
+}: {
+  lines: string[];
+  className?: string;
+}) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [index, setIndex] = useState(0);
 
@@ -42,7 +49,7 @@ function RoleTicker({ lines, className }: { lines: string[]; className?: string 
     if (prefersReducedMotion) return;
     const interval = setInterval(
       () => setIndex((i) => (i + 1) % lines.length),
-      2600
+      2600,
     );
     return () => clearInterval(interval);
   }, [lines.length, prefersReducedMotion]);
@@ -169,6 +176,8 @@ export default function Hero({ masked }: HeroProps) {
             data-mascot-proxy="dot"
           />
 
+          <SignalRoeButton />
+
           <motion.div
             variants={{ show: { transition: { staggerChildren: stagger } } }}
             initial="hidden"
@@ -196,7 +205,7 @@ export default function Hero({ masked }: HeroProps) {
               variants={contentVariants}
               className={cn(
                 "font-display text-[clamp(2.5rem,6.2vw,5.5rem)] uppercase leading-[0.92] tracking-wide text-white",
-                isIdle && "animate-breathe"
+                isIdle && "animate-breathe",
               )}
               data-mascot-interest="hero"
               aria-label="Shantanu Soam"

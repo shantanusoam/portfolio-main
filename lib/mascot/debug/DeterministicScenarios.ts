@@ -54,6 +54,30 @@ export const SCENARIOS: Partial<Record<ScenarioName, ScenarioRunner>> = {
     if (cycle > 1.2 && cycle < 1.25) engine.trigger({ type: "reform" });
   },
 
+  "fry-chase": (engine, t, width, height) => {
+    const cycle = t % 6;
+    if (cycle < 0.05) {
+      engine.trigger({
+        type: "releaseFry",
+        x: width * 0.72,
+        y: height * 0.3,
+      });
+    }
+    if (cycle > 0.4) engine.trigger({ type: "callFish" });
+  },
+
+  "ecosystem-growth": (engine, t, width, height) => {
+    const cycle = t % 4.5;
+    if (cycle < 0.05) {
+      engine.trigger({
+        type: "releaseFry",
+        x: width * 0.68,
+        y: height * 0.36,
+      });
+    }
+    if (cycle > 0.35) engine.trigger({ type: "callFish" });
+  },
+
   "reduced-motion": (engine) => {
     engine.setReducedMotion(true);
   },
