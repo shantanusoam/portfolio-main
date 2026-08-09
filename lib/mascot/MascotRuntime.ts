@@ -324,6 +324,7 @@ export class MascotRuntime {
   obstacles: DomObstacleRegistry | null;
 
   strings: StringRegistry | null;
+  private stringContactsEnabled = true;
   private readonly stringContactDetector = new StringContactDetector();
   /** Events emitted this frame — bounded, cleared and replaced each `update()`. */
   stringPluckEvents: StringPluckEvent[] = [];
@@ -654,7 +655,7 @@ export class MascotRuntime {
   }
 
   private updateStringContacts(dt: number): void {
-    if (!this.strings) {
+    if (!this.stringContactsEnabled || !this.strings) {
       this.stringPluckEvents = [];
       this.stringTension = 0;
       this.stringTensionGate.update({
@@ -1234,6 +1235,18 @@ export class MascotRuntime {
 
   getStringTension(): number {
     return this.stringTension;
+  }
+
+  /**
+   * When false, the body never plucks/bends hero strings (mobile). Finger
+   * play on the instrument itself is unaffected.
+   */
+  setStringContactsEnabled(enabled: boolean): void {
+    this.stringContactsEnabled = enabled;
+    if (!enabled) {
+      this.stringPluckEvents = [];
+      this.stringTension = 0;
+    }
   }
 
   getResonanceGateState(): ResonanceGateState {

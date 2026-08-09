@@ -5,6 +5,7 @@ import { PerformanceGovernor } from "./core/PerformanceGovernor";
 import { resolveLayersForQuality } from "./appearance/AppearanceConfig";
 import type { WanderBounds } from "./behavior/WanderPlanner";
 import { VisibilityController } from "./input/VisibilityController";
+import { shouldDisableMascotStringContacts } from "./input/MobileStringContacts";
 import { DomObstacleRegistry } from "./interaction/DomObstacleRegistry";
 import { StringRegistry } from "./music/StringRegistry";
 import { AudioDirector } from "./music/AudioDirector";
@@ -63,6 +64,8 @@ export class MascotEngine implements MascotEngineContract {
   private readonly governor: PerformanceGovernor;
   private readonly obstacles: DomObstacleRegistry;
   private readonly stringRegistry: StringRegistry;
+  private stringRegistryListening = false;
+  private coarsePointerQuery: MediaQueryList | null = null;
   private readonly audioDirector: AudioDirector;
   private readonly audioGestureGate: AudioGestureGate;
   private readonly pluckVoices: MascotPluckVoicePool;
@@ -172,7 +175,8 @@ export class MascotEngine implements MascotEngineContract {
     );
 
     this.obstacles.attach();
-    this.stringRegistry.attach();
+    this.syncStringContactsForViewport();
+    this.attachMobileStringContactWatcher();
 
     // Independent audio subsystem: its own AudioContext, created lazily and
     // only from a real user gesture (see AudioGestureGate). Reuses this
@@ -213,7 +217,7 @@ export class MascotEngine implements MascotEngineContract {
     this.renderer.resize(this.cssWidth, this.cssHeight, dpr);
     this.ecosystem.setBounds(computeBounds(this.cssWidth, this.cssHeight));
     this.obstacles.refresh();
-    this.stringRegistry.refresh();
+    this.syncStringContactsForViewport();
   }
 
   setPointer(x: number, y: number, active: boolean): void {
@@ -357,11 +361,69 @@ export class MascotEngine implements MascotEngineContract {
     if (this.destroyed) return;
     this.destroyed = true;
     this.loop.stop();
+    this.detachMobileStringContactWatcher();
     this.visibility.detach();
     this.obstacles.detach();
     this.stringRegistry.detach();
+    this.stringRegistryListening = false;
     this.pluckVoices.destroy();
     this.audioDirector.destroy();
+  }
+
+  private readonly handleMobileStringContactChange = (): void => {
+    this.syncStringContactsForViewport();
+  };
+
+  private attachMobileStringContactWatcher(): void {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+    try {
+      this.coarsePointerQuery = window.matchMedia(
+        "(hover: none) and (pointer: coarse)",
+      );
+      if (typeof this.coarsePointerQuery.addEventListener === "function") {
+        this.coarsePointerQuery.addEventListener(
+          "change",
+          this.handleMobileStringContactChange,
+        );
+      }
+    } catch {
+      this.coarsePointerQuery = null;
+    }
+  }
+
+  private detachMobileStringContactWatcher(): void {
+    if (!this.coarsePointerQuery) return;
+    if (typeof this.coarsePointerQuery.removeEventListener === "function") {
+      this.coarsePointerQuery.removeEventListener(
+        "change",
+        this.handleMobileStringContactChange,
+      );
+    }
+    this.coarsePointerQuery = null;
+  }
+
+  /**
+   * Mobile: fish never plucks hero strings. Desktop: registry stays attached
+   * so body contacts can still play the instrument.
+   */
+  private syncStringContactsForViewport(): void {
+    const disable = shouldDisableMascotStringContacts(this.cssWidth);
+    this.runtime.setStringContactsEnabled(!disable);
+    if (disable) {
+      if (this.stringRegistryListening) {
+        this.stringRegistry.detach();
+        this.stringRegistryListening = false;
+      }
+      return;
+    }
+    if (!this.stringRegistryListening) {
+      this.stringRegistry.attach();
+      this.stringRegistryListening = true;
+    } else {
+      this.stringRegistry.refresh();
+    }
   }
 
   private maybeAdjustQuality(): void {
