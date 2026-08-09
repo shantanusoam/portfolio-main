@@ -35,28 +35,28 @@ export interface CreatureRecipe {
 export const DEFAULT_CREATURE_RECIPE: CreatureRecipe = {
   name: "musical-signal-familiar",
   spine: {
-    // Dense joints for fluid bends; short total length (~130px) keeps a compact bean.
-    jointCount: 32,
-    segmentLength: 4.1,
+    // Preserve the dense procedural bend, but shorten its visible footprint so
+    // the familiar reads head-first rather than as a long swimming ribbon.
+    jointCount: 30,
+    segmentLength: 3.9,
     headAngleLimitRadians: (9 * Math.PI) / 180,
     tailAngleLimitRadians: (20 * Math.PI) / 180,
     iterations: 5,
   },
   bodyProfile: {
-    // Plumper head mass — face needs room; tail must stay secondary.
-    maxWidth: 44,
-    headScale: 2.9,
-    shoulderPosition: 0.24,
-    tailExponent: 1.35,
-    bellyBias: 0.24,
+    maxWidth: 40,
+    headScale: 3.4,
+    shoulderPosition: 0.28,
+    tailExponent: 1.7,
+    bellyBias: 0.2,
   },
   regions: {
-    // ~34% head / ~46% torso / ~20% short tail across 32 joints.
-    head: { start: 0, end: 10 },
-    shoulders: { start: 9, end: 12 },
-    torso: { start: 13, end: 24 },
-    tailBase: { start: 25, end: 28 },
-    tailTip: { start: 29, end: 31 },
+    // ~34% head / ~45% torso / ~21% short tail across 30 joints.
+    head: { start: 0, end: 9 },
+    shoulders: { start: 8, end: 11 },
+    torso: { start: 12, end: 22 },
+    tailBase: { start: 23, end: 26 },
+    tailTip: { start: 27, end: 29 },
   },
   antennaeCount: 2,
   // Short soft ears — not long triangular spikes.

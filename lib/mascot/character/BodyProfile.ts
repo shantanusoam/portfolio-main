@@ -2,16 +2,16 @@ import { clamp } from "../core/NumericGuards";
 import type { BodyProfileConfig } from "../types";
 
 /**
- * Compact bean/manta width profile for the Musical Signal Familiar (V2 §3–4):
- * round head via clipped sine + high headScale, plush belly bias, aggressive
- * tail power taper so the secondary tail never dominates the silhouette.
+ * Compact familiar width profile. The front keeps real volume instead of
+ * collapsing to a needle, which is the crucial difference between a readable
+ * head and the old leaf/ribbon silhouette. The tail still tapers to zero.
  */
 export const DEFAULT_BODY_PROFILE: BodyProfileConfig = {
   maxWidth: 1,
-  headScale: 2.9,
-  shoulderPosition: 0.24,
-  tailExponent: 1.35,
-  bellyBias: 0.24,
+  headScale: 3.4,
+  shoulderPosition: 0.28,
+  tailExponent: 1.7,
+  bellyBias: 0.2,
 };
 
 export function bodyWidth(
@@ -20,9 +20,12 @@ export function bodyWidth(
 ): number {
   const normalized = clamp(t, 0, 1);
 
-  const headGrowth = Math.sin(
-    Math.min(1, normalized * config.headScale) * Math.PI * 0.5,
-  );
+  const headGrowth =
+    0.52 +
+    0.48 *
+      Math.sin(
+        Math.min(1, normalized * config.headScale) * Math.PI * 0.5,
+      );
   const tailTaper = Math.pow(
     1 - normalized,
     Math.max(0.1, config.tailExponent),

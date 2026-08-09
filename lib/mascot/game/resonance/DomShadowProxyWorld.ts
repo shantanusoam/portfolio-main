@@ -4,7 +4,10 @@
  */
 
 import { clamp, lerp } from "../../core/NumericGuards";
-import type { HeroProxyObject } from "./types";
+import {
+  isResonancePlatformProxy,
+  type HeroProxyObject,
+} from "./types";
 
 export interface DomShadowProxyWorldOptions {
   gravity?: number;
@@ -120,6 +123,22 @@ export class DomShadowProxyWorld {
       p.previousX = p.x;
       p.previousY = p.y;
 
+      if (isResonancePlatformProxy(p.type)) {
+        // Structural hero pieces recoil from the fracture, then spring back
+        // toward their measured UI positions. They remain recognisably the
+        // original rails/strings and form a stable playable scaffold.
+        p.velocityX += (p.homeX - p.x) * 18 * step;
+        p.velocityY += (p.homeY - p.y) * 22 * step;
+        const structuralDrag = Math.pow(0.84, step * 60);
+        p.velocityX *= structuralDrag;
+        p.velocityY *= structuralDrag;
+        p.x += p.velocityX * step;
+        p.y += p.velocityY * step;
+        p.rotation *= Math.pow(0.76, step * 60);
+        p.angularVelocity *= Math.pow(0.72, step * 60);
+        continue;
+      }
+
       p.velocityY += g * step;
       p.velocityX *= this.drag;
       p.velocityY *= this.drag;
@@ -127,11 +146,25 @@ export class DomShadowProxyWorld {
       p.y += p.velocityY * step;
       p.rotation += p.angularVelocity * step;
 
-      // Soft floor so fragments stay in play without bouncing physics yet.
-      if (this.viewHeight > 0 && p.y > this.viewHeight + p.height) {
-        p.y = this.viewHeight + p.height;
-        p.velocityY *= -0.25;
-        p.velocityX *= 0.85;
+      // Keep collectible letters/dots inside the hero arena. Letting them
+      // settle below the viewport made a valid round impossible to finish.
+      if (this.viewWidth > 0) {
+        const halfW = Math.max(3, p.width * 0.5);
+        if (p.x < halfW) {
+          p.x = halfW;
+          p.velocityX = Math.abs(p.velocityX) * 0.62;
+        } else if (p.x > this.viewWidth - halfW) {
+          p.x = this.viewWidth - halfW;
+          p.velocityX = -Math.abs(p.velocityX) * 0.62;
+        }
+      }
+      if (this.viewHeight > 0) {
+        const floor = this.viewHeight - Math.max(12, p.height * 0.5) - 18;
+        if (p.y > floor) {
+          p.y = floor;
+          p.velocityY = -Math.max(120, Math.abs(p.velocityY) * 0.58);
+          p.velocityX *= 0.9;
+        }
       }
     }
   }
@@ -201,10 +234,17 @@ export class DomShadowProxyWorld {
       } else {
         // bars / strings / decorative lines / button edges
         const thickness =
-          p.type === "bar" || p.type === "decorativeLine"
-            ? Math.max(1, Math.min(p.height, 3))
+          isResonancePlatformProxy(p.type)
+            ? Math.max(1.25, Math.min(p.height, 3.5))
             : p.height;
         ctx.fillRect(-p.width * 0.5, -thickness * 0.5, p.width, thickness);
+        if (isResonancePlatformProxy(p.type)) {
+          const radius = thickness * 0.5;
+          ctx.beginPath();
+          ctx.arc(-p.width * 0.5, 0, radius, 0, Math.PI * 2);
+          ctx.arc(p.width * 0.5, 0, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       ctx.restore();

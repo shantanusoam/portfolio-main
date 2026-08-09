@@ -12,6 +12,13 @@ export type HeroProxyType =
   | "buttonEdge"
   | "decorativeLine";
 
+/** Hero geometry that remains physical after the fracture. These pieces are
+ * instruments/platforms, not collectibles, so the portfolio layout itself
+ * becomes the game's first level. */
+export function isResonancePlatformProxy(type: HeroProxyType): boolean {
+  return type === "bar" || type === "string" || type === "decorativeLine";
+}
+
 /**
  * Canvas-authoritative hero fragment after snapshot (V2 §13).
  * Geometry is measured once at transition start — never via DOM in the loop.

@@ -23,8 +23,14 @@ import {
   type GameRoot,
 } from "./WeaverPhysics";
 import { WEAVER_CONFIG } from "./WeaverConfig";
-import type { FracturePhase, HeroProxyObject, WeaverGameState } from "./types";
-import { createEmptyWeaverState } from "./types";
+import { resolvePortfolioModeNote } from "../../music/HarmonyMap";
+import {
+  createEmptyWeaverState,
+  isResonancePlatformProxy,
+  type FracturePhase,
+  type HeroProxyObject,
+  type WeaverGameState,
+} from "./types";
 
 export interface ResonanceWeaverRuntimeOptions {
   heroRoot: HeroFractureTransitionOptions["heroRoot"];
@@ -282,7 +288,12 @@ export class ResonanceWeaverRuntime {
     this.gameplayActive = true;
     this.hintAge = 0;
     const proxies = this.transition.getProxies();
-    this.targetCollect = FragmentCollector.winTarget(proxies.length);
+    const collectibleCount = proxies.reduce(
+      (count, proxy) =>
+        count + (isResonancePlatformProxy(proxy.type) ? 0 : 1),
+      0,
+    );
+    this.targetCollect = FragmentCollector.winTarget(collectibleCount);
     // Seed player near viewport center-top of hero arena.
     this.player = createGameRoot(
       this.viewportWidth * 0.5,
@@ -345,10 +356,64 @@ export class ResonanceWeaverRuntime {
       }
     }
 
+    // The hero's measured rails and six instrument strings are the first
+    // platforms. This is the missing continuity beat from the reference:
+    // real UI becomes geometry instead of merely falling behind a new game.
+    const proxies = this.transition.getProxies();
+    for (let i = 0; i < proxies.length; i += 1) {
+      const platform = proxies[i];
+      if (
+        platform.collected ||
+        !isResonancePlatformProxy(platform.type) ||
+        platform.opacity < 0.05
+      ) {
+        continue;
+      }
+      const cos = Math.cos(platform.rotation);
+      const sin = Math.sin(platform.rotation);
+      const half = platform.width * 0.5;
+      const bounced = bounceRootOffSegment(
+        this.player,
+        platform.x - cos * half,
+        platform.y - sin * half,
+        platform.x + cos * half,
+        platform.y + sin * half,
+        Math.max(2, Math.min(6, platform.height)),
+        WEAVER_CONFIG.bounceImpulse * 0.92,
+      );
+      if (!bounced) continue;
+
+      this.collector.registerBounce();
+      this.deformation.impactWave = 1;
+      if (!this.muted) {
+        const note = resolvePortfolioModeNote(
+          WEAVER_CONFIG.rootMidi,
+          i % 5,
+          i % 3 === 0 ? -1 : 0,
+        );
+        this.musicalEvents.push({
+          midiNote: WEAVER_CONFIG.rootMidi + (i % 5) * 2,
+          frequency: note.frequency,
+          velocity: clamp(Math.abs(this.player.velocityY) / 900, 0.18, 0.82),
+          brightness: platform.type === "string" ? 0.74 : 0.48,
+          damping: platform.type === "string" ? 0.34 : 0.56,
+          pan: clamp(
+            (platform.x / Math.max(1, this.viewportWidth)) * 2 - 1,
+            -1,
+            1,
+          ),
+          reverbSend: 0.16,
+          articulation: platform.type === "string" ? "harmonic" : "bass",
+          scheduledTime: 0,
+        });
+      }
+      break;
+    }
+
     this.collector.updateComboDecay(dt);
     this.collector.collectOverlapping(
       this.player,
-      this.transition.getProxies(),
+      proxies,
       0,
     );
     if (!this.muted) {

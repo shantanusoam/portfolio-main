@@ -129,13 +129,13 @@ function readLabel(el: SnapshotElement, type: HeroProxyType): string {
 
 function readFill(el: SnapshotElement, type: HeroProxyType): string {
   if (type === "bar" || type === "decorativeLine") {
-    return "rgba(255, 255, 255, 0.28)";
+    return "rgba(238, 233, 223, 0.42)";
   }
-  if (type === "dot") return "rgba(56, 242, 216, 0.75)";
-  if (type === "string") return "rgba(56, 242, 216, 0.55)";
+  if (type === "dot") return "rgba(255, 93, 47, 0.84)";
+  if (type === "string") return "rgba(255, 122, 71, 0.72)";
   const color = el.style?.color;
   if (color && color.length > 0) return color;
-  return "rgba(245, 251, 255, 0.92)";
+  return "rgba(238, 233, 223, 0.92)";
 }
 
 interface Candidate {

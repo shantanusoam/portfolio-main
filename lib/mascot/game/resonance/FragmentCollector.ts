@@ -5,7 +5,10 @@
 import { clamp } from "../../core/NumericGuards";
 import type { MusicalEvent } from "../../types";
 import { resolvePortfolioModeNote } from "../../music/HarmonyMap";
-import type { HeroProxyObject } from "./types";
+import {
+  isResonancePlatformProxy,
+  type HeroProxyObject,
+} from "./types";
 import { circleVsCenteredRect, type GameRoot } from "./WeaverPhysics";
 import { WEAVER_CONFIG } from "./WeaverConfig";
 
@@ -75,7 +78,13 @@ export class FragmentCollector {
     let got = 0;
     for (let i = 0; i < proxies.length; i += 1) {
       const p = proxies[i];
-      if (p.collected || p.opacity < 0.05) continue;
+      if (
+        p.collected ||
+        p.opacity < 0.05 ||
+        isResonancePlatformProxy(p.type)
+      ) {
+        continue;
+      }
 
       const hitNow = circleVsCenteredRect(
         root.x,

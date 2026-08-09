@@ -30,12 +30,13 @@ export interface BodyContourConfig {
 }
 
 export const DEFAULT_BODY_CONTOUR_CONFIG: BodyContourConfig = {
-  // Larger head mass + short blunt tail — kills the tadpole/whip read.
-  zones: { headEnd: 0.34, torsoEnd: 0.8 },
-  headBulge: 0.42,
-  tailTaperPower: 1.25,
-  tailVisualCap: 0.42,
-  minWidth: 2.2,
+  // A broad head cap and compact torso make the face the first read. The
+  // final quarter is allowed to taper cleanly but never dominates the pose.
+  zones: { headEnd: 0.36, torsoEnd: 0.76 },
+  headBulge: 0.22,
+  tailTaperPower: 1.75,
+  tailVisualCap: 0.18,
+  minWidth: 2.5,
 };
 
 /**

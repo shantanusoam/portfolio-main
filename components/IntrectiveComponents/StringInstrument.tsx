@@ -533,6 +533,7 @@ export default function StringInstrument() {
             }}
             data-mascot-string-index={index}
             data-mascot-string-role={stringRole(index)}
+            data-mascot-proxy="string"
             className={[
               styles.string,
               index === hoveredString ? styles.hoveredString : "",

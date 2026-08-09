@@ -125,7 +125,10 @@ export default function Hero({ masked }: HeroProps) {
         {/* Reason: one centered column keeps name + CTAs + instrument as a
             single composition — avoids the old 1fr/self-end stack that left
             a large empty band above the copy. */}
-        <div className="relative z-[996] mx-auto flex w-full max-w-[1200px] flex-col items-center justify-center gap-[clamp(1.25rem,3.5vh,2.75rem)]">
+        <div
+          className="relative z-[996] mx-auto flex w-full max-w-[1200px] flex-col items-center justify-center gap-[clamp(1.25rem,3.5vh,2.75rem)]"
+          data-resonance-stage
+        >
           {/* Decorative perch rails — pointer-events none so they never steal
               CTA clicks; mascot lands on top edges via data-mascot-perch.
               Also curated fracture proxies (V2 §13 / §19). */}
@@ -260,6 +263,15 @@ export default function Hero({ masked }: HeroProps) {
           <div className="mx-auto w-full max-w-[1100px]">
             <StringInstrument />
           </div>
+
+          {/* EnterResonanceControl lives in the root mascot loader so it can
+              own the engine, but portals its trigger here. The game therefore
+              begins from the instrument instead of from a detached fixed pill. */}
+          <div
+            id="resonance-entry-slot"
+            className="flex min-h-10 w-full items-center justify-center"
+            data-resonance-control
+          />
         </div>
       </motion.section>
     </div>

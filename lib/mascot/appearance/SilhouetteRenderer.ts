@@ -53,14 +53,14 @@ export interface AppearanceRenderInput {
   velvetMicrotexture?: CanvasImageSource | null;
 }
 
-const EYE_SPACING_FRACTION = 0.28;
-const EYE_FORWARD_FRACTION = 0.02;
-const MOUTH_FORWARD_FRACTION = 0.32;
+const EYE_SPACING_FRACTION = 0.27;
+const EYE_FORWARD_FRACTION = 0.035;
+const MOUTH_FORWARD_FRACTION = 0.34;
 const CHEEK_OUTWARD_FRACTION = 0.1;
 /** Half-width (px) at a fin's root — soft ear lobes at the shoulders. */
 const FIN_BASE_WIDTH = 6.5;
-/** Soft velvet overlay opacity — V2 §9 / visual-rescue texture hierarchy (8–15%). */
-const VELVET_OVERLAY_OPACITY = 0.12;
+/** Legacy lab-only velvet overlay opacity; production uses local marks. */
+const VELVET_OVERLAY_OPACITY = 0.035;
 
 export function drawAppearance(
   ctx: CanvasRenderingContext2D,
@@ -258,8 +258,12 @@ function drawFace(
     EYE_FORWARD_FRACTION,
   );
   const mouth = computeMouthAnchor(leaned, MOUTH_FORWARD_FRACTION);
-  // Larger eyes so the face reads in still frames (visual rescue gate).
-  const eyeRadius = Math.max(2.4, leaned.width * 0.22);
+  const eyeRadius = Math.max(3, leaned.width * 0.21);
+
+  // A quiet bone face panel gives the moving features one stable graphic
+  // home. This is what makes the character readable at portfolio scale even
+  // when its dark body crosses a dark part of the hero.
+  drawFacePlate(ctx, leaned, palette);
 
   // Embedded resonance core — small torso/head glow, never a floating white
   // orb that replaces the face (V2 §7 / §3 Phase 3).
@@ -287,6 +291,60 @@ function drawFace(
   drawEye(ctx, eyes.right, eyeRadius, expression, palette, leaned, -1);
 
   drawMouth(ctx, mouth, leaned, expression, palette);
+}
+
+function drawFacePlate(
+  ctx: CanvasRenderingContext2D,
+  frame: FaceFrame,
+  palette: AppearancePalette,
+): void {
+  ctx.save();
+  ctx.translate(frame.centerX, frame.centerY);
+  ctx.rotate(frame.rotation - Math.PI / 2);
+
+  const plate = ctx.createRadialGradient(
+    -frame.width * 0.18,
+    -frame.height * 0.12,
+    frame.width * 0.08,
+    0,
+    0,
+    frame.width * 0.8,
+  );
+  plate.addColorStop(0, "rgba(243, 237, 228, 0.2)");
+  plate.addColorStop(0.72, "rgba(243, 237, 228, 0.1)");
+  plate.addColorStop(1, "rgba(243, 237, 228, 0)");
+  ctx.fillStyle = plate;
+  ctx.beginPath();
+  ctx.ellipse(
+    0,
+    frame.height * 0.035,
+    frame.width * 0.78,
+    frame.height * 0.6,
+    0,
+    0,
+    Math.PI * 2,
+  );
+  ctx.fill();
+
+  // One restrained seam connects the face material to the hero's orange
+  // instrument language without covering the body in decorative decals.
+  ctx.globalAlpha = 0.38;
+  ctx.strokeStyle = palette.printPrimary;
+  ctx.lineWidth = Math.max(0.7, frame.width * 0.025);
+  ctx.setLineDash([Math.max(1.5, frame.width * 0.08), frame.width * 0.07]);
+  ctx.beginPath();
+  ctx.ellipse(
+    0,
+    frame.height * 0.035,
+    frame.width * 0.68,
+    frame.height * 0.5,
+    0,
+    Math.PI * 0.12,
+    Math.PI * 0.88,
+  );
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
 }
 
 function drawResonanceCore(
@@ -332,6 +390,23 @@ function drawEye(
   ctx.save();
   ctx.translate(anchor.x, anchor.y);
   ctx.rotate(frame.rotation - Math.PI / 2);
+
+  // Dark socket first: preserves eye separation on bright rim/texture frames.
+  ctx.fillStyle = palette.shadow;
+  ctx.globalAlpha = 0.82;
+  ctx.beginPath();
+  ctx.ellipse(
+    0,
+    0,
+    radius * scaleX * 1.12,
+    radius * openness * 1.12,
+    0,
+    0,
+    Math.PI * 2,
+  );
+  ctx.fill();
+
+  ctx.globalAlpha = 1;
   ctx.fillStyle = palette.face;
   ctx.beginPath();
   ctx.ellipse(0, 0, radius * scaleX, radius * openness, 0, 0, Math.PI * 2);
@@ -343,7 +418,20 @@ function drawEye(
     ctx.arc(
       expression.pupilOffsetX * radius * scaleX,
       expression.pupilOffsetY * radius * openness,
-      radius * 0.42 * openness,
+      radius * 0.46 * Math.max(0.55, openness),
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+
+    // Pinpoint catchlight carries gaze through fast movement without glow.
+    ctx.fillStyle = palette.face;
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.arc(
+      expression.pupilOffsetX * radius * scaleX - radius * 0.15,
+      expression.pupilOffsetY * radius * openness - radius * 0.14,
+      Math.max(0.65, radius * 0.11),
       0,
       Math.PI * 2,
     );
@@ -408,7 +496,7 @@ function drawMouth(
   ctx.fillStyle = palette.shadow;
   ctx.lineWidth = Math.max(0.8, size * 0.22);
   ctx.lineCap = "round";
-  ctx.globalAlpha = 0.7;
+  ctx.globalAlpha = 0.92;
 
   // Keep a soft smile/curve by default — wide open ellipses read as fangs/teeth
   // at small sizes. Only gently open for strong mouthOpen.

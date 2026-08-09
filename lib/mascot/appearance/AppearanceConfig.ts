@@ -23,12 +23,12 @@ export const DEFAULT_APPEARANCE_LAYERS: AppearanceLayerToggles = {
 
 export const DEFAULT_APPEARANCE_TUNING: AppearanceTuningOverrides = {
   // Reason: dots are a sparse accent layer; silhouette+face must read alone (V2 §9/§45).
-  dotDensity: 0.55,
+  dotDensity: 0.28,
   bodyOpacity: 1,
   rimWidth: 1,
-  glowIntensity: 0.85,
-  patternScale: 0.9,
-  patternContrast: 0.42,
+  glowIntensity: 0.38,
+  patternScale: 0.72,
+  patternContrast: 0.24,
 };
 
 const REDUCED_ALLOWED: AppearanceLayerToggles = {

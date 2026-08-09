@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type {
   MascotEngine as MascotEngineContract,
   MascotQuality,
@@ -44,6 +45,8 @@ export default function EnterResonanceControl({
   const [phase, setPhase] = useState<FracturePhase>("idle");
   const [hintVisible, setHintVisible] = useState(false);
   const [hud, setHud] = useState<HudBits | null>(null);
+  const [entryTarget, setEntryTarget] = useState<HTMLElement | null>(null);
+  const [tension, setTension] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const runtimeRef = useRef<ResonanceWeaverRuntime | null>(null);
@@ -54,12 +57,15 @@ export default function EnterResonanceControl({
   const reducedMotionRef = useRef(false);
   const keysRef = useRef({ left: false, right: false });
   const weavingRef = useRef(false);
+  const pointerSessionRef = useRef<{ x: number; y: number } | null>(null);
+  const tensionRef = useRef(0);
 
   engineRef.current = engine;
   phaseRef.current = phase;
 
   useEffect(() => {
     reducedMotionRef.current = readReducedMotion();
+    setEntryTarget(document.getElementById("resonance-entry-slot"));
   }, []);
 
   useEffect(() => {
@@ -78,6 +84,7 @@ export default function EnterResonanceControl({
     setHintVisible(false);
     setHud(null);
     weavingRef.current = false;
+    pointerSessionRef.current = null;
     keysRef.current = { left: false, right: false };
     engineRef.current?.resume();
   };
@@ -212,6 +219,8 @@ export default function EnterResonanceControl({
 
     const onPointerDown = (event: PointerEvent) => {
       if (runtime.getPhase() !== "playing") return;
+      pointerSessionRef.current = { x: event.clientX, y: event.clientY };
+      canvas.setPointerCapture?.(event.pointerId);
       if (event.button === 2 || event.shiftKey) {
         event.preventDefault();
         weavingRef.current = true;
@@ -226,17 +235,33 @@ export default function EnterResonanceControl({
         runtime.updateWeave(event.clientX, event.clientY);
         return;
       }
-      if (event.buttons === 1) {
-        runtime.setPointerSteer(event.clientX, true);
+      const session = pointerSessionRef.current;
+      if (event.buttons === 1 && session) {
+        const travel = Math.hypot(
+          event.clientX - session.x,
+          event.clientY - session.y,
+        );
+        if (travel > 34) {
+          weavingRef.current = true;
+          runtime.setPointerSteer(0, false);
+          runtime.beginWeave(session.x, session.y);
+          runtime.updateWeave(event.clientX, event.clientY);
+        } else {
+          runtime.setPointerSteer(event.clientX, true);
+        }
       }
     };
-    const onPointerUp = () => {
+    const onPointerUp = (event: PointerEvent) => {
       if (weavingRef.current) {
         runtime.endWeave();
         weavingRef.current = false;
       }
+      pointerSessionRef.current = null;
       runtime.setPointerSteer(0, false);
       applySteer();
+      if (canvas.hasPointerCapture?.(event.pointerId)) {
+        canvas.releasePointerCapture?.(event.pointerId);
+      }
     };
     const onContextMenu = (event: Event) => {
       if (runtime.getPhase() === "playing") event.preventDefault();
@@ -247,6 +272,7 @@ export default function EnterResonanceControl({
     window.addEventListener("keyup", onKeyUp);
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointermove", onPointerMove);
+    canvas.addEventListener("pointercancel", onPointerUp);
     window.addEventListener("pointerup", onPointerUp);
     canvas.addEventListener("contextmenu", onContextMenu);
 
@@ -256,6 +282,7 @@ export default function EnterResonanceControl({
       window.removeEventListener("keyup", onKeyUp);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointercancel", onPointerUp);
       window.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("contextmenu", onContextMenu);
     };
@@ -276,6 +303,13 @@ export default function EnterResonanceControl({
     let raf = 0;
     const poll = () => {
       const idle = phaseRef.current === "idle" || phaseRef.current === "done";
+      const nextTension = idle
+        ? Math.round(engine.getResonanceGateState().pullTension * 20) / 20
+        : 0;
+      if (nextTension !== tensionRef.current) {
+        tensionRef.current = nextTension;
+        setTension(nextTension);
+      }
       if (idle && engine.consumeSlingshotTrigger()) {
         launch("slingshot");
       }
@@ -288,18 +322,37 @@ export default function EnterResonanceControl({
 
   const active = phase !== "idle" && phase !== "done";
   const playing = phase === "playing";
+  const launchControl = (
+    <button
+      type="button"
+      className={styles.launchButton}
+      onClick={() => launch("accessible")}
+      disabled={!engine || active}
+      aria-label="Enter Resonance, transform the hero into the Resonance Weaver game"
+    >
+      <span className={styles.launchEyebrow}>Hero instrument / 01</span>
+      <span className={styles.launchLabel}>Enter resonance</span>
+      <span className={styles.launchMeta}>
+        {tension > 0
+          ? `${Math.round(tension * 100)}% string tension`
+          : "click · or pull the familiar through a string"}
+      </span>
+      <span className={styles.launchTrack} aria-hidden="true">
+        <span style={{ width: `${Math.max(4, tension * 100)}%` }} />
+      </span>
+    </button>
+  );
 
   return (
     <>
-      <button
-        type="button"
-        className={styles.launchButton}
-        onClick={() => launch("accessible")}
-        disabled={!engine || active}
-        aria-label="Enter Resonance, play the hero Resonance Weaver game"
-      >
-        Enter Resonance
-      </button>
+      {entryTarget ? createPortal(launchControl, entryTarget) : null}
+      {active ? (
+        <div
+          className={styles.arenaVeil}
+          data-phase={phase}
+          aria-hidden="true"
+        />
+      ) : null}
       <canvas
         ref={canvasRef}
         className={styles.overlayCanvas}
@@ -308,6 +361,7 @@ export default function EnterResonanceControl({
       />
       {playing && hud ? (
         <div className={styles.hud} role="status" aria-live="polite">
+          <span className={styles.hudMode}>Resonance / weave</span>
           <span>
             {hud.collectedCount}/{hud.targetCollectCount || "—"}
           </span>
@@ -320,7 +374,7 @@ export default function EnterResonanceControl({
         data-visible={hintVisible ? "true" : "false"}
         role="status"
       >
-        Move ← → · Shift-drag weave · Esc exit
+        Hold to steer · drag to weave · Esc restores the hero
       </div>
       {playing ? (
         <button

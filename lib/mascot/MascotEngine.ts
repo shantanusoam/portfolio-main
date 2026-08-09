@@ -3,7 +3,6 @@ import { clamp } from "./core/NumericGuards";
 import { FixedStepLoop } from "./core/FixedStepLoop";
 import { PerformanceGovernor } from "./core/PerformanceGovernor";
 import { resolveLayersForQuality } from "./appearance/AppearanceConfig";
-import { GeneratedDecalAtlas } from "./appearance/GeneratedDecalAtlas";
 import type { WanderBounds } from "./behavior/WanderPlanner";
 import { VisibilityController } from "./input/VisibilityController";
 import { DomObstacleRegistry } from "./interaction/DomObstacleRegistry";
@@ -64,8 +63,6 @@ export class MascotEngine implements MascotEngineContract {
   private readonly audioDirector: AudioDirector;
   private readonly audioGestureGate: AudioGestureGate;
   private readonly pluckVoices: MascotPluckVoicePool;
-  private readonly generatedDecalAtlas: GeneratedDecalAtlas;
-  private velvetMicrotexture: HTMLImageElement | null = null;
   private readonly onStatus?: (status: MascotStatus) => void;
   private debug: boolean;
   private timeScale = 1;
@@ -160,25 +157,6 @@ export class MascotEngine implements MascotEngineContract {
       director: this.audioDirector,
       quality: options.quality,
     });
-
-    // Fire-and-forget network load — the print layer falls back to its
-    // procedural marks every frame until this resolves (see
-    // GeneratedDecalAtlas.isReady()), so this never blocks or gates start().
-    this.generatedDecalAtlas = new GeneratedDecalAtlas(
-      "/mascot/generated/runtime/mascot-decal-atlas",
-    );
-    this.generatedDecalAtlas.load();
-    this.loadVelvetMicrotexture();
-  }
-
-  /** Soft fabric grain — fire-and-forget; silhouette stays solid until ready. */
-  private loadVelvetMicrotexture(): void {
-    if (typeof Image === "undefined") return;
-    const image = new Image();
-    image.onload = () => {
-      this.velvetMicrotexture = image;
-    };
-    image.src = "/mascot/generated/runtime/velvet-microtexture.webp";
   }
 
   start(): void {
@@ -400,8 +378,11 @@ export class MascotEngine implements MascotEngineContract {
         right: this.runtime.antennaeRight,
       },
       patternRecipe: this.runtime.patternRecipe,
-      generatedDecalAtlas: this.generatedDecalAtlas,
-      velvetMicrotexture: this.velvetMicrotexture,
+      // Production material is intentionally local/procedural; this prevents
+      // generated decals or a world-tiled texture from sliding across the
+      // moving homepage character.
+      generatedDecalAtlas: null,
+      velvetMicrotexture: null,
     });
 
     if (layers.dots) {
@@ -409,12 +390,12 @@ export class MascotEngine implements MascotEngineContract {
     }
 
     this.renderer.drawParticles(this.runtime.particles, {
-      clickScatter: { color: "#ff3ec9", opacity: 0.8 },
-      spark: { color: "#38f2d8", opacity: 0.7 },
-      reformTrail: { color: "#f5fbff", opacity: 0.5 },
+      clickScatter: { color: "#ff6b3d", opacity: 0.72 },
+      spark: { color: "#f3ede4", opacity: 0.68 },
+      reformTrail: { color: "#c8bbae", opacity: 0.46 },
       impactRipple: { color: "#ffffff", opacity: 0.4 },
-      inspectGlint: { color: "#ffe36e", opacity: 0.8 },
-      sleepPulse: { color: "#8ea7ff", opacity: 0.5 },
+      inspectGlint: { color: "#ff8a61", opacity: 0.76 },
+      sleepPulse: { color: "#a69b91", opacity: 0.42 },
     });
 
     if (this.debug) {

@@ -25,19 +25,20 @@ export interface AppearancePalette {
 }
 
 /**
- * Preferred default material — Soft Signal Plush (V2 §9 / §36).
- * Deep violet body, warm-cream face, muted lavender support, desaturated
- * cyan/magenta print accents (coverage kept sparse via PatternRecipes budgets).
+ * Preferred default material — Signal Cloth. Graphite belongs to the dark
+ * hero, bone keeps the face legible, and the single ember accent is shared
+ * with the real instrument. It deliberately avoids the previous glossy
+ * violet/cyan/magenta "effect" palette.
  */
 export const SOFT_SIGNAL_PLUSH_PALETTE: AppearancePalette = {
-  name: "Soft Signal Plush",
-  base: "#2f1f52",
-  highlight: "#b8a4d9",
-  printPrimary: "#5ecfc0",
-  printSecondary: "#d478b0",
-  face: "#fff8ec",
-  shadow: "#140c2b",
-  rim: "#d4c4ef",
+  name: "Signal Cloth",
+  base: "#282725",
+  highlight: "#68635d",
+  printPrimary: "#ff6b3d",
+  printSecondary: "#c8bbae",
+  face: "#f3ede4",
+  shadow: "#11100f",
+  rim: "#a69b91",
 };
 
 /** @deprecated Alias kept for existing print tests — prefer SOFT_SIGNAL_PLUSH_PALETTE. */
@@ -80,10 +81,11 @@ export const APPEARANCE_PRESETS: Record<
 > = {
   "cute-bean": {
     id: "cute-bean",
-    label: "Soft Signal Plush",
+    label: "Signal Cloth",
     palette: SOFT_SIGNAL_PLUSH_PALETTE,
-    // Reason: soft-plush fabric patches via terrazzo placement budget (mapped in ProceduralPrint).
-    patternRecipe: "terrazzo-confetti",
+    // Sparse local stitches stay attached to the body and never turn into a
+    // large pasted decal while the familiar bends.
+    patternRecipe: "constellation-freckles",
   },
   "signal-manta": {
     id: "signal-manta",

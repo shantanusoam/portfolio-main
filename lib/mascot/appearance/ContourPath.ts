@@ -89,6 +89,31 @@ export function pathFromContour(
   for (let i = right.length - 1; i >= 0; i -= 1) {
     path.lineTo(right[i].x, right[i].y);
   }
+
+  // Round the broad head closure. A straight right[0] -> left[0] seam made
+  // any non-zero front width look mechanically chopped off; the forward
+  // control point turns that same volume into a soft forehead/muzzle cap.
+  const leftHead = left[0];
+  const rightHead = right[0];
+  const leftNext = left[1] ?? leftHead;
+  const rightNext = right[1] ?? rightHead;
+  const headMidX = (leftHead.x + rightHead.x) * 0.5;
+  const headMidY = (leftHead.y + rightHead.y) * 0.5;
+  const nextMidX = (leftNext.x + rightNext.x) * 0.5;
+  const nextMidY = (leftNext.y + rightNext.y) * 0.5;
+  const forwardX = headMidX - nextMidX;
+  const forwardY = headMidY - nextMidY;
+  const forwardLength = Math.max(0.0001, Math.hypot(forwardX, forwardY));
+  const headHalfWidth = Math.hypot(
+    leftHead.x - rightHead.x,
+    leftHead.y - rightHead.y,
+  ) * 0.5;
+  path.quadraticCurveTo(
+    headMidX + (forwardX / forwardLength) * headHalfWidth * 0.72,
+    headMidY + (forwardY / forwardLength) * headHalfWidth * 0.72,
+    leftHead.x,
+    leftHead.y,
+  );
   path.closePath();
   return path;
 }
