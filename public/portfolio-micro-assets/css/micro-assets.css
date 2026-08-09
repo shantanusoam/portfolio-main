@@ -1,0 +1,64 @@
+:root {
+  --fx-orange: #ff5a1f;
+  --fx-orange-hot: #ff7a2f;
+  --fx-ink: #0b0b0a;
+  --fx-line: rgba(222, 216, 205, .18);
+}
+
+.fx-linen {
+  background-color: var(--fx-ink);
+  background-image:
+    linear-gradient(rgba(0,0,0,.16), rgba(0,0,0,.16)),
+    url('../patterns/dark-linen-base-2048.png');
+  background-size: cover, 1024px 1024px;
+}
+
+.fx-surface-depth { position: relative; isolation: isolate; overflow: hidden; }
+.fx-surface-depth::before,
+.fx-surface-depth::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+.fx-surface-depth::before {
+  background:
+    url('../patterns/linen-fibers-overlay-1024.png') repeat,
+    url('../patterns/micro-noise-overlay-1024.png') repeat,
+    url('../patterns/scanlines-overlay-512.png') repeat;
+  background-size: 640px, 420px, 256px;
+  mix-blend-mode: soft-light;
+  opacity: .7;
+}
+.fx-surface-depth::after {
+  background: url('../patterns/vignette-overlay-1600x1000.png') center / 100% 100% no-repeat;
+  opacity: .72;
+}
+
+.fx-glass-sign {
+  position: relative;
+  border: 1px solid rgba(255, 101, 34, .78);
+  background: linear-gradient(135deg, rgba(74,28,15,.62), rgba(10,9,8,.88));
+  box-shadow: 0 0 2px #ffd1b0 inset, 0 0 15px rgba(255,83,22,.7), 0 0 42px rgba(255,72,12,.28);
+  backdrop-filter: blur(10px);
+}
+.fx-glass-sign::after {
+  content: ''; position: absolute; inset: 0; pointer-events:none;
+  background: url('../patterns/linen-fibers-overlay-1024.png') repeat;
+  opacity: .18; mix-blend-mode: screen;
+}
+
+.fx-topography {
+  background-image: url('../patterns/topographic-contours-tile.svg');
+  background-size: 640px 640px;
+}
+
+.fx-technical-grid {
+  background-image: url('../patterns/technical-grid-tile.svg');
+  background-size: 96px 96px;
+}
+
+.fx-cornered { position: relative; }
+.fx-cornered::before { content:''; position:absolute; inset:12px; background:url('../marks/corner-bracket.svg') center/100% 100% no-repeat; pointer-events:none; }
+
+.fx-micro-label {
+  font: 500 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--fx-orange);
+}
+
+/* Keep most overlays subtle. The depth comes from stacking 3-4 low-opacity layers, not one loud texture. */

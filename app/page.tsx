@@ -2,11 +2,11 @@
 
 import Experience from "@/components/Experience";
 import Hero from "@/components/Hero";
-import Intro from "@/components/Intro";
-import MakeAndBreak from "@/components/MakeAndBreak";
+import AboutStudioSection from "@/components/AboutStudioSection";
 import ComboMeter from "@/components/ComboMeter";
 import PatternLibrary from "@/components/PatternLibrary";
 import MakerLab from "@/components/MakerLab";
+import PretextCopyLab from "@/components/PretextCopyLab";
 import Projects from "@/components/Projects";
 import { useEffect, useState } from "react";
 import {
@@ -30,6 +30,7 @@ import { useMousePosition } from "@/hooks/useMousePosition";
 import StickyCursor from "@/components/ui/stickyCursor/StickyCursor";
 import ComboTrail from "@/components/ui/ComboTrail";
 import EntranceWipe from "@/components/ui/EntranceWipe";
+import SecretArcade from "@/components/easter-egg/SecretArcade";
 
 function MaskedCopy() {
   const [isHovered, setIsHovered] = useState(false);
@@ -40,7 +41,7 @@ function MaskedCopy() {
     <motion.div
       className="Pointermask absolute inset-0  z-10"
       animate={{
-        WebkitMaskPosition: `${x - size / 2}px ${y - size / 2}px`,
+        WebkitMaskPosition: `${(x ?? 0) - size / 2}px ${(y ?? 0) - size / 2}px`,
 
         WebkitMaskSize: `${size}px`,
       }}
@@ -48,8 +49,7 @@ function MaskedCopy() {
     >
       <div className="container">
         <Hero masked={true} />
-        <MakeAndBreak />
-        <Intro />
+        <AboutStudioSection />
         <Experience />
         <Projects />
         <ComboMeter />
@@ -74,7 +74,7 @@ export default function Home() {
   );
   useEffect(() => {
     return xVelocity.on("change", (latestVelocity) => {
-      if (window.getComputedStyle(socialsRef.current).display != "none") {
+      if (socialsRef.current && window.getComputedStyle(socialsRef.current).display != "none") {
         if (latestVelocity > 0 && socialsRef.current.style.opacity != 0) {
           animateSocials(
             socialsRef.current,
@@ -110,17 +110,18 @@ export default function Home() {
         <EntranceWipe />
         <ComboTrail />
         <StickyCursor />
+        <SecretArcade />
         {/* <MaskedCopy /> */}
         <Navbar />
         <Socials containerRef={socialsRef} />
         <main className="text-clip">
           <div className="container">
             <Hero masked={false} />
-            <MakeAndBreak />
-            <Intro />
+            <AboutStudioSection />
             <Experience />
             <Projects />
             <PatternLibrary />
+            <PretextCopyLab />
             <ComboMeter />
             <MakerLab />
             <Hobbies />

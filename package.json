@@ -6,9 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:game": "tsx --test components/easter-egg/game/logic.test.ts",
+    "test:mascot": "tsx --test $(find tests/mascot -name '*.test.ts')",
+    "test:mascot:watch": "tsx --test --watch $(find tests/mascot -name '*.test.ts')",
+    "verify:mascot": "node scripts/mascot/verify.mjs",
+    "verify:mascot-upgrade": "node scripts/mascot/verify-upgrade.mjs",
+    "perf:mascot": "node scripts/mascot/perf-budget.mjs"
   },
   "dependencies": {
+    "@chenglou/pretext": "^0.0.8",
     "@splinetool/react-spline": "^2.2.6",
     "@studio-freight/lenis": "^1.0.22",
     "@types/node": "20.4.2",
@@ -23,6 +30,7 @@
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-tailwindcss": "^3.13.0",
     "framer-motion": "^10.13.0",
+    "gsap": "^3.15.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.263.0",
     "next": "13.4.10",
@@ -39,6 +47,7 @@
   "devDependencies": {
     "file-loader": "^6.2.0",
     "prettier": "^3.1.0",
-    "prettier-plugin-tailwindcss": "^0.5.7"
+    "prettier-plugin-tailwindcss": "^0.5.7",
+    "tsx": "^4.23.8"
   }
 }

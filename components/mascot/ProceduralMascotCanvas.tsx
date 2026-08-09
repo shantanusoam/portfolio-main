@@ -1,0 +1,136 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { MascotEngine } from "@/lib/mascot/MascotEngine";
+import { getQualityDprCap } from "@/lib/mascot/MascotConfig";
+import { PointerInput } from "@/lib/mascot/input/PointerInput";
+import { ScrollInput } from "@/lib/mascot/input/ScrollInput";
+import type {
+  MascotEngine as MascotEngineContract,
+  MascotEcosystemStatus,
+  MascotQuality,
+  MascotStatus,
+} from "@/lib/mascot/types";
+import styles from "./Mascot.module.css";
+
+export interface ProceduralMascotCanvasProps {
+  quality?: MascotQuality;
+  reducedMotion?: boolean;
+  enabled?: boolean;
+  debug?: boolean;
+  seed?: number;
+  onEngineReady?: (engine: MascotEngineContract | null) => void;
+  onStatus?: (status: MascotStatus) => void;
+  onEcosystemStatus?: (status: MascotEcosystemStatus | null) => void;
+}
+
+/**
+ * The only Client Component that touches window/document/canvas directly.
+ * Owns exactly one MascotEngine instance for its lifetime and every
+ * listener/observer that feeds it — all torn down on unmount. See
+ * .claude/skills/integrating-next-canvas/references/lifecycle-checklist.md.
+ */
+export default function ProceduralMascotCanvas({
+  quality = "medium",
+  reducedMotion = false,
+  enabled = true,
+  debug = false,
+  seed = 1337,
+  onEngineReady,
+  onStatus,
+  onEcosystemStatus,
+}: ProceduralMascotCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const engineRef = useRef<MascotEngineContract | null>(null);
+  const qualityRef = useRef(quality);
+
+  useEffect(() => {
+    qualityRef.current = quality;
+  }, [quality]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+
+    const engine = new MascotEngine({
+      canvas,
+      seed,
+      quality: qualityRef.current,
+      debug,
+      reducedMotion,
+      onStatus,
+      onEcosystemStatus,
+    });
+    engineRef.current = engine;
+    onEngineReady?.(engine);
+
+    const pointerInput = new PointerInput();
+    const unsubscribePointer = pointerInput.onChange((state) => {
+      engine.setPointer(state.x, state.y, state.active);
+    });
+    pointerInput.attach(window);
+
+    const scrollInput = new ScrollInput();
+    const unsubscribeScroll = scrollInput.onChange((velocity) => {
+      engine.setScrollVelocity(velocity);
+    });
+    scrollInput.attach();
+
+    const applySize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const dpr = Math.min(
+        window.devicePixelRatio || 1,
+        getQualityDprCap(qualityRef.current),
+      );
+      engine.resize(width, height, dpr);
+    };
+    applySize();
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(applySize)
+        : null;
+    resizeObserver?.observe(document.documentElement);
+    window.addEventListener("resize", applySize, { passive: true });
+
+    engine.setEnabled(enabled);
+    engine.start();
+
+    return () => {
+      window.removeEventListener("resize", applySize);
+      resizeObserver?.disconnect();
+      unsubscribePointer();
+      unsubscribeScroll();
+      pointerInput.detach();
+      scrollInput.detach();
+      engine.destroy();
+      engineRef.current = null;
+      onEngineReady?.(null);
+      onEcosystemStatus?.(null);
+    };
+    // Engine identity is tied to `seed` only; quality/enabled/reducedMotion/debug
+    // are pushed to the running engine imperatively below instead of remounting it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed]);
+
+  useEffect(() => {
+    engineRef.current?.setQuality(quality);
+  }, [quality]);
+
+  useEffect(() => {
+    engineRef.current?.setEnabled(enabled);
+  }, [enabled]);
+
+  useEffect(() => {
+    engineRef.current?.setReducedMotion(reducedMotion);
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    engineRef.current?.setDebug(debug);
+  }, [debug]);
+
+  return (
+    <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+  );
+}

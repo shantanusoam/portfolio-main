@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no"
+    />
+    <title>BladeShift Controller</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div id="status">Connecting…</div>
+
+    <form id="join-form" class="hidden">
+      <p>Enter the room code shown on the game screen.</p>
+      <input id="room-input" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="CODE" />
+      <button type="submit">Join</button>
+    </form>
+
+    <div id="mode-toggle" class="hidden">
+      <button data-mode="trackpad" class="mode-btn selected">Trackpad</button>
+      <button data-mode="sword" class="mode-btn">Sword</button>
+      <button data-mode="tilt" class="mode-btn">Tilt</button>
+    </div>
+
+    <div id="trackpad" class="hidden">
+      <div id="crosshair"></div>
+      <div id="swing-flash"></div>
+      <div id="hint">Drag to move the blade &middot; press to cut</div>
+      <button id="enable-motion" class="hidden">Enable Motion</button>
+      <button id="recalibrate" class="hidden">Recalibrate</button>
+      <button id="hold-to-cut" class="hidden">HOLD TO CUT</button>
+    </div>
+
+    <script type="module" src="./src/controller.ts"></script>
+  </body>
+</html>

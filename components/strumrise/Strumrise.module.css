@@ -1,0 +1,195 @@
+/*
+  Strumrise is a full-screen modal game layer — above the homepage's
+  nav/modal tier (see components/mascot/Mascot.module.css's layer-stack
+  comment: nav/modals sit at 50+), so it uses 100+.
+*/
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #05050a;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  touch-action: none;
+}
+
+.root[data-visible="true"] {
+  opacity: 1;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  color: #f5fbff;
+  font-family: var(--font-data, monospace);
+  font-size: 13px;
+  background: linear-gradient(to bottom, rgba(5, 5, 10, 0.75), transparent);
+  pointer-events: none;
+}
+
+.hudGroup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  pointer-events: auto;
+}
+
+.hudStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 44px;
+}
+
+.hudStatLabel {
+  opacity: 0.6;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hudButton {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hudButton:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.livesRow {
+  display: flex;
+  gap: 4px;
+}
+
+.lifeDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff3ec9;
+}
+
+.lifeDot[data-spent="true"] {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.menuLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 5, 10, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.menuCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 36px;
+  border-radius: 16px;
+  background: rgba(12, 12, 18, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f5fbff;
+  font-family: var(--font-data, monospace);
+  text-align: center;
+  max-width: min(90vw, 360px);
+}
+
+.menuTitle {
+  font-size: 20px;
+  letter-spacing: 0.03em;
+}
+
+.menuSubtitle {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.menuButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.menuButton {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(56, 242, 216, 0.16);
+  color: inherit;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.menuButton:hover {
+  background: rgba(56, 242, 216, 0.3);
+}
+
+.menuButtonSecondary {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.menuButtonSecondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.controls {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  pointer-events: none;
+}
+
+.controlZone {
+  flex: 1;
+  pointer-events: auto;
+}
+
+.controlHint {
+  position: absolute;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+  color: rgba(245, 251, 255, 0.4);
+  font-family: var(--font-data, monospace);
+  font-size: 11px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .controlHint {
+    display: none;
+  }
+}

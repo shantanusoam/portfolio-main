@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="360" viewBox="0 0 620 360">
+  <rect width="620" height="360" fill="none"/>
+  <g opacity=".18" stroke="#eee9df">
+    <path d="M0 60h620M0 120h620M0 180h620M0 240h620M0 300h620"/>
+    <path d="M80 0v360M160 0v360M240 0v360M320 0v360M400 0v360M480 0v360M560 0v360"/>
+  </g>
+  <path d="M70 270C126 208 161 254 212 192S281 92 365 123s91 111 187 52" fill="none" stroke="#ff5d2f" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 13" opacity=".72"/>
+  <g fill="#ff5d2f" stroke="#ffe1c7" stroke-width="1.5">
+    <circle cx="70" cy="270" r="7"/>
+    <circle cx="212" cy="192" r="6"/>
+    <circle cx="365" cy="123" r="8"/>
+    <circle cx="552" cy="175" r="6"/>
+  </g>
+  <g fill="#eee9df" opacity=".65">
+    <circle cx="119" cy="64" r="1.5"/>
+    <circle cx="180" cy="96" r="1"/>
+    <circle cx="310" cy="52" r="1.8"/>
+    <circle cx="502" cy="81" r="1.2"/>
+    <circle cx="474" cy="284" r="1.4"/>
+    <circle cx="258" cy="312" r="1"/>
+  </g>
+  <g fill="#ff5d2f" font-family="monospace" font-size="10" letter-spacing="2" opacity=".72">
+    <text x="58" y="294">DEPOT</text>
+    <text x="342" y="102">FORGE</text>
+    <text x="514" y="201">GATE</text>
+  </g>
+</svg>

@@ -1,6 +1,30 @@
 # Tasks
 
 ## Active
+
+- [x] 2026-08-09: Fix adult mascot silhouette — ~60-joint long cute tail + smaller mouth as it grows
+- [x] 2026-08-09: Compact Cluckstorm mobile + desktop HUD — thinner combat chrome, smaller menu, protect playfield
+- [x] 2026-08-09: Remove Resonance Weaver mini-game entry + string-tension/slingshot weirdness
+- [x] 2026-08-09: Multi-fry egg school + predictive shy-flee steering for Signal Shoal
+- [x] 2026-08-09: Repair mascot fish ecosystem — egg pointer suppress, auto hunt/flee, 20-meal anatomy growth, independent fission offspring
+- [x] 2026-08-09: Fix adult mascot silhouette — compact cute fish growth, not long tadpole ribbon
+- [x] 2026-08-07: Fix mascot janky polygonal body — denser spine nodes, Catmull-Rom silhouette, plumper structure, generated soft texture pass
+- [x] 2026-08-07: Execute FINAL_MASCOT_HERO_TO_GAME_REDESIGN_MASTER_SPEC_V2 — Musical Signal Familiar + hero→Resonance Weaver (no modal)
+- [x] 2026-08-07: V2 Phases 1–3 — Musical Signal Familiar anatomy, FacialMotionMatrix, Soft Signal Plush surface
+- [x] 2026-08-07: V2 Phase 4–5 foundations — hero perch/slide/inspect/drag resistance + string tension gate / slingshot-ready signal
+- [x] 2026-08-07: V2 Phases 6–7 — slingshot/snap HeroFractureTransition + DomShadowProxy snapshot/world + Enter Resonance gate
+- [x] 2026-08-07: V2 Phases 8–13 — Resonance Weaver MVP, restore, a11y, verify + FINAL_V2_REPORT
+- [x] 2026-08-06: Align diagonal enemy projectile artwork with top-down bullet trajectories
+- [x] 2026-08-06: Increase Cluckstorm enemy, projectile, and pickup visual sizes without changing hitboxes
+- [x] 2026-08-06: Add Cluckstorm juice pass — neon projectile trails, boss damage numbers, stronger warning entry, CRT scanlines
+- [x] 2026-08-06: Preserve previous enemy prints as a selectable Classic Flock skin
+- [x] 2026-08-06: Preserve the original courier print as a selectable ship skin and add Circuit, Ghost, and Solar variants
+- [x] 2026-08-06: Continue Cluckstorm — strict top-down Gemini sprites, nova bombs, smart enemy formations, and Easy/Hard modes
+- [x] 2026-08-05: Fix SecretArcade courier ship orientation — sprite faced bottom-left; rotate to nose-up for vertical shmup
+- [x] 2026-08-04: Restyle Experience to match the first archive mockup — glass logo rack, // CHECKPOINT labels, diagnostics footer polish
+- [x] 2026-08-03: Match About + Experience to the archive reference art — real tech brand icons, yarn patch assets, live career counter, logo tiles, IBM Plex Mono typography
+- [x] 2026-08-03: Add the Make/Break interactive word transition to the About studio panel
+- [x] 2026-08-03: Unify About and Experience under the Crafted Systems Archive visual system
 - [x] 2026-08-03: Add seamless black-linen page background for the dark theme
 - [x] 2026-08-03: Use ChatGPT linen texture as Hero section background
 - [x] 2026-08-03: Replace procedural black-linen with ChatGPT weave (12_12_16) site-wide
@@ -23,6 +47,14 @@
 - [x] 2026-07-25: Fix cursor angle glitch (transform order + atan2 seam), add elastic escape strain and wobbly magnetic release
 
 ## Discovered During Work
+
+- 2026-08-09: Cluckstorm player bottom clamp was `height - 34`, so the ship sat under the mobile footer HUD; portrait needs ~14% bottom pad
+- 2026-08-09: Fish ecosystem growth previously used canvas `scale` only; live `jointCount` changes require `PoseController.rebuildSpine` + skin regeneration
+- 2026-08-09: Companion lockstep was caused by `setPointer(..., true)` forcing follow toward leader-relative targets sharing `simTime`
+- 2026-08-09: Adult silhouette polish — joints→60 with long cute tail regions; softer headScale; mouth/eyes use sub-linear faceFeatureWidth so growth doesn’t widen the face into a mask
+- 2026-08-09: Length-led anatomy (80 joints / long segments) made the adult read as a tadpole ribbon; growth is now plump/compact (width-led, spine capped ~240px)
+- 2026-08-09: Resonance Weaver removed from product path — Enter Resonance UI, fracture proxies, and `lib/mascot/game/resonance` deleted; stringTension forced to 0 so plucks stay musical without slingshot squash
+- `MascotRuntime.ts` is well over the soft 500-line budget; Phase 4/5 wiring stayed thin via additive directors — a later split of targeting/contact update paths would help
 - ComboTrail was painting a ~14k-px-tall SVG with `mix-blend-screen` (primary scroll jank source)
 - CSS `scroll-behavior: smooth` was stacking with Lenis
 - Film-grain `mix-blend-mode: overlay` forced a full-viewport composite every frame
@@ -45,5 +77,10 @@
 - `.MagneticHead` still carried Olivier Larose header CSS (`position: fixed`, `mix-blend-mode`) which fought magnetic transforms
 
 ## Follow-ups
+
+- [x] 2026-08-08: Validate enlarged game art on both Top-down and Classic Flock skins — boss HUD overlap, enemy projectile patterns, readability
+- [ ] 2026-08-09: Spot-check Cluckstorm mobile play — boss HP strip + ship above bottom combat chips on a real phone
+- [x] 2026-08-09: Cancelled — Resonance Weaver follow-ups (motion-lab panel, weave UX, V2 playtest gates); game removed
+- [ ] 2026-08-07: Split `MascotRuntime.ts` (~1330 lines) into targeting/contact/update modules
 - [ ] Re-export About stickers at 256px (or WebP) — files are still 512px / ~1.6MB total
 - [x] 2026-07-25: Rebuild sticky cursor + magnetic physics — soft capture field, held-wrap without stretch glitch, fluid free motion

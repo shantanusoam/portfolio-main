@@ -1,0 +1,11 @@
+Design an original abstract surface pattern representing a plush toy-like
+material for a small futuristic mascot character in a portfolio website.
+The pattern should feel hand-designed: irregular soft mottled patches of
+deep violet and charcoal-grape tones blending into each other at low
+contrast, like a hand-airbrushed illustration rather than a photographic
+material scan. Include a scattering of tiny irregular fleck marks, barely
+visible, giving a sense of soft tactile depth without any single obvious
+light source or directional shading. This is a flat digital illustration,
+not a photograph, not a 3D render, not a stock texture — an original
+painterly abstract pattern only. Fills the entire square frame edge to
+edge, no border, no vignette, no objects, no text, no logos.

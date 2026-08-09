@@ -17,6 +17,7 @@ export function Button({
   };
   return (
     <button
+      data-mascot-obstacle="hard"
       {...props}
       className={cn(
         "p-2 min-w-[100px] active:scale-95 transition-transform duration-150",
@@ -41,6 +42,7 @@ export function ButtonWithIcon({
 }: ButtonWithIconProps) {
   return (
     <button
+      data-mascot-obstacle="hard"
       {...props}
       className={cn(
         "flex flex-row items-center icon_btn_shadow_primary w-full active:scale-[0.98] transition-transform duration-150",

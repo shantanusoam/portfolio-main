@@ -1,0 +1,368 @@
+.section {
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  position: relative;
+  isolation: isolate;
+  width: min(1400px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: 95px 0 130px;
+  border-inline: 1px solid rgba(238, 233, 223, 0.045);
+}
+
+.section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    340px circle at var(--pointer-x) var(--pointer-y),
+    rgba(255, 96, 49, 0.05),
+    transparent 76%
+  );
+}
+
+.header {
+  margin-bottom: 70px;
+  padding-inline: clamp(18px, 5vw, 70px);
+  text-align: center;
+}
+
+.counter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4em 1.6em;
+  margin: 0;
+  font: 500 clamp(13px, 1.5vw, 18px) / 1.4 var(--font-mono);
+  letter-spacing: 0.035em;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 101, 50, 0.72);
+}
+
+.counterUnit strong {
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.counterCaption {
+  margin: 17px 0 32px;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(238, 233, 223, 0.34);
+}
+
+/* Glass employer strip — bolted frame, muted logo marks (first-design look). */
+.logoRack {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  gap: clamp(10px, 1.8vw, 28px);
+  min-height: 118px;
+  padding: 32px clamp(36px, 5vw, 64px);
+  border: 1px solid rgba(255, 101, 50, 0.28);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(74, 28, 15, 0.28),
+      rgba(10, 9, 8, 0.78) 45%,
+      rgba(8, 8, 7, 0.92)
+    ),
+    url("/portfolio-micro-assets/patterns/technical-grid-tile.svg");
+  background-size: auto, 72px 72px;
+  box-shadow:
+    inset 0 0 1px rgba(255, 209, 176, 0.35),
+    inset 0 0 48px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(255, 83, 22, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.rackBolt {
+  position: absolute;
+  z-index: 2;
+  width: 12px;
+  height: 12px;
+  background: url("/portfolio-micro-assets/hardware/bolt-phillips.svg") center /
+    contain no-repeat;
+  opacity: 0.85;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(255, 93, 47, 0.35));
+}
+
+.rackBolt[data-corner="tl"] {
+  top: 9px;
+  left: 9px;
+}
+
+.rackBolt[data-corner="tr"] {
+  top: 9px;
+  right: 9px;
+}
+
+.rackBolt[data-corner="br"] {
+  right: 9px;
+  bottom: 9px;
+}
+
+.rackBolt[data-corner="bl"] {
+  bottom: 9px;
+  left: 9px;
+}
+
+.logoTile {
+  display: grid;
+  place-items: center;
+  width: min(142px, 100%);
+  height: 54px;
+  margin: auto;
+  padding: 8px 12px;
+  border: 1px solid rgba(238, 233, 223, 0.1);
+  background: rgba(238, 233, 223, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 8px 18px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.logoTile:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 12px 22px rgba(0, 0, 0, 0.42),
+    0 0 14px rgba(255, 93, 47, 0.18);
+}
+
+.logo {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 34px;
+  object-fit: contain;
+  filter: saturate(0.55) brightness(0.92);
+  opacity: 0.88;
+  transition:
+    filter 350ms ease,
+    opacity 350ms ease;
+}
+
+.logoTile:hover .logo {
+  filter: saturate(0.9) brightness(1);
+  opacity: 1;
+}
+
+.timeline {
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 31px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 96, 49, 0.7) 5%,
+    rgba(255, 96, 49, 0.28) 94%,
+    transparent
+  );
+}
+
+.timelineItem {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.78fr) minmax(420px, 1.4fr);
+  gap: clamp(55px, 8vw, 140px);
+  min-height: 310px;
+  padding: 62px clamp(24px, 5vw, 76px) 68px 85px;
+  border-top: 1px solid rgba(238, 233, 223, 0.09);
+}
+
+.timelineItem:last-child {
+  border-bottom: 1px solid rgba(238, 233, 223, 0.09);
+}
+
+.timelineNode {
+  position: absolute;
+  top: 62px;
+  left: 18px;
+  width: 26px;
+  height: 26px;
+  background: url("/portfolio-micro-assets/marks/timeline-node.svg") center /
+    contain no-repeat;
+  filter: drop-shadow(0 0 6px rgba(255, 94, 47, 0.34));
+  pointer-events: none;
+}
+
+.companyColumn {
+  position: relative;
+  min-height: 175px;
+}
+
+.checkpoint,
+.diagnostics h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+.checkpoint {
+  margin-bottom: 20px;
+}
+
+.checkpoint::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 10px;
+  background: url("/portfolio-micro-assets/marks/section-slashes.svg") center /
+    contain no-repeat;
+  flex-shrink: 0;
+}
+
+.companyColumn h3 {
+  margin: 0;
+  max-width: 340px;
+  font: 700 clamp(22px, 2.4vw, 34px) / 1.15 var(--font-mono);
+  letter-spacing: -0.01em;
+  color: var(--bone);
+}
+
+.companyColumn strong {
+  display: block;
+  margin-top: 6px;
+  font: 700 clamp(14px, 1.3vw, 18px) / 1.3 var(--font-mono);
+  color: var(--bone);
+}
+
+.companyColumn p {
+  width: min(260px, 100%);
+  margin: 24px 0 0;
+  font: 400 13px/1.55 var(--font-body);
+  color: var(--bone-muted);
+}
+
+.wireframeIcon {
+  position: absolute;
+  right: -30px;
+  bottom: -10px;
+  width: 105px;
+  height: 105px;
+  pointer-events: none;
+  opacity: 0.55;
+  filter: drop-shadow(0 0 5px rgba(255, 93, 47, 0.13));
+}
+
+.wireframeIcon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.roleColumn {
+  align-self: start;
+}
+
+.roleHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.roleHeader h4 {
+  margin: 0 0 8px;
+  font: 500 clamp(16px, 1.55vw, 22px) / 1.3 var(--font-mono);
+  letter-spacing: -0.01em;
+  color: var(--bone);
+}
+
+.roleHeader span {
+  font: 400 9px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  color: rgba(238, 233, 223, 0.39);
+}
+
+.roleHeader time {
+  flex-shrink: 0;
+  font: 500 9px/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+.description {
+  max-width: 610px;
+  margin: 22px 0;
+  font: 400 13px/1.6 var(--font-body);
+  color: var(--bone-muted);
+}
+
+.technologies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.technologies span {
+  padding: 9px 16px;
+  border: 1px solid rgba(238, 233, 223, 0.11);
+  background: rgba(255, 255, 255, 0.014)
+    url("/portfolio-micro-assets/patterns/dot-grid-tile.svg");
+  background-repeat: repeat;
+  background-size: 16px 16px;
+  font: 400 9px/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: rgba(238, 233, 223, 0.68);
+  transition:
+    border-color 350ms ease,
+    color 350ms ease,
+    transform 350ms ease;
+}
+
+.technologies span:hover {
+  transform: translateY(-2px);
+  color: var(--bone);
+  border-color: rgba(255, 96, 49, 0.43);
+}
+
+@media (max-width: 850px) {
+  .section {
+    padding-top: 70px;
+  }
+
+  .logoRack {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 36px 20px 22px;
+  }
+
+  .rackBolt {
+    display: none;
+  }
+
+  .timelineItem {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding-right: 20px;
+  }
+
+  .wireframeIcon {
+    right: 0;
+  }
+
+  .roleHeader {
+    flex-direction: column;
+    gap: 15px;
+  }
+}

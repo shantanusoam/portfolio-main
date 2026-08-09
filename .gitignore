@@ -30,6 +30,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# python (scripts/mascot's asset-generation tooling)
+__pycache__/
+*.pyc
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

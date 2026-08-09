@@ -18,6 +18,17 @@
   --paper: #f5f1e8;
   --combo-lit: #ff5a1f;
   --combo-unlit: #40403c;
+  --surface: #090908;
+  --surface-raised: #10100f;
+  --surface-glass: rgba(20, 18, 16, 0.72);
+  --orange: #ff5d2f;
+  --orange-bright: #ff7448;
+  --orange-muted: rgba(255, 93, 47, 0.28);
+  --bone: #eee9df;
+  --bone-muted: rgba(238, 233, 223, 0.56);
+  --bone-faint: rgba(238, 233, 223, 0.16);
+  --font-mono: var(--font-data);
+  --font-body: "Inter", sans-serif;
   box-sizing: border-box;
   padding: 0;
   border: 0;
@@ -33,11 +44,21 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   overflow-x: hidden; /* Prevent horizontal scroll */
   font-family: Arial, sans-serif;
+}
+
+html {
+  background: #080807;
+}
+
+body {
+  position: relative;
+  isolation: isolate;
 }
 /* Magnetic host styles live in magnetic.module.css — keep this class as a
    lightweight hook only. The old Olivier Larose header leftovers (fixed +
@@ -63,14 +84,7 @@ html.has-sticky-cursor select {
 @layer base {
   body {
     @apply text-white;
-    /* Authentic linen tile (ChatGPT weave). Lives on the document — not a
-       fixed blend layer — so Lenis scroll stays compositor-cheap. */
-    background-color: var(--black);
-    background-image: url('/textures/black-linen.webp');
-    background-repeat: repeat;
-    /* Reason: ~320px keeps the weave fine at desktop without reading as
-       a loud wallpaper pattern. */
-    background-size: 320px 320px;
+    background: transparent;
   }
 
   #nav-container,
@@ -80,7 +94,7 @@ html.has-sticky-cursor select {
     margin: auto;
   }
   .Pointermask {
-    mask-image: url('../public/masked.svg');
+    mask-image: url("../public/masked.svg");
     mask-repeat: no-repeat;
     mask-size: 500px;
     background: #ec4e39;
@@ -89,19 +103,6 @@ html.has-sticky-cursor select {
   }
   ::selection {
     @apply bg-primary text-white;
-  }
-
-  /* Hairline fiber noise on top of the linen — static, no mix-blend.
-     Kept very soft so it adds depth without fighting the weave. */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 998;
-    pointer-events: none;
-    opacity: 0.028;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-repeat: repeat;
   }
 
   ::-webkit-scrollbar {
@@ -116,6 +117,57 @@ html.has-sticky-cursor select {
   /* ::-webkit-scrollbar-thumb {
     @apply bg-darkgray;
   } */
+}
+
+.crafted-background,
+.crafted-grid,
+.crafted-vignette,
+.crafted-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.crafted-background {
+  z-index: -10;
+  background: radial-gradient(
+      circle at 50% 8%,
+      rgba(255, 96, 48, 0.07),
+      transparent 34rem
+    ),
+    linear-gradient(rgba(7, 7, 6, 0.4), rgba(7, 7, 6, 0.76)),
+    url("/textures/dark-linen.webp"), #080807;
+  background-size:
+    100% 100%,
+    100% 100%,
+    420px 420px,
+    auto;
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+}
+
+.crafted-grid {
+  z-index: -9;
+  opacity: 0.24;
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.018) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.crafted-vignette {
+  z-index: -8;
+  box-shadow:
+    inset 0 0 160px rgba(0, 0, 0, 0.72),
+    inset 0 0 40px rgba(0, 0, 0, 0.7);
+}
+
+.crafted-noise {
+  z-index: 997;
+  opacity: 0.028;
+  background: url("/textures/micro-noise.webp") repeat;
+  background-size: 128px 128px;
 }
 
 html.lenis {
@@ -225,7 +277,7 @@ html.lenis {
 }
 
 .logo_slider_container:before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   height: 100%;
@@ -246,7 +298,7 @@ html.lenis {
 }
 
 .logo_slider_container:after {
-  content: '';
+  content: "";
   position: absolute;
   right: 0;
   height: 100%;
@@ -283,7 +335,6 @@ html.lenis {
   }
 }
 
-
 /* Unused Olivier Larose header demo leftovers — kept inert so nested
    .bounds:hover { scale(3) } cannot inflate magnetic hit targets. */
 .header {
@@ -291,17 +342,30 @@ html.lenis {
 }
 
 @keyframes breathe {
-  0%, 100% { opacity: 1; filter: drop-shadow(0 0 0px transparent); }
-  50% { opacity: 0.85; filter: drop-shadow(0 0 14px rgba(255, 77, 28, 0.35)); }
+  0%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 0px transparent);
+  }
+  50% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 14px rgba(255, 77, 28, 0.35));
+  }
 }
 .animate-breathe {
   animation: breathe 4s ease-in-out infinite;
 }
 
 @keyframes light-leak-drift {
-  0% { transform: translate(-10%, -10%); }
-  50% { transform: translate(15%, 10%); }
-  100% { transform: translate(-10%, -10%); }
+  0% {
+    transform: translate(-10%, -10%);
+  }
+  50% {
+    transform: translate(15%, 10%);
+  }
+  100% {
+    transform: translate(-10%, -10%);
+  }
 }
 .animate-light-leak {
   animation: light-leak-drift 28s ease-in-out infinite;

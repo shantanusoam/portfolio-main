@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import { cn } from "@/lib/utils";
+import SignalRoeButton from "./mascot/SignalRoeButton";
 
 interface HeroProps {
   masked: boolean;
@@ -19,6 +20,7 @@ interface HeroProps {
 const START_MENU = [
   { label: "Start Journey", href: "#trail-map" },
   { label: "View Case Studies", href: "#mission-select" },
+  { label: "Signal Room", href: "#signal-room" },
   { label: "Enter Lab", href: "#maker-lab" },
 ];
 
@@ -33,7 +35,13 @@ const ROLE_LINES = [
 // for a single big rotating word, but with a short role line in a small box
 // it read as two words ghosting on top of each other. AnimatePresence's
 // `mode="wait"` guarantees only one is ever mounted at a time.
-function RoleTicker({ lines, className }: { lines: string[]; className?: string }) {
+function RoleTicker({
+  lines,
+  className,
+}: {
+  lines: string[];
+  className?: string;
+}) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [index, setIndex] = useState(0);
 
@@ -41,7 +49,7 @@ function RoleTicker({ lines, className }: { lines: string[]; className?: string 
     if (prefersReducedMotion) return;
     const interval = setInterval(
       () => setIndex((i) => (i + 1) % lines.length),
-      2600
+      2600,
     );
     return () => clearInterval(interval);
   }, [lines.length, prefersReducedMotion]);
@@ -125,6 +133,26 @@ export default function Hero({ masked }: HeroProps) {
             single composition — avoids the old 1fr/self-end stack that left
             a large empty band above the copy. */}
         <div className="relative z-[996] mx-auto flex w-full max-w-[1200px] flex-col items-center justify-center gap-[clamp(1.25rem,3.5vh,2.75rem)]">
+          {/* Decorative perch rails — pointer-events none so they never steal
+              CTA clicks; mascot lands on top edges via data-mascot-perch. */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-[8%] top-[18%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            data-mascot-perch="rail"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-[18%] top-[42%] h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent"
+            data-mascot-perch="rail"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-[12%] bottom-[22%] h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
+            data-mascot-perch="rail"
+          />
+
+          <SignalRoeButton />
+
           <motion.div
             variants={{ show: { transition: { staggerChildren: stagger } } }}
             initial="hidden"
@@ -134,6 +162,7 @@ export default function Hero({ masked }: HeroProps) {
             <motion.div
               variants={contentVariants}
               className="relative flex h-[clamp(3.25rem,9vh,5.5rem)] w-full items-center justify-center overflow-hidden"
+              data-mascot-interest="hero"
             >
               <TextCarousel
                 greetings={[
@@ -151,8 +180,9 @@ export default function Hero({ masked }: HeroProps) {
               variants={contentVariants}
               className={cn(
                 "font-display text-[clamp(2.5rem,6.2vw,5.5rem)] uppercase leading-[0.92] tracking-wide text-white",
-                isIdle && "animate-breathe"
+                isIdle && "animate-breathe",
               )}
+              data-mascot-interest="hero"
             >
               Shantanu Soam
             </motion.h1>
@@ -160,6 +190,7 @@ export default function Hero({ masked }: HeroProps) {
             <motion.div
               variants={contentVariants}
               className="relative flex h-[clamp(1.35rem,3.2vh,2rem)] w-full items-center justify-center overflow-hidden"
+              data-mascot-interest="hero"
             >
               <RoleTicker
                 lines={ROLE_LINES}
@@ -186,6 +217,7 @@ export default function Hero({ masked }: HeroProps) {
                   // The cursor wraps whatever carries this attribute, so the
                   // link itself is the target — no overlay element to size.
                   {...{ [MAGNETIC_ATTRIBUTE]: "" }}
+                  data-mascot-obstacle="hard"
                   className="whitespace-nowrap text-graytransparent transition-colors duration-300 hover:text-primary"
                 >
                   [ {item.label} ]

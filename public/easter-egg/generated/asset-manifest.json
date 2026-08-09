@@ -1,0 +1,179 @@
+{
+  "name": "cluckstorm-generated-arcade-kit",
+  "source": "built-in image generation plus local chroma-key extraction",
+  "theme": "original funny vertical space shooter with goofy alien poultry enemies",
+  "constraints": [
+    "No recognizable movie-franchise ships, symbols, characters, logos, or text",
+    "Designed for tiny browser-game sprites and portfolio microinteractions"
+  ],
+  "runtime": {
+    "atlas": "/easter-egg/generated/space-opera-atlas.png",
+    "cluckerAtlas": "/easter-egg/generated/clucker-atlas.png",
+    "cluckerBackground": "/easter-egg/generated/clucker-space-bg.webp",
+    "cockpitBackdrop": "/easter-egg/generated/cockpit-backdrop.webp",
+    "cellSize": 256,
+    "grid": [4, 4]
+  },
+  "shmupSprites": {
+    "alienBirdGrunt": {
+      "cell": [0, 0],
+      "path": "/easter-egg/generated/shmup-sprites/alien-bird-grunt.png"
+    },
+    "helmetBirdShooter": {
+      "cell": [1, 0],
+      "path": "/easter-egg/generated/shmup-sprites/helmet-bird-shooter.png"
+    },
+    "armoredBirdTank": {
+      "cell": [2, 0],
+      "path": "/easter-egg/generated/shmup-sprites/armored-bird-tank.png"
+    },
+    "ufoBird": {
+      "cell": [3, 0],
+      "path": "/easter-egg/generated/shmup-sprites/ufo-bird.png"
+    },
+    "popcornAsteroid": {
+      "cell": [0, 1],
+      "path": "/easter-egg/generated/shmup-sprites/popcorn-asteroid.png"
+    },
+    "eggProjectile": {
+      "cell": [1, 1],
+      "path": "/easter-egg/generated/shmup-sprites/egg-projectile.png"
+    },
+    "featherProjectile": {
+      "cell": [2, 1],
+      "path": "/easter-egg/generated/shmup-sprites/feather-projectile.png"
+    },
+    "roastedMeteor": {
+      "cell": [3, 1],
+      "path": "/easter-egg/generated/shmup-sprites/roasted-meteor.png"
+    },
+    "shieldBubble": {
+      "cell": [0, 2],
+      "path": "/easter-egg/generated/shmup-sprites/shield-bubble.png"
+    },
+    "healthHeart": {
+      "cell": [1, 2],
+      "path": "/easter-egg/generated/shmup-sprites/health-heart.png"
+    },
+    "missileCrate": {
+      "cell": [2, 2],
+      "path": "/easter-egg/generated/shmup-sprites/missile-crate.png"
+    },
+    "rainbowLaser": {
+      "cell": [3, 2],
+      "path": "/easter-egg/generated/shmup-sprites/rainbow-laser.png"
+    },
+    "miniBossRooster": {
+      "cell": [0, 3],
+      "path": "/easter-egg/generated/shmup-sprites/mini-boss-rooster.png"
+    },
+    "bossMothercluckerHead": {
+      "cell": [1, 3],
+      "path": "/easter-egg/generated/shmup-sprites/boss-motherclucker-head.png"
+    },
+    "bossWingCannon": {
+      "cell": [2, 3],
+      "path": "/easter-egg/generated/shmup-sprites/boss-wing-cannon.png"
+    },
+    "comicExplosionPuff": {
+      "cell": [3, 3],
+      "path": "/easter-egg/generated/shmup-sprites/comic-explosion-puff.png"
+    }
+  },
+  "shmupSpritesV2": {
+    "source": "gemini-2.5-flash-image generation, magenta-screen keyed to transparency locally with Pillow (scripts/generate-sprites.py)",
+    "playerCourierTopdown": "/easter-egg/generated/shmup-sprites-v2/player-courier-topdown.png",
+    "missileProjectileTopdown": "/easter-egg/generated/shmup-sprites-v2/missile-projectile-topdown.png",
+    "laserBoltTopdown": "/easter-egg/generated/shmup-sprites-v2/laser-bolt-topdown.png",
+    "bombProjectileTopdown": "/easter-egg/generated/shmup-sprites-v2/bomb-projectile-topdown.png",
+    "gruntBirdTopdown": "/easter-egg/generated/shmup-sprites-v2/grunt-bird-topdown.png",
+    "shooterBirdTopdown": "/easter-egg/generated/shmup-sprites-v2/shooter-bird-topdown.png",
+    "armoredBirdTopdown": "/easter-egg/generated/shmup-sprites-v2/armored-bird-topdown.png",
+    "ufoBirdTopdown": "/easter-egg/generated/shmup-sprites-v2/ufo-bird-topdown.png",
+    "popcornAsteroidTopdown": "/easter-egg/generated/shmup-sprites-v2/popcorn-asteroid-topdown.png",
+    "classicHealerSupportBird": "/easter-egg/generated/shmup-sprites-v2/classic-healer-support-bird.png",
+    "classicSplitterBird": "/easter-egg/generated/shmup-sprites-v2/classic-splitter-bird.png",
+    "classicSplitterling": "/easter-egg/generated/shmup-sprites-v2/classic-splitterling.png",
+    "classicEliteBird": "/easter-egg/generated/shmup-sprites-v2/classic-elite-bird.png",
+    "classicKamikazeDiverBird": "/easter-egg/generated/shmup-sprites-v2/classic-kamikaze-diver-bird.png",
+    "classicBossAdmiralDrumstick": "/easter-egg/generated/shmup-sprites-v2/classic-boss-admiral-drumstick.png",
+    "classicBossOmeletteEngine": "/easter-egg/generated/shmup-sprites-v2/classic-boss-omelette-engine.png",
+    "classicMiniBossSergeantYolk": "/easter-egg/generated/shmup-sprites-v2/classic-miniboss-sergeant-yolk.png",
+    "healerSupportBird": "/easter-egg/generated/shmup-sprites-v2/healer-support-bird.png",
+    "splitterBird": "/easter-egg/generated/shmup-sprites-v2/splitter-bird.png",
+    "splitterling": "/easter-egg/generated/shmup-sprites-v2/splitterling.png",
+    "eliteBird": "/easter-egg/generated/shmup-sprites-v2/elite-bird.png",
+    "kamikazeDiverBird": "/easter-egg/generated/shmup-sprites-v2/kamikaze-diver-bird.png",
+    "bossAdmiralDrumstick": "/easter-egg/generated/shmup-sprites-v2/boss-admiral-drumstick.png",
+    "bossOmeletteEngine": "/easter-egg/generated/shmup-sprites-v2/boss-omelette-engine.png",
+    "miniBossSergeantYolk": "/easter-egg/generated/shmup-sprites-v2/miniboss-sergeant-yolk.png",
+    "powerupTimewarpIcon": "/easter-egg/generated/shmup-sprites-v2/powerup-timewarp-icon.png",
+    "powerupNovaIcon": "/easter-egg/generated/shmup-sprites-v2/powerup-nova-icon.png"
+  },
+  "sprites": {
+    "courierShip": {
+      "cell": [0, 0],
+      "path": "/easter-egg/generated/sprites/courier-ship.png"
+    },
+    "droneCompanion": {
+      "cell": [1, 0],
+      "path": "/easter-egg/generated/sprites/drone-companion.png"
+    },
+    "buildShard": {
+      "cell": [2, 0],
+      "path": "/easter-egg/generated/sprites/build-shard-large.png"
+    },
+    "rareShard": {
+      "cell": [3, 0],
+      "path": "/easter-egg/generated/sprites/rare-gold-shard.png"
+    },
+    "corruptMine": {
+      "cell": [0, 1],
+      "path": "/easter-egg/generated/sprites/corrupt-mine.png"
+    },
+    "crackedTile": {
+      "cell": [1, 1],
+      "path": "/easter-egg/generated/sprites/cracked-hazard-tile.png"
+    },
+    "shieldPickup": {
+      "cell": [2, 1],
+      "path": "/easter-egg/generated/sprites/shield-pickup.png"
+    },
+    "boostPickup": {
+      "cell": [3, 1],
+      "path": "/easter-egg/generated/sprites/boost-pickup.png"
+    },
+    "signalBeacon": {
+      "cell": [0, 2],
+      "path": "/easter-egg/generated/sprites/signal-beacon.png"
+    },
+    "routeNode": {
+      "cell": [1, 2],
+      "path": "/easter-egg/generated/sprites/route-node.png"
+    },
+    "holoGate": {
+      "cell": [2, 2],
+      "path": "/easter-egg/generated/sprites/holo-gate.png"
+    },
+    "radarPing": {
+      "cell": [3, 2],
+      "path": "/easter-egg/generated/sprites/radar-ping.png"
+    },
+    "sparkBurst": {
+      "cell": [0, 3],
+      "path": "/easter-egg/generated/sprites/spark-burst.png"
+    },
+    "engineFlame": {
+      "cell": [1, 3],
+      "path": "/easter-egg/generated/sprites/engine-flame.png"
+    },
+    "privateBadge": {
+      "cell": [2, 3],
+      "path": "/easter-egg/generated/sprites/private-badge.png"
+    },
+    "bossWarning": {
+      "cell": [3, 3],
+      "path": "/easter-egg/generated/sprites/boss-warning.png"
+    }
+  }
+}
