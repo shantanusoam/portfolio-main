@@ -188,7 +188,8 @@ export type AppearancePresetName =
 export type AppearancePatternRecipeName =
   | "terrazzo-confetti"
   | "constellation-freckles"
-  | "soft-stripes";
+  | "soft-stripes"
+  | "signal-glyphs";
 
 /** Continuous appearance-lab tuning knobs — see MascotAppearancePanel.tsx. */
 export interface AppearanceTuningOverrides {

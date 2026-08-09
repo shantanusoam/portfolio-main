@@ -157,30 +157,52 @@ export class CanvasMascotRenderer {
   drawFry(fry: EcosystemFry): void {
     const ctx = this.ctx;
     const emerge = clamp(fry.age / 0.45, 0, 1);
-    const tailWag = Math.sin(fry.tailPhase) * 2.2;
+    const tailWag = Math.sin(fry.tailPhase) * 1.6;
     ctx.save();
     ctx.translate(fry.x, fry.y);
     ctx.rotate(fry.heading);
     ctx.globalAlpha = emerge;
 
-    ctx.shadowColor = fry.color;
-    ctx.shadowBlur = 9;
+    // Tiny rounded paddle first, so the fry belongs to the same visual family
+    // as the adults instead of reading as a triangle attached to an ellipse.
     ctx.fillStyle = fry.color;
     ctx.beginPath();
-    ctx.ellipse(0, 0, 7.5, 4.4, 0, 0, Math.PI * 2);
+    ctx.moveTo(-5.2, 0);
+    ctx.bezierCurveTo(-7.2, -1, -9.4, -4.2 + tailWag, -11.6, -3.4 + tailWag);
+    ctx.quadraticCurveTo(-12.4, 0 + tailWag, -11.6, 3.4 + tailWag);
+    ctx.bezierCurveTo(-9.4, 4.2 + tailWag, -7.2, 1, -5.2, 0);
+    ctx.fill();
+
+    ctx.shadowColor = fry.color;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7, 4.8, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.shadowBlur = 0;
+    ctx.globalAlpha = emerge * 0.45;
+    ctx.fillStyle = "#fff7e8";
     ctx.beginPath();
-    ctx.moveTo(-6, 0);
-    ctx.lineTo(-12, -4 + tailWag);
-    ctx.lineTo(-11, 4 + tailWag);
-    ctx.closePath();
+    ctx.ellipse(-0.4, 2.9, 2.5, 1.25, -0.12, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = "#181312";
+    ctx.globalAlpha = emerge;
+    ctx.fillStyle = "#fff7e8";
     ctx.beginPath();
-    ctx.arc(3.2, -1.25, 1.1, 0, Math.PI * 2);
+    ctx.arc(3.1, -1.25, 1.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#16131a";
+    ctx.beginPath();
+    ctx.arc(3.35, -1.18, 0.62, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff7e8";
+    ctx.beginPath();
+    ctx.arc(3.1, -1.45, 0.22, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ff7358";
+    ctx.beginPath();
+    ctx.arc(1.1, 1.55, 0.65, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }

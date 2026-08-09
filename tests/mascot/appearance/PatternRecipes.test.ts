@@ -12,6 +12,7 @@ const RECIPES: PatternRecipeName[] = [
   "terrazzo-confetti",
   "constellation-freckles",
   "soft-stripes",
+  "signal-glyphs",
 ];
 const QUALITIES: MascotQuality[] = ["reduced", "low", "medium", "high"];
 
@@ -87,4 +88,17 @@ test("soft-stripes marks span across v (band shape, near-full width)", () => {
     assert.equal(mark.shape, "band");
     assert.ok(mark.across > 0.5);
   }
+});
+
+test("signal-glyphs stays intentionally limited to three placed marks", () => {
+  const marks = generatePatternMarks("signal-glyphs", 3, "high");
+  assert.equal(marks.length, 3);
+  assert.deepEqual(
+    marks.map(({ u, v, colorRole }) => ({ u, v, colorRole })),
+    [
+      { u: 0.38, v: 0.56, colorRole: "primary" },
+      { u: 0.48, v: 0.48, colorRole: "primary" },
+      { u: 0.56, v: 0.4, colorRole: "primary" },
+    ],
+  );
 });

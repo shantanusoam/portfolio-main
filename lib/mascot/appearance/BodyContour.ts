@@ -21,7 +21,7 @@ export interface BodyContourConfig {
   zones: BodyContourZones;
   /** Extra width multiplier peaking at the head/shoulder boundary (0 = none). */
   headBulge: number;
-  /** Extra taper sharpening exponent applied within the tail zone (>=1). */
+  /** Extra taper shaping exponent applied within the tail zone (>0). */
   tailTaperPower: number;
   /** 0..1 fraction of the tail zone's natural width retained at the very tip — keeps the tail a readable point instead of a vanishing thread, and stops a stretch deformation from making it outrun the rest of the body. */
   tailVisualCap: number;
@@ -30,13 +30,13 @@ export interface BodyContourConfig {
 }
 
 export const DEFAULT_BODY_CONTOUR_CONFIG: BodyContourConfig = {
-  // A broad head cap and compact torso make the face the first read. The
-  // final quarter is allowed to taper cleanly but never dominates the pose.
-  zones: { headEnd: 0.36, torsoEnd: 0.76 },
-  headBulge: 0.22,
-  tailTaperPower: 1.75,
-  tailVisualCap: 0.18,
-  minWidth: 2.5,
+  // BodyProfile already provides the guppy's round mass. These values add a
+  // restrained shoulder lift and avoid sharpening the final taper twice.
+  zones: { headEnd: 0.4, torsoEnd: 0.76 },
+  headBulge: 0.08,
+  tailTaperPower: 0.78,
+  tailVisualCap: 0.82,
+  minWidth: 3,
 };
 
 /**

@@ -1060,6 +1060,25 @@ export class MascotRuntime {
       antennaeChain.segmentLength,
       antennaeChain.iterations,
     );
+    // Preserve a mirrored local rest pose while keeping a small amount of
+    // physical lag. Pure world-gravity made both fins droop in the same
+    // direction and was a major source of the malformed silhouette.
+    this.guideFinChain(
+      this.antennaeLeft,
+      leftRootX,
+      leftRootY,
+      leftAngle,
+      dt,
+      0,
+    );
+    this.guideFinChain(
+      this.antennaeRight,
+      rightRootX,
+      rightRootY,
+      rightAngle,
+      dt,
+      Math.PI,
+    );
 
     const whiskerChain = MASCOT_CONFIG.creature.tailWhiskerChain;
     integrateVerlet(this.tailWhisker, dt, whiskerChain, 0, gravityY * 0.5);
@@ -1068,6 +1087,35 @@ export class MascotRuntime {
       whiskerChain.segmentLength,
       whiskerChain.iterations,
     );
+  }
+
+  private guideFinChain(
+    nodes: VerletNode[],
+    rootX: number,
+    rootY: number,
+    restAngle: number,
+    dt: number,
+    phase: number,
+  ): void {
+    const segmentLength = MASCOT_CONFIG.creature.antennaeChain.segmentLength;
+    const flutter = Math.sin(this.simTime * 3.1 + phase) * 0.075;
+    const angle = restAngle + flutter;
+    const guide = clamp(dt * 5, 0, 0.2);
+
+    for (let index = 1; index < nodes.length; index += 1) {
+      const node = nodes[index];
+      const distance = segmentLength * index;
+      const targetX = rootX + Math.cos(angle) * distance;
+      const targetY = rootY + Math.sin(angle) * distance;
+      const nextX = lerp(node.x, targetX, guide);
+      const nextY = lerp(node.y, targetY, guide);
+      const shiftX = nextX - node.x;
+      const shiftY = nextY - node.y;
+      node.x = nextX;
+      node.y = nextY;
+      node.previousX += shiftX * 0.72;
+      node.previousY += shiftY * 0.72;
+    }
   }
 
   /**

@@ -22,13 +22,14 @@ export const DEFAULT_APPEARANCE_LAYERS: AppearanceLayerToggles = {
 };
 
 export const DEFAULT_APPEARANCE_TUNING: AppearanceTuningOverrides = {
-  // Reason: dots are a sparse accent layer; silhouette+face must read alone (V2 §9/§45).
-  dotDensity: 0.28,
+  // The production guppy uses three placed glyphs instead of a random dot
+  // cloud. Lab presets can still turn dots back on explicitly.
+  dotDensity: 0,
   bodyOpacity: 1,
-  rimWidth: 1,
-  glowIntensity: 0.38,
-  patternScale: 0.72,
-  patternContrast: 0.24,
+  rimWidth: 0.78,
+  glowIntensity: 0.46,
+  patternScale: 0.86,
+  patternContrast: 0.34,
 };
 
 const REDUCED_ALLOWED: AppearanceLayerToggles = {

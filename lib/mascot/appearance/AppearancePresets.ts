@@ -31,14 +31,14 @@ export interface AppearancePalette {
  * violet/cyan/magenta "effect" palette.
  */
 export const SOFT_SIGNAL_PLUSH_PALETTE: AppearancePalette = {
-  name: "Signal Cloth",
-  base: "#282725",
-  highlight: "#68635d",
-  printPrimary: "#ff6b3d",
-  printSecondary: "#c8bbae",
-  face: "#f3ede4",
-  shadow: "#11100f",
-  rim: "#a69b91",
+  name: "Signal Guppy",
+  base: "#302b35",
+  highlight: "#625763",
+  printPrimary: "#ff7358",
+  printSecondary: "#d5c7bd",
+  face: "#fff7e8",
+  shadow: "#16131a",
+  rim: "#9b7f8d",
 };
 
 /** @deprecated Alias kept for existing print tests — prefer SOFT_SIGNAL_PLUSH_PALETTE. */
@@ -81,11 +81,9 @@ export const APPEARANCE_PRESETS: Record<
 > = {
   "cute-bean": {
     id: "cute-bean",
-    label: "Signal Cloth",
+    label: "Signal Guppy",
     palette: SOFT_SIGNAL_PLUSH_PALETTE,
-    // Sparse local stitches stay attached to the body and never turn into a
-    // large pasted decal while the familiar bends.
-    patternRecipe: "constellation-freckles",
+    patternRecipe: "signal-glyphs",
   },
   "signal-manta": {
     id: "signal-manta",

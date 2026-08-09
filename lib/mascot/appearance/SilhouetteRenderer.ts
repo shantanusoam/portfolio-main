@@ -10,18 +10,15 @@ import type { AppearanceLayerToggles } from "./AppearanceConfig";
 import { buildBodyContourPoints, type BodyContourPoints } from "./BodyContour";
 import { pathFromContour } from "./ContourPath";
 import type { ExpressionVisualState } from "./ExpressionController";
-import {
-  computeCheekAnchors,
-  computeEyeAnchors,
-  computeMouthAnchor,
-  type FaceEyeAnchors,
-  type FaceFrame,
-} from "./FaceRig";
+import type { FaceEyeAnchors, FaceFrame } from "./FaceRig";
 import type { AppearancePalette } from "./AppearancePresets";
 import type { GeneratedDecalAtlas } from "./GeneratedDecalAtlas";
 import type { PatternMark, PatternRecipeName } from "./PatternRecipes";
 import { drawProceduralPrint } from "./ProceduralPrint";
 import { DEFAULT_RIM_CONFIG, drawRim } from "./RimRenderer";
+import { computePaddleTailFrame } from "./SignalGuppyGeometry";
+
+type MascotTextureSource = Parameters<CanvasRenderingContext2D["drawImage"]>[0];
 
 /**
  * Orchestrates the full layered appearance pipeline for one frame — upgrade
@@ -50,15 +47,13 @@ export interface AppearanceRenderInput {
   /** Optional — null/undefined/not-yet-loaded all safely fall back to the procedural print. */
   generatedDecalAtlas?: GeneratedDecalAtlas | null;
   /** Optional soft fabric overlay (velvet microtexture) — clipped to silhouette at low opacity. */
-  velvetMicrotexture?: CanvasImageSource | null;
+  velvetMicrotexture?: MascotTextureSource | null;
 }
 
-const EYE_SPACING_FRACTION = 0.27;
-const EYE_FORWARD_FRACTION = 0.035;
-const MOUTH_FORWARD_FRACTION = 0.34;
-const CHEEK_OUTWARD_FRACTION = 0.1;
+const EYE_SPACING_FRACTION = 0.21;
+const MOUTH_FORWARD_FRACTION = 0.46;
 /** Half-width (px) at a fin's root — soft ear lobes at the shoulders. */
-const FIN_BASE_WIDTH = 6.5;
+const FIN_BASE_WIDTH = 5.2;
 /** Legacy lab-only velvet overlay opacity; production uses local marks. */
 const VELVET_OVERLAY_OPACITY = 0.035;
 
@@ -71,9 +66,12 @@ export function drawAppearance(
   const contour = buildBodyContourPoints(input.ribs, input.contourWidths);
 
   if (input.layers.silhouette) {
+    drawPaddleTail(ctx, input.ribs, input.deformation, input.palette);
+    drawFin(ctx, input.fins.left, FIN_BASE_WIDTH, input.palette);
+    drawFin(ctx, input.fins.right, FIN_BASE_WIDTH, input.palette);
+    // The body covers each fin's inner half, producing a clean attachment
+    // instead of an oval ring floating on top of the silhouette.
     drawSilhouetteFill(ctx, contour, input.palette, input.tuning.bodyOpacity);
-    drawFin(ctx, input.fins.left, FIN_BASE_WIDTH, input.palette, 1);
-    drawFin(ctx, input.fins.right, FIN_BASE_WIDTH, input.palette, -1);
   }
 
   if (input.layers.print && input.patternMarks.length > 0) {
@@ -119,6 +117,95 @@ export function drawAppearance(
   }
 }
 
+/** Rounded two-lobe paddle attached behind the body's zero-width tail rib. */
+function drawPaddleTail(
+  ctx: CanvasRenderingContext2D,
+  ribs: readonly RibPoint[],
+  deformation: BodyDeformation,
+  palette: AppearancePalette,
+): void {
+  const frame = computePaddleTailFrame(ribs, deformation);
+  if (!frame) return;
+
+  const {
+    attach,
+    directionX: ux,
+    directionY: uy,
+    normalX: nx,
+    normalY: ny,
+    length,
+    halfWidth,
+  } = frame;
+  const point = (along: number, across: number): Point => ({
+    x: attach.x + ux * along + nx * across,
+    y: attach.y + uy * along + ny * across,
+  });
+
+  const upperShoulder = point(length * 0.48, halfWidth);
+  const upperTip = point(length * 0.98, halfWidth * 0.42);
+  const notch = point(length * 0.84, 0);
+  const lowerTip = point(length * 0.98, -halfWidth * 0.42);
+  const lowerShoulder = point(length * 0.48, -halfWidth);
+
+  ctx.save();
+  const gradient = ctx.createLinearGradient(
+    attach.x,
+    attach.y,
+    notch.x,
+    notch.y,
+  );
+  gradient.addColorStop(0, palette.base);
+  gradient.addColorStop(1, palette.highlight);
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.moveTo(attach.x, attach.y);
+  ctx.bezierCurveTo(
+    point(length * 0.2, halfWidth * 0.2).x,
+    point(length * 0.2, halfWidth * 0.2).y,
+    upperShoulder.x,
+    upperShoulder.y,
+    upperTip.x,
+    upperTip.y,
+  );
+  ctx.quadraticCurveTo(
+    point(length * 1.12, halfWidth * 0.18).x,
+    point(length * 1.12, halfWidth * 0.18).y,
+    notch.x,
+    notch.y,
+  );
+  ctx.quadraticCurveTo(
+    point(length * 1.12, -halfWidth * 0.18).x,
+    point(length * 1.12, -halfWidth * 0.18).y,
+    lowerTip.x,
+    lowerTip.y,
+  );
+  ctx.bezierCurveTo(
+    lowerShoulder.x,
+    lowerShoulder.y,
+    point(length * 0.2, -halfWidth * 0.2).x,
+    point(length * 0.2, -halfWidth * 0.2).y,
+    attach.x,
+    attach.y,
+  );
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.globalAlpha = 0.42;
+  ctx.strokeStyle = palette.rim;
+  ctx.lineWidth = 1.1;
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  // A single quiet center fold makes the paddle readable without texture.
+  ctx.globalAlpha = 0.16;
+  ctx.strokeStyle = palette.face;
+  ctx.beginPath();
+  ctx.moveTo(point(length * 0.16, 0).x, point(length * 0.16, 0).y);
+  ctx.lineTo(notch.x, notch.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawSilhouetteFill(
   ctx: CanvasRenderingContext2D,
   contour: BodyContourPoints,
@@ -150,7 +237,7 @@ function drawSilhouetteFill(
 function drawVelvetOverlay(
   ctx: CanvasRenderingContext2D,
   contour: BodyContourPoints,
-  texture: CanvasImageSource,
+  texture: MascotTextureSource,
 ): void {
   let minX = Infinity;
   let minY = Infinity;
@@ -188,49 +275,45 @@ function drawFin(
   points: readonly Point[],
   baseWidth: number,
   palette: AppearancePalette,
-  mirror: 1 | -1,
 ): void {
   if (points.length < 2) return;
   const root = points[0];
-  const mid =
-    points[Math.floor(points.length / 2)] ?? points[points.length - 1];
   const tip = points[points.length - 1];
 
   const tangentX = tip.x - root.x;
   const tangentY = tip.y - root.y;
   const tangentLength = Math.max(0.0001, Math.hypot(tangentX, tangentY));
-  // Cap fin length so secondary motion can't stretch ears into spikes.
-  const maxLen = baseWidth * 3.2;
-  const lenScale = Math.min(1, maxLen / tangentLength);
-  const tipX = root.x + tangentX * lenScale;
-  const tipY = root.y + tangentY * lenScale;
-  const midX = root.x + (mid.x - root.x) * lenScale;
-  const midY = root.y + (mid.y - root.y) * lenScale;
-
-  const normalX = (-tangentY / tangentLength) * mirror;
-  const normalY = (tangentX / tangentLength) * mirror;
-
-  const rootOuterX = root.x + normalX * baseWidth;
-  const rootOuterY = root.y + normalY * baseWidth;
-  const rootInnerX = root.x - normalX * baseWidth * 0.45;
-  const rootInnerY = root.y - normalY * baseWidth * 0.45;
-  const midOuterX = midX + normalX * baseWidth * 0.7;
-  const midOuterY = midY + normalY * baseWidth * 0.7;
-  const midInnerX = midX - normalX * baseWidth * 0.2;
-  const midInnerY = midY - normalY * baseWidth * 0.2;
-  const tipPadX = tipX - (tangentX / tangentLength) * baseWidth * 0.35;
-  const tipPadY = tipY - (tangentY / tangentLength) * baseWidth * 0.35;
+  const displayLength = Math.min(tangentLength, baseWidth * 2.9);
+  const ux = tangentX / tangentLength;
+  const uy = tangentY / tangentLength;
+  const centerX = root.x + ux * displayLength * 0.5;
+  const centerY = root.y + uy * displayLength * 0.5;
 
   ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(Math.atan2(uy, ux));
+  const finGradient = ctx.createLinearGradient(
+    -displayLength * 0.5,
+    0,
+    displayLength * 0.5,
+    0,
+  );
+  finGradient.addColorStop(0, palette.base);
+  finGradient.addColorStop(1, palette.highlight);
+  ctx.fillStyle = finGradient;
   ctx.beginPath();
-  ctx.moveTo(rootInnerX, rootInnerY);
-  ctx.quadraticCurveTo(midInnerX, midInnerY, tipPadX, tipPadY);
-  ctx.quadraticCurveTo(midOuterX, midOuterY, rootOuterX, rootOuterY);
-  ctx.closePath();
-  ctx.fillStyle = palette.base;
+  ctx.ellipse(
+    0,
+    0,
+    Math.max(baseWidth, displayLength * 0.55),
+    baseWidth * 0.78,
+    0,
+    0,
+    Math.PI * 2,
+  );
   ctx.fill();
   ctx.strokeStyle = palette.rim;
-  ctx.globalAlpha = 0.4;
+  ctx.globalAlpha = 0.34;
   ctx.lineWidth = 1;
   ctx.stroke();
   ctx.restore();
@@ -244,7 +327,7 @@ function drawFace(
   glowMultiplier: number,
 ): void {
   // Apply velocity-driven head lean in local face space (V2 FacialPose.headLean).
-  const lean = clamp(expression.headLean, -1, 1) * 0.22;
+  const lean = clamp(expression.headLean, -1, 1) * 0.12;
   const leaned: FaceFrame = {
     ...frame,
     rotation: frame.rotation + lean,
@@ -252,40 +335,22 @@ function drawFace(
     normalY: frame.normalY * Math.cos(lean) - frame.forwardY * Math.sin(lean),
   };
 
-  const eyes = computeEyeAnchors(
-    leaned,
-    EYE_SPACING_FRACTION,
-    EYE_FORWARD_FRACTION,
-  );
-  const mouth = computeMouthAnchor(leaned, MOUTH_FORWARD_FRACTION);
-  const eyeRadius = Math.max(3, leaned.width * 0.21);
+  const eyes = computeGuppyEyeAnchors(leaned);
+  const mouth = {
+    x:
+      leaned.centerX +
+      leaned.forwardX * leaned.height * MOUTH_FORWARD_FRACTION -
+      leaned.normalX * leaned.width * 0.055,
+    y:
+      leaned.centerY +
+      leaned.forwardY * leaned.height * MOUTH_FORWARD_FRACTION -
+      leaned.normalY * leaned.width * 0.055,
+  };
+  const eyeRadius = Math.max(3.2, leaned.width * 0.205);
 
-  // A quiet bone face panel gives the moving features one stable graphic
-  // home. This is what makes the character readable at portfolio scale even
-  // when its dark body crosses a dark part of the hero.
-  drawFacePlate(ctx, leaned, palette);
-
-  // Embedded resonance core — small torso/head glow, never a floating white
-  // orb that replaces the face (V2 §7 / §3 Phase 3).
-  drawResonanceCore(
-    ctx,
-    leaned,
-    expression,
-    palette,
-    glowMultiplier,
-    eyeRadius,
-  );
-
-  if (expression.cheekIntensity > 0.02) {
-    drawCheeks(
-      ctx,
-      leaned,
-      eyes,
-      eyeRadius,
-      expression.cheekIntensity,
-      palette,
-    );
-  }
+  // One centered coral signal replaces the old pale floating orb. It is small
+  // enough to read as a forehead marking, not a third eye.
+  drawSignalMark(ctx, leaned, expression, palette, glowMultiplier, eyeRadius);
 
   drawEye(ctx, eyes.left, eyeRadius, expression, palette, leaned, 1);
   drawEye(ctx, eyes.right, eyeRadius, expression, palette, leaned, -1);
@@ -293,61 +358,27 @@ function drawFace(
   drawMouth(ctx, mouth, leaned, expression, palette);
 }
 
-function drawFacePlate(
-  ctx: CanvasRenderingContext2D,
-  frame: FaceFrame,
-  palette: AppearancePalette,
-): void {
-  ctx.save();
-  ctx.translate(frame.centerX, frame.centerY);
-  ctx.rotate(frame.rotation - Math.PI / 2);
-
-  const plate = ctx.createRadialGradient(
-    -frame.width * 0.18,
-    -frame.height * 0.12,
-    frame.width * 0.08,
-    0,
-    0,
-    frame.width * 0.8,
-  );
-  plate.addColorStop(0, "rgba(243, 237, 228, 0.2)");
-  plate.addColorStop(0.72, "rgba(243, 237, 228, 0.1)");
-  plate.addColorStop(1, "rgba(243, 237, 228, 0)");
-  ctx.fillStyle = plate;
-  ctx.beginPath();
-  ctx.ellipse(
-    0,
-    frame.height * 0.035,
-    frame.width * 0.78,
-    frame.height * 0.6,
-    0,
-    0,
-    Math.PI * 2,
-  );
-  ctx.fill();
-
-  // One restrained seam connects the face material to the hero's orange
-  // instrument language without covering the body in decorative decals.
-  ctx.globalAlpha = 0.38;
-  ctx.strokeStyle = palette.printPrimary;
-  ctx.lineWidth = Math.max(0.7, frame.width * 0.025);
-  ctx.setLineDash([Math.max(1.5, frame.width * 0.08), frame.width * 0.07]);
-  ctx.beginPath();
-  ctx.ellipse(
-    0,
-    frame.height * 0.035,
-    frame.width * 0.68,
-    frame.height * 0.5,
-    0,
-    Math.PI * 0.12,
-    Math.PI * 0.88,
-  );
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.restore();
+/**
+ * Side-profile face like the approved concept: both eyes live on the visible
+ * side of the head and separate along the swimming axis. This avoids the old
+ * top-down stack while still rotating coherently with the creature.
+ */
+function computeGuppyEyeAnchors(frame: FaceFrame): FaceEyeAnchors {
+  const spacing = frame.height * EYE_SPACING_FRACTION;
+  const faceSide = frame.width * 0.13;
+  return {
+    left: {
+      x: frame.centerX - frame.forwardX * spacing + frame.normalX * faceSide,
+      y: frame.centerY - frame.forwardY * spacing + frame.normalY * faceSide,
+    },
+    right: {
+      x: frame.centerX + frame.forwardX * spacing + frame.normalX * faceSide,
+      y: frame.centerY + frame.forwardY * spacing + frame.normalY * faceSide,
+    },
+  };
 }
 
-function drawResonanceCore(
+function drawSignalMark(
   ctx: CanvasRenderingContext2D,
   frame: FaceFrame,
   expression: ExpressionVisualState,
@@ -355,20 +386,22 @@ function drawResonanceCore(
   glowMultiplier: number,
   eyeRadius: number,
 ): void {
-  if (expression.glowIntensity <= 0.02) return;
-
-  // Sit the core slightly behind the eye line (toward torso along -forward).
-  const coreX = frame.centerX - frame.forwardX * frame.height * 0.22;
-  const coreY = frame.centerY - frame.forwardY * frame.height * 0.22;
-  const radius = eyeRadius * 0.75 * expression.coreScale;
+  const coreX =
+    frame.centerX -
+    frame.forwardX * frame.height * 0.27 +
+    frame.normalX * frame.width * 0.62;
+  const coreY =
+    frame.centerY -
+    frame.forwardY * frame.height * 0.27 +
+    frame.normalY * frame.width * 0.62;
+  const radius = eyeRadius * 0.32 * expression.coreScale;
+  const glow = clamp(expression.glowIntensity * glowMultiplier, 0, 1);
 
   ctx.save();
-  ctx.globalAlpha = clamp(
-    expression.glowIntensity * glowMultiplier * 0.18,
-    0,
-    0.35,
-  );
-  ctx.fillStyle = palette.highlight;
+  ctx.globalAlpha = 0.52 + glow * 0.48;
+  ctx.shadowColor = palette.printPrimary;
+  ctx.shadowBlur = radius * (0.8 + glow * 1.8);
+  ctx.fillStyle = palette.printPrimary;
   ctx.beginPath();
   ctx.arc(coreX, coreY, radius, 0, Math.PI * 2);
   ctx.fill();
@@ -391,15 +424,15 @@ function drawEye(
   ctx.translate(anchor.x, anchor.y);
   ctx.rotate(frame.rotation - Math.PI / 2);
 
-  // Dark socket first: preserves eye separation on bright rim/texture frames.
+  // Identical sockets keep the two-eye construction calm and intentional.
   ctx.fillStyle = palette.shadow;
   ctx.globalAlpha = 0.82;
   ctx.beginPath();
   ctx.ellipse(
     0,
     0,
-    radius * scaleX * 1.12,
-    radius * openness * 1.12,
+    radius * scaleX * 1.09,
+    radius * openness * 1.09,
     0,
     0,
     Math.PI * 2,
@@ -413,15 +446,14 @@ function drawEye(
   ctx.fill();
 
   if (openness > 0.15) {
+    const pupilX =
+      clamp(expression.pupilOffsetX, -0.18, 0.18) * radius * scaleX;
+    const pupilY =
+      clamp(expression.pupilOffsetY, -0.14, 0.14) * radius * openness;
+    const pupilRadius = radius * 0.36 * Math.min(1, 0.68 + openness * 0.32);
     ctx.fillStyle = palette.shadow;
     ctx.beginPath();
-    ctx.arc(
-      expression.pupilOffsetX * radius * scaleX,
-      expression.pupilOffsetY * radius * openness,
-      radius * 0.46 * Math.max(0.55, openness),
-      0,
-      Math.PI * 2,
-    );
+    ctx.arc(pupilX, pupilY, pupilRadius, 0, Math.PI * 2);
     ctx.fill();
 
     // Pinpoint catchlight carries gaze through fast movement without glow.
@@ -429,9 +461,9 @@ function drawEye(
     ctx.globalAlpha = 0.9;
     ctx.beginPath();
     ctx.arc(
-      expression.pupilOffsetX * radius * scaleX - radius * 0.15,
-      expression.pupilOffsetY * radius * openness - radius * 0.14,
-      Math.max(0.65, radius * 0.11),
+      pupilX - radius * 0.12,
+      pupilY - radius * 0.12,
+      Math.max(0.6, radius * 0.1),
       0,
       Math.PI * 2,
     );
@@ -440,10 +472,10 @@ function drawEye(
 
   // Brow: a short arc above the eye, tilted per expression (focused/
   // determined lean in, surprised/dizzy lean out).
-  if (Math.abs(expression.browTilt) > 0.02) {
+  if (Math.abs(expression.browTilt) > 0.22) {
     ctx.strokeStyle = palette.shadow;
-    ctx.globalAlpha = 0.6;
-    ctx.lineWidth = Math.max(0.6, radius * 0.18);
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = Math.max(0.55, radius * 0.14);
     ctx.lineCap = "round";
     ctx.beginPath();
     const browY = -radius * 1.35;
@@ -456,28 +488,6 @@ function drawEye(
   ctx.restore();
 }
 
-function drawCheeks(
-  ctx: CanvasRenderingContext2D,
-  frame: FaceFrame,
-  eyes: FaceEyeAnchors,
-  eyeRadius: number,
-  intensity: number,
-  palette: AppearancePalette,
-): void {
-  const anchors = computeCheekAnchors(frame, eyes, CHEEK_OUTWARD_FRACTION);
-  const radius = eyeRadius * 0.7;
-
-  ctx.save();
-  ctx.globalAlpha = clamp(intensity, 0, 1) * 0.5;
-  ctx.fillStyle = palette.printSecondary;
-  for (const anchor of [anchors.left, anchors.right]) {
-    ctx.beginPath();
-    ctx.arc(anchor.x, anchor.y, radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
 function drawMouth(
   ctx: CanvasRenderingContext2D,
   mouth: Point,
@@ -485,18 +495,20 @@ function drawMouth(
   expression: ExpressionVisualState,
   palette: AppearancePalette,
 ): void {
-  const size = Math.max(1.6, frame.width * 0.14);
+  const size = Math.max(1.8, frame.width * 0.15);
   const mouthOpen = clamp(expression.mouthOpen ?? 0, 0, 1);
   const mouthCurve = clamp(expression.mouthCurve ?? 0, -1, 1);
 
   ctx.save();
   ctx.translate(mouth.x, mouth.y);
-  ctx.rotate(frame.rotation - Math.PI / 2);
-  ctx.strokeStyle = palette.shadow;
+  // The eyes are vertical capsules, but the side-profile smile follows the
+  // swimming axis. Rotating both the same way produced the old vertical dash.
+  ctx.rotate(frame.rotation);
+  ctx.strokeStyle = mouthOpen > 0.55 ? palette.shadow : palette.face;
   ctx.fillStyle = palette.shadow;
-  ctx.lineWidth = Math.max(0.8, size * 0.22);
+  ctx.lineWidth = Math.max(0.72, size * 0.2);
   ctx.lineCap = "round";
-  ctx.globalAlpha = 0.92;
+  ctx.globalAlpha = mouthOpen > 0.55 ? 0.9 : 0.72;
 
   // Keep a soft smile/curve by default — wide open ellipses read as fangs/teeth
   // at small sizes. Only gently open for strong mouthOpen.
@@ -510,8 +522,8 @@ function drawMouth(
           : -0.2;
 
   if (mouthOpen > 0.55) {
-    const rx = size * (0.4 + mouthOpen * 0.2);
-    const ry = size * (0.12 + mouthOpen * 0.22);
+    const rx = size * (0.34 + mouthOpen * 0.16);
+    const ry = size * (0.1 + mouthOpen * 0.18);
     ctx.beginPath();
     ctx.ellipse(0, size * 0.08, rx, ry, 0, 0, Math.PI * 2);
     ctx.globalAlpha = 0.45;

@@ -3,10 +3,9 @@ import type { VerletChainConfig } from "../motion/VerletChain";
 import type { BodyProfileConfig, MascotQuality } from "../types";
 
 /**
- * Musical Signal Familiar — compact bean/manta anatomy (V2 §3–4):
- * head 28–32%, torso 40–45%, short secondary tail 25–30%. Two side fins/ears
- * come from the antennae Verlet chains. Not a ribbon/comet; not a copy of
- * the reference video's character.
+ * Signal Guppy anatomy: a compact rounded body with a short taper and a
+ * separate paddle tail. Two side fins come from the existing Verlet chains,
+ * but their rendered reach is deliberately short and soft.
  */
 
 export interface SpineRegionBounds {
@@ -33,37 +32,36 @@ export interface CreatureRecipe {
 }
 
 export const DEFAULT_CREATURE_RECIPE: CreatureRecipe = {
-  name: "musical-signal-familiar",
+  name: "signal-guppy",
   spine: {
-    // Preserve the dense procedural bend, but shorten its visible footprint so
-    // the familiar reads head-first rather than as a long swimming ribbon.
-    jointCount: 30,
-    segmentLength: 3.9,
-    headAngleLimitRadians: (9 * Math.PI) / 180,
-    tailAngleLimitRadians: (20 * Math.PI) / 180,
+    // A shorter spine prevents the body from returning to the old stretched
+    // manta shape while retaining enough joints for a fluid tail wave.
+    jointCount: 24,
+    segmentLength: 4,
+    headAngleLimitRadians: (8 * Math.PI) / 180,
+    tailAngleLimitRadians: (24 * Math.PI) / 180,
     iterations: 5,
   },
   bodyProfile: {
-    maxWidth: 40,
+    maxWidth: 32,
     headScale: 3.4,
-    shoulderPosition: 0.28,
-    tailExponent: 1.7,
-    bellyBias: 0.2,
+    shoulderPosition: 0.22,
+    tailExponent: 1.5,
+    bellyBias: 0.16,
   },
   regions: {
-    // ~34% head / ~45% torso / ~21% short tail across 30 joints.
-    head: { start: 0, end: 9 },
-    shoulders: { start: 8, end: 11 },
-    torso: { start: 12, end: 22 },
-    tailBase: { start: 23, end: 26 },
-    tailTip: { start: 27, end: 29 },
+    head: { start: 0, end: 7 },
+    shoulders: { start: 7, end: 10 },
+    torso: { start: 9, end: 17 },
+    tailBase: { start: 18, end: 20 },
+    tailTip: { start: 21, end: 23 },
   },
   antennaeCount: 2,
   // Short soft ears — not long triangular spikes.
   antennaeSegments: 4,
   antennaeChain: {
-    segmentLength: 4.2,
-    drag: 0.95,
+    segmentLength: 3.5,
+    drag: 0.94,
     iterations: 3,
     maxSpeed: 2400,
   },
@@ -73,7 +71,7 @@ export const DEFAULT_CREATURE_RECIPE: CreatureRecipe = {
     iterations: 3,
     maxSpeed: 2400,
   },
-  coreRadius: 14,
+  coreRadius: 11,
 };
 
 /** Spine solver iterations per quality tier — spine-specific, distinct from

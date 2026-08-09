@@ -48,10 +48,14 @@ test("contour widths are finite and non-negative across the body", () => {
   }
 });
 
-test("nose and tail-tip stay pinched to a point (matches BodyProfile's natural zero-width endpoints)", () => {
+test("nose stays broad while the tail-tip closes for the paddle attachment", () => {
   const ribs = buildRibs();
   const widths = computeContourWidths(ribs);
-  assert.ok(widths[0] < 1e-6, `expected ~0 nose width, got ${widths[0]}`);
+  const peak = Math.max(...widths);
+  assert.ok(
+    widths[0] >= peak * 0.68,
+    `expected a rounded nose cap, got nose=${widths[0]}, peak=${peak}`,
+  );
   assert.ok(
     widths[widths.length - 1] < 1e-6,
     `expected ~0 tail-tip width, got ${widths[widths.length - 1]}`,

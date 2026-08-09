@@ -32,9 +32,12 @@ test("every preset has a fully populated palette and a valid pattern recipe", ()
       );
     }
     assert.ok(
-      ["terrazzo-confetti", "constellation-freckles", "soft-stripes"].includes(
-        preset.patternRecipe,
-      ),
+      [
+        "terrazzo-confetti",
+        "constellation-freckles",
+        "soft-stripes",
+        "signal-glyphs",
+      ].includes(preset.patternRecipe),
     );
   }
 });

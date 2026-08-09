@@ -25,6 +25,16 @@ test("tail approaches zero at t=1", () => {
   assert.ok(width < 1e-6, `expected near-zero tail width, got ${width}`);
 });
 
+test("nose retains enough volume to host the face", () => {
+  const nose = bodyWidth(0, DEFAULT_BODY_PROFILE);
+  const peak = Math.max(
+    ...Array.from({ length: 101 }, (_, index) =>
+      bodyWidth(index / 100, DEFAULT_BODY_PROFILE),
+    ),
+  );
+  assert.ok(nose >= peak * 0.72, `expected rounded nose, got ${nose}/${peak}`);
+});
+
 test("maximum occurs in the front half of the body (shoulder region), not the tail", () => {
   let maxWidth = -Infinity;
   let maxT = 0;

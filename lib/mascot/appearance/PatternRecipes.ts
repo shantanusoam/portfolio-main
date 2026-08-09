@@ -10,6 +10,8 @@ import type { AppearancePatternRecipeName, MascotQuality } from "../types";
  * - Terrazzo Confetti: medium irregular blobs, two accent colours, low coverage.
  * - Constellation Freckles: sparse points + occasional connecting lines, denser at the shoulders, thin near the face.
  * - Soft Stripes: broad low-contrast bands across the body width.
+ * - Signal Glyphs: three deliberately placed coral marks for the production
+ *   guppy. No random visual noise.
  *
  * Generated once per recipe/quality change via `generatePatternMarks` — never
  * per frame — mirroring `MascotRuntime.setQuality()`'s existing
@@ -41,6 +43,7 @@ const RECIPE_BUDGET: Record<PatternRecipeName, number> = {
   "terrazzo-confetti": 12,
   "constellation-freckles": 14,
   "soft-stripes": 5,
+  "signal-glyphs": 3,
 };
 
 /** Mark count budget per quality tier — "low" gets one flat print (a couple of large marks), reduced gets none. */
@@ -155,6 +158,45 @@ function generateSoftStripes(rng: SeededRandom, count: number): PatternMark[] {
   return marks;
 }
 
+function generateSignalGlyphs(count: number): PatternMark[] {
+  const glyphs: PatternMark[] = [
+    {
+      u: 0.38,
+      v: 0.56,
+      seed: 101,
+      colorRole: "primary",
+      along: 0.28,
+      across: 0.15,
+      rotation: 0,
+      shape: "blob",
+      layer: 1,
+    },
+    {
+      u: 0.48,
+      v: 0.48,
+      seed: 202,
+      colorRole: "primary",
+      along: 0.13,
+      across: 0.085,
+      rotation: 0,
+      shape: "blob",
+      layer: 1,
+    },
+    {
+      u: 0.56,
+      v: 0.4,
+      seed: 303,
+      colorRole: "primary",
+      along: 0.085,
+      across: 0.06,
+      rotation: 0,
+      shape: "blob",
+      layer: 1,
+    },
+  ];
+  return glyphs.slice(0, Math.max(0, count));
+}
+
 /**
  * Generates the stable mark list for a recipe. Deterministic for a given
  * (recipe, seed, quality) triple — call once on recipe/quality change, never
@@ -176,6 +218,8 @@ export function generatePatternMarks(
       return generateConstellationFreckles(rng, count);
     case "soft-stripes":
       return generateSoftStripes(rng, count);
+    case "signal-glyphs":
+      return generateSignalGlyphs(count);
     default:
       return [];
   }
