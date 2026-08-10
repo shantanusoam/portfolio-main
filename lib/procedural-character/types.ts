@@ -11,8 +11,10 @@ export interface Vec2Like {
 }
 
 export type CharacterMode = "follow" | "wander" | "manual";
-export type BodyShape = "radial" | "chain";
+export type CharacterLocomotionMode = "free" | "platform";
+export type BodyShape = "radial" | "chain" | "soft-polygon";
 export type BodyOrientationMode = "velocity" | "upright";
+export type SoftBodyDeformationMode = "none" | "wing" | "pulse";
 export type AppendageMode = "planted" | "trailing" | "free";
 export type GaitStyle = "wave" | "alternating" | "diagonal" | "tripod" | "free";
 
@@ -26,6 +28,22 @@ export type BodyWidthProfile =
       sample: (normalizedPosition: number) => number;
     };
 
+export interface SoftBodySpec {
+  /** Ordered, normalized local-space outline. +X is the creature's front. */
+  boundary: readonly Vec2Like[];
+  deformationMode: SoftBodyDeformationMode;
+  damping: number;
+  guideStrength: number;
+  edgeStiffness: number;
+  bendStiffness: number;
+  shapeStiffness: number;
+  areaStiffness: number;
+  centerStiffness: number;
+  constraintIterations: number;
+  deformationFrequency: number;
+  deformationAmount: number;
+}
+
 export interface BodySpec {
   shape: BodyShape;
   orientationMode: BodyOrientationMode;
@@ -38,6 +56,7 @@ export interface BodySpec {
   stiffness: number;
   maxJointAngleDifference: number;
   widthProfile: BodyWidthProfile;
+  softBody: SoftBodySpec;
 }
 
 export interface BodyDynamicsSpec {
@@ -56,6 +75,32 @@ export interface IdleMovementSpec {
   breathingAmount: number;
   lookAroundAmount: number;
   wanderRadius: number;
+}
+
+export interface CharacterLocomotionSpec {
+  mode: CharacterLocomotionMode;
+  gravity: number;
+  maxFallSpeed: number;
+  maxHorizontalSpeed: number;
+  horizontalAcceleration: number;
+  horizontalDrag: number;
+  jumpSpeed: number;
+  hopDistance: number;
+  hopHeightBias: number;
+  hopCooldown: number;
+  coyoteTime: number;
+  /** Distance from body centre to the surface while standing. */
+  bodyGroundOffset: number;
+  surfaceInset: number;
+}
+
+/** Cached CSS-pixel rectangle. Physics never reads DOM layout directly. */
+export interface EnvironmentSurface {
+  id: string;
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
 }
 
 export interface AppendageAnchorSpec {
@@ -133,6 +178,13 @@ export interface GaitSpec {
 export interface EyeSpec {
   count: number;
   spacing: number;
+  /** Local-space face origin before character scale is applied. */
+  offsetX: number;
+  offsetY: number;
+  /** Direction in local space along which multiple eyes are distributed. */
+  spacingAngle: number;
+  mouthOffsetX: number;
+  mouthOffsetY: number;
   size: number;
   pupilSize: number;
   pupilTrackingStrength: number;
@@ -157,6 +209,8 @@ export interface PersonalitySpec {
 
 export interface CharacterRenderingSpec {
   bodyColor: string;
+  bodyHighlightColor: string;
+  bodyShadowColor: string;
   appendageColor: string;
   eyeColor: string;
   pupilColor: string;
@@ -189,6 +243,7 @@ export interface CharacterSpec {
   body: BodySpec;
   dynamics: BodyDynamicsSpec;
   idle: IdleMovementSpec;
+  locomotion: CharacterLocomotionSpec;
   appendages: readonly AppendageSpec[];
   gait: GaitSpec;
   eyes: EyeSpec;
@@ -230,7 +285,17 @@ export interface CharacterPerformanceSnapshot {
 export interface CharacterDebugSnapshot {
   target: Vec2Like;
   body: CharacterKinematics;
+  softBody: {
+    areaRatio: number;
+    points: readonly Vec2Like[];
+  } | null;
   performance: CharacterPerformanceSnapshot;
+  locomotion: {
+    grounded: boolean;
+    surfaceId: string | null;
+    groundY: number | null;
+  };
+  environmentSurfaces: readonly EnvironmentSurface[];
   appendages: ReadonlyArray<{
     id: string;
     gaitGroup: number;

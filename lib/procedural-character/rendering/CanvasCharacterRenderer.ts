@@ -176,6 +176,10 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     context: CanvasRenderingContext2D,
     state: CharacterRenderState,
   ): void {
+    if (state.softBody) {
+      this.drawSoftPolygonBody(context, state);
+      return;
+    }
     const { body, pose, spec } = state;
     const radius = spec.body.radius * spec.scale;
 
@@ -183,7 +187,7 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     context.translate(body.position.x, body.position.y);
     context.rotate(pose.rotation + pose.wobble);
     context.scale(pose.scaleX, pose.scaleY);
-    context.shadowColor = "rgba(3, 12, 24, 0.28)";
+    context.shadowColor = spec.rendering.bodyShadowColor;
     context.shadowBlur = 9;
     context.shadowOffsetY = 5;
     context.fillStyle = spec.rendering.bodyColor;
@@ -238,7 +242,7 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
 
     context.shadowColor = "transparent";
     context.globalAlpha = 0.18;
-    context.fillStyle = "#ffffff";
+    context.fillStyle = spec.rendering.bodyHighlightColor;
     context.beginPath();
     context.ellipse(
       -radius * 0.24,
@@ -253,6 +257,71 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     context.restore();
   }
 
+  private drawSoftPolygonBody(
+    context: CanvasRenderingContext2D,
+    state: CharacterRenderState,
+  ): void {
+    const softBody = state.softBody;
+    if (!softBody || softBody.points.length < 3) return;
+    const { body, spec } = state;
+
+    context.save();
+    context.shadowColor = spec.rendering.bodyShadowColor;
+    context.shadowBlur = 12;
+    context.shadowOffsetY = 6;
+    context.fillStyle = spec.rendering.bodyColor;
+    context.strokeStyle = spec.rendering.outlineColor;
+    context.lineWidth = spec.rendering.outlineWidth;
+    this.traceSmoothClosedPolygon(context, softBody.points);
+    context.fill();
+    context.stroke();
+
+    context.shadowColor = "transparent";
+    this.traceSmoothClosedPolygon(context, softBody.points);
+    context.clip();
+    const radius = spec.body.radius * spec.scale;
+    const highlight = context.createRadialGradient(
+      body.position.x - radius * 0.24,
+      body.position.y - radius * 0.28,
+      radius * 0.08,
+      body.position.x,
+      body.position.y,
+      radius * 1.1,
+    );
+    highlight.addColorStop(0, spec.rendering.bodyHighlightColor);
+    highlight.addColorStop(1, "rgba(255, 255, 255, 0)");
+    context.fillStyle = highlight;
+    context.fillRect(
+      body.position.x - radius * 1.5,
+      body.position.y - radius * 1.5,
+      radius * 3,
+      radius * 3,
+    );
+    context.restore();
+  }
+
+  private traceSmoothClosedPolygon(
+    context: CanvasRenderingContext2D,
+    points: readonly { x: number; y: number }[],
+  ): void {
+    const last = points.length - 1;
+    context.beginPath();
+    context.moveTo(
+      (points[last].x + points[0].x) * 0.5,
+      (points[last].y + points[0].y) * 0.5,
+    );
+    for (let index = 0; index < points.length; index += 1) {
+      const next = (index + 1) % points.length;
+      context.quadraticCurveTo(
+        points[index].x,
+        points[index].y,
+        (points[index].x + points[next].x) * 0.5,
+        (points[index].y + points[next].y) * 0.5,
+      );
+    }
+    context.closePath();
+  }
+
   private drawEyes(
     context: CanvasRenderingContext2D,
     state: CharacterRenderState,
@@ -260,8 +329,9 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     const { body, pose, spec, target } = state;
     const eyes = spec.eyes;
     if (eyes.count <= 0) return;
-    const radius = spec.body.radius * spec.scale;
-    const rotation = pose.rotation + pose.wobble;
+    const rotation = state.softBody
+      ? body.facingAngle
+      : pose.rotation + pose.wobble;
     const cosine = Math.cos(rotation);
     const sine = Math.sin(rotation);
 
@@ -277,10 +347,15 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     const pupilTravel =
       Math.max(0, eyeRadius - pupilRadius - 1) * eyes.pupilTrackingStrength;
     const centerIndex = (eyes.count - 1) * 0.5;
+    const spacingAxisX = Math.cos(eyes.spacingAngle);
+    const spacingAxisY = Math.sin(eyes.spacingAngle);
+    const baseX = eyes.offsetX * spec.scale;
+    const baseY = eyes.offsetY * spec.scale;
 
     for (let index = 0; index < eyes.count; index += 1) {
-      const localX = (index - centerIndex) * spacing;
-      const localY = -radius * 0.18;
+      const offset = (index - centerIndex) * spacing;
+      const localX = baseX + spacingAxisX * offset;
+      const localY = baseY + spacingAxisY * offset;
       const eyeX = body.position.x + localX * cosine - localY * sine;
       const eyeY = body.position.y + localX * sine + localY * cosine;
 
@@ -317,15 +392,24 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     const { body, pose, spec } = state;
     if (spec.eyes.count <= 0) return;
     const radius = spec.body.radius * spec.scale;
-    const rotation = pose.rotation + pose.wobble;
+    const rotation = state.softBody
+      ? body.facingAngle
+      : pose.rotation + pose.wobble;
     const mouthOpen = clamp(
       pose.impact * 0.7 + Math.max(0, -body.velocity.y) / 1500,
       0,
       0.72,
     );
-    const localY = radius * 0.16;
-    const mouthX = body.position.x - Math.sin(rotation) * localY;
-    const mouthY = body.position.y + Math.cos(rotation) * localY;
+    const localX = spec.eyes.mouthOffsetX * spec.scale;
+    const localY = spec.eyes.mouthOffsetY * spec.scale;
+    const mouthX =
+      body.position.x +
+      Math.cos(rotation) * localX -
+      Math.sin(rotation) * localY;
+    const mouthY =
+      body.position.y +
+      Math.sin(rotation) * localX +
+      Math.cos(rotation) * localY;
 
     context.save();
     context.translate(mouthX, mouthY);

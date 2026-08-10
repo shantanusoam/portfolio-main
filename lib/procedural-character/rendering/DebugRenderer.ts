@@ -22,6 +22,19 @@ export class DebugRenderer {
     context.save();
     context.lineWidth = 1;
 
+    context.strokeStyle = "rgba(250, 204, 21, 0.42)";
+    context.setLineDash([6, 4]);
+    for (let index = 0; index < state.environmentSurfaces.length; index += 1) {
+      const surface = state.environmentSurfaces[index];
+      context.strokeRect(
+        surface.left,
+        surface.top,
+        surface.right - surface.left,
+        surface.bottom - surface.top,
+      );
+    }
+    context.setLineDash([]);
+
     // Target and body kinematics.
     context.strokeStyle = "rgba(248, 250, 252, 0.76)";
     context.setLineDash([5, 5]);
@@ -29,6 +42,42 @@ export class DebugRenderer {
     context.moveTo(body.position.x, body.position.y);
     context.lineTo(target.x, target.y);
     context.stroke();
+
+    if (state.softBody) {
+      context.strokeStyle = "rgba(103, 232, 249, 0.52)";
+      context.setLineDash([4, 4]);
+      context.beginPath();
+      context.moveTo(
+        state.softBody.restTargets[0].x,
+        state.softBody.restTargets[0].y,
+      );
+      for (
+        let point = 1;
+        point < state.softBody.restTargets.length;
+        point += 1
+      ) {
+        context.lineTo(
+          state.softBody.restTargets[point].x,
+          state.softBody.restTargets[point].y,
+        );
+      }
+      context.closePath();
+      context.stroke();
+      context.setLineDash([]);
+
+      context.fillStyle = "#67e8f9";
+      for (let point = 0; point < state.softBody.points.length; point += 1) {
+        context.beginPath();
+        context.arc(
+          state.softBody.points[point].x,
+          state.softBody.points[point].y,
+          2.5,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      }
+    }
     context.setLineDash([]);
     context.strokeStyle = "#f8fafc";
     drawCross(context, target.x, target.y, 9);
@@ -150,7 +199,8 @@ export class DebugRenderer {
     const visibleLegs = compact
       ? Math.min(4, appendages.length)
       : appendages.length;
-    const height = 44 + visibleLegs * lineHeight;
+    const softBodyRows = state.softBody ? 1 : 0;
+    const height = 44 + (visibleLegs + softBodyRows) * lineHeight;
     const x = context.canvas.clientWidth - width - 16;
     const y = 16;
 
@@ -174,6 +224,17 @@ export class DebugRenderer {
       y + 33,
     );
 
+    let readoutOffset = 0;
+    if (state.softBody) {
+      context.fillStyle = "#67e8f9";
+      context.fillText(
+        `soft area ${(state.softBody.areaRatio * 100).toFixed(1)}%`,
+        x + 10,
+        y + 34 + lineHeight,
+      );
+      readoutOffset = 1;
+    }
+
     for (let index = 0; index < visibleLegs; index += 1) {
       const appendage = appendages[index];
       const demand = appendage.stepDemand.toFixed(2);
@@ -184,7 +245,7 @@ export class DebugRenderer {
       context.fillText(
         `L${index + 1} g${appendage.spec.gaitGroup} ${demand}x ${reason}`,
         x + 10,
-        y + 34 + (index + 1) * lineHeight,
+        y + 34 + (index + 1 + readoutOffset) * lineHeight,
       );
     }
   }

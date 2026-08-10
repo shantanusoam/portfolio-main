@@ -19,28 +19,34 @@ export default function OctopodLabPage({ searchParams }: OctopodLabPageProps) {
 
   return (
     <main className={styles.page}>
-      <div className={styles.ambient} aria-hidden="true" />
+      <div
+        className={styles.floatingPlatform}
+        data-character-platform
+        aria-hidden="true"
+      />
       <ProceduralCharacter spec={octopodPreset} debug={debug} />
 
-      <section className={styles.instructions}>
-        <div>
-          <p className={styles.eyebrow}>Soft-body motion study</p>
-          <h1>Spring octopus</h1>
+      <header className={styles.titlebar}>
+        <p className={styles.eyebrow}>Page-surface procedural locomotion</p>
+        <h1>Spring octopus</h1>
+        <p>Move above it to jump. Move sideways to make it scuttle.</p>
+      </header>
+
+      <section className={styles.deck} data-character-platform>
+        <p>Point anywhere on the page…</p>
+        <div className={styles.deckControls}>
+          <span>8 world-locked feet</span>
+          <span>FABRIK + lifted steps</span>
+          <Link
+            className={styles.debugLink}
+            href={debug ? "/octopod-lab" : "/octopod-lab?debug=1"}
+          >
+            {debug ? "Hide rig" : "Show rig"}
+          </Link>
         </div>
-        <p>
-          Sweep the pointer, reverse suddenly, then draw tight loops. The feet
-          stay planted while each visible arm trails its IK guide like an
-          elastic ribbon.
-        </p>
-        <Link
-          className={styles.debugLink}
-          href={debug ? "/octopod-lab" : "/octopod-lab?debug=1"}
-        >
-          {debug ? "Hide physics rig" : "Show physics rig"}
-        </Link>
       </section>
 
-      <p className={styles.hint}>move anywhere · stop sharply · reverse</p>
+      <p className={styles.hint}>walk · hop · land · turn</p>
     </main>
   );
 }

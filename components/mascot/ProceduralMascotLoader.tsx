@@ -145,7 +145,8 @@ export default function ProceduralMascotLoader({
     !ready ||
     disabled ||
     pathname === "/motion-lab" ||
-    pathname === "/octopod-lab"
+    pathname === "/octopod-lab" ||
+    pathname === "/creature-lab"
   ) {
     return null;
   }

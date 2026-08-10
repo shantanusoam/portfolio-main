@@ -1,5 +1,6 @@
 import { FixedStepLoop } from "@/lib/mascot/core/FixedStepLoop";
 import { GaitPlanner } from "./behavior/GaitPlanner";
+import { PlatformLocomotionController } from "./behavior/PlatformLocomotionController";
 import { PersonalityController } from "./behavior/PersonalityController";
 import {
   SecondOrderDynamics2D,
@@ -14,6 +15,7 @@ import {
   vec2,
 } from "./math/Vec2";
 import { AppendageRuntime } from "./physics/Appendage";
+import { SoftBodyRuntime } from "./physics/SoftBody";
 import { TargetDriver } from "./TargetDriver";
 import type {
   CharacterDebugSnapshot,
@@ -21,6 +23,7 @@ import type {
   CharacterMode,
   CharacterPerformanceSnapshot,
   CharacterSpec,
+  EnvironmentSurface,
   ProceduralCharacterCallbacks,
 } from "./types";
 import type {
@@ -49,6 +52,7 @@ export interface ProceduralCharacterEngineOptions
 export class ProceduralCharacterEngine {
   readonly spec: CharacterSpec;
   readonly body: CharacterKinematics;
+  readonly softBody: SoftBodyRuntime | null;
   readonly appendages: readonly AppendageRuntime[];
   readonly performance: CharacterPerformanceSnapshot = {
     fps: 0,
@@ -62,6 +66,7 @@ export class ProceduralCharacterEngine {
   private readonly dynamics: SecondOrderDynamics2D;
   private readonly gaitPlanner: GaitPlanner;
   private readonly personalityController: PersonalityController;
+  private readonly platformLocomotion: PlatformLocomotionController | null;
   private readonly loop: FixedStepLoop;
   private readonly targetVelocity = vec2();
   private readonly movementIntentDirection = vec2(1, 0);
@@ -75,6 +80,7 @@ export class ProceduralCharacterEngine {
   private frameCount = 0;
   private frameWindowStartedAt = now();
   private normalizedMovementIntent = 0;
+  private environmentSurfaces: readonly EnvironmentSurface[] = [];
 
   constructor(options: ProceduralCharacterEngineOptions) {
     this.spec = options.spec;
@@ -91,6 +97,10 @@ export class ProceduralCharacterEngine {
     };
     this.dynamics = new SecondOrderDynamics2D(dynamicsConfig, initialPosition);
     this.targetDriver = new TargetDriver(initialPosition);
+    this.platformLocomotion =
+      this.spec.locomotion.mode === "platform"
+        ? new PlatformLocomotionController()
+        : null;
 
     this.body = {
       position: this.dynamics.position,
@@ -103,6 +113,16 @@ export class ProceduralCharacterEngine {
       facingAngle: 0,
       angularVelocity: 0,
     };
+
+    this.softBody =
+      this.spec.body.shape === "soft-polygon"
+        ? new SoftBodyRuntime(
+            this.spec.body.softBody,
+            this.body.position,
+            this.body.facingAngle,
+            this.spec.body.radius * this.spec.scale,
+          )
+        : null;
 
     const solverIterations = this.resolveSolverIterations();
     this.appendages = this.spec.appendages.map(
@@ -142,9 +162,11 @@ export class ProceduralCharacterEngine {
       spec: this.spec,
       target: this.targetDriver.target,
       body: this.body,
+      softBody: this.softBody,
       pose: this.personalityController.pose,
       appendages: this.appendages,
       performance: this.performance,
+      environmentSurfaces: this.environmentSurfaces,
       elapsedTime: 0,
       debug: this.debug,
     };
@@ -169,6 +191,13 @@ export class ProceduralCharacterEngine {
   resize(width: number, height: number, dpr: number): void {
     const cappedDpr = Math.min(Math.max(1, dpr), this.spec.performance.dprCap);
     this.renderer.resize(Math.max(1, width), Math.max(1, height), cappedDpr);
+    this.platformLocomotion?.resize(width, height);
+  }
+
+  setEnvironmentSurfaces(surfaces: readonly EnvironmentSurface[]): void {
+    this.environmentSurfaces = surfaces.map((surface) => ({ ...surface }));
+    this.platformLocomotion?.setSurfaces(this.environmentSurfaces);
+    this.renderState.environmentSurfaces = this.environmentSurfaces;
   }
 
   setTarget(
@@ -218,7 +247,23 @@ export class ProceduralCharacterEngine {
         facingAngle: this.body.facingAngle,
         angularVelocity: this.body.angularVelocity,
       },
+      softBody: this.softBody
+        ? {
+            areaRatio: this.softBody.areaRatio,
+            points: this.softBody.points.map((point) => ({ ...point })),
+          }
+        : null,
       performance: { ...this.performance },
+      locomotion: {
+        grounded: this.platformLocomotion?.grounded ?? false,
+        surfaceId: this.platformLocomotion?.surfaceId ?? null,
+        groundY: Number.isFinite(this.platformLocomotion?.groundY)
+          ? this.platformLocomotion?.groundY ?? null
+          : null,
+      },
+      environmentSurfaces: this.environmentSurfaces.map((surface) => ({
+        ...surface,
+      })),
       appendages: this.appendages.map((appendage) => ({
         id: appendage.spec.id,
         gaitGroup: appendage.spec.gaitGroup,
@@ -246,16 +291,47 @@ export class ProceduralCharacterEngine {
       (this.reducedMotion ? 0.3 : 1);
     copy(this.targetVelocity, this.targetDriver.velocity);
     clampLength(this.targetVelocity, this.targetVelocity, maximumSpeed * 1.5);
-    this.dynamics.update(
+    const locomotionResult = this.platformLocomotion?.update(
       dt,
+      this.body,
       this.targetDriver.target,
-      maximumSpeed,
-      this.targetVelocity,
+      this.spec.locomotion,
+      this.spec.scale,
     );
+    if (!this.platformLocomotion) {
+      this.dynamics.update(
+        dt,
+        this.targetDriver.target,
+        maximumSpeed,
+        this.targetVelocity,
+      );
+    }
 
     this.updateBodyKinematics(dt, maximumSpeed);
+    this.softBody?.update({
+      dt,
+      elapsedTime: this.elapsedTime,
+      center: this.body.position,
+      rotation: this.body.facingAngle,
+      radius: this.spec.body.radius * this.spec.scale,
+      normalizedSpeed: this.body.normalizedSpeed,
+      reducedMotion: this.reducedMotion,
+    });
     this.updateMovementIntent();
     this.updateIdealFeet();
+
+    if (locomotionResult?.landed) {
+      this.plantAppendagesAtIdealTargets();
+      this.personalityController.reactToLanding(
+        clamp(
+          locomotionResult.impactSpeed /
+            Math.max(1, this.spec.locomotion.maxFallSpeed * this.spec.scale),
+          0.18,
+          1,
+        ),
+        this.body.velocity.x / Math.max(1, maximumSpeed),
+      );
+    }
 
     this.gaitPlanner.update(dt, this.appendages, this.spec.gait, {
       normalizedSpeed: Math.max(
@@ -265,6 +341,8 @@ export class ProceduralCharacterEngine {
       velocity: this.body.velocity,
       scale: this.spec.scale,
       reducedMotion: this.reducedMotion,
+      supportsFootPlanting:
+        !this.platformLocomotion || this.platformLocomotion.grounded,
     });
 
     this.personalityController.update(
@@ -357,6 +435,11 @@ export class ProceduralCharacterEngine {
         spec.scale,
       );
 
+      if (this.platformLocomotion) {
+        this.updatePlatformFootTarget(appendage, speed);
+        continue;
+      }
+
       const footAngle = body.facingAngle + appendageSpec.preferredFoot.angle;
       const radialX = Math.cos(footAngle);
       const radialY = Math.sin(footAngle);
@@ -406,6 +489,64 @@ export class ProceduralCharacterEngine {
         appendage.idealFootTarget.x = appendage.anchor.x + reachX * ratio;
         appendage.idealFootTarget.y = appendage.anchor.y + reachY * ratio;
       }
+    }
+  }
+
+  private updatePlatformFootTarget(
+    appendage: AppendageRuntime,
+    speed: number,
+  ): void {
+    const appendageSpec = appendage.spec;
+    const scale = this.spec.scale;
+    const footAngle = appendageSpec.preferredFoot.angle;
+    const restingRadius = appendageSpec.preferredFoot.radius * scale;
+    const localFootX =
+      Math.cos(footAngle) * restingRadius +
+      appendageSpec.preferredFoot.offsetX * scale;
+    const forwardSign = Math.sign(this.movementIntentDirection.x || 1);
+    const stride =
+      appendageSpec.step.threshold * scale * speed * 0.62 * forwardSign;
+    const prediction =
+      this.body.velocity.x * appendageSpec.step.predictionTime * 0.16;
+
+    appendage.idealFootTarget.x =
+      this.body.position.x + localFootX + stride + prediction;
+    if (this.platformLocomotion?.grounded) {
+      appendage.idealFootTarget.x = clamp(
+        appendage.idealFootTarget.x,
+        this.platformLocomotion.groundLeft +
+          this.spec.locomotion.surfaceInset * scale,
+        this.platformLocomotion.groundRight -
+          this.spec.locomotion.surfaceInset * scale,
+      );
+      appendage.idealFootTarget.y = this.platformLocomotion.groundY;
+    } else {
+      appendage.idealFootTarget.y =
+        this.body.position.y +
+        this.spec.body.radius * scale * 0.88 +
+        Math.sin(footAngle) * restingRadius * 0.24;
+    }
+
+    const reachX = appendage.idealFootTarget.x - appendage.anchor.x;
+    const reachY = appendage.idealFootTarget.y - appendage.anchor.y;
+    const reach = Math.hypot(reachX, reachY);
+    const safeReach = appendage.maxReach * 0.94;
+    if (reach > safeReach) {
+      const ratio = safeReach / Math.max(EPSILON, reach);
+      appendage.idealFootTarget.x = appendage.anchor.x + reachX * ratio;
+      appendage.idealFootTarget.y = appendage.anchor.y + reachY * ratio;
+    }
+  }
+
+  private plantAppendagesAtIdealTargets(): void {
+    for (let index = 0; index < this.appendages.length; index += 1) {
+      const appendage = this.appendages[index];
+      appendage.stepping = false;
+      appendage.stepProgress = 1;
+      copy(appendage.foot, appendage.idealFootTarget);
+      copy(appendage.lockedFootPosition, appendage.idealFootTarget);
+      copy(appendage.stepStart, appendage.idealFootTarget);
+      copy(appendage.stepDestination, appendage.idealFootTarget);
     }
   }
 

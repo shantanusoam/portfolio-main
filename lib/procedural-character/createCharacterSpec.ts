@@ -4,6 +4,7 @@ import type {
   BodyShape,
   BodySpec,
   CharacterPerformanceSpec,
+  CharacterLocomotionSpec,
   CharacterRenderingSpec,
   CharacterSpec,
   EyeSpec,
@@ -28,9 +29,12 @@ export interface CreateCharacterSpecOptions {
   seed?: number;
   scale?: number;
   bodyShape?: BodyShape;
-  body?: Partial<BodySpec>;
+  body?: Partial<Omit<BodySpec, "softBody">> & {
+    softBody?: Partial<BodySpec["softBody"]>;
+  };
   dynamics?: Partial<BodyDynamicsSpec>;
   idle?: Partial<IdleMovementSpec>;
+  locomotion?: Partial<CharacterLocomotionSpec>;
   appendages: number | readonly AppendageSpec[];
   appendageDefaults?: AppendageTemplate;
   appendageFactory?: (
@@ -58,6 +62,29 @@ const DEFAULT_BODY: BodySpec = {
   stiffness: 0.85,
   maxJointAngleDifference: Math.PI / 4,
   widthProfile: { kind: "elliptical" },
+  softBody: {
+    boundary: [
+      { x: 1, y: 0 },
+      { x: 0.7, y: 0.7 },
+      { x: 0, y: 1 },
+      { x: -0.7, y: 0.7 },
+      { x: -1, y: 0 },
+      { x: -0.7, y: -0.7 },
+      { x: 0, y: -1 },
+      { x: 0.7, y: -0.7 },
+    ],
+    deformationMode: "none",
+    damping: 0.92,
+    guideStrength: 0.22,
+    edgeStiffness: 0.72,
+    bendStiffness: 0.24,
+    shapeStiffness: 0.12,
+    areaStiffness: 0.36,
+    centerStiffness: 0.32,
+    constraintIterations: 6,
+    deformationFrequency: 1.2,
+    deformationAmount: 0.12,
+  },
 };
 
 const DEFAULT_DYNAMICS: BodyDynamicsSpec = {
@@ -78,6 +105,22 @@ const DEFAULT_IDLE: IdleMovementSpec = {
   wanderRadius: 140,
 };
 
+const DEFAULT_LOCOMOTION: CharacterLocomotionSpec = {
+  mode: "free",
+  gravity: 1500,
+  maxFallSpeed: 760,
+  maxHorizontalSpeed: 260,
+  horizontalAcceleration: 1250,
+  horizontalDrag: 8,
+  jumpSpeed: 540,
+  hopDistance: 74,
+  hopHeightBias: 34,
+  hopCooldown: 0.16,
+  coyoteTime: 0.08,
+  bodyGroundOffset: 58,
+  surfaceInset: 8,
+};
+
 const DEFAULT_GAIT: GaitSpec = {
   style: "wave",
   phaseOffsets: [],
@@ -94,6 +137,11 @@ const DEFAULT_GAIT: GaitSpec = {
 const DEFAULT_EYES: EyeSpec = {
   count: 2,
   spacing: 12,
+  offsetX: 0,
+  offsetY: -5,
+  spacingAngle: 0,
+  mouthOffsetX: 0,
+  mouthOffsetY: 6,
   size: 7,
   pupilSize: 2.8,
   pupilTrackingStrength: 0.62,
@@ -118,6 +166,8 @@ const DEFAULT_PERSONALITY: PersonalitySpec = {
 
 const DEFAULT_RENDERING: CharacterRenderingSpec = {
   bodyColor: "#a78bfa",
+  bodyHighlightColor: "rgba(255, 255, 255, 0.26)",
+  bodyShadowColor: "rgba(17, 24, 39, 0.28)",
   appendageColor: "#8b5cf6",
   eyeColor: "#f8fafc",
   pupilColor: "#111827",
@@ -237,9 +287,17 @@ export function createCharacterSpec(
       ...options.body,
       shape: options.bodyShape ?? options.body?.shape ?? DEFAULT_BODY.shape,
       widthProfile: options.body?.widthProfile ?? DEFAULT_BODY.widthProfile,
+      softBody: {
+        ...DEFAULT_BODY.softBody,
+        ...options.body?.softBody,
+        boundary: (
+          options.body?.softBody?.boundary ?? DEFAULT_BODY.softBody.boundary
+        ).map((point) => ({ ...point })),
+      },
     },
     dynamics: { ...DEFAULT_DYNAMICS, ...options.dynamics },
     idle: { ...DEFAULT_IDLE, ...options.idle },
+    locomotion: { ...DEFAULT_LOCOMOTION, ...options.locomotion },
     appendages,
     gait: {
       ...DEFAULT_GAIT,

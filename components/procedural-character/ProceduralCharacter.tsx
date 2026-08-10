@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { PointerInput } from "@/lib/mascot/input/PointerInput";
 import { VisibilityController } from "@/lib/mascot/input/VisibilityController";
 import { ProceduralCharacterEngine } from "@/lib/procedural-character/ProceduralCharacterEngine";
+import { EnvironmentSampler } from "@/lib/procedural-character/environment/EnvironmentSampler";
 import { CanvasCharacterRenderer } from "@/lib/procedural-character/rendering/CanvasCharacterRenderer";
 import type {
   CharacterSpec,
@@ -81,6 +82,13 @@ export default function ProceduralCharacter({
     engineRef.current = engine;
     onEngineReadyRef.current?.(engine);
 
+    const environmentSampler =
+      spec.locomotion.mode === "platform"
+        ? new EnvironmentSampler({
+            onChange: (surfaces) => engine.setEnvironmentSurfaces(surfaces),
+          })
+        : null;
+
     const applySize = () => {
       engine.resize(
         window.innerWidth,
@@ -89,6 +97,7 @@ export default function ProceduralCharacter({
       );
     };
     applySize();
+    environmentSampler?.attach();
 
     const pointerInput = new PointerInput({ activeTimeoutMs: 300 });
     const unsubscribePointer = pointerInput.onChange((pointer) => {
@@ -118,6 +127,7 @@ export default function ProceduralCharacter({
     return () => {
       window.removeEventListener("resize", applySize);
       resizeObserver?.disconnect();
+      environmentSampler?.detach();
       unsubscribeReducedMotion();
       unsubscribeVisibility();
       unsubscribePointer();

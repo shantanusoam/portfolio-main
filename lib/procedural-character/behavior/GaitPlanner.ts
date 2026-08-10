@@ -18,6 +18,7 @@ export interface GaitSignals {
   velocity: Vec2Like;
   scale: number;
   reducedMotion: boolean;
+  supportsFootPlanting?: boolean;
 }
 
 const MAX_GAIT_GROUPS = 32;
@@ -65,6 +66,12 @@ export class GaitPlanner {
       appendage.timeSinceStep += dt;
 
       if (appendage.spec.mode !== "planted") {
+        this.advanceTrailingAppendage(dt, appendage);
+        continue;
+      }
+
+      if (signals.supportsFootPlanting === false) {
+        appendage.stepping = false;
         this.advanceTrailingAppendage(dt, appendage);
         continue;
       }
