@@ -6,13 +6,14 @@ import {
   raqEntries,
   talkEntries,
 } from "@/lib/archive/data";
+import { createCommandIndex } from "@/lib/archive/command-index";
 
 function assertUnique(values: string[], label: string) {
   assert.equal(new Set(values).size, values.length, `${label} must be unique`);
 }
 
 test("archive articles have unique routes and readable sections", () => {
-  assert.equal(archiveArticles.length, 6);
+  assert.ok(archiveArticles.length >= 10);
   assertUnique(
     archiveArticles.map((article) => article.slug),
     "article slugs",
@@ -52,10 +53,31 @@ test("screening room covers short and long time budgets", () => {
 });
 
 test("rare questions remain deep-linkable", () => {
-  assert.equal(raqEntries.length, 10);
+  assert.ok(raqEntries.length >= 16);
   assertUnique(
     raqEntries.map((entry) => entry.id),
     "RAQ ids",
   );
   assert.ok(raqEntries.every((entry) => entry.longAnswer.length >= 2));
+});
+
+test("command palette indexes every archive entry with unique destinations", () => {
+  const commands = createCommandIndex();
+  const expectedMinimum =
+    archiveArticles.length +
+    inspirationEntries.length +
+    talkEntries.length +
+    raqEntries.length;
+
+  assert.ok(commands.length > expectedMinimum);
+  assertUnique(
+    commands.map((command) => command.id),
+    "command ids",
+  );
+  assert.ok(commands.every((command) => command.href.startsWith("/")));
+  assert.ok(
+    archiveArticles.every((article) =>
+      commands.some((command) => command.href === `/blog/${article.slug}`),
+    ),
+  );
 });

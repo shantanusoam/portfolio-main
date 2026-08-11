@@ -47,7 +47,7 @@ export default function BlogExplorer() {
   }, [category, query]);
 
   const featured = filtered.filter((article) => article.featured).slice(0, 3);
-  const archive = filtered.filter((article) => !featured.includes(article));
+  const archive = filtered;
 
   return (
     <>
@@ -191,11 +191,7 @@ export default function BlogExplorer() {
           <div className={styles.emptyState}>
             No transmission matches that search. Try a broader signal.
           </div>
-        ) : (
-          <div className={styles.emptyState}>
-            Every matching transmission is selected above.
-          </div>
-        )}
+        ) : null}
       </section>
     </>
   );

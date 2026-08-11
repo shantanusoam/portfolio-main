@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ArchiveHero from "@/components/archive/ArchiveHero";
 import ScreeningRoom from "@/components/archive/ScreeningRoom";
+import { talkEntries } from "@/lib/archive/data";
 import styles from "@/components/archive/archive.module.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default function WorthYourTimePage() {
         eyebrow="Worth Your Time / Screening Room"
         title="No feed. No filler."
         description="People explaining things they had to learn the hard way. Choose the time you have; every recommendation explains what it will give back."
-        status="10 screenings indexed"
+        status={`${talkEntries.length} screenings indexed`}
         updated="04.11.2024"
       />
       <ScreeningRoom />

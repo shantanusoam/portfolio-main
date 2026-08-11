@@ -136,6 +136,13 @@
   transition: color 160ms ease;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 10px;
+}
+
 .homeLink:hover,
 .textLink:hover,
 .sourceLink:hover {
@@ -208,12 +215,11 @@
 
 .heroTitle {
   max-width: 1100px;
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(64px, 10vw, 158px);
-  font-weight: 400;
-  line-height: 0.82;
-  letter-spacing: -0.035em;
-  text-transform: uppercase;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(62px, 9vw, 144px);
+  font-weight: 500;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
 }
 
 .heroDescription {
@@ -273,12 +279,11 @@
 
 .sectionTitle {
   max-width: 900px;
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(36px, 5vw, 74px);
-  font-weight: 400;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(38px, 5vw, 72px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
 }
 
 .sectionIntro {
@@ -288,7 +293,120 @@
   line-height: 1.65;
 }
 
+.directorySection {
+  padding-top: clamp(42px, 6vw, 78px);
+}
+
+.directoryIntro {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.55fr) minmax(0, 2.45fr);
+  gap: clamp(28px, 6vw, 100px);
+  align-items: start;
+  margin-bottom: 24px;
+}
+
+.directoryIntro > p:last-child {
+  max-width: 720px;
+  color: rgba(238, 233, 223, 0.7);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(22px, 2.6vw, 38px);
+  line-height: 1.22;
+}
+
+.directoryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  background: var(--archive-line);
+}
+
+.directoryCard {
+  position: relative;
+  display: flex;
+  min-height: 238px;
+  padding: 22px;
+  flex-direction: column;
+  justify-content: space-between;
+  color: inherit;
+  background: rgba(9, 9, 8, 0.96);
+  text-decoration: none;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.directoryCard::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--archive-orange);
+  content: "";
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 220ms ease;
+}
+
+.directoryCard:hover,
+.directoryCard:focus-visible {
+  z-index: 2;
+  outline: 1px solid rgba(255, 93, 47, 0.72);
+  background: rgba(255, 93, 47, 0.07);
+  transform: translateY(-3px);
+}
+
+.directoryCard:hover::before,
+.directoryCard:focus-visible::before,
+.directoryCardActive::before {
+  transform: scaleY(1);
+}
+
+.directoryCardActive {
+  background: rgba(255, 93, 47, 0.045);
+}
+
+.directoryMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--archive-muted);
+  font-family: var(--font-data), monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.directoryMeta span:first-child {
+  color: var(--archive-orange);
+}
+
+.directoryCard h2 {
+  margin-top: 38px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(28px, 2.6vw, 40px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.directoryCard p {
+  margin-top: 12px;
+  color: var(--archive-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.directoryCard > svg {
+  align-self: flex-end;
+  margin-top: 20px;
+  color: var(--archive-orange);
+}
+
 .controlDeck {
+  position: sticky;
+  top: 88px;
+  z-index: 20;
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
   gap: 1px;
@@ -487,17 +605,16 @@
 .articleTitle,
 .talkTitle,
 .questionTitle {
-  font-family: var(--font-display), sans-serif;
-  font-weight: 400;
-  text-transform: uppercase;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-weight: 500;
 }
 
 .featureTitle {
   max-width: 460px;
   margin-top: 24px;
   font-size: clamp(27px, 3vw, 48px);
-  line-height: 0.95;
-  letter-spacing: -0.015em;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .featureDek,
@@ -566,7 +683,7 @@
 .articleTitle {
   margin-top: 62px;
   font-size: clamp(28px, 2.7vw, 43px);
-  line-height: 0.98;
+  line-height: 1.02;
 }
 
 .articleDek {
@@ -602,12 +719,11 @@
 .readerTitle {
   max-width: 1050px;
   margin-top: 26px;
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(58px, 9vw, 132px);
-  font-weight: 400;
-  line-height: 0.84;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(58px, 8.5vw, 126px);
+  font-weight: 500;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
 }
 
 .readerDek {
@@ -713,11 +829,10 @@
 .articleSection h2 {
   max-width: 760px;
   margin-bottom: 28px;
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(35px, 4.5vw, 66px);
-  font-weight: 400;
-  line-height: 0.98;
-  text-transform: uppercase;
+  font-weight: 500;
+  line-height: 1.02;
 }
 
 .articleSection p,
@@ -742,10 +857,9 @@
   padding: 30px 0 30px 30px;
   border-left: 2px solid var(--archive-orange);
   color: var(--archive-paper);
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(30px, 3.7vw, 56px);
-  line-height: 1.05;
-  text-transform: uppercase;
+  line-height: 1.08;
 }
 
 .codeBlock {
@@ -833,11 +947,10 @@
   display: block;
   max-width: 420px;
   margin-top: 42px;
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(25px, 3vw, 42px);
   font-weight: 400;
-  line-height: 1;
-  text-transform: uppercase;
+  line-height: 1.04;
 }
 
 .wallToolbar,
@@ -1089,10 +1202,9 @@
 }
 
 .inspoName {
-  font-family: var(--font-display), sans-serif;
-  font-size: 28px;
-  font-weight: 400;
-  text-transform: uppercase;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 30px;
+  font-weight: 500;
 }
 
 .tags {
@@ -1168,11 +1280,10 @@
 }
 
 .budgetPrompt h2 {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(38px, 6vw, 86px);
-  font-weight: 400;
-  line-height: 0.95;
-  text-transform: uppercase;
+  font-weight: 500;
+  line-height: 0.98;
 }
 
 .budgetOptions {
@@ -1184,11 +1295,23 @@
 }
 
 .budgetButton {
+  display: flex;
   min-height: 76px;
+  flex-direction: column;
   border: 0;
   background: #090908;
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(21px, 2.4vw, 34px);
+  text-transform: none;
+}
+
+.budgetButton span {
+  margin-top: 5px;
+  color: var(--archive-muted);
+  font-family: var(--font-data), monospace;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .talkGrid {
@@ -1235,6 +1358,36 @@
   max-width: 650px;
   margin-top: 28px;
   font-size: 14px;
+}
+
+.talkOutcome {
+  margin-top: 24px;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--archive-line);
+}
+
+.talkOutcome span,
+.resultCount {
+  color: var(--archive-orange);
+  font-family: var(--font-data), monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.talkOutcome p {
+  max-width: 590px;
+  margin-top: 8px;
+  color: rgba(238, 233, 223, 0.62);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.resultCount {
+  align-self: center;
+  margin-left: auto;
+  color: var(--archive-muted);
+  white-space: nowrap;
 }
 
 .talkFooter {
@@ -1307,11 +1460,10 @@
 
 .screeningHeader h3 {
   margin-top: 8px;
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(26px, 4vw, 52px);
-  font-weight: 400;
-  line-height: 1;
-  text-transform: uppercase;
+  font-weight: 500;
+  line-height: 1.02;
 }
 
 .videoFrame {
@@ -1355,6 +1507,16 @@
   color: var(--archive-muted);
   font-size: 13px;
   line-height: 1.6;
+}
+
+.inlineCount {
+  display: block;
+  margin-top: 7px;
+  color: var(--archive-orange);
+  font-family: var(--font-data), monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .raqIntroNote + .filterRow {
@@ -1462,11 +1624,10 @@
 }
 
 .askPanel h2 {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(42px, 6vw, 88px);
-  font-weight: 400;
-  line-height: 0.92;
-  text-transform: uppercase;
+  font-weight: 500;
+  line-height: 0.96;
 }
 
 .askPanel p {
@@ -1551,6 +1712,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .directoryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .readerLayout {
     grid-template-columns: minmax(140px, 0.45fr) minmax(0, 2fr);
   }
@@ -1583,6 +1748,10 @@
 
   .homeLink {
     order: 2;
+  }
+
+  .headerActions {
+    order: 2;
     margin-left: auto;
   }
 
@@ -1603,7 +1772,8 @@
   }
 
   .hero,
-  .sectionHeader {
+  .sectionHeader,
+  .directoryIntro {
     grid-template-columns: 1fr;
   }
 
@@ -1626,6 +1796,7 @@
   }
 
   .controlDeck,
+  .directoryGrid,
   .featureGrid,
   .articleGrid,
   .talkGrid,
@@ -1634,6 +1805,10 @@
   .askPanel,
   .nextReads {
     grid-template-columns: 1fr;
+  }
+
+  .controlDeck {
+    position: static;
   }
 
   .featureCardPrimary {
@@ -1670,6 +1845,11 @@
   .raqToolbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .resultCount {
+    align-self: flex-start;
+    margin-left: 0;
   }
 
   .budgetOptions {

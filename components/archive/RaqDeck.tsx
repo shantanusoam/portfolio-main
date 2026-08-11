@@ -92,6 +92,9 @@ export default function RaqDeck() {
             <p className={styles.raqIntroNote}>
               Choose a topic, switch between the first honest answer and the
               longer version, or let the archive pick something unexpected.
+              <span className={styles.inlineCount}>
+                {visible.length} questions in view.
+              </span>
             </p>
             <div className={styles.filterRow} aria-label="Question topics">
               {topics.map((item) => (

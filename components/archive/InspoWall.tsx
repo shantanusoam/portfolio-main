@@ -42,6 +42,18 @@ export default function InspoWall() {
 
   useEffect(() => {
     setSeed(Math.floor(Date.now() / (4 * 60 * 60 * 1000)) || 1);
+    const hash = window.location.hash.slice(1);
+    if (hash && inspirationEntries.some((entry) => entry.id === hash)) {
+      setShowArchive(true);
+      setActiveId(hash);
+      window.setTimeout(
+        () =>
+          document
+            .getElementById(hash)
+            ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        30,
+      );
+    }
   }, []);
 
   const visible = useMemo(() => {
@@ -90,7 +102,9 @@ export default function InspoWall() {
           ))}
         </div>
         <div className={styles.toolbarActions}>
-          <span className={styles.wallStatus}>Edition locked for 4 hours</span>
+          <span className={styles.wallStatus}>
+            {visible.length} references · edition locked for 4 hours
+          </span>
           <button
             className={styles.actionButton}
             onClick={() => setSeed(Date.now())}
@@ -127,6 +141,7 @@ export default function InspoWall() {
                 active ? styles.inspoCardActive : ""
               } ${dimmed ? styles.inspoCardDimmed : ""}`}
               key={entry.id}
+              id={entry.id}
               onMouseEnter={() => setActiveId(entry.id)}
               onMouseLeave={() => setActiveId(null)}
               onFocus={() => setActiveId(entry.id)}

@@ -279,6 +279,187 @@ export const archiveArticles: ArchiveArticle[] = [
       { date: "2026-01-22", note: "Initial publication." },
     ],
   },
+  {
+    slug: "debug-view-part-of-product",
+    title: "The Debug View Is Part of the Product",
+    dek: "If a system behaves procedurally, its hidden decisions need a visible language.",
+    category: "Interfaces",
+    format: "Field Note",
+    readingMinutes: 6,
+    publishedAt: "2025-12-18",
+    updatedAt: "2026-01-08",
+    accent: "observability / interaction",
+    sections: [
+      {
+        id: "mystery-is-expensive",
+        heading: "Mystery is expensive",
+        paragraphs: [
+          "A procedural character can look wrong for ten different reasons: the target may be late, the foot may have replanted too early, the chain may be unreachable, or the renderer may simply be hiding a correct rig. Without instrumentation, every fix is taste-driven guesswork.",
+          "I now treat debug drawing as a first-class interface. Target points, velocity vectors, gait groups, constraint radii, and collision regions each get a stable visual convention. The system becomes something I can read while it moves.",
+        ],
+      },
+      {
+        id: "show-the-decision",
+        heading: "Show the decision, not only the data",
+        paragraphs: [
+          "Raw coordinates rarely answer the question a developer is asking. A useful overlay explains why a foot requested a step, which constraint rejected it, and what destination the gait planner approved.",
+          "That same principle applies outside animation. When software makes a non-obvious choice, the best diagnostic view exposes the rule and the evidence together.",
+        ],
+        quote: "A debug view is the interface for the system's own reasoning.",
+      },
+      {
+        id: "remove-with-confidence",
+        heading: "Polish after you can explain the motion",
+        paragraphs: [
+          "Once the rig reads clearly as circles and lines, the organic renderer can add curves, thickness, glow, and squash without becoming camouflage. If the simple view does not feel grounded, the finished character will only fail more beautifully.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-01-08",
+        note: "Added the distinction between raw data and visible decisions.",
+      },
+      { date: "2025-12-18", note: "Initial publication." },
+    ],
+  },
+  {
+    slug: "hardware-prototypes-software-reliability",
+    title: "What Hardware Prototypes Taught Me About Reliability",
+    dek: "Physical systems make latency, failure and optimistic assumptions impossible to ignore.",
+    category: "Engineering",
+    format: "Essay",
+    readingMinutes: 8,
+    publishedAt: "2025-11-06",
+    updatedAt: "2025-11-10",
+    accent: "failure modes / feedback",
+    sections: [
+      {
+        id: "physics-does-not-retry",
+        heading: "Physics does not quietly retry",
+        paragraphs: [
+          "In software, a timing bug can disappear when the debugger opens. On a hardware prototype, the motor still overshoots, the sensor still drifts, and the battery still changes the behavior halfway through a demo.",
+          "That honesty changed how I build web systems. I became less interested in whether the happy path works once and more interested in whether state remains legible when timing, input, and availability disagree.",
+        ],
+      },
+      {
+        id: "feedback-before-control",
+        heading: "Design feedback before control",
+        paragraphs: [
+          "The first useful addition to a prototype is often not a smarter controller but a clearer signal: a status light, a current limit, a calibration state, or a trace of the last command. Feedback shortens the distance between failure and understanding.",
+          "Interfaces deserve the same treatment. Pending, stale, offline, and partially complete are real product states, not edge-case copy to add after launch.",
+        ],
+        list: [
+          "Make calibration explicit.",
+          "Give every command a visible acknowledgement.",
+          "Fail into a state that can be inspected.",
+          "Assume the environment will disagree with the lab.",
+        ],
+      },
+      {
+        id: "graceful-degradation",
+        heading: "Graceful degradation is a design material",
+        paragraphs: [
+          "A robust prototype does not pretend failure is impossible. It sheds nonessential behavior, preserves the important invariant, and tells the operator what changed. Reduced-motion modes, low-detail renderers, cached content, and safe retries are the web equivalents of that same habit.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2025-11-10",
+        note: "Expanded the graceful-degradation comparison.",
+      },
+      { date: "2025-11-06", note: "Initial publication." },
+    ],
+  },
+  {
+    slug: "designing-for-changed-minds",
+    title: "Designing for an Abrupt Change of Mind",
+    dek: "Responsive systems reveal their quality when the user reverses direction halfway through an action.",
+    category: "Interfaces",
+    format: "Field Note",
+    readingMinutes: 6,
+    publishedAt: "2025-09-27",
+    updatedAt: "2025-09-27",
+    accent: "reversibility / continuity",
+    sections: [
+      {
+        id: "the-reversal-test",
+        heading: "The reversal test",
+        paragraphs: [
+          "Drag an object toward one destination, then reverse course before releasing it. Move a procedural creature right, then snap the target left. Open a panel and close it before the transition completes. These moments reveal whether the interface tracks intent or merely plays a sequence.",
+          "A polished system should reorganize from its current state. It should not teleport back to the beginning of a clip or wait for the old idea to finish.",
+        ],
+      },
+      {
+        id: "preserve-continuity",
+        heading: "Preserve what is still true",
+        paragraphs: [
+          "When direction changes, position is still true, velocity is evidence, and the user's latest target is authoritative. Good animation keeps the first two and smoothly accepts the third.",
+          "This is why spring dynamics and goal-based solvers feel more alive than a stack of entrance and exit timelines. They retain momentum without becoming loyal to an obsolete destination.",
+        ],
+        quote:
+          "Responsiveness is the ability to change your mind without breaking the world.",
+      },
+      {
+        id: "product-consequence",
+        heading: "Reversibility builds trust",
+        paragraphs: [
+          "The lesson reaches beyond motion. Draft states, undo, cancellation, optimistic updates, and interruptible navigation all communicate the same promise: the interface is listening now, not after its choreography finishes.",
+        ],
+      },
+    ],
+    revisions: [{ date: "2025-09-27", note: "Initial publication." }],
+  },
+  {
+    slug: "prototype-should-produce-evidence",
+    title: "A Prototype Should Produce Evidence",
+    dek: "The best prototype is not the most convincing one; it is the one that makes the next decision cheaper.",
+    category: "Experiments",
+    format: "Build Log",
+    readingMinutes: 7,
+    publishedAt: "2025-08-11",
+    updatedAt: "2025-08-19",
+    accent: "questions / proof / scope",
+    sections: [
+      {
+        id: "name-the-uncertainty",
+        heading: "Start with the uncertainty",
+        paragraphs: [
+          "Before opening the editor, I try to write the sentence the prototype must make less uncertain. Can eight planted legs reorganize naturally after a sudden turn? Will people understand the navigation without being told it is playful? Can the agent recover after the process disappears?",
+          "A prototype with one explicit uncertainty can stay rough and still be valuable. A prototype trying to prove the whole product usually becomes a premature product with no clear test.",
+        ],
+      },
+      {
+        id: "instrument-the-attempt",
+        heading: "Instrument the attempt",
+        paragraphs: [
+          "I capture the inputs, the visible outcome, and the conditions around a failure. For interaction work that might mean frame time and a screen recording; for an agent it might mean state transitions and the exact recovery point.",
+          "The record prevents a persuasive demo from erasing the failures that happened just before it.",
+        ],
+        list: [
+          "Write the question before the implementation.",
+          "Keep the simplest observable success condition.",
+          "Save surprising failures, not only the final take.",
+          "End with a decision, not a list of features.",
+        ],
+      },
+      {
+        id: "throw-away-or-promote",
+        heading: "Know whether to throw it away or promote it",
+        paragraphs: [
+          "If the prototype answered its question with brittle code, I keep the evidence and discard the implementation. If the architecture itself survived the test, I promote it deliberately with types, tests, and constraints. Confusing those outcomes is how experiments quietly become production dependencies.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2025-08-19",
+        note: "Added criteria for promoting experimental code.",
+      },
+      { date: "2025-08-11", note: "Initial publication." },
+    ],
+  },
 ];
 
 export const inspirationEntries: InspirationEntry[] = [
@@ -404,6 +585,66 @@ export const inspirationEntries: InspirationEntry[] = [
     tags: ["community", "profiles", "calm"],
     palette: ["#f1f1ef", "#202020", "#9b9b93"],
     motif: "editorial",
+  },
+  {
+    id: "arena",
+    name: "Are.na",
+    kind: "Web",
+    url: "https://www.are.na/",
+    note: "Research grows through visible relationships rather than engagement metrics or a single algorithmic feed.",
+    tags: ["research", "collections", "calm"],
+    palette: ["#f4f4f4", "#202020", "#5b7cfa"],
+    motif: "stack",
+  },
+  {
+    id: "stripe-press",
+    name: "Stripe Press",
+    kind: "Web",
+    url: "https://press.stripe.com/",
+    note: "Commerce disappears behind editorial pacing, generous typography, and unusually confident book presentation.",
+    tags: ["editorial", "commerce", "type"],
+    palette: ["#f1eadf", "#181818", "#e05d38"],
+    motif: "editorial",
+  },
+  {
+    id: "bruno-simon",
+    name: "Bruno Simon",
+    kind: "Motion",
+    url: "https://bruno-simon.com/",
+    note: "The navigation mechanic is the portfolio proof: playful, legible, and inseparable from the work being introduced.",
+    tags: ["webgl", "navigation", "play"],
+    palette: ["#c7f0ff", "#67b56b", "#f4a94a"],
+    motif: "orbital",
+  },
+  {
+    id: "studio-freight",
+    name: "Studio Freight",
+    kind: "Web",
+    url: "https://studiofreight.com/",
+    note: "Large type, motion, and grid changes stay coherent because every expressive move belongs to one strong system.",
+    tags: ["type", "grid", "motion"],
+    palette: ["#f2efe8", "#181818", "#d5ff35"],
+    motif: "rails",
+  },
+  {
+    id: "koto",
+    name: "Koto Studio",
+    kind: "Motion",
+    url: "https://koto.studio/",
+    note: "Case studies enter quickly, then let the identity system carry the storytelling instead of over-explaining it.",
+    tags: ["brand", "case-study", "pacing"],
+    palette: ["#f2f1eb", "#151515", "#ff4d2e"],
+    motif: "signal",
+  },
+  {
+    id: "material-you",
+    name: "Material You",
+    kind: "Mobile",
+    url: "https://m3.material.io/",
+    note: "A design system explains adaptive color and component behavior as principles, tokens, and usable implementation guidance.",
+    tags: ["system", "adaptive", "documentation"],
+    palette: ["#f8f2fa", "#6750a4", "#1d192b"],
+    motif: "stack",
   },
 ];
 
@@ -587,6 +828,76 @@ export const talkEntries: TalkEntry[] = [
     takeaway:
       "Depth comes from repeatedly following details past the point where most people stop.",
   },
+  {
+    id: "art-of-code",
+    title: "The Art of Code",
+    speaker: "Dylan Beattie",
+    url: "https://www.youtube.com/watch?v=6avJHaC3C2U",
+    youtubeId: "6avJHaC3C2U",
+    durationMinutes: 65,
+    displayDuration: "1 hr 05",
+    topic: "Craft",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "A tour through code as notation, performance, humor, constraint, and a material people use to express ideas.",
+    leavesYouWith:
+      "A wider definition of programming craft than correctness and commercial utility alone.",
+    takeaway: "Code can be a tool, a text, an instrument, and a performance.",
+  },
+  {
+    id: "growing-a-language",
+    title: "Growing a Language",
+    speaker: "Guy Steele",
+    url: "https://www.youtube.com/watch?v=_ahvzDzKdB0",
+    youtubeId: "_ahvzDzKdB0",
+    durationMinutes: 54,
+    displayDuration: "54 min",
+    topic: "Systems",
+    difficulty: "Deep dive",
+    evergreen: true,
+    kind: "Talk",
+    why: "The form of the talk demonstrates its argument: powerful systems can grow from a deliberately small shared vocabulary.",
+    leavesYouWith:
+      "A memorable way to think about extensibility, primitives, and who gets to add new language.",
+    takeaway: "A language should help its users become its designers.",
+  },
+  {
+    id: "future-of-programming",
+    title: "The Future of Programming",
+    speaker: "Bret Victor",
+    url: "https://www.youtube.com/watch?v=8pTEmbeENF4",
+    youtubeId: "8pTEmbeENF4",
+    durationMinutes: 33,
+    displayDuration: "33 min",
+    topic: "Design",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Talk",
+    why: "A deadpan alternate-history talk that exposes how arbitrary our assumptions about programming tools can be.",
+    leavesYouWith:
+      "Permission to question the keyboard-and-text-file defaults that usually escape design criticism.",
+    takeaway:
+      "The future becomes easier to imagine after the present stops looking inevitable.",
+  },
+  {
+    id: "hammock-driven-development",
+    title: "Hammock Driven Development",
+    speaker: "Rich Hickey",
+    url: "https://www.youtube.com/watch?v=f84n5oFoZBc",
+    youtubeId: "f84n5oFoZBc",
+    durationMinutes: 39,
+    displayDuration: "39 min",
+    topic: "Craft",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "A practical defense of giving hard problems time to become clear before turning activity into code.",
+    leavesYouWith:
+      "A repeatable preparation process for design problems that resist immediate implementation.",
+    takeaway:
+      "Incubation is part of work when it is fed by careful preparation.",
+  },
 ];
 
 export const raqEntries: RaqEntry[] = [
@@ -707,6 +1018,75 @@ export const raqEntries: RaqEntry[] = [
     longAnswer: [
       "I can stay with an awkward interaction for a long time if there is one moment inside it that feels genuinely new. Most prototypes begin as evidence without a product around them.",
       "The patience is not endless. I keep asking whether each iteration is producing information. If it is only producing prettier uncertainty, it is time to stop.",
+    ],
+  },
+  {
+    id: "skill-to-remove",
+    question: "Which skill would you remove from your stack if you had to?",
+    topic: "Tools",
+    askedAt: "After comparing increasingly long tool lists",
+    shortAnswer: "The ability to make complexity look intentional.",
+    longAnswer: [
+      "It is useful to rescue a complicated system with naming, visual hierarchy, and a clean abstraction. It is also dangerous because a well-presented system can survive long after its underlying idea should have been simplified.",
+      "If I lost that escape hatch, I would have to confront accidental complexity earlier. I would miss the craft, but I might make better first decisions.",
+    ],
+  },
+  {
+    id: "useful-unnoticed",
+    question: "What is the most useful thing you built that nobody noticed?",
+    topic: "Work",
+    askedAt: "At the end of a project retrospective",
+    shortAnswer: "The recovery path behind a demo that looked effortless.",
+    longAnswer: [
+      "The visible feature was a smooth interaction. The useful work was the state boundary that let it resume after a refresh, reject an invalid operation, and explain what happened when a dependency failed.",
+      "Invisible reliability rarely earns the screenshot, but it changes whether the team trusts the product enough to keep building on it.",
+    ],
+  },
+  {
+    id: "boring-on-purpose",
+    question: "What do you keep deliberately boring?",
+    topic: "Taste",
+    askedAt: "While reviewing an over-designed settings screen",
+    shortAnswer:
+      "Anything someone visits while already uncertain or frustrated.",
+    longAnswer: [
+      "Authentication, destructive actions, recovery, settings, and error explanations do not need a new interaction metaphor. They need stable language, expected controls, and a clear route back.",
+      "Personality can live around those moments, but trust comes from making the important action feel unsurprising.",
+    ],
+  },
+  {
+    id: "internet-wish",
+    question: "What do you wish the internet had kept?",
+    topic: "Internet",
+    askedAt: "Inside a conversation about old personal sites",
+    shortAnswer: "More small places with a visible owner and no growth plan.",
+    longAnswer: [
+      "I miss pages that could be odd, unfinished, and deeply specific without being optimized into a content strategy. Their edges revealed a person learning in public rather than a funnel being improved.",
+      "The answer is not nostalgia for bad accessibility or slow pages. It is protecting room for software whose success is that a few people remember where it lives.",
+    ],
+  },
+  {
+    id: "good-enough-to-ship",
+    question: "How do you know when something is good enough to ship?",
+    topic: "Failure",
+    askedAt: "Two hours before a self-imposed deadline",
+    shortAnswer:
+      "When the remaining uncertainty needs real users more than another private iteration.",
+    longAnswer: [
+      "I check that the core promise is legible, the failure modes are recoverable, and the performance floor is respectable. Then I list what I still dislike and ask which items can only be judged in use.",
+      "Shipping is not declaring the work finished. It is changing the source of evidence from imagination to reality.",
+    ],
+  },
+  {
+    id: "protect-from-optimization",
+    question: "What part of your work do you protect from optimization?",
+    topic: "Life",
+    askedAt: "During a conversation about productivity systems",
+    shortAnswer:
+      "The first hour of a strange idea, before it has to justify itself.",
+    longAnswer: [
+      "Early ideas are unusually sensitive to metrics. Asking about audience, reuse, or revenue too quickly pushes them toward shapes that already have names and examples.",
+      "I give the first prototype a small protected window to become specific. After that, constraints are welcome. Before that, efficiency can erase the very signal I am trying to find.",
     ],
   },
 ];

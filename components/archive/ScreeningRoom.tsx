@@ -34,6 +34,23 @@ export default function ScreeningRoom() {
   const [topic, setTopic] = useState<(typeof topics)[number]>("All");
   const [active, setActive] = useState<TalkEntry | null>(null);
 
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    const linkedTalk = talkEntries.find((talk) => talk.id === hash);
+    if (!linkedTalk) return;
+    if (linkedTalk.durationMinutes <= 15) setBudget("quick");
+    else if (linkedTalk.durationMinutes <= 35) setBudget("medium");
+    else setBudget("deep");
+    setTopic("All");
+    window.setTimeout(
+      () =>
+        document
+          .getElementById(hash)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+      30,
+    );
+  }, []);
+
   const visible = useMemo(
     () =>
       talkEntries.filter(
@@ -88,7 +105,7 @@ export default function ScreeningRoom() {
                 aria-pressed={budget === item.id}
               >
                 {item.label}
-                <span className="sr-only"> — {item.hint}</span>
+                <span>{item.hint}</span>
               </button>
             ))}
           </div>
@@ -133,12 +150,15 @@ export default function ScreeningRoom() {
           >
             <Shuffle size={11} aria-hidden="true" /> Surprise me
           </button>
+          <span className={styles.resultCount} aria-live="polite">
+            {visible.length} fit this constraint
+          </span>
         </div>
 
         {visible.length > 0 ? (
           <div className={styles.talkGrid}>
             {visible.map((talk, index) => (
-              <article className={styles.talkCard} key={talk.id}>
+              <article className={styles.talkCard} id={talk.id} key={talk.id}>
                 <div className={styles.talkMeta}>
                   <span>
                     {String(index + 1).padStart(2, "0")} / {talk.kind}
@@ -150,6 +170,10 @@ export default function ScreeningRoom() {
                 <h3 className={styles.talkTitle}>{talk.title}</h3>
                 <p className={styles.talkSpeaker}>{talk.speaker}</p>
                 <p className={styles.talkWhy}>{talk.why}</p>
+                <div className={styles.talkOutcome}>
+                  <span>You will leave understanding</span>
+                  <p>{talk.leavesYouWith}</p>
+                </div>
                 <div className={styles.talkFooter}>
                   <p className={styles.takeaway}>“{talk.takeaway}”</p>
                   <button

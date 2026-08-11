@@ -1,13 +1,17 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import PageScrollProgress from "@/components/ui/PageScrollProgress";
-import { displayFont, dataFont } from "@/lib/fonts";
+import { dataFont, displayFont, editorialFont } from "@/lib/fonts";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import PageAtmosphere from "@/components/ui/PageAtmosphere";
 import ProceduralMascotLoader from "@/components/mascot/ProceduralMascotLoader";
+import { CommandPaletteProvider } from "@/components/command-palette/CommandPalette";
+import { createCommandIndex } from "@/lib/archive/command-index";
 
 const inter = Inter({ subsets: ["latin"] });
+const commandEntries = createCommandIndex();
 
 export const metadata: Metadata = {
   title: "Shantanu Soam — Creative Systems Engineer",
@@ -39,20 +43,18 @@ export const metadata: Metadata = {
   themeColor: "#0d0d0d",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body
-        className={`${inter.className} ${displayFont.variable} ${dataFont.variable}`}
+        className={`${inter.className} ${displayFont.variable} ${dataFont.variable} ${editorialFont.variable}`}
       >
-        <PageAtmosphere />
-        <PageScrollProgress />
-        <ProceduralMascotLoader />
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <CommandPaletteProvider entries={commandEntries}>
+          <PageAtmosphere />
+          <PageScrollProgress />
+          <ProceduralMascotLoader />
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        </CommandPaletteProvider>
       </body>
     </html>
   );

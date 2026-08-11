@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ArchiveHero from "@/components/archive/ArchiveHero";
 import InspoWall from "@/components/archive/InspoWall";
+import { inspirationEntries } from "@/lib/archive/data";
 import styles from "@/components/archive/archive.module.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default function InspoPage() {
         eyebrow="Inspo / Reference Wall"
         title="Interfaces I return to"
         description="A living evidence board for the moments when my own taste gets noisy. Every save includes the detail that made it worth keeping."
-        status="Rotation active"
+        status={`${inspirationEntries.length} references in rotation`}
         updated="15.05.2026"
       />
       <InspoWall />

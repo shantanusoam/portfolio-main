@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { CommandPaletteTrigger } from "@/components/command-palette/CommandPalette";
 import styles from "./archive.module.css";
 
 const archiveRoutes = [
@@ -28,11 +29,7 @@ function LogoMark() {
   );
 }
 
-export default function ArchiveShell({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function ArchiveShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
@@ -66,9 +63,12 @@ export default function ArchiveShell({
           })}
         </nav>
 
-        <Link className={styles.homeLink} href="/">
-          Portfolio ↗
-        </Link>
+        <div className={styles.headerActions}>
+          <CommandPaletteTrigger />
+          <Link className={styles.homeLink} href="/">
+            Portfolio ↗
+          </Link>
+        </div>
       </header>
 
       {children}

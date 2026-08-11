@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import MenuToggle from "./ui/MenuToggle";
 import Socials from "./ui/Socials";
 import { Button } from "./ui/Buttons";
-import { BookOpen, ScrollText } from "lucide-react";
+import { ScrollText } from "lucide-react";
 import resumeLink from "@/constants/resume";
 import { OBSTACLE_INVALIDATE_EVENT } from "@/lib/mascot/interaction/DomObstacleRegistry";
 
@@ -17,6 +17,7 @@ import ai from "@/public/AI Isometric Lettering.png";
 import programming from "@/public/Programmer coding laptop.png";
 import skills from "@/public/Skills clipart gleam.png";
 import HoverImageLink from "./HoverImageLink";
+import { CommandPaletteTrigger } from "./command-palette/CommandPalette";
 const navSections = [
   {
     title: "About",
@@ -54,6 +55,13 @@ const navSections = [
     image: programming,
     href: "/blog",
   },
+];
+
+const archiveLinks = [
+  { href: "/blog", index: "01", label: "Blog" },
+  { href: "/inspo", index: "02", label: "Inspo" },
+  { href: "/worth-your-time", index: "03", label: "Worth your time" },
+  { href: "/raq", index: "04", label: "RAQ" },
 ];
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -132,19 +140,33 @@ export default function Navbar() {
           </a>
         </Button>
       </motion.div>
-      <motion.div
+      <motion.nav
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.08, ease: "easeIn" }}
+        transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
+        aria-label="Signal Archive"
+        data-mascot-obstacle="hard"
+        className="border-white/20 bg-black/80 fixed inset-x-[3%] top-[70px] z-[999] flex select-none items-stretch overflow-x-auto border backdrop-blur-xl md:top-[86px] lg:left-1/2 lg:right-auto lg:top-[30px] lg:-translate-x-1/2"
       >
-        <Link
-          href="/blog"
-          className="border-white/20 text-white/70 absolute right-[calc(3%+24px+1.5rem+124px)] top-[22px] z-[1000] hidden select-none items-center gap-2 border px-3 py-2 font-data text-[10px] uppercase tracking-[0.12em] transition-colors hover:border-primary hover:text-primary sm:flex md:top-[38px]"
-        >
-          <BookOpen className="w-[15px]" aria-hidden="true" />
-          Archive
-        </Link>
-      </motion.div>
+        <span className="border-white/10 text-white/40 hidden items-center border-r px-3 font-data text-[7px] uppercase tracking-[0.18em] xl:flex">
+          Signal archive
+        </span>
+        {archiveLinks.map((item) => (
+          <Link
+            href={item.href}
+            key={item.href}
+            className="border-white/10 hover:bg-primary/10 group flex min-w-max flex-1 items-center gap-2 border-r px-3 py-2.5 font-data uppercase transition-colors last:border-r-0 hover:text-primary lg:flex-none lg:px-4"
+          >
+            <span className="text-[7px] tracking-[0.12em] text-primary">
+              {item.index}
+            </span>
+            <span className="text-white/70 text-[8px] tracking-[0.1em] transition-colors group-hover:text-primary sm:text-[9px]">
+              {item.label}
+            </span>
+          </Link>
+        ))}
+        <CommandPaletteTrigger variant="home" />
+      </motion.nav>
       <MenuToggle menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <AnimatePresence>
@@ -191,9 +213,8 @@ export default function Navbar() {
                       subheading={navSection.subHeading}
                       imgSrc={navSection.image}
                       href={
-                        "href" in navSection
-                          ? navSection.href
-                          : `#${navSection.title.toLowerCase()}`
+                        ("href" in navSection && navSection.href) ||
+                        `#${navSection.title.toLowerCase()}`
                       }
                       onClick={() => setMenuOpen(false)}
                     />
