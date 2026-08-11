@@ -10,6 +10,7 @@
     "test:game": "tsx --test components/easter-egg/game/logic.test.ts",
     "test:mascot": "tsx --test $(find tests/mascot -name '*.test.ts')",
     "test:mascot:watch": "tsx --test --watch $(find tests/mascot -name '*.test.ts')",
+    "test:procedural-character": "node --import tsx --test $(find tests/procedural-character -name '*.test.ts')",
     "verify:mascot": "node scripts/mascot/verify.mjs",
     "verify:mascot-upgrade": "node scripts/mascot/verify-upgrade.mjs",
     "perf:mascot": "node scripts/mascot/perf-budget.mjs"
