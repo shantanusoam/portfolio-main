@@ -1,5 +1,5 @@
 // eslint-disable-next-line camelcase
-import { Anton, IBM_Plex_Mono } from "next/font/google";
+import { Anton, IBM_Plex_Mono, Newsreader } from "next/font/google";
 
 // Bold impact headline face — hero, mission card titles, checkpoint numerals.
 export const displayFont = Anton({
@@ -15,4 +15,14 @@ export const dataFont = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-data",
+});
+
+// A quieter editorial face for long-form titles and reading surfaces. Anton
+// remains the portfolio's impact voice; Newsreader makes the archive feel like
+// a publication instead of another project section.
+export const editorialFont = Newsreader({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  adjustFontFallback: false,
+  variable: "--font-editorial",
 });

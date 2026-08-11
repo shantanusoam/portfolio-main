@@ -54,6 +54,12 @@ export default function ProceduralMascotLoader({
   quality = "medium",
 }: ProceduralMascotLoaderProps) {
   const pathname = usePathname();
+  const archiveRoute =
+    pathname === "/blog" ||
+    pathname.startsWith("/blog/") ||
+    pathname === "/inspo" ||
+    pathname === "/worth-your-time" ||
+    pathname === "/raq";
   const [ready, setReady] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [engine, setEngine] = useState<MascotEngine | null>(null);
@@ -81,6 +87,10 @@ export default function ProceduralMascotLoader({
   );
 
   useEffect(() => {
+    if (archiveRoute) {
+      setReady(false);
+      return undefined;
+    }
     setDisabled(readStoredDisabled());
 
     const win = window as Window & {
@@ -101,7 +111,7 @@ export default function ProceduralMascotLoader({
       if (idleHandle !== undefined) win.cancelIdleCallback?.(idleHandle);
       if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
     };
-  }, []);
+  }, [archiveRoute]);
 
   useEffect(() => {
     if (!engine) {
@@ -139,17 +149,7 @@ export default function ProceduralMascotLoader({
     };
   }, [broadcastEcosystemStatus, engine]);
 
-  // Labs own their own full-viewport simulation and must not silently mount a
-  // second production mascot over the rig being inspected.
-  if (
-    !ready ||
-    disabled ||
-    pathname === "/motion-lab" ||
-    pathname === "/octopod-lab" ||
-    pathname === "/creature-lab"
-  ) {
-    return null;
-  }
+  if (!ready || disabled || archiveRoute) return null;
 
   return (
     <>

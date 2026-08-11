@@ -1,0 +1,1104 @@
+import type {
+  ArchiveArticle,
+  InspirationEntry,
+  RaqEntry,
+  TalkEntry,
+} from "./types";
+
+export const archiveArticles: ArchiveArticle[] = [
+  {
+    slug: "coding-agent-two-brains",
+    title: "I Gave My Coding Agent Two Brains",
+    dek: "Why one document should describe intent while another records what the system actually knows.",
+    category: "AI Agents",
+    format: "Essay",
+    readingMinutes: 8,
+    publishedAt: "2026-05-12",
+    updatedAt: "2026-05-15",
+    featured: true,
+    accent: "split state / durable intent",
+    sections: [
+      {
+        id: "one-file-two-jobs",
+        heading: "One file was doing two incompatible jobs",
+        paragraphs: [
+          "The first version of my coding loop kept the plan, progress, discoveries, and recovery notes in one markdown file. It looked tidy. It also became unreliable the moment the agent had to resume after a failure. Human-readable intent and machine-readable state age at different speeds.",
+          "A product brief should stay legible and argumentative. Runtime state should be boring, explicit, and easy to validate. Asking one document to be both creates a subtle split-brain problem: the prose says what should happen while scattered checkboxes imply what already happened.",
+        ],
+        quote: "Intent wants context. State wants certainty.",
+      },
+      {
+        id: "the-split",
+        heading: "The split that made recovery predictable",
+        paragraphs: [
+          "I kept prd.md as the place for goals, constraints, and trade-offs. Beside it, prd.state.json became a compact ledger of phases, completed work, active locks, and the next safe action. The agent reads both, but only the state file is trusted for resumption.",
+          "That choice also made drift visible. If implementation changes the plan, the agent has to record the difference instead of quietly rewriting history. Humans can review the reasoning; automation can validate the state.",
+        ],
+        code: {
+          language: "json",
+          label: "prd.state.json",
+          value: `{
+  "phase": "build",
+  "status": "waiting",
+  "completed": ["plan", "scaffold"],
+  "next": "verify-ci",
+  "locks": []
+}`,
+        },
+      },
+      {
+        id: "what-changed",
+        heading: "The bigger lesson",
+        paragraphs: [
+          "Reliable agents need an opinionated boundary between explanation and coordination. The prose can be rich, but the hand-off surface must be small enough to inspect in seconds. This is less glamorous than adding another model call, and far more useful.",
+          "I now look for this boundary in every long-running tool: what belongs to the story, and what must survive as fact? Once those are separated, watchdogs, retries, and human review become much easier to reason about.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-05-15",
+        note: "Added the recovery-state example and clarified drift handling.",
+      },
+      { date: "2026-05-12", note: "Initial publication." },
+    ],
+  },
+  {
+    slug: "watchdog-pattern-for-agents",
+    title: "The Watchdog Pattern: Agents Without the Wild West",
+    dek: "A small supervisor loop can make autonomous coding feel less like crossing your fingers.",
+    category: "AI Agents",
+    format: "Tutorial",
+    readingMinutes: 7,
+    publishedAt: "2026-04-28",
+    updatedAt: "2026-05-03",
+    featured: true,
+    accent: "bounded autonomy / recovery",
+    sections: [
+      {
+        id: "supervise-outcomes",
+        heading: "Supervise outcomes, not every thought",
+        paragraphs: [
+          "The useful version of a watchdog is not a second agent narrating the first. It is a deliberately small loop that checks observable conditions: did the process exit, did files change, are tests still moving, and has the current phase exceeded its time budget?",
+          "This keeps the supervisor cheap and understandable. It does not need to know how the work was done; it needs to know when the contract has stopped being honored.",
+        ],
+      },
+      {
+        id: "safe-transitions",
+        heading: "Make waiting a first-class state",
+        paragraphs: [
+          "Many automation bugs come from treating silence as failure. Builds wait. Deployments wait. Humans wait before approving a destructive action. A good loop distinguishes active work, intentional waiting, recoverable stalls, and terminal failure.",
+          "Once waiting is explicit, retries become less aggressive and status becomes more honest. The agent can say what it needs instead of manufacturing activity to look alive.",
+        ],
+        list: [
+          "Set a bounded heartbeat for active work.",
+          "Persist the reason and owner of every wait state.",
+          "Retry only idempotent actions automatically.",
+          "Escalate when authority—not compute—is missing.",
+        ],
+      },
+      {
+        id: "boring-is-safe",
+        heading: "The safety layer should be boring",
+        paragraphs: [
+          "The watchdog is infrastructure, not personality. Its best feature is that a tired human can inspect its state and predict the next move. Deterministic transitions and plain logs beat clever recovery prompts.",
+        ],
+      },
+    ],
+    revisions: [
+      { date: "2026-05-03", note: "Added explicit wait-state guidance." },
+      { date: "2026-04-28", note: "Initial publication." },
+    ],
+  },
+  {
+    slug: "portfolio-as-product",
+    title: "A Portfolio Should Behave Like a Product",
+    dek: "The case for treating a personal site as a designed system instead of a wall of finished screenshots.",
+    category: "Interfaces",
+    format: "Essay",
+    readingMinutes: 6,
+    publishedAt: "2026-03-19",
+    updatedAt: "2026-03-19",
+    featured: true,
+    accent: "proof through behavior",
+    sections: [
+      {
+        id: "show-the-instinct",
+        heading: "Show the instinct, not only the artifact",
+        paragraphs: [
+          "A grid of project thumbnails proves that work exists. It rarely shows how someone thinks. The more interesting portfolio behaves like a small product: it has pacing, defaults, error states, performance budgets, and moments of useful surprise.",
+          "That does not mean turning every page into a game. It means letting the interface demonstrate the same judgment the case studies claim you have.",
+        ],
+      },
+      {
+        id: "layers-of-proof",
+        heading: "Build layers of proof",
+        paragraphs: [
+          "The first layer should be immediate: what you make and why it matters. The second rewards inspection with constraints, failures, and decisions. The third can be playful—an interaction, a working prototype, or an honest debug view.",
+          "Visitors should never need the third layer to understand you, but the people who open it should discover real depth rather than decoration.",
+        ],
+        quote:
+          "The interaction is not garnish. It is another piece of evidence.",
+      },
+      {
+        id: "repeat-visits",
+        heading: "Design for a second visit",
+        paragraphs: [
+          "A portfolio becomes more valuable when it can hold changing ideas: writing, references, experiments, and things you are still learning. A living archive gives people a reason to return and gives you a healthier reason to keep the site current.",
+        ],
+      },
+    ],
+    revisions: [{ date: "2026-03-19", note: "Initial publication." }],
+  },
+  {
+    slug: "drag-drop-trees-and-state",
+    title: "What Drag-and-Drop Trees Taught Me About State",
+    dek: "The UI looks like moving boxes. The engineering problem is preserving identity through change.",
+    category: "Engineering",
+    format: "Build Log",
+    readingMinutes: 9,
+    publishedAt: "2026-02-14",
+    updatedAt: "2026-02-20",
+    accent: "identity / ordering / intent",
+    sections: [
+      {
+        id: "not-an-array",
+        heading: "A tree is not an array wearing indentation",
+        paragraphs: [
+          "My first implementation treated a drop as a splice plus a depth change. That worked until a parent moved across branches and every derived index became stale. Visual order, structural ancestry, and stable identity are separate facts.",
+          "The fix was to make the operation semantic: move node A under parent B before sibling C. The reducer could then validate cycles, preserve IDs, and derive the new flat projection after the structural update.",
+        ],
+      },
+      {
+        id: "preview-vs-commit",
+        heading: "Preview state is not committed state",
+        paragraphs: [
+          "During a drag, people need immediate feedback, but mutating the canonical tree on every pointer move made cancellation and keyboard support fragile. A projected destination became temporary interaction state; the actual tree changed once, on commit.",
+          "That split removed a surprising amount of defensive code. It also made announcements for assistive technology more accurate because the final operation had a stable description.",
+        ],
+      },
+      {
+        id: "lesson",
+        heading: "Model what the user means",
+        paragraphs: [
+          "Whenever UI state feels tangled, I now ask whether I am storing pixels and indexes instead of intent. Coordinates are useful evidence. They are rarely the domain model.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-02-20",
+        note: "Clarified projected versus committed state.",
+      },
+      { date: "2026-02-14", note: "Initial publication." },
+    ],
+  },
+  {
+    slug: "playful-interfaces-performance",
+    title: "Playful Interfaces Still Need Boring Budgets",
+    dek: "Delight survives production when animation has ownership, limits, and a graceful way out.",
+    category: "Lessons",
+    format: "Field Note",
+    readingMinutes: 5,
+    publishedAt: "2026-01-31",
+    updatedAt: "2026-01-31",
+    accent: "motion / performance",
+    sections: [
+      {
+        id: "budget-first",
+        heading: "Decide the budget before the flourish",
+        paragraphs: [
+          "The fastest way to ruin a playful interface is to make the main thread negotiate with six animation systems. I assign ownership early: CSS handles state transitions, a motion library handles choreographed UI, and canvas owns continuous simulation.",
+          "Every effect also gets an exit: reduced motion, lower detail, hidden-tab pause, or removal when it stops paying rent.",
+        ],
+      },
+      {
+        id: "measure-feeling",
+        heading: "Measure the feeling indirectly",
+        paragraphs: [
+          "Game feel is subjective, but its failure modes are measurable. Long tasks, layout shifts, input latency, and unstable frame time all show up before someone says the page feels heavy.",
+          "A stable 60 frames per second with one excellent reaction feels more premium than a dozen effects fighting at 42.",
+        ],
+      },
+      {
+        id: "restraint",
+        heading: "Restraint makes the strange parts believable",
+        paragraphs: [
+          "When the reading surface stays quiet, the one creature, string, or tactile control can become memorable. Contrast is part of animation design too.",
+        ],
+      },
+    ],
+    revisions: [{ date: "2026-01-31", note: "Initial publication." }],
+  },
+  {
+    slug: "memory-for-learning-agent",
+    title: "Building Memory for a Hands-On Learning Agent",
+    dek: "A tutor becomes useful when it remembers where momentum disappears, not just what was completed.",
+    category: "Experiments",
+    format: "Build Log",
+    readingMinutes: 7,
+    publishedAt: "2026-01-22",
+    updatedAt: "2026-01-26",
+    accent: "practice / memory / motivation",
+    sections: [
+      {
+        id: "completion-is-thin",
+        heading: "Completion history is too thin",
+        paragraphs: [
+          "A checklist can tell a tutor that lesson four is done. It cannot tell the tutor that the learner stopped twice at environment setup, came alive during debugging, and loses interest when explanations arrive before a concrete task.",
+          "Those patterns are the useful memory. They change how the next session should begin.",
+        ],
+      },
+      {
+        id: "memory-shape",
+        heading: "Keep memory inspectable",
+        paragraphs: [
+          "I use a small memory file with current goals, confidence by topic, recurring blockers, motivation triggers, and the next recommended exercise. Every update needs evidence from the session and a reason it should affect future teaching.",
+          "The learner can edit or delete any claim. Memory that cannot be inspected quickly becomes an invisible curriculum.",
+        ],
+        list: [
+          "Record patterns, not transcripts.",
+          "Prefer recent repeated evidence over one-off frustration.",
+          "Separate learner preference from tutor inference.",
+          "Expire assumptions that have not been observed again.",
+        ],
+      },
+      {
+        id: "momentum",
+        heading: "Optimize for returning tomorrow",
+        paragraphs: [
+          "The best session is not the one that covers the most material. It is the one that leaves a clear next move and enough unresolved curiosity to reopen the terminal tomorrow.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-01-26",
+        note: "Added guidance for expiring stale assumptions.",
+      },
+      { date: "2026-01-22", note: "Initial publication." },
+    ],
+  },
+  {
+    slug: "debug-view-part-of-product",
+    title: "The Debug View Is Part of the Product",
+    dek: "If a system behaves procedurally, its hidden decisions need a visible language.",
+    category: "Interfaces",
+    format: "Field Note",
+    readingMinutes: 6,
+    publishedAt: "2025-12-18",
+    updatedAt: "2026-01-08",
+    accent: "observability / interaction",
+    sections: [
+      {
+        id: "mystery-is-expensive",
+        heading: "Mystery is expensive",
+        paragraphs: [
+          "A procedural character can look wrong for ten different reasons: the target may be late, the foot may have replanted too early, the chain may be unreachable, or the renderer may simply be hiding a correct rig. Without instrumentation, every fix is taste-driven guesswork.",
+          "I now treat debug drawing as a first-class interface. Target points, velocity vectors, gait groups, constraint radii, and collision regions each get a stable visual convention. The system becomes something I can read while it moves.",
+        ],
+      },
+      {
+        id: "show-the-decision",
+        heading: "Show the decision, not only the data",
+        paragraphs: [
+          "Raw coordinates rarely answer the question a developer is asking. A useful overlay explains why a foot requested a step, which constraint rejected it, and what destination the gait planner approved.",
+          "That same principle applies outside animation. When software makes a non-obvious choice, the best diagnostic view exposes the rule and the evidence together.",
+        ],
+        quote: "A debug view is the interface for the system's own reasoning.",
+      },
+      {
+        id: "remove-with-confidence",
+        heading: "Polish after you can explain the motion",
+        paragraphs: [
+          "Once the rig reads clearly as circles and lines, the organic renderer can add curves, thickness, glow, and squash without becoming camouflage. If the simple view does not feel grounded, the finished character will only fail more beautifully.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-01-08",
+        note: "Added the distinction between raw data and visible decisions.",
+      },
+      { date: "2025-12-18", note: "Initial publication." },
+    ],
+  },
+  {
+    slug: "hardware-prototypes-software-reliability",
+    title: "What Hardware Prototypes Taught Me About Reliability",
+    dek: "Physical systems make latency, failure and optimistic assumptions impossible to ignore.",
+    category: "Engineering",
+    format: "Essay",
+    readingMinutes: 8,
+    publishedAt: "2025-11-06",
+    updatedAt: "2025-11-10",
+    accent: "failure modes / feedback",
+    sections: [
+      {
+        id: "physics-does-not-retry",
+        heading: "Physics does not quietly retry",
+        paragraphs: [
+          "In software, a timing bug can disappear when the debugger opens. On a hardware prototype, the motor still overshoots, the sensor still drifts, and the battery still changes the behavior halfway through a demo.",
+          "That honesty changed how I build web systems. I became less interested in whether the happy path works once and more interested in whether state remains legible when timing, input, and availability disagree.",
+        ],
+      },
+      {
+        id: "feedback-before-control",
+        heading: "Design feedback before control",
+        paragraphs: [
+          "The first useful addition to a prototype is often not a smarter controller but a clearer signal: a status light, a current limit, a calibration state, or a trace of the last command. Feedback shortens the distance between failure and understanding.",
+          "Interfaces deserve the same treatment. Pending, stale, offline, and partially complete are real product states, not edge-case copy to add after launch.",
+        ],
+        list: [
+          "Make calibration explicit.",
+          "Give every command a visible acknowledgement.",
+          "Fail into a state that can be inspected.",
+          "Assume the environment will disagree with the lab.",
+        ],
+      },
+      {
+        id: "graceful-degradation",
+        heading: "Graceful degradation is a design material",
+        paragraphs: [
+          "A robust prototype does not pretend failure is impossible. It sheds nonessential behavior, preserves the important invariant, and tells the operator what changed. Reduced-motion modes, low-detail renderers, cached content, and safe retries are the web equivalents of that same habit.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2025-11-10",
+        note: "Expanded the graceful-degradation comparison.",
+      },
+      { date: "2025-11-06", note: "Initial publication." },
+    ],
+  },
+  {
+    slug: "designing-for-changed-minds",
+    title: "Designing for an Abrupt Change of Mind",
+    dek: "Responsive systems reveal their quality when the user reverses direction halfway through an action.",
+    category: "Interfaces",
+    format: "Field Note",
+    readingMinutes: 6,
+    publishedAt: "2025-09-27",
+    updatedAt: "2025-09-27",
+    accent: "reversibility / continuity",
+    sections: [
+      {
+        id: "the-reversal-test",
+        heading: "The reversal test",
+        paragraphs: [
+          "Drag an object toward one destination, then reverse course before releasing it. Move a procedural creature right, then snap the target left. Open a panel and close it before the transition completes. These moments reveal whether the interface tracks intent or merely plays a sequence.",
+          "A polished system should reorganize from its current state. It should not teleport back to the beginning of a clip or wait for the old idea to finish.",
+        ],
+      },
+      {
+        id: "preserve-continuity",
+        heading: "Preserve what is still true",
+        paragraphs: [
+          "When direction changes, position is still true, velocity is evidence, and the user's latest target is authoritative. Good animation keeps the first two and smoothly accepts the third.",
+          "This is why spring dynamics and goal-based solvers feel more alive than a stack of entrance and exit timelines. They retain momentum without becoming loyal to an obsolete destination.",
+        ],
+        quote:
+          "Responsiveness is the ability to change your mind without breaking the world.",
+      },
+      {
+        id: "product-consequence",
+        heading: "Reversibility builds trust",
+        paragraphs: [
+          "The lesson reaches beyond motion. Draft states, undo, cancellation, optimistic updates, and interruptible navigation all communicate the same promise: the interface is listening now, not after its choreography finishes.",
+        ],
+      },
+    ],
+    revisions: [{ date: "2025-09-27", note: "Initial publication." }],
+  },
+  {
+    slug: "prototype-should-produce-evidence",
+    title: "A Prototype Should Produce Evidence",
+    dek: "The best prototype is not the most convincing one; it is the one that makes the next decision cheaper.",
+    category: "Experiments",
+    format: "Build Log",
+    readingMinutes: 7,
+    publishedAt: "2025-08-11",
+    updatedAt: "2025-08-19",
+    accent: "questions / proof / scope",
+    sections: [
+      {
+        id: "name-the-uncertainty",
+        heading: "Start with the uncertainty",
+        paragraphs: [
+          "Before opening the editor, I try to write the sentence the prototype must make less uncertain. Can eight planted legs reorganize naturally after a sudden turn? Will people understand the navigation without being told it is playful? Can the agent recover after the process disappears?",
+          "A prototype with one explicit uncertainty can stay rough and still be valuable. A prototype trying to prove the whole product usually becomes a premature product with no clear test.",
+        ],
+      },
+      {
+        id: "instrument-the-attempt",
+        heading: "Instrument the attempt",
+        paragraphs: [
+          "I capture the inputs, the visible outcome, and the conditions around a failure. For interaction work that might mean frame time and a screen recording; for an agent it might mean state transitions and the exact recovery point.",
+          "The record prevents a persuasive demo from erasing the failures that happened just before it.",
+        ],
+        list: [
+          "Write the question before the implementation.",
+          "Keep the simplest observable success condition.",
+          "Save surprising failures, not only the final take.",
+          "End with a decision, not a list of features.",
+        ],
+      },
+      {
+        id: "throw-away-or-promote",
+        heading: "Know whether to throw it away or promote it",
+        paragraphs: [
+          "If the prototype answered its question with brittle code, I keep the evidence and discard the implementation. If the architecture itself survived the test, I promote it deliberately with types, tests, and constraints. Confusing those outcomes is how experiments quietly become production dependencies.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2025-08-19",
+        note: "Added criteria for promoting experimental code.",
+      },
+      { date: "2025-08-11", note: "Initial publication." },
+    ],
+  },
+];
+
+export const inspirationEntries: InspirationEntry[] = [
+  {
+    id: "linear",
+    name: "Linear",
+    kind: "Web",
+    url: "https://linear.app/",
+    note: "Dense product surfaces stay calm because hierarchy comes from rhythm, not decoration.",
+    tags: ["density", "navigation", "command-menu"],
+    pinned: true,
+    palette: ["#0c0c12", "#5e6ad2", "#d7d7e0"],
+    motif: "rails",
+  },
+  {
+    id: "raycast",
+    name: "Raycast",
+    kind: "Web",
+    url: "https://www.raycast.com/",
+    note: "Keyboard-first interaction still feels welcoming because every shortcut has a visible home.",
+    tags: ["keyboard", "command-menu", "motion"],
+    pinned: true,
+    palette: ["#161318", "#ff6363", "#f2e9ec"],
+    motif: "console",
+  },
+  {
+    id: "teenage-engineering",
+    name: "Teenage Engineering",
+    kind: "Hardware",
+    url: "https://teenage.engineering/",
+    note: "The controls explain themselves before copy does; color is functional, not cosmetic.",
+    tags: ["controls", "hardware", "color"],
+    pinned: true,
+    palette: ["#d8d3c8", "#f04f23", "#1b1b1b"],
+    motif: "console",
+  },
+  {
+    id: "rauno",
+    name: "Rauno Freiberg",
+    kind: "Motion",
+    url: "https://rauno.me/",
+    note: "Motion answers where an object came from and where it went instead of merely announcing itself.",
+    tags: ["micro-interaction", "physics", "restraint"],
+    palette: ["#111111", "#f5f5f5", "#6d6d6d"],
+    motif: "orbital",
+  },
+  {
+    id: "paco",
+    name: "Paco Coursey",
+    kind: "Web",
+    url: "https://paco.me/",
+    note: "High-signal writing and interface notes without turning the page into a personal brand machine.",
+    tags: ["writing", "annotation", "clarity"],
+    palette: ["#f5f4ef", "#121212", "#e24822"],
+    motif: "editorial",
+  },
+  {
+    id: "arc",
+    name: "Arc",
+    kind: "Web",
+    url: "https://arc.net/",
+    note: "Transitions preserve spatial context, making an unfamiliar browser model easier to learn.",
+    tags: ["spatial", "navigation", "transition"],
+    palette: ["#f2efe9", "#7557ff", "#ff8e6b"],
+    motif: "stack",
+  },
+  {
+    id: "panic",
+    name: "Panic",
+    kind: "Web",
+    url: "https://panic.com/",
+    note: "Proof that software can be precise, funny, and unmistakably made by people at the same time.",
+    tags: ["personality", "type", "product"],
+    palette: ["#f7df35", "#ef3e36", "#14213d"],
+    motif: "signal",
+  },
+  {
+    id: "vercel",
+    name: "Vercel",
+    kind: "Web",
+    url: "https://vercel.com/",
+    note: "A disciplined hierarchy lets technical detail and strong marketing occupy the same surface.",
+    tags: ["hierarchy", "type", "developer-tool"],
+    palette: ["#000000", "#ffffff", "#4f4f4f"],
+    motif: "rails",
+  },
+  {
+    id: "nothing",
+    name: "Nothing",
+    kind: "Mobile",
+    url: "https://nothing.tech/",
+    note: "A constrained dot-matrix language carries from hardware detail to the entire digital system.",
+    tags: ["system", "type", "hardware"],
+    palette: ["#f1f0ea", "#e23c32", "#111111"],
+    motif: "signal",
+  },
+  {
+    id: "poolside-fm",
+    name: "Poolsuite",
+    kind: "Web",
+    url: "https://poolsuite.net/",
+    note: "A fully committed interface metaphor turns a tiny utility into a place people remember.",
+    tags: ["metaphor", "sound", "nostalgia"],
+    palette: ["#ffd54b", "#23a8a2", "#f06a4e"],
+    motif: "console",
+  },
+  {
+    id: "lusion",
+    name: "Lusion",
+    kind: "Motion",
+    url: "https://lusion.co/",
+    note: "Heavy visual technology earns its cost by making exploration itself the portfolio proof.",
+    tags: ["webgl", "portfolio", "interaction"],
+    palette: ["#0d0d0d", "#f1ff5e", "#ececec"],
+    motif: "orbital",
+  },
+  {
+    id: "read-cv",
+    name: "Read.cv Archive",
+    kind: "Web",
+    url: "https://read.cv/",
+    note: "Profiles felt like quiet working documents rather than attention-optimized social pages.",
+    tags: ["community", "profiles", "calm"],
+    palette: ["#f1f1ef", "#202020", "#9b9b93"],
+    motif: "editorial",
+  },
+  {
+    id: "arena",
+    name: "Are.na",
+    kind: "Web",
+    url: "https://www.are.na/",
+    note: "Research grows through visible relationships rather than engagement metrics or a single algorithmic feed.",
+    tags: ["research", "collections", "calm"],
+    palette: ["#f4f4f4", "#202020", "#5b7cfa"],
+    motif: "stack",
+  },
+  {
+    id: "stripe-press",
+    name: "Stripe Press",
+    kind: "Web",
+    url: "https://press.stripe.com/",
+    note: "Commerce disappears behind editorial pacing, generous typography, and unusually confident book presentation.",
+    tags: ["editorial", "commerce", "type"],
+    palette: ["#f1eadf", "#181818", "#e05d38"],
+    motif: "editorial",
+  },
+  {
+    id: "bruno-simon",
+    name: "Bruno Simon",
+    kind: "Motion",
+    url: "https://bruno-simon.com/",
+    note: "The navigation mechanic is the portfolio proof: playful, legible, and inseparable from the work being introduced.",
+    tags: ["webgl", "navigation", "play"],
+    palette: ["#c7f0ff", "#67b56b", "#f4a94a"],
+    motif: "orbital",
+  },
+  {
+    id: "studio-freight",
+    name: "Studio Freight",
+    kind: "Web",
+    url: "https://studiofreight.com/",
+    note: "Large type, motion, and grid changes stay coherent because every expressive move belongs to one strong system.",
+    tags: ["type", "grid", "motion"],
+    palette: ["#f2efe8", "#181818", "#d5ff35"],
+    motif: "rails",
+  },
+  {
+    id: "koto",
+    name: "Koto Studio",
+    kind: "Motion",
+    url: "https://koto.studio/",
+    note: "Case studies enter quickly, then let the identity system carry the storytelling instead of over-explaining it.",
+    tags: ["brand", "case-study", "pacing"],
+    palette: ["#f2f1eb", "#151515", "#ff4d2e"],
+    motif: "signal",
+  },
+  {
+    id: "material-you",
+    name: "Material You",
+    kind: "Mobile",
+    url: "https://m3.material.io/",
+    note: "A design system explains adaptive color and component behavior as principles, tokens, and usable implementation guidance.",
+    tags: ["system", "adaptive", "documentation"],
+    palette: ["#f8f2fa", "#6750a4", "#1d192b"],
+    motif: "stack",
+  },
+];
+
+export const talkEntries: TalkEntry[] = [
+  {
+    id: "inventing-principle-clip",
+    title: "Immediate Connection",
+    speaker: "Bret Victor",
+    url: "https://www.youtube.com/watch?v=PUv66718DII&t=252s",
+    youtubeId: "PUv66718DII",
+    durationMinutes: 12,
+    displayDuration: "12 min clip",
+    topic: "Design",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Clip",
+    why: "A concentrated demonstration of tools that show consequences while an idea is still forming.",
+    leavesYouWith:
+      "A sharper test for whether software is helping thought or merely recording it.",
+    takeaway: "Feedback speed changes what you are capable of imagining.",
+    startAtSeconds: 252,
+    endAtSeconds: 972,
+  },
+  {
+    id: "deep-modules-clip",
+    title: "Deep Modules, Small Interfaces",
+    speaker: "John Ousterhout",
+    url: "https://www.youtube.com/watch?v=bmSAYlu0NcY&t=746s",
+    youtubeId: "bmSAYlu0NcY",
+    durationMinutes: 18,
+    displayDuration: "18 min clip",
+    topic: "Systems",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Clip",
+    why: "The most useful section of a longer lecture, cut to one durable way of evaluating abstractions.",
+    leavesYouWith:
+      "A visual model for comparing interface cost with hidden capability.",
+    takeaway: "Great modules hide a lot behind very little surface area.",
+    startAtSeconds: 746,
+    endAtSeconds: 1826,
+  },
+  {
+    id: "procrastination",
+    title: "Inside the Mind of a Master Procrastinator",
+    speaker: "Tim Urban",
+    url: "https://www.youtube.com/watch?v=arj7oStGLkU",
+    youtubeId: "arj7oStGLkU",
+    durationMinutes: 14,
+    displayDuration: "14 min",
+    topic: "Life",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "A funny model for a painfully familiar behavior—and one image that stays useful for years.",
+    leavesYouWith:
+      "Language for noticing when urgency is doing all of your prioritization.",
+    takeaway:
+      "The dangerous deadlines are the important ones nobody scheduled.",
+  },
+  {
+    id: "all-the-little-things",
+    title: "All the Little Things",
+    speaker: "Sandi Metz",
+    url: "https://www.youtube.com/watch?v=8bZh5LMaSmE",
+    youtubeId: "8bZh5LMaSmE",
+    durationMinutes: 38,
+    displayDuration: "38 min",
+    topic: "Craft",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Talk",
+    why: "A live refactor that makes design judgment visible instead of presenting the clean answer afterward.",
+    leavesYouWith:
+      "A patient strategy for improving code without pretending you know the final shape.",
+    takeaway: "Duplication is often cheaper than the wrong abstraction.",
+  },
+  {
+    id: "fuck-you-pay-me",
+    title: "F*ck You, Pay Me",
+    speaker: "Mike Monteiro",
+    url: "https://www.youtube.com/watch?v=jVkLVRt6c1U",
+    youtubeId: "jVkLVRt6c1U",
+    durationMinutes: 41,
+    displayDuration: "41 min",
+    topic: "Business",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "The clearest practical talk about contracts, leverage, and protecting creative work.",
+    leavesYouWith:
+      "Specific questions to ask before work begins and the confidence to put them in writing.",
+    takeaway:
+      "Professional boundaries are part of the work, not an awkward layer around it.",
+  },
+  {
+    id: "inventing-on-principle",
+    title: "Inventing on Principle",
+    speaker: "Bret Victor",
+    url: "https://www.youtube.com/watch?v=PUv66718DII",
+    youtubeId: "PUv66718DII",
+    durationMinutes: 54,
+    displayDuration: "54 min",
+    topic: "Design",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "A rare talk where a philosophy of work is demonstrated through tools rather than slogans.",
+    leavesYouWith:
+      "A reason to choose a principle strong enough to guide what you build and refuse.",
+    takeaway:
+      "Do not merely follow passion; find a principle that makes action necessary.",
+  },
+  {
+    id: "simple-made-easy",
+    title: "Simple Made Easy",
+    speaker: "Rich Hickey",
+    url: "https://www.youtube.com/watch?v=SxdOUGdseq4",
+    youtubeId: "SxdOUGdseq4",
+    durationMinutes: 62,
+    displayDuration: "1 hr 02",
+    topic: "Systems",
+    difficulty: "Deep dive",
+    evergreen: true,
+    kind: "Talk",
+    why: "It separates convenience from structural simplicity and permanently improves design conversations.",
+    leavesYouWith:
+      "A vocabulary for identifying where systems have become intertwined.",
+    takeaway: "Easy is nearby. Simple is not entangled.",
+  },
+  {
+    id: "philosophy-software-design",
+    title: "A Philosophy of Software Design",
+    speaker: "John Ousterhout",
+    url: "https://www.youtube.com/watch?v=bmSAYlu0NcY",
+    youtubeId: "bmSAYlu0NcY",
+    durationMinutes: 61,
+    displayDuration: "1 hr 01",
+    topic: "Systems",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Talk",
+    why: "A compact set of design principles grounded in decades of writing and reviewing real code.",
+    leavesYouWith:
+      "Better questions for code review: where is complexity exposed, repeated, or made temporal?",
+    takeaway:
+      "The strategic programmer invests a little today to move faster for years.",
+  },
+  {
+    id: "last-lecture",
+    title: "The Last Lecture",
+    speaker: "Randy Pausch",
+    url: "https://www.youtube.com/watch?v=ji5_MqicxSo",
+    youtubeId: "ji5_MqicxSo",
+    durationMinutes: 76,
+    displayDuration: "1 hr 16",
+    topic: "Life",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "A generous, unsentimental account of ambition, obstacles, teaching, and making time visible.",
+    leavesYouWith:
+      "A way to evaluate goals by who you become while pursuing them.",
+    takeaway: "Brick walls reveal how badly we want what is behind them.",
+  },
+  {
+    id: "carmack-conversation",
+    title: "Programming, Gaming, VR and the Future",
+    speaker: "John Carmack",
+    url: "https://www.youtube.com/watch?v=I845O57ZSy4",
+    youtubeId: "I845O57ZSy4",
+    durationMinutes: 309,
+    displayDuration: "5 hr 09",
+    topic: "Craft",
+    difficulty: "Deep dive",
+    evergreen: false,
+    kind: "Conversation",
+    why: "Long enough for the polished answers to run out and the engineer's actual reasoning habits to appear.",
+    leavesYouWith:
+      "A close view of sustained technical curiosity across games, systems, and research.",
+    takeaway:
+      "Depth comes from repeatedly following details past the point where most people stop.",
+  },
+  {
+    id: "art-of-code",
+    title: "The Art of Code",
+    speaker: "Dylan Beattie",
+    url: "https://www.youtube.com/watch?v=6avJHaC3C2U",
+    youtubeId: "6avJHaC3C2U",
+    durationMinutes: 65,
+    displayDuration: "1 hr 05",
+    topic: "Craft",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "A tour through code as notation, performance, humor, constraint, and a material people use to express ideas.",
+    leavesYouWith:
+      "A wider definition of programming craft than correctness and commercial utility alone.",
+    takeaway: "Code can be a tool, a text, an instrument, and a performance.",
+  },
+  {
+    id: "growing-a-language",
+    title: "Growing a Language",
+    speaker: "Guy Steele",
+    url: "https://www.youtube.com/watch?v=_ahvzDzKdB0",
+    youtubeId: "_ahvzDzKdB0",
+    durationMinutes: 54,
+    displayDuration: "54 min",
+    topic: "Systems",
+    difficulty: "Deep dive",
+    evergreen: true,
+    kind: "Talk",
+    why: "The form of the talk demonstrates its argument: powerful systems can grow from a deliberately small shared vocabulary.",
+    leavesYouWith:
+      "A memorable way to think about extensibility, primitives, and who gets to add new language.",
+    takeaway: "A language should help its users become its designers.",
+  },
+  {
+    id: "future-of-programming",
+    title: "The Future of Programming",
+    speaker: "Bret Victor",
+    url: "https://www.youtube.com/watch?v=8pTEmbeENF4",
+    youtubeId: "8pTEmbeENF4",
+    durationMinutes: 33,
+    displayDuration: "33 min",
+    topic: "Design",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Talk",
+    why: "A deadpan alternate-history talk that exposes how arbitrary our assumptions about programming tools can be.",
+    leavesYouWith:
+      "Permission to question the keyboard-and-text-file defaults that usually escape design criticism.",
+    takeaway:
+      "The future becomes easier to imagine after the present stops looking inevitable.",
+  },
+  {
+    id: "hammock-driven-development",
+    title: "Hammock Driven Development",
+    speaker: "Rich Hickey",
+    url: "https://www.youtube.com/watch?v=f84n5oFoZBc",
+    youtubeId: "f84n5oFoZBc",
+    durationMinutes: 39,
+    displayDuration: "39 min",
+    topic: "Craft",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "A practical defense of giving hard problems time to become clear before turning activity into code.",
+    leavesYouWith:
+      "A repeatable preparation process for design problems that resist immediate implementation.",
+    takeaway:
+      "Incubation is part of work when it is fed by careful preparation.",
+  },
+];
+
+export const raqEntries: RaqEntry[] = [
+  {
+    id: "taste-distrust",
+    question: "Which part of your taste do you distrust?",
+    topic: "Taste",
+    askedAt: "After a portfolio critique",
+    shortAnswer: "The part that confuses visible effort with quality.",
+    longAnswer: [
+      "I am naturally drawn to interfaces that reveal how much work went into them—motion, procedural behavior, unusual transitions, tiny systems. That instinct is useful until it starts rewarding effort the visitor cannot benefit from.",
+      "When I am uncertain, I remove the cleverest element and see whether the idea survives. If it does, the effect can come back as support. If it does not, the effect was probably the idea wearing a costume.",
+    ],
+  },
+  {
+    id: "automate-without-saving-time",
+    question: "What do you automate even when it does not save time?",
+    topic: "Tools",
+    askedAt: "In a late-night build session",
+    shortAnswer:
+      "Anything whose rules I want to understand by making them explicit.",
+    longAnswer: [
+      "Automation is sometimes a microscope. I will build a tiny tool for a task I could finish manually because encoding the task exposes assumptions, edge cases, and the parts that still need judgment.",
+      "The first run may be slower. The payoff is a reusable explanation of the process—and often a better question about which part should remain human.",
+    ],
+  },
+  {
+    id: "interface-jealousy",
+    question: "What interface made you jealous?",
+    topic: "Taste",
+    askedAt: "During a design review",
+    shortAnswer:
+      "The first time Arc made a transition explain the product model.",
+    longAnswer: [
+      "Not because the motion was beautiful, although it was. I was jealous because the transition did instructional work. It preserved where an object came from, where it landed, and how to find it again.",
+      "That is the standard I keep chasing: an interaction that carries meaning and still feels inevitable after you have learned it.",
+    ],
+  },
+  {
+    id: "nobody-watching",
+    question: "What do you build when nobody is watching?",
+    topic: "Work",
+    askedAt: "A quiet question after a demo",
+    shortAnswer:
+      "Small instruments—tools that make an invisible system tangible.",
+    longAnswer: [
+      "I like interfaces where a rule becomes something you can touch: a string that produces sound, a physics rig you can interrupt, or a status file that makes an agent's uncertainty visible.",
+      "They are rarely the most marketable projects at first. They are usually where I learn the technique that later makes a practical product feel different.",
+    ],
+  },
+  {
+    id: "reversed-opinion",
+    question: "Which technical opinion have you completely reversed?",
+    topic: "Failure",
+    askedAt: "In a code review thread",
+    shortAnswer:
+      "I used to think abstraction was proof of maturity. Now I make it earn its rent.",
+    longAnswer: [
+      "Early on, repeated code made me nervous, so I reached for a reusable layer before the examples had finished disagreeing with one another. The result was often a clean API hiding confused responsibilities.",
+      "Now I tolerate a little duplication until the stable shape becomes obvious. The goal is not fewer lines. It is fewer concepts that must change together.",
+    ],
+  },
+  {
+    id: "polish-procrastination",
+    question: "When does polish become procrastination?",
+    topic: "Failure",
+    askedAt: "Halfway through a launch week",
+    shortAnswer:
+      "When I cannot name the user behavior the next detail is meant to improve.",
+    longAnswer: [
+      "Polish has a job: clarify hierarchy, strengthen feedback, remove friction, or create an emotion worth the cost. When the only explanation is that the page does not feel finished, I stop and define the missing outcome.",
+      "Sometimes the answer is genuinely another day of refinement. Sometimes it is publishing the thing and letting reality provide better taste than anxiety can.",
+    ],
+  },
+  {
+    id: "portfolio-hide",
+    question: "What should a portfolio intentionally hide?",
+    topic: "Internet",
+    askedAt: "From another developer rebuilding theirs",
+    shortAnswer:
+      "Everything that does not help someone understand your judgment.",
+    longAnswer: [
+      "A portfolio is edited evidence, not a database backup. I would hide work included only from guilt, metrics without context, and process artifacts that explain activity but not a decision.",
+      "Good editing is not dishonesty. The deeper material can still exist in an archive for people who want it; the main path should protect the clearest story.",
+    ],
+  },
+  {
+    id: "meaning-of-fast",
+    question: "What does fast mean besides load time?",
+    topic: "Work",
+    askedAt: "During a performance discussion",
+    shortAnswer:
+      "How quickly the interface lets intention become a visible result.",
+    longAnswer: [
+      "A page can load in a second and still feel slow if it delays confidence. Fast also means obvious next actions, reversible experiments, immediate feedback, and preserving context when someone changes direction.",
+      "The best performance work shortens both machine latency and human uncertainty.",
+    ],
+  },
+  {
+    id: "never-make-money",
+    question: "What would you still build if it could never make money?",
+    topic: "Life",
+    askedAt: "On a walk, not in a meeting",
+    shortAnswer:
+      "Tools that help curious people stay curious long enough to become capable.",
+    longAnswer: [
+      "I keep returning to playful learning systems: a tutor that remembers where momentum disappears, a simulation that lets you touch an abstract rule, or a tiny creative tool with no account screen and no growth loop.",
+      "Making those things changes how I understand teaching and software, even if the audience stays small.",
+    ],
+  },
+  {
+    id: "unusually-patient",
+    question: "What are you unusually patient about?",
+    topic: "Life",
+    askedAt: "A rare non-technical interview question",
+    shortAnswer:
+      "Following a strange prototype until it explains what it wants to become.",
+    longAnswer: [
+      "I can stay with an awkward interaction for a long time if there is one moment inside it that feels genuinely new. Most prototypes begin as evidence without a product around them.",
+      "The patience is not endless. I keep asking whether each iteration is producing information. If it is only producing prettier uncertainty, it is time to stop.",
+    ],
+  },
+  {
+    id: "skill-to-remove",
+    question: "Which skill would you remove from your stack if you had to?",
+    topic: "Tools",
+    askedAt: "After comparing increasingly long tool lists",
+    shortAnswer: "The ability to make complexity look intentional.",
+    longAnswer: [
+      "It is useful to rescue a complicated system with naming, visual hierarchy, and a clean abstraction. It is also dangerous because a well-presented system can survive long after its underlying idea should have been simplified.",
+      "If I lost that escape hatch, I would have to confront accidental complexity earlier. I would miss the craft, but I might make better first decisions.",
+    ],
+  },
+  {
+    id: "useful-unnoticed",
+    question: "What is the most useful thing you built that nobody noticed?",
+    topic: "Work",
+    askedAt: "At the end of a project retrospective",
+    shortAnswer: "The recovery path behind a demo that looked effortless.",
+    longAnswer: [
+      "The visible feature was a smooth interaction. The useful work was the state boundary that let it resume after a refresh, reject an invalid operation, and explain what happened when a dependency failed.",
+      "Invisible reliability rarely earns the screenshot, but it changes whether the team trusts the product enough to keep building on it.",
+    ],
+  },
+  {
+    id: "boring-on-purpose",
+    question: "What do you keep deliberately boring?",
+    topic: "Taste",
+    askedAt: "While reviewing an over-designed settings screen",
+    shortAnswer:
+      "Anything someone visits while already uncertain or frustrated.",
+    longAnswer: [
+      "Authentication, destructive actions, recovery, settings, and error explanations do not need a new interaction metaphor. They need stable language, expected controls, and a clear route back.",
+      "Personality can live around those moments, but trust comes from making the important action feel unsurprising.",
+    ],
+  },
+  {
+    id: "internet-wish",
+    question: "What do you wish the internet had kept?",
+    topic: "Internet",
+    askedAt: "Inside a conversation about old personal sites",
+    shortAnswer: "More small places with a visible owner and no growth plan.",
+    longAnswer: [
+      "I miss pages that could be odd, unfinished, and deeply specific without being optimized into a content strategy. Their edges revealed a person learning in public rather than a funnel being improved.",
+      "The answer is not nostalgia for bad accessibility or slow pages. It is protecting room for software whose success is that a few people remember where it lives.",
+    ],
+  },
+  {
+    id: "good-enough-to-ship",
+    question: "How do you know when something is good enough to ship?",
+    topic: "Failure",
+    askedAt: "Two hours before a self-imposed deadline",
+    shortAnswer:
+      "When the remaining uncertainty needs real users more than another private iteration.",
+    longAnswer: [
+      "I check that the core promise is legible, the failure modes are recoverable, and the performance floor is respectable. Then I list what I still dislike and ask which items can only be judged in use.",
+      "Shipping is not declaring the work finished. It is changing the source of evidence from imagination to reality.",
+    ],
+  },
+  {
+    id: "protect-from-optimization",
+    question: "What part of your work do you protect from optimization?",
+    topic: "Life",
+    askedAt: "During a conversation about productivity systems",
+    shortAnswer:
+      "The first hour of a strange idea, before it has to justify itself.",
+    longAnswer: [
+      "Early ideas are unusually sensitive to metrics. Asking about audience, reuse, or revenue too quickly pushes them toward shapes that already have names and examples.",
+      "I give the first prototype a small protected window to become specific. After that, constraints are welcome. Before that, efficiency can erase the very signal I am trying to find.",
+    ],
+  },
+];
+
+export function getArticle(slug: string): ArchiveArticle | undefined {
+  return archiveArticles.find((article) => article.slug === slug);
+}
+
+export function formatArchiveDate(value: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T12:00:00Z`));
+}
