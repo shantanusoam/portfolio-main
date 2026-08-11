@@ -1,0 +1,13 @@
+export { createCharacterSpec } from "./createCharacterSpec";
+export type { CreateCharacterSpecOptions } from "./createCharacterSpec";
+export { ProceduralCharacterEngine } from "./ProceduralCharacterEngine";
+export type { ProceduralCharacterEngineOptions } from "./ProceduralCharacterEngine";
+export { octopodPreset } from "./presets/octopod";
+export { mantaPreset } from "./presets/manta";
+export { jellyPreset } from "./presets/jelly";
+export { PersonalityController } from "./behavior/PersonalityController";
+export { PlatformLocomotionController } from "./behavior/PlatformLocomotionController";
+export { EnvironmentSampler } from "./environment/EnvironmentSampler";
+export { SoftChain } from "./physics/SoftChain";
+export { SoftBodyRuntime } from "./physics/SoftBody";
+export * from "./types";

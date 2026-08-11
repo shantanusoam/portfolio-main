@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type {
   MascotEcosystemStatus,
@@ -52,6 +53,7 @@ export interface ProceduralMascotLoaderProps {
 export default function ProceduralMascotLoader({
   quality = "medium",
 }: ProceduralMascotLoaderProps) {
+  const pathname = usePathname();
   const [ready, setReady] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [engine, setEngine] = useState<MascotEngine | null>(null);
@@ -137,7 +139,17 @@ export default function ProceduralMascotLoader({
     };
   }, [broadcastEcosystemStatus, engine]);
 
-  if (!ready || disabled) return null;
+  // Labs own their own full-viewport simulation and must not silently mount a
+  // second production mascot over the rig being inspected.
+  if (
+    !ready ||
+    disabled ||
+    pathname === "/motion-lab" ||
+    pathname === "/octopod-lab" ||
+    pathname === "/creature-lab"
+  ) {
+    return null;
+  }
 
   return (
     <>
