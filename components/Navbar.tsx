@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import MenuToggle from "./ui/MenuToggle";
 import Socials from "./ui/Socials";
 import { Button } from "./ui/Buttons";
-import { ScrollText } from "lucide-react";
-import resume_link from "@/constants/resume";
+import { BookOpen, ScrollText } from "lucide-react";
+import resumeLink from "@/constants/resume";
 import { OBSTACLE_INVALIDATE_EVENT } from "@/lib/mascot/interaction/DomObstacleRegistry";
 
 import AboutmePic from "@/public/AboutMePic.jpg";
@@ -47,6 +47,12 @@ const navSections = [
     title: "Contact",
     subHeading: `Common I am here to help`,
     image: contact,
+  },
+  {
+    title: "Archive",
+    subHeading: `writing, references and rare questions`,
+    image: programming,
+    href: "/blog",
   },
 ];
 export default function Navbar() {
@@ -116,7 +122,7 @@ export default function Navbar() {
       >
         <Button className="absolute right-[calc(3%+24px+1.5rem)] top-[22px] z-[1000] select-none p-0 text-xs sm:text-sm md:top-[38px]">
           <a
-            href={resume_link}
+            href={resumeLink}
             target="_blank"
             aria-label="View resume"
             className="flex items-center justify-center gap-2 p-2"
@@ -125,6 +131,19 @@ export default function Navbar() {
             View Resume
           </a>
         </Button>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.08, ease: "easeIn" }}
+      >
+        <Link
+          href="/blog"
+          className="border-white/20 text-white/70 absolute right-[calc(3%+24px+1.5rem+124px)] top-[22px] z-[1000] hidden select-none items-center gap-2 border px-3 py-2 font-data text-[10px] uppercase tracking-[0.12em] transition-colors hover:border-primary hover:text-primary sm:flex md:top-[38px]"
+        >
+          <BookOpen className="w-[15px]" aria-hidden="true" />
+          Archive
+        </Link>
       </motion.div>
       <MenuToggle menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
@@ -171,7 +190,11 @@ export default function Navbar() {
                       heading={navSection.title}
                       subheading={navSection.subHeading}
                       imgSrc={navSection.image}
-                      href={`#${navSection.title.toLowerCase()}`}
+                      href={
+                        "href" in navSection
+                          ? navSection.href
+                          : `#${navSection.title.toLowerCase()}`
+                      }
                       onClick={() => setMenuOpen(false)}
                     />
                   </motion.li>
