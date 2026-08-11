@@ -2,6 +2,7 @@
 
 ## Active
 
+- [x] 2026-08-11: 404 Brick Breaker — breakable 404 blocks, power-ups, win/lose overlays
 - [x] 2026-08-09: Disable mascot fish ↔ musical string contacts on mobile
 - [x] 2026-08-09: Fix Vercel pnpm frozen-lockfile failure — sync lockfile after adding tsx
 - [x] 2026-08-09: Fix adult mascot silhouette — ~60-joint long cute tail + smaller mouth as it grows
