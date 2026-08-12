@@ -12,7 +12,6 @@ import { OBSTACLE_INVALIDATE_EVENT } from "@/lib/mascot/interaction/DomObstacleR
 
 import AboutmePic from "@/public/AboutMePic.jpg";
 import contact from "@/public/Fluency Zoom Logo.png";
-import hobbi from "@/public/3D Windows Developer Symbols.png";
 import ai from "@/public/AI Isometric Lettering.png";
 import programming from "@/public/Programmer coding laptop.png";
 import skills from "@/public/Skills clipart gleam.png";
@@ -21,10 +20,10 @@ import { CommandPaletteTrigger } from "./command-palette/CommandPalette";
 import { SSSignature } from "./ss-logo/SSSignature";
 const navSections = [
   {
-    title: "About",
-    subHeading: `Something Not To be Told`,
+    title: "At a glance",
+    subHeading: `identity, strengths, and verified outcomes`,
     image: AboutmePic,
-    href: "/#about",
+    href: "/#proof",
   },
   {
     title: "Experience",
@@ -33,22 +32,16 @@ const navSections = [
     href: "/#trail-map",
   },
   {
-    title: "Projects",
-    subHeading: `Things i give my commitment to`,
+    title: "Case Studies",
+    subHeading: `three systems with decisions and proof`,
     image: programming,
-    href: "/#mission-select",
+    href: "/#case-studies",
   },
   {
-    title: "Skills",
-    subHeading: `You Don't see what's real`,
+    title: "Systems Lab",
+    subHeading: `playable experiments with documentation`,
     image: ai,
-    href: "/#pattern-library",
-  },
-  {
-    title: "Hobbies",
-    subHeading: `loves to do`,
-    image: hobbi,
-    href: "/#field-notes",
+    href: "/systems",
   },
   {
     title: "Learning",
@@ -58,7 +51,7 @@ const navSections = [
   },
   {
     title: "Contact",
-    subHeading: `Common I am here to help`,
+    subHeading: `availability, email, and collaboration`,
     image: contact,
     href: "/#contact",
   },
@@ -115,7 +108,7 @@ export default function Navbar() {
     <>
       <div
         data-mascot-obstacle="hard"
-        className="fixed left-[3%] top-5 z-[1001] scale-90 select-none text-xs sm:scale-100 md:top-8"
+        className="fixed left-[3%] top-3 z-[1001] scale-[0.82] select-none text-xs sm:top-4 sm:scale-90 md:top-5"
       >
         <Link
           href={"/#hero"}
@@ -131,7 +124,7 @@ export default function Navbar() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeIn" }}
       >
-        <Button className="fixed right-[calc(3%+24px+1.25rem)] top-[14px] z-[1000] select-none p-0 text-[10px] sm:text-xs md:top-[25px]">
+        <Button className="fixed right-[calc(3%+24px+1.25rem)] top-[10px] z-[1000] select-none p-0 text-[10px] sm:top-[14px] sm:text-xs md:top-[17px]">
           <a
             href={resumeLink}
             target="_blank"
@@ -150,7 +143,7 @@ export default function Navbar() {
         transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
         aria-label="Signal Archive"
         data-mascot-obstacle="hard"
-        className="border-white/20 bg-black/60 fixed inset-x-[3%] top-[58px] z-[999] flex select-none items-stretch overflow-x-auto border shadow-[0_14px_40px_rgba(0,0,0,0.24)] backdrop-blur-md md:top-[72px] lg:left-1/2 lg:right-auto lg:top-[22px] lg:-translate-x-1/2"
+        className="border-white/20 bg-black/50 fixed inset-x-[3%] top-[54px] z-[999] flex select-none items-stretch overflow-x-auto border shadow-[0_14px_40px_rgba(0,0,0,0.22)] backdrop-blur-lg sm:top-[60px] lg:left-1/2 lg:right-auto lg:top-[18px] lg:-translate-x-1/2"
       >
         <span className="border-white/10 text-white/40 hidden items-center border-r px-3 font-data text-[7px] uppercase tracking-[0.18em] xl:flex">
           Signal archive

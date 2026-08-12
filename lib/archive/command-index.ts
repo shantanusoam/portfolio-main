@@ -4,13 +4,15 @@ import {
   raqEntries,
   talkEntries,
 } from "./data";
+import { systemsRegistry } from "@/lib/portfolio/evidence";
 
 export type CommandEntryKind =
   | "page"
   | "article"
   | "reference"
   | "screening"
-  | "question";
+  | "question"
+  | "system";
 
 export interface CommandEntry {
   id: string;
@@ -33,11 +35,11 @@ const pageEntries: CommandEntry[] = [
     kind: "page",
   },
   {
-    id: "page-about",
-    name: "About the studio",
-    subtitle: "Approach, principles and working style",
-    href: "/#about",
-    keywords: "about studio process",
+    id: "page-proof",
+    name: "Proof at a glance",
+    subtitle: "Verified outcomes and the work behind them",
+    href: "/#proof",
+    keywords: "proof metrics outcomes impact",
     section: "Navigate",
     kind: "page",
   },
@@ -52,18 +54,18 @@ const pageEntries: CommandEntry[] = [
   },
   {
     id: "page-projects",
-    name: "Project missions",
-    subtitle: "Selected case studies and builds",
-    href: "/#mission-select",
+    name: "Flagship case studies",
+    subtitle: "Three systems with decisions and build traces",
+    href: "/#case-studies",
     keywords: "projects work case studies",
     section: "Navigate",
     kind: "page",
   },
   {
     id: "page-lab",
-    name: "Maker lab",
-    subtitle: "Interactive experiments and prototypes",
-    href: "/#maker-lab",
+    name: "Systems Lab",
+    subtitle: "Playable experiments with engineering notes",
+    href: "/systems",
     keywords: "maker lab experiments hardware",
     section: "Navigate",
     kind: "page",
@@ -118,6 +120,17 @@ const pageEntries: CommandEntry[] = [
 export function createCommandIndex(): CommandEntry[] {
   return [
     ...pageEntries,
+    ...systemsRegistry.map(
+      (entry): CommandEntry => ({
+        id: `system-${entry.slug}`,
+        name: entry.name,
+        subtitle: `${entry.status} · ${entry.tech.join(" / ")}`,
+        href: `/systems/${entry.slug}`,
+        keywords: `${entry.description} ${entry.tech.join(" ")}`,
+        section: "Systems Lab",
+        kind: "system",
+      }),
+    ),
     ...archiveArticles.map(
       (article): CommandEntry => ({
         id: `article-${article.slug}`,

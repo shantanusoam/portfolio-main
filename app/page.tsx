@@ -1,161 +1,60 @@
-"use client";
-
-import Experience from "@/components/Experience";
-import Hero from "@/components/Hero";
-import AboutStudioSection from "@/components/AboutStudioSection";
-import ComboMeter from "@/components/ComboMeter";
-import PatternLibrary from "@/components/PatternLibrary";
-import MakerLab from "@/components/MakerLab";
-import PretextCopyLab from "@/components/PretextCopyLab";
-import Projects from "@/components/Projects";
-import { useEffect, useState } from "react";
-import {
-  motion,
-  useAnimate,
-  useScroll,
-  useSpring,
-  useTransform,
-  useVelocity,
-} from "framer-motion";
-import Socials from "@/components/ui/Socials";
-import ScrollDown from "@/components/ui/ScrollDown";
-import Hobbies from "@/components/Hobbies";
+import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
-import Contact from "@/components/Contact";
-import Image from "next/image";
-import slanting_lines from "@/public/slanting_lines.svg";
-import Footer from "@/components/Footer";
-import { MousePosition } from "@uidotdev/usehooks";
-import { useMousePosition } from "@/hooks/useMousePosition";
-import StickyCursor from "@/components/ui/stickyCursor/StickyCursor";
-import ComboTrail from "@/components/ui/ComboTrail";
-import EntranceWipe from "@/components/ui/EntranceWipe";
-import SecretArcade from "@/components/easter-egg/SecretArcade";
+import Hero from "@/components/Hero";
+import ProofStrip from "@/components/home/ProofStrip";
+import FlagshipCaseStudies from "@/components/home/FlagshipCaseStudies";
+import SystemsLabPreview from "@/components/home/SystemsLabPreview";
+import EvidenceExperience from "@/components/home/EvidenceExperience";
+import LatestNotes from "@/components/home/LatestNotes";
+import CredibilityPanel from "@/components/home/CredibilityPanel";
+import ContactAvailability from "@/components/home/ContactAvailability";
+import BuildInfoFooter from "@/components/home/BuildInfoFooter";
+import HomeInteractiveLayer from "@/components/home/HomeInteractiveLayer";
 
-function MaskedCopy() {
-  const [isHovered, setIsHovered] = useState(false);
-  const { x, y } = useMousePosition();
+export const metadata: Metadata = {
+  title: "Shantanu Soam — Creative Systems Engineer",
+  description: "Product engineering, interactive systems, measurable outcomes, and a playable lab of original interface experiments.",
+  alternates: { canonical: "/" },
+};
 
-  const size = isHovered ? 400 : 40;
-  return (
-    <motion.div
-      className="Pointermask absolute inset-0  z-10"
-      animate={{
-        WebkitMaskPosition: `${(x ?? 0) - size / 2}px ${(y ?? 0) - size / 2}px`,
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://shantanusoam.vercel.app/#person",
+      name: "Shantanu Soam",
+      url: "https://shantanusoam.vercel.app",
+      jobTitle: "Creative Systems Engineer",
+      sameAs: ["https://github.com/shantanusoam", "https://www.linkedin.com/in/shantanusoam/"],
+      knowsAbout: ["Next.js", "React", "TypeScript", "Interactive systems", "AI agents", "Canvas animation"],
+    },
+    {
+      "@type": "ProfilePage",
+      name: "Shantanu Soam — Creative Systems Engineer",
+      url: "https://shantanusoam.vercel.app",
+      mainEntity: { "@id": "https://shantanusoam.vercel.app/#person" },
+    },
+  ],
+};
 
-        WebkitMaskSize: `${size}px`,
-      }}
-      transition={{ type: "tween", ease: "backOut", duration: 0.5 }}
-    >
-      <div className="container">
-        <Hero masked={true} />
-        <AboutStudioSection />
-        <Experience />
-        <Projects />
-        <ComboMeter />
-        <Hobbies />
-      </div>
-    </motion.div>
-  );
-}
 export default function Home() {
-  const [socialsRef, animateSocials] = useAnimate();
-  const [scrollDownRef, animateScrollDown] = useAnimate();
-  const { scrollYProgress } = useScroll();
-  const xVelocity = useVelocity(scrollYProgress);
-  const xTransform = useTransform(
-    useSpring(scrollYProgress, {
-      stiffness: 100,
-      damping: 25,
-      restDelta: 0.001,
-    }),
-    [0, 1],
-    ["50%", "-50%"]
-  );
-  useEffect(() => {
-    return xVelocity.on("change", (latestVelocity) => {
-      if (socialsRef.current && window.getComputedStyle(socialsRef.current).display != "none") {
-        if (latestVelocity > 0 && socialsRef.current.style.opacity != 0) {
-          animateSocials(
-            socialsRef.current,
-            { opacity: 0 },
-            { duration: 0.1, ease: "easeInOut" }
-          );
-          animateScrollDown(
-            scrollDownRef.current,
-            { opacity: 0 },
-            { duration: 0.1, ease: "easeInOut" }
-          );
-        }
-
-        if (latestVelocity < 0 && socialsRef.current.style.opacity != 1) {
-          animateSocials(
-            socialsRef.current,
-            { opacity: 1 },
-            { duration: 0.1, ease: "easeInOut" }
-          );
-          animateScrollDown(
-            scrollDownRef.current,
-            { opacity: 1 },
-            { duration: 0.1, ease: "easeInOut" }
-          );
-        }
-      }
-    });
-  }, []);
-
   return (
     <>
-      <div className="relative">
-        <EntranceWipe />
-        <ComboTrail />
-        <StickyCursor />
-        <SecretArcade />
-        {/* <MaskedCopy /> */}
-        <Navbar />
-        <Socials containerRef={socialsRef} />
-        <main className="text-clip">
-          <div className="container">
-            <Hero masked={false} />
-            <AboutStudioSection />
-            <Experience />
-            <Projects />
-            <PatternLibrary />
-            <PretextCopyLab />
-            <ComboMeter />
-            <MakerLab />
-            <Hobbies />
-          </div>
-          <div className="overflow-x-hidden md:overflow-x-visible">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: 1,
-                transition: {
-                  duration: 0.6,
-                  delay: 0.4,
-                  ease: "easeInOut",
-                },
-              }}
-              viewport={{ once: true }}
-              style={{ x: xTransform }}
-              className="mt-12 w-[200%] select-none "
-            >
-              <Image
-                src={slanting_lines}
-                alt="Slanting lines"
-                className="h-[130px] w-full -rotate-6 object-cover sm:h-[170px]"
-              />
-            </motion.div>
-          </div>
-
-          <div className="container">
-            <Contact />
-            <Footer />
-          </div>
-        </main>
-        <ScrollDown ref={scrollDownRef} />
-      </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <HomeInteractiveLayer />
+      <Navbar />
+      <main>
+        <Hero masked={false} />
+        <ProofStrip />
+        <FlagshipCaseStudies />
+        <SystemsLabPreview />
+        <EvidenceExperience />
+        <LatestNotes />
+        <CredibilityPanel />
+        <ContactAvailability />
+      </main>
+      <BuildInfoFooter />
     </>
   );
 }

@@ -1,7 +1,7 @@
-import React from "react";
+import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 
-const ScrollingText = ({ children }) => {
+const ScrollingText = ({ children }: { children: ReactNode }) => {
   const scrollVariants = {
     animate: {
       y: [-100, 200], // Adjust these values based on your text height and container

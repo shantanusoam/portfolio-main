@@ -29,11 +29,6 @@ export const fieldNotes: FieldNote[] = [
   { id: 'painting1', category: 'design', title: 'A night sky painting', caption: 'Paint before code, most days.', image: painting1 },
   { id: 'painting2', category: 'design', title: 'Another one of my paintings', caption: 'Still figuring out the palette.', image: painting2 },
 
-  // PLACEHOLDER-PENDING-REAL-CONTENT: no specific book titles given yet —
-  // swap title/caption/image once real entries are chosen.
-  { id: 'book-1', category: 'books', title: '[PLACEHOLDER] Book title', caption: '[PLACEHOLDER] one-line takeaway', image: null, isPlaceholder: true },
-  { id: 'book-2', category: 'books', title: '[PLACEHOLDER] Book title', caption: '[PLACEHOLDER] one-line takeaway', image: null, isPlaceholder: true },
-
   // Real — grounded in the actual hardware/robotics work (full write-up at
   // /projects/hardware-prototypes and the Maker Lab section).
   {

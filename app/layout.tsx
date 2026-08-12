@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   title: "Shantanu Soam — Creative Systems Engineer",
   description:
     "A creative systems engineer building fast software, playful interfaces, AI tools, and hardware experiments.",
+  alternates: { canonical: "/" },
+  authors: [{ name: "Shantanu Soam", url: "https://shantanusoam.vercel.app" }],
+  creator: "Shantanu Soam",
+  publisher: "Shantanu Soam",
+  robots: { index: true, follow: true },
   openGraph: {
     type: "website",
     siteName: "Shantanu Soam's Portfolio",
@@ -26,9 +31,18 @@ export const metadata: Metadata = {
       "A creative systems engineer building fast software, playful interfaces, AI tools, and hardware experiments.",
     images: [
       {
-        url: "https://portfolio-main-jkzj-git-main-shantanusoams-projects.vercel.app/logo.png",
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Shantanu Soam — Creative Systems Engineer",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shantanu Soam — Creative Systems Engineer",
+    description: "Product engineering, interactive systems, and a playable lab of original experiments.",
+    images: ["/opengraph-image"],
   },
   keywords: [
     "portfolio",

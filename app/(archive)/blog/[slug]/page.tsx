@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ArticleReader from "@/components/archive/ArticleReader";
 import { archiveArticles, getArticle } from "@/lib/archive/data";
+import { noteCoverBySlug } from "@/lib/portfolio/evidence";
 
 interface ArticlePageProps {
   params: { slug: string };
@@ -17,6 +18,13 @@ export function generateMetadata({ params }: ArticlePageProps): Metadata {
   return {
     title: `${article.title} — Shantanu Soam`,
     description: article.dek,
+    alternates: { canonical: `/blog/${article.slug}` },
+    openGraph: {
+      type: "article",
+      title: article.title,
+      description: article.dek,
+      images: [noteCoverBySlug[article.slug] ?? "/proof-assets/notes/portfolio-product.webp"],
+    },
   };
 }
 

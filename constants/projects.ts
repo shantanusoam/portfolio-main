@@ -3,11 +3,10 @@ import { MissionType } from '@/@types/mission.type';
 import maan from '@/public/maan.png';
 import vampire from '@/public/vampire.png';
 import vampire2 from '@/public/vampire2.png';
-import cryptocat_cover from '@/public/cryptocat.png';
-import cryptocat_screenshot2 from '@/public/cryptocat2.png';
-import cryptocat_screenshot1 from '@/public/cryptocat1.png';
-import cryptocat_screenshot0 from '@/public/cryptocat0.jpg';
-import serious_cover from '@/public/serious1.png';
+import cryptoCatCover from '@/public/cryptocat.png';
+import cryptoCatScreenshot2 from '@/public/cryptocat2.png';
+import cryptoCatScreenshot1 from '@/public/cryptocat1.png';
+import cryptoCatScreenshot0 from '@/public/cryptocat0.jpg';
 import SeriousScreenshot7 from '@/public/serious0.png';
 
 import SeriousScreenshot0 from '@/public/serious1.png';
@@ -20,11 +19,11 @@ import SeriousScreenshot4 from '@/public/serious7.png';
 import DndCover from '@/public/dnd-kit-folder.png';
 import Dndscreenshot from '@/public/dnd-drag.png';
 
-import arnomis_cover from '@/public/arnomis0.png';
-import arnomis_screenshot0 from '@/public/arnomis2.png';
+import ArnomisCover from '@/public/arnomis0.png';
+import ArnomisScreenshot0 from '@/public/arnomis2.png';
 
-import Bemo_cover from '@/public/BemoCover.png';
-import Bemo_screenshot0 from '@/public/Bemo.png';
+import BemoCover from '@/public/BemoCover.png';
+import BemoScreenshot0 from '@/public/Bemo.png';
 
 export const projects: MissionType[] = [
 
@@ -41,7 +40,7 @@ export const projects: MissionType[] = [
       'Custom trigger element',
       'Custom drag Element.',
       'Multi nth level submenu support',
-      'Automatic State update and Postion generation',
+      'Automatic state updates and position generation',
       'Auto positioning of each dnd-item',
       'Enhanced user interactions with auto-positioning for each DnD item, utilizing comprehensive DnD-kit helpers.',
     ],
@@ -69,17 +68,17 @@ export const projects: MissionType[] = [
     cover_image: maan,
     screenshots: [maan, maan],
     description:
-      'A Journal Entry App With Integrated AI - and a Freind (Themed Hello Kitty 😸)',
+      'An AI-assisted journal with an expressive companion and a playful Hello Kitty theme.',
     url: '/projects/maan',
     features: [
       'The application allows users to log in and manage journal entries.',
       'The entries are analyzed and given an AI-generated sentiment value, summary, and color.',
-      'U can also ask and search from whole entry arabatereley while asking casually using LLM',
+      'Conversational search across the full journal history using an LLM.',
       'Get Graph Based results of user sentimental score throughout whole month',
       'End-End Encryption With Encrypted notes and in app storage',
     ],
     skills: {
-      Backend: ['NestJS', 'TypeScript', 'Prisma', 'Longchain', 'PlanetScale'],
+      Backend: ['NestJS', 'TypeScript', 'Prisma', 'LangChain', 'PlanetScale'],
       Frontend: ['NextJS', 'Tailwind CSS'],
       Others: ['Open-AI'],
     },
@@ -101,14 +100,14 @@ export const projects: MissionType[] = [
     id: 'cryptocat',
     title: 'Crypto Cat',
     metadata: ['NFT Marketplace'],
-    cover_image: cryptocat_cover,
+    cover_image: cryptoCatCover,
     screenshots: [
-      cryptocat_screenshot0,
-      cryptocat_screenshot1,
-      cryptocat_screenshot2,
+      cryptoCatScreenshot0,
+      cryptoCatScreenshot1,
+      cryptoCatScreenshot2,
     ],
     url: '/projects/cryptocat',
-    description: 'NFT Marketplace for sellings cat like.',
+    description: 'A cat-themed NFT marketplace built as a self-directed Web3 experiment.',
     features: [
       'No libraries used. No gimmicks. Just plain old HTML, CSS and JS.',
       'Amazing sprite animations.',
@@ -132,7 +131,7 @@ export const projects: MissionType[] = [
     id: 'serious',
     title: 'Seriousblack',
     url: '/projects/serious',
-    cover_image: serious_cover,
+    cover_image: SeriousScreenshot0,
     screenshots: [
       SeriousScreenshot0,
       SeriousScreenshot7,
@@ -158,7 +157,8 @@ export const projects: MissionType[] = [
       Frontend: ['Nextjs', 'Redux'],
     },
     liveLink: 'https://dev-overflow-lilac.vercel.app/',
-    codeLink: 'https://github.com/shantanusoam/CryptoCat/tree/master',
+    codeLink: 'https://github.com/shantanusoam/serious-black',
+    sourceAvailability: 'private',
     class: 'Social Platform Engineer',
     specialMoves: [
       'Post recommendation engine',
@@ -179,7 +179,7 @@ export const projects: MissionType[] = [
     description: 'Filmpire a Movie recommending Website',
     url: '/projects/vampire',
     features: [
-      'The application allows users to Search diffrent Movies, stars, category and much more.',
+      'Search and discover movies, actors, categories, and related recommendations.',
     ],
     skills: {
       Frontend: ['Reactjs', ' Redux,', ' Material UI', 'Alan AI'],
@@ -200,8 +200,8 @@ export const projects: MissionType[] = [
     id: 'arnomis',
     title: 'arnomis',
     url: '/projects/arnomis',
-    cover_image: arnomis_cover,
-    screenshots: [arnomis_screenshot0],
+    cover_image: ArnomisCover,
+    screenshots: [ArnomisScreenshot0],
     description:
       'arnomis project, a comprehensive solution for tracking product prices on Amazon.',
     metadata: ['Utility'],
@@ -228,13 +228,13 @@ export const projects: MissionType[] = [
     id: 'BEMO',
     title: 'BEMO',
     url: '/projects/bemo',
-    cover_image: Bemo_cover,
-    screenshots: [Bemo_cover, Bemo_screenshot0],
+    cover_image: BemoCover,
+    screenshots: [BemoCover, BemoScreenshot0],
     description:
-      'A task Managment App to manage projects that i been working on',
+      'A project and task management app for organizing ongoing work.',
     metadata: ['Utility'],
     features: [
-      'A task Managment App to manage projects and task in those project while tracking progress of each project',
+      'Manage projects and nested tasks while tracking progress across each project.',
     ],
     skills: {
       Backend: ['prisma', 'Next'],
@@ -276,6 +276,7 @@ export const projects: MissionType[] = [
     },
     liveLink: 'https://www.nivabupa.com',
     codeLink: 'https://www.nivabupa.com',
+    sourceAvailability: 'client',
     class: 'Performance + Security Engineer',
     specialMoves: [
       'MongoDB indexing & nightly housekeeping',
@@ -311,6 +312,7 @@ export const projects: MissionType[] = [
     },
     liveLink: 'https://www.knowbuild.com',
     codeLink: 'https://www.knowbuild.com',
+    sourceAvailability: 'client',
     class: 'Systems Architect',
     specialMoves: [
       'Multi-tenant subdomain isolation',
@@ -345,6 +347,7 @@ export const projects: MissionType[] = [
     },
     liveLink: 'https://amala.earth',
     codeLink: 'https://amala.earth',
+    sourceAvailability: 'client',
     class: 'E-commerce Platform Engineer',
     specialMoves: [
       'Nested drag-and-drop variant builder',
@@ -358,7 +361,7 @@ export const projects: MissionType[] = [
   },
   // Real case study — bundles selected freelance/contract work rather than
   // one single deployed product, so liveLink/codeLink have no single canonical
-  // destination and are left as '#'.
+  // destination and are intentionally omitted.
   {
     id: 'freelance-engagements',
     title: 'Freelance & Contract Engagements',
@@ -378,8 +381,7 @@ export const projects: MissionType[] = [
       Frontend: ['Next.js', 'GSAP', 'Framer Motion'],
       Tooling: ['Storybook', 'Chromatic'],
     },
-    liveLink: '#',
-    codeLink: '#',
+    sourceAvailability: 'client',
     class: 'Full-stack Engineer (React Native / Creative Web)',
     specialMoves: [
       'AI-powered React Native app rearchitecture',
@@ -412,8 +414,7 @@ export const projects: MissionType[] = [
       Hardware: ['Arduino', 'Raspberry Pi'],
       Software: ['Python', 'JavaScript', 'Edge AI'],
     },
-    liveLink: '#',
-    codeLink: '#',
+    sourceAvailability: 'private',
     class: 'Robotics & Edge AI Engineer',
     specialMoves: [
       'Sensor-driven real-time control logic',

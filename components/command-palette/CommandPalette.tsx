@@ -20,6 +20,7 @@ import {
   Play,
   Search,
   Sparkles,
+  Wrench,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -32,6 +33,7 @@ import styles from "./commandPalette.module.css";
 const sectionPriority: Record<string, number> = {
   Navigate: 90,
   "Archive rooms": 80,
+  "Systems Lab": 75,
   Dispatches: 70,
   "Reference wall": 60,
   "Screening room": 50,
@@ -44,6 +46,7 @@ const kindIcon: Record<CommandEntryKind, ReactNode> = {
   reference: <Sparkles size={15} aria-hidden="true" />,
   screening: <Play size={15} aria-hidden="true" />,
   question: <MessageCircle size={15} aria-hidden="true" />,
+  system: <Wrench size={15} aria-hidden="true" />,
 };
 
 function CommandResults() {
