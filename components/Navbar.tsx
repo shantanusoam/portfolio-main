@@ -18,6 +18,7 @@ import programming from "@/public/Programmer coding laptop.png";
 import skills from "@/public/Skills clipart gleam.png";
 import HoverImageLink from "./HoverImageLink";
 import { CommandPaletteTrigger } from "./command-palette/CommandPalette";
+import { SSSignature } from "./ss-logo/SSSignature";
 const navSections = [
   {
     title: "About",
@@ -118,26 +119,11 @@ export default function Navbar() {
       >
         <Link
           href={"/#hero"}
-          className="group"
+          className="inline-block text-white transition-[color,filter] duration-500 hover:text-[#ff5d2f] hover:drop-shadow-[0_0_10px_rgba(255,93,47,0.5)]"
           onClick={() => setMenuOpen(false)}
           aria-label="Logo"
         >
-          <motion.svg
-            initial={{ opacity: 0, x: "-1.5rem" }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", bounce: 0.3 }}
-            width="24"
-            height="24"
-            viewBox="0 0 137 137"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M137 0H0V82.5H41.3223L61.6612 62.1612L79.3388 79.8388L51.6777 107.5H0V137H137V0Z"
-              fill="var(--white)"
-              className="transition-all duration-500 group-hover:fill-primary"
-            />
-          </motion.svg>
+          <SSSignature className="h-11 w-auto sm:h-14" aria-hidden />
         </Link>
       </div>
       <motion.div

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { CommandPaletteTrigger } from "@/components/command-palette/CommandPalette";
+import { SSLogo } from "@/components/ss-logo/SSLogo";
 import styles from "./archive.module.css";
 
 const archiveRoutes = [
@@ -14,19 +15,7 @@ const archiveRoutes = [
 ];
 
 function LogoMark() {
-  return (
-    <svg
-      className={styles.logoMark}
-      viewBox="0 0 137 137"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M137 0H0V82.5H41.3223L61.6612 62.1612L79.3388 79.8388L51.6777 107.5H0V137H137V0Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
+  return <SSLogo className={styles.logoMark} animated={false} decorative />;
 }
 
 export default function ArchiveShell({ children }: { children: ReactNode }) {

@@ -1,3 +1,26 @@
-<svg width="137" height="137" viewBox="0 0 137 137" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M137 0H0V82.5H41.3223L61.6612 62.1612L79.3388 79.8388L51.6777 107.5H0V137H137V0Z" fill="#0D0D0D"/>
+<svg width="884" height="480" viewBox="0 0 221 120" fill="none" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <title>Shantanu Soam stepped pixel SS monogram</title>
+  <rect width="221" height="120" fill="#0D0D0C"/>
+  <g fill="#F2F1EB">
+    <rect x="18" y="0" width="72" height="12"/>
+    <rect x="6" y="12" width="96" height="12"/>
+    <rect x="6" y="24" width="24" height="12"/>
+    <rect x="6" y="36" width="36" height="12"/>
+    <rect x="18" y="48" width="72" height="12"/>
+    <rect x="30" y="60" width="72" height="12"/>
+    <rect x="78" y="72" width="24" height="12"/>
+    <rect x="66" y="84" width="36" height="12"/>
+    <rect x="6" y="96" width="96" height="12"/>
+    <rect x="18" y="108" width="72" height="12"/>
+    <rect x="131" y="0" width="72" height="12"/>
+    <rect x="119" y="12" width="96" height="12"/>
+    <rect x="119" y="24" width="24" height="12"/>
+    <rect x="119" y="36" width="36" height="12"/>
+    <rect x="131" y="48" width="72" height="12"/>
+    <rect x="143" y="60" width="72" height="12"/>
+    <rect x="191" y="72" width="24" height="12"/>
+    <rect x="179" y="84" width="36" height="12"/>
+    <rect x="119" y="96" width="96" height="12"/>
+    <rect x="131" y="108" width="72" height="12"/>
+  </g>
 </svg>
