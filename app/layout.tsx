@@ -14,6 +14,7 @@ const inter = Inter({ subsets: ["latin"] });
 const commandEntries = createCommandIndex();
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://shantanusoam.vercel.app"),
   title: "Shantanu Soam — Creative Systems Engineer",
   description:
     "A creative systems engineer building fast software, playful interfaces, AI tools, and hardware experiments.",

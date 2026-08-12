@@ -32,7 +32,7 @@ export default function TextCarousel({
     if (prefersReducedMotion) return;
     const id = setInterval(
       () => setIndex((i) => (i + 1) % greetings.length),
-      interval
+      interval,
     );
     return () => clearInterval(id);
   }, [greetings.length, interval, prefersReducedMotion]);
@@ -70,8 +70,8 @@ export default function TextCarousel({
           },
         }}
         className={cn(
-          "absolute select-none whitespace-nowrap text-center text-[4.5rem] font-black tracking-tight md:text-[6.5rem]",
-          className
+          "absolute select-none whitespace-nowrap text-center text-[clamp(3.2rem,15vw,4.5rem)] font-black tracking-tight md:text-[6.5rem]",
+          className,
         )}
       >
         {greetings[index]}

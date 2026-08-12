@@ -1,3 +1,4 @@
+import Image from "next/image";
 import styles from "./archive.module.css";
 
 interface ArchiveHeroProps {
@@ -7,6 +8,11 @@ interface ArchiveHeroProps {
   description: string;
   status: string;
   updated?: string;
+  artwork: {
+    src: string;
+    alt: string;
+    label: string;
+  };
 }
 
 export default function ArchiveHero({
@@ -16,6 +22,7 @@ export default function ArchiveHero({
   description,
   status,
   updated,
+  artwork,
 }: ArchiveHeroProps) {
   return (
     <section className={styles.hero}>
@@ -36,6 +43,19 @@ export default function ArchiveHero({
           )}
         </div>
       </div>
+      <figure className={styles.heroArtwork}>
+        <Image
+          src={artwork.src}
+          alt={artwork.alt}
+          fill
+          priority
+          sizes="(max-width: 760px) 92vw, (max-width: 1200px) 38vw, 520px"
+        />
+        <figcaption>
+          <span>{artwork.label}</span>
+          <span aria-hidden="true">↘</span>
+        </figcaption>
+      </figure>
     </section>
   );
 }

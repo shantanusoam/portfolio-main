@@ -115,7 +115,7 @@ export default function Hero({ masked }: HeroProps) {
         style={{ opacity }}
         ref={sectionRef}
         onMouseMove={resetIdleTimer}
-        className="relative isolate flex max-h-[1080px] min-h-[100svh] w-full items-center overflow-hidden px-[clamp(1.25rem,6vw,6rem)] py-[clamp(5.5rem,10vh,7.5rem)]"
+        className="relative isolate flex min-h-[88svh] w-full items-center overflow-hidden px-[clamp(1.1rem,6vw,6rem)] pb-[clamp(2rem,5vh,4.5rem)] pt-[clamp(7rem,14vh,8.25rem)] md:min-h-[96svh] md:py-[clamp(5.5rem,10vh,7.5rem)]"
       >
         {/* Same ChatGPT linen tile as the page body — even weave, so repeat
             (not cover) keeps the thread scale honest. Soft bottom fade keeps
@@ -132,22 +132,22 @@ export default function Hero({ masked }: HeroProps) {
         {/* Reason: one centered column keeps name + CTAs + instrument as a
             single composition — avoids the old 1fr/self-end stack that left
             a large empty band above the copy. */}
-        <div className="relative z-[996] mx-auto flex w-full max-w-[1200px] flex-col items-center justify-center gap-[clamp(1.25rem,3.5vh,2.75rem)]">
+        <div className="relative z-[996] mx-auto flex w-full max-w-[1120px] flex-col items-center justify-center gap-[clamp(0.85rem,2.5vh,2rem)]">
           {/* Decorative perch rails — pointer-events none so they never steal
               CTA clicks; mascot lands on top edges via data-mascot-perch. */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-[8%] top-[18%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            className="via-white/20 pointer-events-none absolute inset-x-[8%] top-[18%] h-px bg-gradient-to-r from-transparent to-transparent"
             data-mascot-perch="rail"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-[18%] top-[42%] h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent"
+            className="via-primary/25 pointer-events-none absolute inset-x-[18%] top-[42%] h-px bg-gradient-to-r from-transparent to-transparent"
             data-mascot-perch="rail"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-[12%] bottom-[22%] h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
+            className="via-white/10 pointer-events-none absolute inset-x-[12%] bottom-[22%] h-px bg-gradient-to-r from-transparent to-transparent"
             data-mascot-perch="rail"
           />
 
@@ -157,11 +157,11 @@ export default function Hero({ masked }: HeroProps) {
             variants={{ show: { transition: { staggerChildren: stagger } } }}
             initial="hidden"
             animate="show"
-            className="flex w-full flex-col items-center justify-center gap-[clamp(0.4rem,1.2vh,0.85rem)] text-center"
+            className="flex w-full flex-col items-center justify-center gap-[clamp(0.35rem,1vh,0.75rem)] text-center"
           >
             <motion.div
               variants={contentVariants}
-              className="relative flex h-[clamp(3.25rem,9vh,5.5rem)] w-full items-center justify-center overflow-hidden"
+              className="relative flex h-[clamp(3rem,7.5vh,5rem)] w-full items-center justify-center overflow-hidden"
               data-mascot-interest="hero"
             >
               <TextCarousel
@@ -179,7 +179,7 @@ export default function Hero({ masked }: HeroProps) {
             <motion.h1
               variants={contentVariants}
               className={cn(
-                "font-display text-[clamp(2.5rem,6.2vw,5.5rem)] uppercase leading-[0.92] tracking-wide text-white",
+                "font-display text-[clamp(2.15rem,6vw,5.25rem)] uppercase leading-[0.92] tracking-wide text-white",
                 isIdle && "animate-breathe",
               )}
               data-mascot-interest="hero"
@@ -208,7 +208,7 @@ export default function Hero({ masked }: HeroProps) {
 
             <motion.nav
               variants={contentVariants}
-              className="mt-[clamp(0.15rem,0.6vh,0.5rem)] flex flex-wrap items-center justify-center gap-x-[clamp(1rem,4vw,3rem)] gap-y-2 font-mono text-[clamp(0.62rem,1vw,0.8rem)] uppercase tracking-widest"
+              className="mt-[clamp(0.1rem,0.5vh,0.4rem)] grid grid-cols-2 items-center justify-center gap-x-4 gap-y-2 font-mono text-[clamp(0.58rem,1vw,0.78rem)] uppercase tracking-widest sm:flex sm:flex-wrap sm:gap-x-[clamp(1rem,4vw,3rem)]"
             >
               {START_MENU.map((item) => (
                 <Link
@@ -228,7 +228,7 @@ export default function Hero({ masked }: HeroProps) {
 
           {/* The instrument is part of the composition instead of being
               absolutely pinned, so short screens cannot crop or detach it. */}
-          <div className="mx-auto w-full max-w-[1100px]">
+          <div className="mx-auto w-full max-w-[1020px]">
             <StringInstrument />
           </div>
         </div>

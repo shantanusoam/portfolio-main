@@ -20,6 +20,11 @@ export default function BlogPage() {
         title="Notes from the workshop"
         description="Systems, interfaces, agents, experiments—and the mistakes between them. The useful parts get revised instead of buried."
         status={`${archiveArticles.length} transmissions online`}
+        artwork={{
+          src: "/signal-archive/dispatches-split-brain.webp",
+          alt: "Two mechanical hemispheres connected by orange signal wires",
+          label: "Artifact 01 / Intent ↔ execution",
+        }}
       />
       <ArchiveDirectory />
       <BlogExplorer />
