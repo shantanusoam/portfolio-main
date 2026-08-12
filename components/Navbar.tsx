@@ -45,6 +45,12 @@ const navSections = [
     image: hobbi,
   },
   {
+    title: "Learning",
+    subHeading: `what i'm building right now`,
+    image: ai,
+    href: "/learning",
+  },
+  {
     title: "Contact",
     subHeading: `Common I am here to help`,
     image: contact,
