@@ -225,7 +225,7 @@
 
 @media (max-width: 767px) {
   .instrument {
-    height: clamp(6.75rem, 18vh, 8rem);
+    height: clamp(5.75rem, 14vh, 7rem);
   }
 
   .legend {

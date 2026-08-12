@@ -20,6 +20,11 @@ export default function InspoPage() {
         description="A living evidence board for the moments when my own taste gets noisy. Every save includes the detail that made it worth keeping."
         status={`${inspirationEntries.length} references in rotation`}
         updated="15.05.2026"
+        artwork={{
+          src: "/signal-archive/inspo-specimen-table.webp",
+          alt: "A table of translucent interface specimens and tactile controls",
+          label: "Artifact 02 / Collected interfaces",
+        }}
       />
       <InspoWall />
     </main>

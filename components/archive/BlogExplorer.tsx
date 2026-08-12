@@ -23,7 +23,12 @@ export default function BlogExplorer() {
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      const target = event.target as HTMLElement | null;
+      const isTyping =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable;
+      if (!isTyping && event.key === "/") {
         event.preventDefault();
         searchRef.current?.focus();
       }
@@ -76,9 +81,9 @@ export default function BlogExplorer() {
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search ideas, systems, mistakes…"
               type="search"
-              aria-keyshortcuts="Meta+K Control+K"
+              aria-keyshortcuts="/"
             />
-            <span className={styles.shortcut}>⌘ K</span>
+            <span className={styles.shortcut}>/</span>
           </label>
 
           <div className={styles.filterWrap} aria-label="Article categories">

@@ -20,6 +20,11 @@ export default function WorthYourTimePage() {
         description="People explaining things they had to learn the hard way. Choose the time you have; every recommendation explains what it will give back."
         status={`${talkEntries.length} screenings indexed`}
         updated="04.11.2024"
+        artwork={{
+          src: "/signal-archive/screening-console.webp",
+          alt: "An analog screening console with reels and a glowing play control",
+          label: "Artifact 03 / No-feed cinema",
+        }}
       />
       <ScreeningRoom />
     </main>

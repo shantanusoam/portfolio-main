@@ -19,6 +19,11 @@ export default function RaqPage() {
         title="Questions that made me stop"
         description="Asked only once or twice, but interesting enough to answer before I could make the response sound impressive."
         status={`${raqEntries.length} answers under redaction`}
+        artwork={{
+          src: "/signal-archive/raq-redaction-stack.webp",
+          alt: "A stack of translucent archive cards held beneath black redaction bars",
+          label: "Artifact 04 / Selective disclosure",
+        }}
       />
       <RaqDeck />
     </main>

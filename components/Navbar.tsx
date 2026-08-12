@@ -23,26 +23,31 @@ const navSections = [
     title: "About",
     subHeading: `Something Not To be Told`,
     image: AboutmePic,
+    href: "/#about",
   },
   {
     title: "Experience",
     subHeading: `companies i worked for`,
     image: skills,
+    href: "/#trail-map",
   },
   {
     title: "Projects",
     subHeading: `Things i give my commitment to`,
     image: programming,
+    href: "/#mission-select",
   },
   {
     title: "Skills",
     subHeading: `You Don't see what's real`,
     image: ai,
+    href: "/#pattern-library",
   },
   {
     title: "Hobbies",
     subHeading: `loves to do`,
     image: hobbi,
+    href: "/#field-notes",
   },
   {
     title: "Learning",
@@ -54,6 +59,7 @@ const navSections = [
     title: "Contact",
     subHeading: `Common I am here to help`,
     image: contact,
+    href: "/#contact",
   },
   {
     title: "Archive",
@@ -64,10 +70,15 @@ const navSections = [
 ];
 
 const archiveLinks = [
-  { href: "/blog", index: "01", label: "Blog" },
-  { href: "/inspo", index: "02", label: "Inspo" },
-  { href: "/worth-your-time", index: "03", label: "Worth your time" },
-  { href: "/raq", index: "04", label: "RAQ" },
+  { href: "/blog", index: "01", label: "Blog", compact: "Blog" },
+  { href: "/inspo", index: "02", label: "Inspo", compact: "Inspo" },
+  {
+    href: "/worth-your-time",
+    index: "03",
+    label: "Worth your time",
+    compact: "Worth",
+  },
+  { href: "/raq", index: "04", label: "RAQ", compact: "RAQ" },
 ];
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -103,7 +114,7 @@ export default function Navbar() {
     <>
       <div
         data-mascot-obstacle="hard"
-        className="fixed left-[3%] top-8 z-[1001] scale-90 select-none text-xs sm:scale-100 md:top-12"
+        className="fixed left-[3%] top-5 z-[1001] scale-90 select-none text-xs sm:scale-100 md:top-8"
       >
         <Link
           href={"/#hero"}
@@ -134,15 +145,16 @@ export default function Navbar() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeIn" }}
       >
-        <Button className="absolute right-[calc(3%+24px+1.5rem)] top-[22px] z-[1000] select-none p-0 text-xs sm:text-sm md:top-[38px]">
+        <Button className="fixed right-[calc(3%+24px+1.25rem)] top-[14px] z-[1000] select-none p-0 text-[10px] sm:text-xs md:top-[25px]">
           <a
             href={resumeLink}
             target="_blank"
             aria-label="View resume"
-            className="flex items-center justify-center gap-2 p-2"
+            className="flex items-center justify-center gap-1.5 px-2.5 py-2"
           >
-            <ScrollText className="pointer-events-none w-[18px]" />
-            View Resume
+            <ScrollText className="pointer-events-none w-[15px]" />
+            <span className="hidden min-[390px]:inline">View Resume</span>
+            <span className="min-[390px]:hidden">CV</span>
           </a>
         </Button>
       </motion.div>
@@ -152,7 +164,7 @@ export default function Navbar() {
         transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
         aria-label="Signal Archive"
         data-mascot-obstacle="hard"
-        className="border-white/20 bg-black/80 fixed inset-x-[3%] top-[70px] z-[999] flex select-none items-stretch overflow-x-auto border backdrop-blur-xl md:top-[86px] lg:left-1/2 lg:right-auto lg:top-[30px] lg:-translate-x-1/2"
+        className="border-white/20 bg-black/60 fixed inset-x-[3%] top-[58px] z-[999] flex select-none items-stretch overflow-x-auto border shadow-[0_14px_40px_rgba(0,0,0,0.24)] backdrop-blur-md md:top-[72px] lg:left-1/2 lg:right-auto lg:top-[22px] lg:-translate-x-1/2"
       >
         <span className="border-white/10 text-white/40 hidden items-center border-r px-3 font-data text-[7px] uppercase tracking-[0.18em] xl:flex">
           Signal archive
@@ -161,12 +173,15 @@ export default function Navbar() {
           <Link
             href={item.href}
             key={item.href}
-            className="border-white/10 hover:bg-primary/10 group flex min-w-max flex-1 items-center gap-2 border-r px-3 py-2.5 font-data uppercase transition-colors last:border-r-0 hover:text-primary lg:flex-none lg:px-4"
+            className="border-white/10 hover:bg-primary/10 group flex min-w-max flex-1 items-center justify-center gap-1.5 border-r p-2 font-data uppercase transition-colors last:border-r-0 hover:text-primary sm:gap-2 sm:px-3 lg:flex-none lg:px-4"
           >
-            <span className="text-[7px] tracking-[0.12em] text-primary">
+            <span className="hidden text-[7px] tracking-[0.12em] text-primary sm:inline">
               {item.index}
             </span>
-            <span className="text-white/70 text-[8px] tracking-[0.1em] transition-colors group-hover:text-primary sm:text-[9px]">
+            <span className="text-white/70 text-[8px] tracking-[0.08em] transition-colors group-hover:text-primary sm:hidden">
+              {item.compact}
+            </span>
+            <span className="text-white/70 hidden text-[9px] tracking-[0.1em] transition-colors group-hover:text-primary sm:inline">
               {item.label}
             </span>
           </Link>
@@ -218,10 +233,7 @@ export default function Navbar() {
                       heading={navSection.title}
                       subheading={navSection.subHeading}
                       imgSrc={navSection.image}
-                      href={
-                        ("href" in navSection && navSection.href) ||
-                        `#${navSection.title.toLowerCase()}`
-                      }
+                      href={navSection.href}
                       onClick={() => setMenuOpen(false)}
                     />
                   </motion.li>
