@@ -12,7 +12,7 @@ const MINUTE = SECOND * 60;
 const HOUR = MINUTE * 60;
 const DAY = HOUR * 24;
 
-const ShiftingCountdown = ({ data }) => {
+const ShiftingCountdown = ({ data }: { data: number }) => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [remaining, setRemaining] = useState({
@@ -50,7 +50,7 @@ const ShiftingCountdown = ({ data }) => {
 
   return (
     <ToolTip data={`yohoooo ${data}+ years`}>
-      <div className=" text-white mx-auto flex w-fit max-w-5xl flex-wrap items-center justify-center gap-x-4 text-xs md:text-sm">
+      <div className=" mx-auto flex w-fit max-w-5xl flex-wrap items-center justify-center gap-x-4 text-xs text-white md:text-sm">
         <CountdownItem num={remaining.days} text="days" />
         <CountdownItem num={remaining.hours} text="hours" />
         <CountdownItem num={remaining.minutes} text="minutes" />
@@ -62,7 +62,7 @@ const ShiftingCountdown = ({ data }) => {
 
 const CountdownItem = ({ num, text }: { num: number; text: string }) => {
   return (
-    <div className="font-mono flex w-fit items-center justify-center gap-1.5 py-2">
+    <div className="flex w-fit items-center justify-center gap-1.5 py-2 font-mono">
       <div className="relative w-full overflow-hidden text-center">
         <AnimatePresence mode="popLayout">
           <motion.span
@@ -77,7 +77,7 @@ const CountdownItem = ({ num, text }: { num: number; text: string }) => {
           </motion.span>
         </AnimatePresence>
       </div>
-      <span className="text-xs md:text-sm lg:text-base font-bold">{text}</span>
+      <span className="text-xs font-bold md:text-sm lg:text-base">{text}</span>
     </div>
   );
 };

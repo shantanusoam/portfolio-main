@@ -136,7 +136,7 @@ export const experiences: ExperienceType[] = [
         type: "Full time",
       },
       {
-        role: "Assosiate WebDeveloper",
+        role: "Associate Web Developer",
         from: {
           month: "APR",
           year: 2021,

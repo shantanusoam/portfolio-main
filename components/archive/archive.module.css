@@ -749,7 +749,7 @@
 
 .readerHero {
   max-width: 1120px;
-  padding: clamp(112px, 14vw, 190px) 0 70px;
+  padding: clamp(108px, 12vw, 158px) 0 56px;
 }
 
 .backLink {
@@ -766,12 +766,12 @@
 }
 
 .readerTitle {
-  max-width: 1050px;
+  max-width: 920px;
   margin-top: 26px;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(58px, 8.5vw, 126px);
+  font-size: clamp(42px, 6.5vw, 88px);
   font-weight: 500;
-  line-height: 0.88;
+  line-height: 0.94;
   letter-spacing: -0.045em;
 }
 
@@ -781,6 +781,34 @@
   color: var(--archive-muted);
   font-size: clamp(18px, 2vw, 27px);
   line-height: 1.5;
+}
+
+.readerCover {
+  position: relative;
+  width: min(980px, 100%);
+  aspect-ratio: 16 / 8.2;
+  margin-top: 46px;
+  overflow: hidden;
+  border: 1px solid var(--archive-line);
+  background: #080807;
+}
+
+.readerCover img {
+  object-fit: cover;
+}
+
+.readerCover span {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 7px 9px;
+  color: rgba(238, 233, 223, 0.62);
+  background: rgba(5, 5, 5, 0.7);
+  backdrop-filter: blur(6px);
+  font-family: var(--font-data), monospace;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .readerMeta {
@@ -879,7 +907,7 @@
   max-width: 760px;
   margin-bottom: 28px;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(35px, 4.5vw, 66px);
+  font-size: clamp(30px, 3.8vw, 52px);
   font-weight: 500;
   line-height: 1.02;
 }
@@ -907,7 +935,7 @@
   border-left: 2px solid var(--archive-orange);
   color: var(--archive-paper);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(30px, 3.7vw, 56px);
+  font-size: clamp(26px, 3.2vw, 44px);
   line-height: 1.08;
 }
 

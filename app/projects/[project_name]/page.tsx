@@ -6,7 +6,7 @@ import { MoveLeft, MoveRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Buttons";
 import GradientBlocker from "@/components/ui/GradientBlocker";
@@ -21,18 +21,33 @@ const fadeUp = {
 };
 
 export default function ProjectPage({ params }: PageProps) {
-  const project_name = params.project_name;
-  const project_index = projects.findIndex(
-    (project) => project.id == project_name
+  const projectName = params.project_name;
+  const projectIndex = projects.findIndex(
+    (project) => project.id === projectName
   );
-  const project = projects.find((project) => project.id == project_name)!;
+  const project = projects.find((project) => project.id === projectName)!;
 
   if (!project) {
     redirect("/");
   }
 
   return (
-    <section className="relative mx-[10%] flex select-none flex-col gap-12 py-[9rem] sm:mx-[15%]">
+    <section className="relative mx-[6%] flex select-none flex-col gap-12 py-[8rem] sm:mx-[10%] lg:mx-[15%]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareSourceCode",
+            name: project.title,
+            description: project.description,
+            url: `https://shantanusoam.vercel.app${project.url}`,
+            codeRepository: project.sourceAvailability === "public" || !project.sourceAvailability ? project.codeLink : undefined,
+            programmingLanguage: Object.values(project.skills).flat(),
+            author: { "@type": "Person", name: "Shantanu Soam" },
+          }),
+        }}
+      />
       <GradientBlocker className="fixed h-[25dvh]" />
       <Link href={"/"} className="flex flex-row items-center gap-2 text-gray">
         <MoveLeft className="w-5" /> Go back to homepage
@@ -82,13 +97,15 @@ export default function ProjectPage({ params }: PageProps) {
           {project.title}
         </h2>
         {!project.isPlaceholder && (
-          <div className="flex flex-row gap-2">
-            <Link href={project.codeLink} target="_blank">
-              <Button type="white">View Code</Button>
-            </Link>
-            <Link href={project.liveLink} target="_blank">
-              <Button>View Link</Button>
-            </Link>
+          <div className="flex flex-row flex-wrap gap-2">
+            {project.sourceAvailability === "private" ? (
+              <span className="border-white/20 text-white/40 border px-4 py-2 font-mono text-[10px] uppercase tracking-widest">Private source</span>
+            ) : project.sourceAvailability === "client" ? (
+              <span className="border-white/20 text-white/40 border px-4 py-2 font-mono text-[10px] uppercase tracking-widest">Client source withheld</span>
+            ) : project.codeLink ? (
+              <Link href={project.codeLink} target="_blank"><Button type="white">View Code</Button></Link>
+            ) : null}
+            {project.liveLink ? <Link href={project.liveLink} target="_blank"><Button>View Live</Button></Link> : null}
           </div>
         )}
       </motion.div>
@@ -117,6 +134,7 @@ export default function ProjectPage({ params }: PageProps) {
         </ul>
       </motion.div>
       <motion.div
+        id="impact"
         variants={fadeUp}
         initial="hidden"
         whileInView="show"
@@ -187,14 +205,14 @@ export default function ProjectPage({ params }: PageProps) {
       >
         <Heading>TECH STACK</Heading>
         <div className="flex flex-col gap-8 md:gap-3">
-          {Object.keys(project.skills).map((skill_name, i) => (
+          {Object.keys(project.skills).map((skillName, i) => (
             <div
               className="flex flex-row items-start gap-4 text-graytransparent"
               key={i}
             >
-              <p className="min-w-[80px] text-darkgray">{skill_name}: </p>
+              <p className="min-w-[80px] text-darkgray">{skillName}: </p>
               <ul className="flex flex-row flex-wrap gap-2 font-mono text-sm uppercase">
-                {project.skills[skill_name as keyof typeof project.skills]!.map(
+                {project.skills[skillName as keyof typeof project.skills]!.map(
                   (skill, j) => (
                     <li key={j}>{skill}</li>
                   )
@@ -229,21 +247,21 @@ export default function ProjectPage({ params }: PageProps) {
       <div
         className={cn(
           "flex flex-row items-center justify-between",
-          project_index == 0 && "justify-end",
-          project_index == projects.length - 1 && "justify-start"
+          projectIndex === 0 && "justify-end",
+          projectIndex === projects.length - 1 && "justify-start"
         )}
       >
-        {project_index != 0 && (
+        {projectIndex !== 0 && (
           <Link
-            href={projects[project_index - 1].url}
+            href={projects[projectIndex - 1].url}
             className="flex flex-row items-center gap-2 text-gray"
           >
             <MoveLeft className="w-5" /> Previous
           </Link>
         )}
-        {project_index != projects.length - 1 && (
+        {projectIndex !== projects.length - 1 && (
           <Link
-            href={projects[project_index + 1].url}
+            href={projects[projectIndex + 1].url}
             className="flex flex-row items-center gap-2 text-gray"
           >
             Next <MoveRight className="w-5" />

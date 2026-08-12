@@ -20,15 +20,6 @@ export const experiments: LabExperiment[] = [
     tech: ['Spline', 'react-spline'],
     link: 'https://prod.spline.design/WTbnS8VGbbw4NYlj/scene.splinecode',
   },
-  // PLACEHOLDER-PENDING-REAL-CONTENT: swap in real Rive/motion experiment
-  // details and links once available.
-  {
-    id: 'rive-demo-1',
-    title: '[PLACEHOLDER] Rive state-machine experiment',
-    description: '[PLACEHOLDER] one-line description pending.',
-    tech: ['Rive'],
-    isPlaceholder: true,
-  },
   // Real — see the full write-up at /projects/hardware-prototypes. The
   // telemetry readout above stays simulated; this entry is the honest label
   // pointing at the actual hands-on hardware work behind it.

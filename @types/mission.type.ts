@@ -16,8 +16,9 @@ export type MissionType = {
   skills: MissionSkillMap;
   problem?: string;
   solution?: string;
-  liveLink: string;
-  codeLink: string;
+  liveLink?: string;
+  codeLink?: string;
+  sourceAvailability?: "public" | "private" | "client";
   // Fighter-profile framing for the "Mission Select" cards
   class: string;
   specialMoves: string[];

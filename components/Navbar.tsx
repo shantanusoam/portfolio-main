@@ -21,8 +21,14 @@ import { CommandPaletteTrigger } from "./command-palette/CommandPalette";
 import { SSSignature } from "./ss-logo/SSSignature";
 const navSections = [
   {
+    title: "Proof",
+    subHeading: `identity, strengths, and measurable outcomes`,
+    image: AboutmePic,
+    href: "/#proof",
+  },
+  {
     title: "About",
-    subHeading: `Something Not To be Told`,
+    subHeading: `approach, principles, and working style`,
     image: AboutmePic,
     href: "/#about",
   },
@@ -34,19 +40,31 @@ const navSections = [
   },
   {
     title: "Projects",
-    subHeading: `Things i give my commitment to`,
+    subHeading: `the original mission select`,
     image: programming,
     href: "/#mission-select",
   },
   {
-    title: "Skills",
-    subHeading: `You Don't see what's real`,
+    title: "Case Studies",
+    subHeading: `three systems with decisions and proof`,
+    image: programming,
+    href: "/#case-studies",
+  },
+  {
+    title: "Pattern Library",
+    subHeading: `skills demonstrated through evidence`,
     image: ai,
     href: "/#pattern-library",
   },
   {
+    title: "Systems Lab",
+    subHeading: `playable experiments with documentation`,
+    image: ai,
+    href: "/systems",
+  },
+  {
     title: "Hobbies",
-    subHeading: `loves to do`,
+    subHeading: `the original field notes and side quests`,
     image: hobbi,
     href: "/#field-notes",
   },
@@ -58,7 +76,7 @@ const navSections = [
   },
   {
     title: "Contact",
-    subHeading: `Common I am here to help`,
+    subHeading: `availability, email, and collaboration`,
     image: contact,
     href: "/#contact",
   },
@@ -115,7 +133,7 @@ export default function Navbar() {
     <>
       <div
         data-mascot-obstacle="hard"
-        className="fixed left-[3%] top-5 z-[1001] scale-90 select-none text-xs sm:scale-100 md:top-8"
+        className="fixed left-[3%] top-3 z-[1001] scale-[0.82] select-none text-xs sm:top-4 sm:scale-90 md:top-5"
       >
         <Link
           href={"/#hero"}
@@ -131,7 +149,7 @@ export default function Navbar() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeIn" }}
       >
-        <Button className="fixed right-[calc(3%+24px+1.25rem)] top-[14px] z-[1000] select-none p-0 text-[10px] sm:text-xs md:top-[25px]">
+        <Button className="fixed right-[calc(3%+24px+1.25rem)] top-[10px] z-[1000] select-none p-0 text-[10px] sm:top-[14px] sm:text-xs md:top-[17px]">
           <a
             href={resumeLink}
             target="_blank"
@@ -150,7 +168,7 @@ export default function Navbar() {
         transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
         aria-label="Signal Archive"
         data-mascot-obstacle="hard"
-        className="border-white/20 bg-black/60 fixed inset-x-[3%] top-[58px] z-[999] flex select-none items-stretch overflow-x-auto border shadow-[0_14px_40px_rgba(0,0,0,0.24)] backdrop-blur-md md:top-[72px] lg:left-1/2 lg:right-auto lg:top-[22px] lg:-translate-x-1/2"
+        className="border-white/20 bg-black/50 fixed inset-x-[3%] top-[54px] z-[999] flex select-none items-stretch overflow-x-auto border shadow-[0_14px_40px_rgba(0,0,0,0.22)] backdrop-blur-lg sm:top-[60px] lg:left-1/2 lg:right-auto lg:top-[18px] lg:-translate-x-1/2"
       >
         <span className="border-white/10 text-white/40 hidden items-center border-r px-3 font-data text-[7px] uppercase tracking-[0.18em] xl:flex">
           Signal archive
@@ -199,13 +217,13 @@ export default function Navbar() {
             {/* <HoverImageLinks/> */}
             <div
               id="nav-container"
-              className="flex h-[90vh] items-center justify-center md:h-[90vh]"
+              className="flex h-[100dvh] items-start justify-center overflow-y-auto py-24 md:pt-20"
             >
               <motion.ul
                 variants={ulAnim}
                 initial="hidden"
                 animate="show"
-                className="flex flex-col items-center justify-center gap-1 text-xl font-medium uppercase tracking-widest text-graytransparent sm:text-2xl md:gap-6"
+                className="flex flex-col items-center justify-start gap-1 text-xl font-medium uppercase tracking-widest text-graytransparent sm:text-2xl md:gap-2"
               >
                 {navSections.map((navSection, i) => (
                   <motion.li

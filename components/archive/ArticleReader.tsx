@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowLeft, Copy } from "lucide-react";
 import type { ArchiveArticle } from "@/lib/archive/types";
 import { formatArchiveDate } from "@/lib/archive/data";
+import { noteCoverBySlug } from "@/lib/portfolio/evidence";
+import Image from "next/image";
 import styles from "./archive.module.css";
 
 function CodeBlock({
@@ -103,6 +105,16 @@ export default function ArticleReader({
           <span>{article.readingMinutes} minute read</span>
           <span>Published {formatArchiveDate(article.publishedAt)}</span>
           <span>Updated {formatArchiveDate(article.updatedAt)}</span>
+        </div>
+        <div className={styles.readerCover}>
+          <Image
+            alt={`Editorial system artifact for ${article.title}`}
+            fill
+            priority
+            sizes="(max-width: 760px) 100vw, 980px"
+            src={noteCoverBySlug[article.slug] ?? "/proof-assets/notes/portfolio-product.webp"}
+          />
+          <span>Original editorial artifact / conceptual</span>
         </div>
       </header>
 

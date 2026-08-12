@@ -4,12 +4,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import TextCarousel from "./ui/TextCarousel";
 import { useEffect, useRef, useState } from "react";
 import { MAGNETIC_ATTRIBUTE } from "./ui/magnetic/magneticField";
-import StringInstrument from "./IntrectiveComponents/StringInstrument";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import { cn } from "@/lib/utils";
 import SignalRoeButton from "./mascot/SignalRoeButton";
+
+const StringInstrument = dynamic(
+  () => import("./IntrectiveComponents/StringInstrument"),
+  { ssr: false },
+);
 
 interface HeroProps {
   masked: boolean;
@@ -115,7 +120,7 @@ export default function Hero({ masked }: HeroProps) {
         style={{ opacity }}
         ref={sectionRef}
         onMouseMove={resetIdleTimer}
-        className="relative isolate flex min-h-[88svh] w-full items-center overflow-hidden px-[clamp(1.1rem,6vw,6rem)] pb-[clamp(2rem,5vh,4.5rem)] pt-[clamp(7rem,14vh,8.25rem)] md:min-h-[96svh] md:py-[clamp(5.5rem,10vh,7.5rem)]"
+        className="relative isolate flex min-h-[78svh] w-full items-center overflow-hidden px-[clamp(1.1rem,6vw,6rem)] pb-[clamp(2rem,5vh,4rem)] pt-[clamp(7rem,14vh,8.25rem)] md:min-h-[88svh] md:py-[clamp(5.5rem,9vh,7rem)]"
       >
         {/* Same ChatGPT linen tile as the page body — even weave, so repeat
             (not cover) keeps the thread scale honest. Soft bottom fade keeps

@@ -707,6 +707,7 @@ export default function SignalBreaker() {
   }, [render]);
 
   useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const loop = (time: number) => {
       const delta = Math.min(
         (time - (previousTimeRef.current ?? time)) / 1000,
@@ -715,7 +716,9 @@ export default function SignalBreaker() {
       previousTimeRef.current = time;
       if (modeRef.current === "playing") update(delta);
       render();
-      frameRef.current = requestAnimationFrame(loop);
+      if (!reduceMotion || modeRef.current === "playing") {
+        frameRef.current = requestAnimationFrame(loop);
+      }
     };
     frameRef.current = requestAnimationFrame(loop);
     return () => {
@@ -819,11 +822,20 @@ export default function SignalBreaker() {
       </header>
 
       <section className={styles.intro}>
+        <div className={styles.errorStage} aria-hidden="true">
+          <span className={styles.errorShadow}>404</span>
+          <span className={styles.errorWire}>404</span>
+          <span className={styles.errorSignal}>404</span>
+          <span className={styles.errorFace}>404</span>
+          <i className={styles.axisX} />
+          <i className={styles.axisY} />
+          <small>lost packet / x:04 y:04 / recoverable</small>
+        </div>
         <div>
           <p className={styles.kicker}>
             Error 404 / Playable recovery protocol
           </p>
-          <h1>You found the dead channel.</h1>
+          <h1>The route broke. The signal did not.</h1>
         </div>
         <p>
           Break the corrupted signal into something useful. Bomb bricks chain,

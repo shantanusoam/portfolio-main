@@ -1,0 +1,18 @@
+# Shantanu Soam
+
+Creative Systems Engineer building product interfaces, frontend systems, AI-agent tools, canvas experiments, and hardware prototypes.
+
+## Primary routes
+- / — proof-first profile and three flagship case studies
+- /systems — documented registry of interactive systems
+- /blog — essays, build logs, tutorials, and field notes
+- /inspo — annotated interface references
+- /worth-your-time — curated talks indexed by time
+- /raq — rarely asked questions
+
+## Verifiable highlights
+- Niva Bupa: 30% lower peak query latency, 15+ critical vulnerabilities resolved, rollback reduced from 20 minutes to under 5.
+- Knowbuild: ~40% fewer redundant API calls and virtualized tables with 10k+ rows.
+- dnd-dynamic-tree: public npm package and GitHub repository for nested React drag-and-drop trees.
+
+Source: https://github.com/shantanusoam/portfolio-main
