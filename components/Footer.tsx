@@ -1,6 +1,8 @@
+"use client";
+
 import { Github, Linkedin, ScrollText, Twitter } from "lucide-react";
 import { motion } from "framer-motion";
-import resume_link from "@/constants/resume";
+import resumeLink from "@/constants/resume";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 
 // A single thread draws itself into a simple tied-off shape as you reach
@@ -22,10 +24,16 @@ function ClosingStitch() {
         stroke="var(--primary)"
         strokeWidth={1.5}
         strokeLinecap="round"
-        initial={{ pathLength: prefersReducedMotion ? 1 : 0, opacity: prefersReducedMotion ? 0.6 : 0.4 }}
+        initial={{
+          pathLength: prefersReducedMotion ? 1 : 0,
+          opacity: prefersReducedMotion ? 0.6 : 0.4,
+        }}
         whileInView={{ pathLength: 1, opacity: 0.6 }}
         viewport={{ once: true }}
-        transition={{ duration: prefersReducedMotion ? 0 : 1.2, ease: "easeInOut" }}
+        transition={{
+          duration: prefersReducedMotion ? 0 : 1.2,
+          ease: "easeInOut",
+        }}
       />
     </svg>
   );
@@ -45,7 +53,7 @@ export default function Footer() {
       initial="hidden"
       whileInView="show"
       id="footer"
-      className="relative select-none sm:mx-[15%] flex flex-col items-center py-8 text-graytransparent gap-6 mt-[3rem]"
+      className="relative mt-[3rem] flex select-none flex-col items-center gap-6 py-8 text-graytransparent sm:mx-[15%]"
     >
       <motion.div
         variants={{
@@ -63,11 +71,11 @@ export default function Footer() {
         initial={"collapse"}
         whileInView={"expand"}
         viewport={{ once: true }}
-        className="h-[1px] linegradient absolute top-0"
+        className="linegradient absolute top-0 h-[1px]"
       ></motion.div>
       <ClosingStitch />
       <div className="flex w-full flex-col items-center gap-6 sm:flex-row sm:justify-between">
-        <p className="hidden sm:block w-1/3 hover:text-primary transition-all duration-500">
+        <p className="hidden w-1/3 transition-all duration-500 hover:text-primary sm:block">
           Shantanu soam
         </p>
         <svg
@@ -81,44 +89,44 @@ export default function Footer() {
           <path
             d="M137 0H0V82.5H41.3223L61.6612 62.1612L79.3388 79.8388L51.6777 107.5H0V137H137V0Z"
             fill="var(--graytransparent)"
-            className="group-hover:fill-primary transition-all duration-500"
+            className="transition-all duration-500 group-hover:fill-primary"
           />
         </svg>
-        <div className="flex flex-row items-center justify-center sm:justify-end transition-all z-[997] gap-4 w-1/3">
+        <div className="z-[997] flex w-1/3 flex-row items-center justify-center gap-4 transition-all sm:justify-end">
           <a
             href="https://www.linkedin.com/in/shantanu007/"
             target="_blank"
             className="p-2"
             aria-label="Link to my linkedin"
           >
-            <Linkedin className="w-5 h-5 hover:text-primary" />
+            <Linkedin className="h-5 w-5 hover:text-primary" />
           </a>
-          <div className="w-[2px] h-6 bg-darkgray rotate-12"></div>
+          <div className="h-6 w-[2px] rotate-12 bg-darkgray"></div>
           <a
             href="https://github.com/shantanusoam"
             target="_blank"
             className="p-2"
             aria-label="Link to my github"
           >
-            <Github className="w-5 h-5 hover:text-primary" />
+            <Github className="h-5 w-5 hover:text-primary" />
           </a>
-          <div className="w-[2px] h-6 bg-darkgray rotate-12"></div>
+          <div className="h-6 w-[2px] rotate-12 bg-darkgray"></div>
           <a
             href="https://twitter.com/Shanntanusoam"
             target="_blank"
             className="p-2"
             aria-label="Link to my twitter"
           >
-            <Twitter className="w-5 h-5 hover:text-primary" />
+            <Twitter className="h-5 w-5 hover:text-primary" />
           </a>
-          <div className="w-[2px] h-6 bg-darkgray rotate-12"></div>
+          <div className="h-6 w-[2px] rotate-12 bg-darkgray"></div>
           <a
-            href={resume_link}
+            href={resumeLink}
             target="_blank"
             className="p-2"
             aria-label="Link to view my resume"
           >
-            <ScrollText className="w-5 h-5 hover:text-primary" />
+            <ScrollText className="h-5 w-5 hover:text-primary" />
           </a>
         </div>
       </div>

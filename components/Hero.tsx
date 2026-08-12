@@ -23,10 +23,10 @@ interface HeroProps {
 // Inert until the section they point at exists: #trail-map lands in Phase 3
 // (Experience.tsx gets renamed/re-id'd there), #maker-lab in Phase 4.
 const START_MENU = [
-  { label: "See the proof", href: "#proof" },
-  { label: "View case studies", href: "#case-studies" },
-  { label: "Read field notes", href: "#latest-notes" },
-  { label: "Enter Systems Lab", href: "/systems" },
+  { label: "Start Journey", href: "#trail-map" },
+  { label: "View Case Studies", href: "#mission-select" },
+  { label: "Signal Room", href: "#signal-room" },
+  { label: "Enter Lab", href: "#maker-lab" },
 ];
 
 const ROLE_LINES = [

@@ -1,3 +1,5 @@
+"use client";
+
 import Heading from "./ui/Heading";
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -35,7 +37,7 @@ export default function Contact() {
       ref={sectionRef}
       style={{ opacity: sectionOpacity }}
       id="contact"
-      className="relative select-none mx-[10%] sm:mx-[15%] my-[3rem] py-[6rem]"
+      className="relative mx-[10%] my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
       <Heading>CONTACT</Heading>
       <motion.div
@@ -43,7 +45,7 @@ export default function Contact() {
         initial="hide"
         whileInView="show"
         viewport={{ once: true }}
-        className="flex flex-col mt-24 items-start justify-center"
+        className="mt-24 flex flex-col items-start justify-center"
       >
         <RevealingTextContainer
           scrollYProgress={scrollYProgressRevealingText}
@@ -55,20 +57,20 @@ export default function Contact() {
               <RevealingTextItem index={i} key={i}>
                 {text}
               </RevealingTextItem>
-            )
+            ),
           )}
         </RevealingTextContainer>
-        <div className="w-full flex flex-row items-center justify-start gap-8 flex-wrap mt-16 text-sm sm:text-base">
+        <div className="mt-16 flex w-full flex-row flex-wrap items-center justify-start gap-8 text-sm sm:text-base">
           <Link
             href={"https://calendly.com/shantanu-singh-soam/chat"}
             target="_blank"
-            className="flex-grow"
+            className="grow"
           >
             <ButtonWithIcon icon={Calendar}>Schedule a meeting</ButtonWithIcon>
           </Link>
-          <a href="mailto:shantanu.singh.soam@gmail.com" className="flex-grow">
+          <a href="mailto:shantanu.singh.soam@gmail.com" className="grow">
             <ButtonWithIcon icon={Mail}>
-            shantanu.singh.soam@gmail.com
+              shantanu.singh.soam@gmail.com
             </ButtonWithIcon>
           </a>
         </div>

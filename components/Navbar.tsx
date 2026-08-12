@@ -12,6 +12,7 @@ import { OBSTACLE_INVALIDATE_EVENT } from "@/lib/mascot/interaction/DomObstacleR
 
 import AboutmePic from "@/public/AboutMePic.jpg";
 import contact from "@/public/Fluency Zoom Logo.png";
+import hobbi from "@/public/3D Windows Developer Symbols.png";
 import ai from "@/public/AI Isometric Lettering.png";
 import programming from "@/public/Programmer coding laptop.png";
 import skills from "@/public/Skills clipart gleam.png";
@@ -20,10 +21,16 @@ import { CommandPaletteTrigger } from "./command-palette/CommandPalette";
 import { SSSignature } from "./ss-logo/SSSignature";
 const navSections = [
   {
-    title: "At a glance",
-    subHeading: `identity, strengths, and verified outcomes`,
+    title: "Proof",
+    subHeading: `identity, strengths, and measurable outcomes`,
     image: AboutmePic,
     href: "/#proof",
+  },
+  {
+    title: "About",
+    subHeading: `approach, principles, and working style`,
+    image: AboutmePic,
+    href: "/#about",
   },
   {
     title: "Experience",
@@ -32,16 +39,34 @@ const navSections = [
     href: "/#trail-map",
   },
   {
+    title: "Projects",
+    subHeading: `the original mission select`,
+    image: programming,
+    href: "/#mission-select",
+  },
+  {
     title: "Case Studies",
     subHeading: `three systems with decisions and proof`,
     image: programming,
     href: "/#case-studies",
   },
   {
+    title: "Pattern Library",
+    subHeading: `skills demonstrated through evidence`,
+    image: ai,
+    href: "/#pattern-library",
+  },
+  {
     title: "Systems Lab",
     subHeading: `playable experiments with documentation`,
     image: ai,
     href: "/systems",
+  },
+  {
+    title: "Hobbies",
+    subHeading: `the original field notes and side quests`,
+    image: hobbi,
+    href: "/#field-notes",
   },
   {
     title: "Learning",
@@ -192,13 +217,13 @@ export default function Navbar() {
             {/* <HoverImageLinks/> */}
             <div
               id="nav-container"
-              className="flex h-[90vh] items-center justify-center md:h-[90vh]"
+              className="flex h-[100dvh] items-start justify-center overflow-y-auto py-24 md:pt-20"
             >
               <motion.ul
                 variants={ulAnim}
                 initial="hidden"
                 animate="show"
-                className="flex flex-col items-center justify-center gap-1 text-xl font-medium uppercase tracking-widest text-graytransparent sm:text-2xl md:gap-6"
+                className="flex flex-col items-center justify-start gap-1 text-xl font-medium uppercase tracking-widest text-graytransparent sm:text-2xl md:gap-2"
               >
                 {navSections.map((navSection, i) => (
                   <motion.li
