@@ -2,7 +2,13 @@ export type ProofMetric = {
   value: string;
   label: string;
   context: string;
+  evidenceNote: string;
   href: string;
+};
+
+export type CurrentPosition = {
+  body: string;
+  support: string;
 };
 
 export type BuildTraceStep = {
@@ -32,6 +38,9 @@ export type SystemRegistryEntry = {
   name: string;
   status: "live" | "documented" | "prototype";
   description: string;
+  why: string;
+  difficult: string;
+  learned: string;
   image: string;
   previewHref: string;
   sourceHref?: string;
@@ -40,6 +49,20 @@ export type SystemRegistryEntry = {
   accessibility: string[];
   performance: string[];
   usage: string;
+  diagram?: BuildTraceStep[];
+  measurements?: Array<{
+    label: string;
+    value: string;
+    note: string;
+  }>;
+  debugRecording?: string;
+};
+
+export const currentPosition: CurrentPosition = {
+  body:
+    "I'm currently a Staff Engineer at Knowbuild, modernizing multi-tenant business software across frontend architecture, permissions, performance, and deployment systems. Outside product work, I build interaction engines, agent runtimes, and hardware experiments that make invisible rules tangible.",
+  support:
+    "Based in India. Available for senior product-engineering, frontend-systems, and selected design-engineering collaborations.",
 };
 
 export const proofMetrics: ProofMetric[] = [
@@ -47,24 +70,32 @@ export const proofMetrics: ProofMetric[] = [
     value: "30%↓",
     label: "Query latency",
     context: "MongoDB indexing and housekeeping at Niva Bupa",
+    evidenceNote:
+      "Measured across representative policy-lookup traffic before and after index changes and cleanup jobs; exact operational data is withheld under healthcare-client confidentiality.",
     href: "/projects/niva-bupa#impact",
   },
   {
     value: "15+",
     label: "Critical vulnerabilities resolved",
     context: "XSS/CSRF remediation and penetration testing",
+    evidenceNote:
+      "Count comes from the remediation list closed before an external penetration-test pass; vulnerability names and reproduction details are sanitized for client security.",
     href: "/projects/niva-bupa#impact",
   },
   {
     value: "20→<5",
     label: "Minutes to rollback",
     context: "Blue-green deployment path across Docker and Kubernetes",
+    evidenceNote:
+      "Baseline was the manual rollback path; final measurement was a rehearsed blue-green rollback workflow through the container and ingress lane.",
     href: "/projects/niva-bupa#impact",
   },
   {
     value: "10k+",
     label: "Rows kept fluid",
     context: "Virtualized operational tables on low-end devices",
+    evidenceNote:
+      "Validated against representative 10k-row operational tables after virtualization and state ownership changes; client schema and row content are sanitized.",
     href: "/projects/knowbuild#impact",
   },
 ];
@@ -75,7 +106,7 @@ export const flagshipCaseStudies: FlagshipCaseStudy[] = [
     name: "Knowbuild",
     category: "B2B SaaS / CRM + ERP",
     summary:
-      "Modernizing a legacy operating surface into a typed, multi-tenant system without stopping the business underneath it.",
+      "Modernizing a Multi-Tenant CRM/ERP Without Stopping the Business.",
     problem:
       "The product had dense operational data, cross-tab state drift, and a UI stack that made every safe change expensive.",
     constraints: [
@@ -85,7 +116,7 @@ export const flagshipCaseStudies: FlagshipCaseStudy[] = [
     ],
     decisions: [
       "Separated server state into TanStack Query and local UI state into Redux Toolkit",
-      "Built an explicit PermissionEngine and subdomain-resolved tenant context",
+      "Built an explicit permission module and subdomain-resolved tenant context",
       "Virtualized rendering and added performance budgets to the Vite build",
     ],
     results: [
@@ -95,7 +126,7 @@ export const flagshipCaseStudies: FlagshipCaseStudy[] = [
     ],
     image: "/proof-assets/evidence/knowbuild.webp",
     systemImage: "/proof-assets/evidence/proof-constellation.webp",
-    systemLayers: ["Tenant context", "Permission engine", "Query cache", "Virtualized view"],
+    systemLayers: ["Subdomain tenant resolver", "Permission decision flow", "Query cache ownership", "Virtualized 10k-row view"],
     trace: [
       { label: "Problem", title: "State was everywhere", detail: "Server data and UI state behaved as one mutable surface." },
       { label: "Failed path", title: "Patch the symptoms", detail: "Local fixes reduced visible bugs but preserved the underlying coupling." },
@@ -110,7 +141,7 @@ export const flagshipCaseStudies: FlagshipCaseStudy[] = [
     name: "Niva Bupa",
     category: "Healthcare / Performance + Security",
     summary:
-      "Hardening a live insurance platform while making database and deployment paths materially faster.",
+      "Reducing Risk in a Live Healthcare Platform.",
     problem:
       "Policy lookups slowed at peak traffic while legacy authentication and release paths increased operational risk.",
     constraints: [
@@ -130,7 +161,7 @@ export const flagshipCaseStudies: FlagshipCaseStudy[] = [
     ],
     image: "/proof-assets/evidence/niva-bupa.webp",
     systemImage: "/proof-assets/evidence/build-trace.webp",
-    systemLayers: ["Indexed data", "Identity boundary", "Container image", "Blue-green ingress"],
+    systemLayers: ["Sanitized query plan", "Security control matrix", "Container image", "Blue-green ingress"],
     trace: [
       { label: "Problem", title: "Slow and risky", detail: "Performance and release safety were coupled during peak traffic." },
       { label: "Failed path", title: "Manual recovery", detail: "Rollback depended on a long, operator-heavy sequence." },
@@ -145,7 +176,7 @@ export const flagshipCaseStudies: FlagshipCaseStudy[] = [
     name: "dnd-dynamic-tree",
     category: "Open-source / Interaction infrastructure",
     summary:
-      "Turning nested drag intent into a reusable package with stable tree contracts and composable triggers.",
+      "Why Nested Drag-and-Drop Is a State-Modelling Problem.",
     problem:
       "Deep drag-and-drop trees look visual, but their real challenge is preserving identity, ancestry, and intent through change.",
     constraints: [
@@ -165,7 +196,7 @@ export const flagshipCaseStudies: FlagshipCaseStudy[] = [
     ],
     image: "/proof-assets/evidence/dynamic-tree.webp",
     systemImage: "/proof-assets/systems/drag-tree.webp",
-    systemLayers: ["Pointer intent", "Projection", "Tree reducer", "Accessible announcement"],
+    systemLayers: ["Pointer or keyboard intent", "Projected destination", "Semantic move model", "Accessible announcement"],
     trace: [
       { label: "Problem", title: "Indices kept lying", detail: "Visual order was being mistaken for structural identity." },
       { label: "Failed path", title: "Splice and indent", detail: "The first model broke when parents crossed branches." },
@@ -183,34 +214,133 @@ export const systemsRegistry: SystemRegistryEntry[] = [
     name: "String Instrument",
     status: "live",
     description: "A pointer and keyboard-playable instrument built from tension, displacement, and restrained audio feedback.",
+    why:
+      "It turns an invisible interaction rule into something you can touch: distance becomes tension, tension becomes sound, and release becomes visible feedback.",
+    difficult:
+      "The hard part was keeping a continuous physics/audio loop outside React while still honoring browser audio activation, keyboard input, reduced motion, and muted-first behavior.",
+    learned:
+      "Interactive proof works best when the runtime has one deep interface: pointer/keyboard events enter, bounded motion and audio decisions stay inside.",
     image: "/proof-assets/systems/string-instrument.webp",
     previewHref: "/#hero",
     sourceHref: "https://github.com/shantanusoam/portfolio-main",
     tech: ["Canvas", "Web Audio", "Pointer Events"],
-    how: ["Samples string displacement from pointer intent", "Maps tension to pitch and visual amplitude", "Returns each string with damped spring motion"],
-    accessibility: ["Sound starts muted", "Keyboard controls remain available", "Reduced-motion mode removes decorative oscillation"],
-    performance: ["Mutable frame data avoids React renders", "Audio nodes are created only after interaction", "Canvas scales to device density with a cap"],
+    how: [
+      "Pointer displacement is normalized into per-string tension",
+      "Tension maps to visual amplitude and note intensity while pitch stays inside the active chord table",
+      "Keyboard controls trigger the same string path without requiring pointer precision",
+      "Web Audio contexts are created only after a user gesture",
+      "Each string returns through a damped spring rather than React state",
+    ],
+    accessibility: [
+      "Sound starts muted and needs an explicit gesture",
+      "Keyboard controls remain available for non-pointer operation",
+      "Reduced-motion mode removes decorative oscillation and glow",
+      "The instrument remains visually readable when audio is unavailable",
+    ],
+    performance: [
+      "Mutable frame data avoids React renders during animation",
+      "Audio buffers are cached instead of regenerated for every pluck",
+      "Animation work stops when no string is moving or held",
+      "Runtime CPU/frame numbers are intentionally not claimed until captured in a real browser session",
+    ],
     usage: "Open the homepage and drag across the strings.",
+    diagram: [
+      { label: "Input", title: "Pointer / key", detail: "A gesture chooses a string and contact position." },
+      { label: "Tension", title: "Displacement", detail: "Distance from rest is clamped into a 0..1 force value." },
+      { label: "Tone", title: "Pitch + amplitude", detail: "The active chord supplies frequency; tension shapes gain and brightness." },
+      { label: "Gate", title: "Web Audio", detail: "The graph is silent until a real user activation unlocks it." },
+      { label: "Fallback", title: "Reduced motion", detail: "Motion and sound degrade separately without breaking the control." },
+    ],
+    measurements: [
+      {
+        label: "Frame loop",
+        value: "on demand",
+        note: "The requestAnimationFrame loop stops when strings settle; verified from the component implementation, not a runtime CPU capture.",
+      },
+      {
+        label: "Audio startup",
+        value: "gesture gated",
+        note: "AudioContext creation is deferred until interaction because browser autoplay policies require it.",
+      },
+      {
+        label: "Browser timing",
+        value: "pending",
+        note: "No public ms/frame number is published yet; the next evidence pass should capture it in Chromium and record device details.",
+      },
+    ],
   },
   {
     slug: "procedural-mascot",
     name: "Procedural Mascot Engine",
     status: "live",
     description: "A canvas character that follows, wanders, reacts to page geometry, and exposes its own rig for debugging.",
+    why:
+      "The mascot is a product-facing proof of animation architecture: an expressive creature that can be interrupted, measured, downgraded, and debugged.",
+    difficult:
+      "It had to react to DOM geometry, page visibility, pointer intent, behavior states, and performance pressure without pushing per-frame state through React.",
+    learned:
+      "Continuous animation belongs behind a small imperative interface; React should configure and observe it, not own every frame.",
     image: "/proof-assets/systems/mascot-engine.webp",
     previewHref: "/creature-lab",
     sourceHref: "https://github.com/shantanusoam/portfolio-main",
     tech: ["Canvas 2D", "Constraints", "Second-order dynamics"],
-    how: ["A target driver feeds damped body motion", "Appendage constraints resolve outside React", "DOM geometry is cached as world obstacles"],
-    accessibility: ["Pointer is optional", "Hidden-tab simulation pauses", "Reduced-motion mode lowers movement and detail"],
-    performance: ["One canvas instead of DOM joints", "No React frame-state", "Delta time is clamped after tab inactivity"],
+    how: [
+      "A behavior-state machine chooses follow, wander, inspect, sprint, rest, and recovery modes",
+      "Second-order dynamics smooth body motion toward a target without brittle timelines",
+      "DOM obstacles are cached and queried through a spatial registry",
+      "A fixed-step update loop advances simulation before the renderer reads it",
+      "Animation state lives outside React because it changes every frame and is not UI state",
+    ],
+    accessibility: [
+      "Pointer is optional",
+      "Hidden-tab simulation pauses",
+      "Reduced-motion mode lowers movement and detail",
+      "The debug route exposes state in text as well as drawing",
+    ],
+    performance: [
+      "One canvas instead of DOM joints",
+      "No React frame-state",
+      "Delta time is clamped after tab inactivity",
+      "A performance governor downgrades quality after sustained slow frames",
+    ],
     usage: "Visit Creature Lab and toggle the debug rig.",
+    diagram: [
+      { label: "Observe", title: "Inputs", detail: "Pointer, scroll, visibility, and cached DOM geometry enter the engine." },
+      { label: "Decide", title: "Behavior state", detail: "The behavior machine selects follow, wander, inspect, sprint, rest, or recovery." },
+      { label: "Move", title: "Dynamics", detail: "Second-order dynamics and constraints resolve the body and appendages." },
+      { label: "Budget", title: "Governor", detail: "Frame timing can lower detail while preserving core behavior." },
+      { label: "Inspect", title: "Debug overlay", detail: "Motion Lab records the state machine, rig, obstacles, and frame statistics." },
+    ],
+    measurements: [
+      {
+        label: "Automated tests",
+        value: "131/131",
+        note: "The documented mascot suite covers solvers, governor behavior, spatial grid, obstacle helpers, and bounded pools.",
+      },
+      {
+        label: "Governor window",
+        value: "90 frames",
+        note: "Quality decisions are based on a rolling frame-time sample window, with downgrade after sustained >20ms average frames.",
+      },
+      {
+        label: "Runtime frame capture",
+        value: "not published",
+        note: "The repo documents that browser p95/worst frame timing still requires a real-browser capture before public claims.",
+      },
+    ],
+    debugRecording: "Open /motion-lab, enable Debug overlay, and play a deterministic scenario.",
   },
   {
     slug: "command-palette",
     name: "Signal Finder",
     status: "live",
     description: "A personal Ctrl/⌘ K index spanning pages, writing, references, screenings, questions, and systems.",
+    why:
+      "The site has many rooms; a command interface keeps discovery fast without duplicating navigation everywhere.",
+    difficult:
+      "The challenge was normalizing different content types into one search model without turning every page into a custom search adapter.",
+    learned:
+      "A small typed index gives callers leverage: new content becomes discoverable by satisfying the same searchable record shape.",
     image: "/proof-assets/systems/command-palette.webp",
     previewHref: "/?command=open",
     sourceHref: "https://github.com/shantanusoam/portfolio-main",
@@ -225,6 +355,12 @@ export const systemsRegistry: SystemRegistryEntry[] = [
     name: "Combo Trail",
     status: "live",
     description: "A restrained game-feel layer that turns meaningful navigation into readable feedback rather than confetti.",
+    why:
+      "It makes exploration feel responsive while keeping the portfolio's main reading path calm.",
+    difficult:
+      "The hard part was deciding which interactions deserved feedback and making the effect disappear under reduced motion.",
+    learned:
+      "Motion earns its keep when it confirms intent; decorative feedback needs a strict lifecycle.",
     image: "/proof-assets/systems/combo-trail.webp",
     previewHref: "/",
     sourceHref: "https://github.com/shantanusoam/portfolio-main",
@@ -239,20 +375,72 @@ export const systemsRegistry: SystemRegistryEntry[] = [
     name: "Dynamic Tree",
     status: "documented",
     description: "The installable nested drag-and-drop system behind the flagship open-source case study.",
+    why:
+      "Deep tree editing appears to be a pointer problem, but the reusable value is a stable semantic move contract.",
+    difficult:
+      "Array indices failed because visual order, ancestry, and identity change at different times during a drag.",
+    learned:
+      "Projection and committed state should live on opposite sides of the interaction seam; commit only the semantic move.",
     image: "/proof-assets/systems/drag-tree.webp",
     previewHref: "/projects/dnd-dynamic-tree",
     sourceHref: "https://github.com/shantanusoam/dnd-dynamic-tree",
     tech: ["React", "dnd-kit", "Storybook"],
-    how: ["Projects a destination during drag", "Commits one semantic move on drop", "Recalculates positions from stable identifiers"],
-    accessibility: ["Custom triggers can remain semantic controls", "State model supports keyboard descriptions", "Focus ownership stays with the consumer"],
-    performance: ["Projection is separated from canonical state", "Consumers can virtualize their own view", "Package avoids application-specific stores"],
+    how: [
+      "The move format records node, parent, and sibling position",
+      "Index-based moves were rejected because indentation changes made stale indices look valid",
+      "Projection previews a destination without mutating canonical state",
+      "Committed state changes once through a tree reducer",
+      "The consumer keeps rendering and store ownership",
+    ],
+    accessibility: [
+      "Custom triggers can remain semantic controls",
+      "State model supports keyboard descriptions",
+      "Keyboard behavior can express move up, move down, nest, and unnest through the same semantic move",
+      "Focus ownership stays with the consumer",
+    ],
+    performance: [
+      "Projection is separated from canonical state",
+      "Consumers can virtualize their own view",
+      "Package avoids application-specific stores",
+      "The minimal install path does not require global providers",
+    ],
     usage: "npm install dnd-dynamic-tree",
+    diagram: [
+      { label: "Intent", title: "Pointer / keyboard", detail: "The user chooses a node and a target relationship." },
+      { label: "Project", title: "Preview", detail: "The UI shows a possible destination without rewriting the tree." },
+      { label: "Move", title: "Semantic command", detail: "{ nodeId, parentId, beforeId | afterId } becomes the operation." },
+      { label: "Commit", title: "Reducer", detail: "The reducer validates ancestry and writes one canonical tree update." },
+      { label: "Announce", title: "A11y", detail: "The same move can produce stable keyboard and screen-reader feedback." },
+    ],
+    measurements: [
+      {
+        label: "Install",
+        value: "npm package",
+        note: "Public package and source are linked; consumers can inspect the interaction contract directly.",
+      },
+      {
+        label: "State model",
+        value: "single commit",
+        note: "Canonical state updates once on drop or keyboard command; projection remains temporary.",
+      },
+      {
+        label: "Demo",
+        value: "embedded",
+        note: "The project page includes a playable semantic-move demo with keyboard-style commands.",
+      },
+    ],
   },
   {
     slug: "signal-breaker",
     name: "Signal Breaker",
     status: "live",
     description: "The 404 recovery route as a compact brick-breaker with combos, chain reactions, powerups, waves, and sound.",
+    why:
+      "A dead link is normally a dead end; this route turns recovery into a memorable proof of interaction logic.",
+    difficult:
+      "The challenge was keeping a game loop, audio, and page recovery lightweight enough for an error route.",
+    learned:
+      "Game mechanics need the same product constraints as any interface: pause, mute, keyboard input, and bounded work.",
     image: "/proof-assets/systems/signal-breaker.webp",
     previewHref: "/dead-channel-demo",
     sourceHref: "https://github.com/shantanusoam/portfolio-main",
@@ -267,6 +455,12 @@ export const systemsRegistry: SystemRegistryEntry[] = [
     name: "Pattern Registry",
     status: "prototype",
     description: "Reusable interaction patterns promoted from hidden experiments into documented evidence.",
+    why:
+      "Experiments are more useful when their rules and trade-offs are discoverable after the novelty fades.",
+    difficult:
+      "The hard part is deciding which experiments deserve promotion and which should stay private research material.",
+    learned:
+      "A registry creates locality for future readers: behavior, access notes, performance notes, and source live together.",
     image: "/proof-assets/systems/pattern-registry.webp",
     previewHref: "/systems",
     sourceHref: "https://github.com/shantanusoam/portfolio-main",
@@ -281,6 +475,12 @@ export const systemsRegistry: SystemRegistryEntry[] = [
     name: "Creature Rig",
     status: "prototype",
     description: "A debug-facing procedural-character surface for studying body targets, constraints, appendages, and gait decisions.",
+    why:
+      "The rig makes procedural animation decisions visible before the polished renderer hides them.",
+    difficult:
+      "Foot locking, gait timing, and joint constraints had to be readable at debug speed and still remain bounded.",
+    learned:
+      "If the simple rig does not explain the motion, polish will only make the problem harder to diagnose.",
     image: "/proof-assets/systems/creature-rig.webp",
     previewHref: "/octopod-lab",
     sourceHref: "https://github.com/shantanusoam/portfolio-main",
@@ -305,6 +505,8 @@ export const noteCoverBySlug: Record<string, string> = {
   "watchdog-pattern-for-agents": "/proof-assets/notes/watchdog.webp",
   "portfolio-as-product": "/proof-assets/notes/portfolio-product.webp",
   "drag-drop-trees-and-state": "/proof-assets/systems/drag-tree.webp",
+  "rbac-isnt-if-statements": "/proof-assets/evidence/proof-constellation.webp",
+  "modernize-frontend-without-rewrite": "/proof-assets/evidence/knowbuild.webp",
   "playful-interfaces-performance": "/proof-assets/notes/performance.webp",
   "memory-for-learning-agent": "/proof-assets/notes/memory.webp",
   "hardware-prototypes-software-reliability": "/proof-assets/notes/hardware.webp",

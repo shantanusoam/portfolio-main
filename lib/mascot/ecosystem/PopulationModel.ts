@@ -20,10 +20,7 @@ export class PopulationModel {
 
   requestSchool(count: number): number {
     if (this.activeFryCount > 0 || this.fissionPending) return 0;
-    const allowed = Math.max(
-      0,
-      Math.min(MAX_ACTIVE_FRY, Math.floor(count)),
-    );
+    const allowed = Math.max(0, Math.min(MAX_ACTIVE_FRY, Math.floor(count)));
     if (allowed <= 0) return 0;
     this.activeFryCount = allowed;
     return allowed;

@@ -47,5 +47,8 @@ test("fresh fry desired speed exceeds a typical adult wander pace when threatene
   });
   assert.ok(steered.burst);
   assert.ok(steered.maxSpeed > 90);
-  assert.ok(steered.desiredVx < 0, "should flee left away from a right-side threat");
+  assert.ok(
+    steered.desiredVx < 0,
+    "should flee left away from a right-side threat",
+  );
 });

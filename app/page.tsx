@@ -12,6 +12,7 @@ import Hobbies from "@/components/Hobbies";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import ProofStrip from "@/components/home/ProofStrip";
+import CurrentPosition from "@/components/home/CurrentPosition";
 import FlagshipCaseStudies from "@/components/home/FlagshipCaseStudies";
 import SystemsLabPreview from "@/components/home/SystemsLabPreview";
 import LatestNotes from "@/components/home/LatestNotes";
@@ -78,13 +79,14 @@ export default function Home() {
 
         <ProofStrip />
 
+        <CurrentPosition />
+        <FlagshipCaseStudies />
+
         <div className="container">
           <AboutStudioSection />
           <Experience />
           <Projects />
         </div>
-
-        <FlagshipCaseStudies />
 
         <div className="container">
           <PatternLibrary />

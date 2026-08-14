@@ -7,6 +7,122 @@ import type {
 
 export const archiveArticles: ArchiveArticle[] = [
   {
+    slug: "rbac-isnt-if-statements",
+    title: "RBAC Isn't a Collection of if Statements",
+    dek: "Resource rules, inheritance, routing guards, and permission debugging belong in a decision interface, not scattered UI branches.",
+    category: "Engineering",
+    format: "Essay",
+    readingMinutes: 8,
+    publishedAt: "2026-08-12",
+    updatedAt: "2026-08-12",
+    featured: true,
+    accent: "permissions / resource rules",
+    sections: [
+      {
+        id: "if-statements-are-not-a-model",
+        heading: "If statements are not a permission model",
+        paragraphs: [
+          "The first version of many permission systems is honest and dangerous: if the role is admin, show the button. Then the product adds tenant isolation, resource ownership, inherited permissions, temporary exceptions, and route guards. The UI still looks like a few branches, but the real interface has become much larger than anyone admits.",
+          "A permission module needs one small decision interface: given a subject, action, resource, and context, return an allow/deny result with the reason. The implementation can hide inheritance, overrides, tenant rules, and audit hints behind that seam.",
+        ],
+        quote:
+          "The decision is the interface. The role labels are only one input.",
+      },
+      {
+        id: "debug-the-decision",
+        heading: "Debug the decision, not the symptom",
+        paragraphs: [
+          "When a user cannot open a page, the useful answer is not simply false. It is the route checked, the resource resolved, the inherited grants considered, and the rule that won. Without that trace, every bug becomes a tour through scattered guards and duplicated role checks.",
+          "This is where a deep module pays for itself. Callers learn one interface, but maintainers get locality: routing, rendering, and server actions can all ask the same question and receive the same explanation.",
+        ],
+        list: [
+          "Resolve tenant or workspace context before permission checks.",
+          "Represent actions and resources explicitly.",
+          "Return a reason code alongside allow or deny.",
+          "Keep UI visibility and route access on the same decision path.",
+        ],
+      },
+      {
+        id: "guards-are-adapters",
+        heading: "Guards are adapters",
+        paragraphs: [
+          "A route guard, a disabled button, and a backend policy check should not each reinvent permission logic. They are adapters at different seams. Their job is to translate local facts into the permission module's interface and handle the result appropriately.",
+          "The moment a second adapter exists, the seam is real. That is the point where centralizing the decision stops being architecture theater and starts preventing drift.",
+        ],
+        code: {
+          language: "ts",
+          label: "permission decision shape",
+          value: `type PermissionDecision = {
+  allowed: boolean;
+  reason: "granted" | "missing-action" | "wrong-tenant" | "resource-denied";
+};
+
+can({
+  subject: currentUser,
+  action: "invoice.approve",
+  resource: invoice,
+  context: tenantContext,
+});`,
+        },
+      },
+    ],
+    revisions: [{ date: "2026-08-12", note: "Initial publication." }],
+  },
+  {
+    slug: "modernize-frontend-without-rewrite",
+    title: "How to Modernize a Frontend Without Starting a Rewrite",
+    dek: "Incremental boundaries, compatibility layers, and rollout discipline beat the fantasy of a clean restart.",
+    category: "Engineering",
+    format: "Tutorial",
+    readingMinutes: 9,
+    publishedAt: "2026-08-12",
+    updatedAt: "2026-08-12",
+    featured: true,
+    accent: "brownfield / rollout",
+    sections: [
+      {
+        id: "rewrite-is-a-financing-plan",
+        heading: "A rewrite is a financing plan",
+        paragraphs: [
+          "A full rewrite does not remove complexity. It borrows against the team's future attention and delays the moment real users test the new assumptions. Brownfield modernization is slower in screenshots and faster in reality because every slice has to survive contact with the existing business.",
+          "The first useful move is to choose the seam: server state, routing, permissions, design tokens, form state, or table rendering. A modernization effort that tries to improve all of them at once has no interface and no rollback story.",
+        ],
+      },
+      {
+        id: "make-one-new-rule",
+        heading: "Make one new rule enforceable",
+        paragraphs: [
+          "Good incremental work introduces a rule that new code can follow immediately while old code remains compatible. For example: new server data goes through query keys; new permission checks go through the decision module; new dense tables use the virtualized table shell.",
+          "That compatibility layer is not glamorous, but it buys locality. Once callers learn the new interface, the implementation behind it can improve without reopening every screen.",
+        ],
+        list: [
+          "Pick one modernization seam at a time.",
+          "Define the new interface before converting pages.",
+          "Ship through a compatibility adapter instead of blocking on purity.",
+          "Measure the workflow the business actually uses.",
+        ],
+      },
+      {
+        id: "rollout-is-design",
+        heading: "Rollout is design",
+        paragraphs: [
+          "The best technical shape still fails if it cannot be introduced safely. Brownfield architecture has to include feature flags, route-by-route migration, production comparison, and a rollback path. These are not deployment chores around the work; they are part of the module's real interface.",
+          "Modernization succeeds when the old system gradually loses responsibility. The goal is not to win an argument about the new stack. The goal is to make the next safe change smaller than the last one.",
+        ],
+        code: {
+          language: "text",
+          label: "slice order",
+          value: `1. Observe the workflow and baseline it.
+2. Add the new interface behind a compatibility adapter.
+3. Convert one high-value route.
+4. Compare behavior, requests, and rollback path.
+5. Promote the rule for future code.`,
+        },
+      },
+    ],
+    revisions: [{ date: "2026-08-12", note: "Initial publication." }],
+  },
+  {
     slug: "coding-agent-two-brains",
     title: "I Gave My Coding Agent Two Brains",
     dek: "Why one document should describe intent while another records what the system actually knows.",
@@ -1101,4 +1217,13 @@ export function formatArchiveDate(value: string): string {
     month: "short",
     year: "numeric",
   }).format(new Date(`${value}T12:00:00Z`));
+}
+
+/** Short host label ("hashnode.dev") for badging a syndicated post's origin. */
+export function externalArticleLabel(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "external";
+  }
 }

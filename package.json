@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "db:tunnel": "ssh -F /dev/null -N -L 5433:10.47.0.5:5432 root@168.144.92.215",
+    "db:seed:archive": "tsx scripts/seed-archive.ts",
     "test:game": "tsx --test components/easter-egg/game/logic.test.ts",
     "test:mascot": "tsx --test $(find tests/mascot -name '*.test.ts')",
     "test:mascot:watch": "tsx --test --watch $(find tests/mascot -name '*.test.ts')",
@@ -25,6 +27,7 @@
     "@uidotdev/usehooks": "^2.4.1",
     "autoprefixer": "10.4.14",
     "clsx": "^2.0.0",
+    "drizzle-orm": "^0.45.2",
     "eslint": "8.45.0",
     "eslint-config-next": "13.4.10",
     "eslint-config-prettier": "^9.0.0",
@@ -36,6 +39,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.263.0",
     "next": "13.4.10",
+    "pg": "^8.23.0",
     "postcss": "8.4.26",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -47,6 +51,8 @@
     "use-sound": "^4.0.1"
   },
   "devDependencies": {
+    "@types/pg": "^8.21.0",
+    "drizzle-kit": "^0.31.10",
     "file-loader": "^6.2.0",
     "prettier": "^3.1.0",
     "prettier-plugin-tailwindcss": "^0.5.7",

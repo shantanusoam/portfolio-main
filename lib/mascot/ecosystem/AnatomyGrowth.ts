@@ -132,10 +132,10 @@ export function resolveAnatomyForMeals(
   let segmentLength = lerp(lower.segmentLength, upper.segmentLength, t);
   let maxWidth = lerp(lower.maxWidth, upper.maxWidth, t);
   let coreRadius = lerp(lower.coreRadius, upper.coreRadius, t);
-  let headScale = lerp(lower.headScale, upper.headScale, t);
-  let bellyBias = lerp(lower.bellyBias, upper.bellyBias, t);
-  let tailExponent = lerp(lower.tailExponent, upper.tailExponent, t);
-  let shoulderPosition = lerp(
+  const headScale = lerp(lower.headScale, upper.headScale, t);
+  const bellyBias = lerp(lower.bellyBias, upper.bellyBias, t);
+  const tailExponent = lerp(lower.tailExponent, upper.tailExponent, t);
+  const shoulderPosition = lerp(
     lower.shoulderPosition,
     upper.shoulderPosition,
     t,
@@ -144,8 +144,7 @@ export function resolveAnatomyForMeals(
   if (clampOptions) {
     const rawLength = Math.max(1, jointCount - 1) * segmentLength;
     if (rawLength > clampOptions.maxSpineLength) {
-      const lengthScale =
-        clampOptions.maxSpineLength / Math.max(1, rawLength);
+      const lengthScale = clampOptions.maxSpineLength / Math.max(1, rawLength);
       segmentLength *= lengthScale;
       // Keep body plump when the viewport forces a shorter spine.
       maxWidth = Math.max(
@@ -193,10 +192,7 @@ export function spineLengthPx(anatomy: AnatomyState): number {
   return Math.max(0, anatomy.jointCount - 1) * anatomy.segmentLength;
 }
 
-export function maxSpineLengthForBounds(
-  width: number,
-  height: number,
-): number {
+export function maxSpineLengthForBounds(width: number, height: number): number {
   // Allow a long cute tail without filling half the viewport.
   return clamp(Math.min(width, height) * 0.4, 140, 320);
 }

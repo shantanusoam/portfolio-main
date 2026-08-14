@@ -3,8 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Search } from "lucide-react";
-import { archiveArticles, formatArchiveDate } from "@/lib/archive/data";
-import type { ArticleCategory } from "@/lib/archive/types";
+import {
+  archiveArticles,
+  externalArticleLabel,
+  formatArchiveDate,
+} from "@/lib/archive/data";
+import type { ArchiveArticle, ArticleCategory } from "@/lib/archive/types";
 import styles from "./archive.module.css";
 
 const categories: Array<"All" | ArticleCategory> = [
@@ -16,7 +20,13 @@ const categories: Array<"All" | ArticleCategory> = [
   "Lessons",
 ];
 
-export default function BlogExplorer() {
+interface BlogExplorerProps {
+  articles?: ArchiveArticle[];
+}
+
+export default function BlogExplorer({
+  articles = archiveArticles,
+}: BlogExplorerProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<(typeof categories)[number]>("All");
@@ -39,7 +49,7 @@ export default function BlogExplorer() {
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return archiveArticles.filter((article) => {
+    return articles.filter((article) => {
       const matchesCategory =
         category === "All" || article.category === category;
       const matchesQuery =
@@ -49,7 +59,7 @@ export default function BlogExplorer() {
           .includes(normalized);
       return matchesCategory && matchesQuery;
     });
-  }, [category, query]);
+  }, [articles, category, query]);
 
   const featured = filtered.filter((article) => article.featured).slice(0, 3);
   const archive = filtered;
@@ -119,33 +129,58 @@ export default function BlogExplorer() {
           </div>
 
           <div className={styles.featureGrid}>
-            {featured.map((article, index) => (
-              <Link
-                className={`${styles.featureCard} ${
-                  index === 0 ? styles.featureCardPrimary : ""
-                }`}
-                href={`/blog/${article.slug}`}
-                key={article.slug}
-              >
-                <div>
-                  <div className={styles.cardMeta}>
-                    <span>{article.format}</span>
-                    <span>{article.category}</span>
-                    <span>{article.readingMinutes} min</span>
+            {featured.map((article, index) => {
+              const cardClassName = `${styles.featureCard} ${
+                index === 0 ? styles.featureCardPrimary : ""
+              }`;
+              const body = (
+                <>
+                  <div>
+                    <div className={styles.cardMeta}>
+                      <span>{article.format}</span>
+                      <span>{article.category}</span>
+                      <span>{article.readingMinutes} min</span>
+                      {article.externalUrl && (
+                        <span>
+                          ↗ {externalArticleLabel(article.externalUrl)}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className={styles.featureTitle}>{article.title}</h3>
+                    <p className={styles.featureDek}>{article.dek}</p>
                   </div>
-                  <h3 className={styles.featureTitle}>{article.title}</h3>
-                  <p className={styles.featureDek}>{article.dek}</p>
-                </div>
-                <div className={styles.cardFoot}>
-                  <span className={styles.date}>
-                    {formatArchiveDate(article.publishedAt)} · {article.accent}
-                  </span>
-                  <span className={styles.signalArrow} aria-hidden="true">
-                    <ArrowUpRight size={17} />
-                  </span>
-                </div>
-              </Link>
-            ))}
+                  <div className={styles.cardFoot}>
+                    <span className={styles.date}>
+                      {formatArchiveDate(article.publishedAt)} ·{" "}
+                      {article.accent}
+                    </span>
+                    <span className={styles.signalArrow} aria-hidden="true">
+                      <ArrowUpRight size={17} />
+                    </span>
+                  </div>
+                </>
+              );
+
+              return article.externalUrl ? (
+                <a
+                  className={cardClassName}
+                  href={article.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={article.slug}
+                >
+                  {body}
+                </a>
+              ) : (
+                <Link
+                  className={cardClassName}
+                  href={`/blog/${article.slug}`}
+                  key={article.slug}
+                >
+                  {body}
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
@@ -166,16 +201,18 @@ export default function BlogExplorer() {
 
         {archive.length > 0 ? (
           <div className={styles.articleGrid}>
-            {archive.map((article) => (
-              <article className={styles.articleCard} key={article.slug}>
-                <Link
-                  className={styles.articleLink}
-                  href={`/blog/${article.slug}`}
-                >
+            {archive.map((article) => {
+              const body = (
+                <>
                   <div>
                     <div className={styles.cardMeta}>
                       <span>{article.format}</span>
                       <span>{article.readingMinutes} min</span>
+                      {article.externalUrl && (
+                        <span>
+                          ↗ {externalArticleLabel(article.externalUrl)}
+                        </span>
+                      )}
                     </div>
                     <h3 className={styles.articleTitle}>{article.title}</h3>
                     <p className={styles.articleDek}>{article.dek}</p>
@@ -188,9 +225,31 @@ export default function BlogExplorer() {
                       <ArrowUpRight size={17} />
                     </span>
                   </div>
-                </Link>
-              </article>
-            ))}
+                </>
+              );
+
+              return (
+                <article className={styles.articleCard} key={article.slug}>
+                  {article.externalUrl ? (
+                    <a
+                      className={styles.articleLink}
+                      href={article.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {body}
+                    </a>
+                  ) : (
+                    <Link
+                      className={styles.articleLink}
+                      href={`/blog/${article.slug}`}
+                    >
+                      {body}
+                    </Link>
+                  )}
+                </article>
+              );
+            })}
           </div>
         ) : featured.length === 0 ? (
           <div className={styles.emptyState}>

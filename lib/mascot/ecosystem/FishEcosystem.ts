@@ -34,7 +34,13 @@ const FRY_HUNT_GRACE_SECONDS = 2.1;
 const FISSION_DURATION = 2.2;
 const REDUCED_FISSION_DURATION = 0.85;
 const REDUCED_CATCH_ASSIST_RADIUS = 90;
-const FRY_COLORS = ["#ffb178", "#8fe9c9", "#cbb2ff", "#91d9dc", "#ffd27a"] as const;
+const FRY_COLORS = [
+  "#ffb178",
+  "#8fe9c9",
+  "#cbb2ff",
+  "#91d9dc",
+  "#ffd27a",
+] as const;
 /** Tight drop radius around the egg click — user places the school. */
 const FRY_DROP_RADIUS = 54;
 
@@ -487,7 +493,7 @@ export class FishEcosystem {
     const root = adult.runtime.pose.getRoot();
     const phase = this.simTime * adult.preferredSpeed + adult.phaseOffset;
     const wanderRadius = 70 + adult.laneBias * 18;
-    let target: Point = {
+    const target: Point = {
       x:
         root.x +
         Math.cos(phase * 0.55 + adult.phaseOffset) * wanderRadius +
@@ -550,8 +556,7 @@ export class FishEcosystem {
     );
 
     const assignedHunterIndex = this.huntAssignments.findIndex(
-      (preyIndex) =>
-        preyIndex !== null && this.fry[preyIndex]?.id === fry.id,
+      (preyIndex) => preyIndex !== null && this.fry[preyIndex]?.id === fry.id,
     );
     const hunter =
       assignedHunterIndex >= 0 ? this.adults[assignedHunterIndex] : null;
@@ -596,9 +601,7 @@ export class FishEcosystem {
       reducedMotion: this.reducedMotion,
       threats,
       pointer:
-        this.pointer.active && !this.pointerSuppressed
-          ? this.pointer
-          : null,
+        this.pointer.active && !this.pointerSuppressed ? this.pointer : null,
       hideTarget: fry.hideTarget,
       neighbors,
       bounds: this.bounds,
@@ -640,7 +643,11 @@ export class FishEcosystem {
       const fry = this.fry[fryIndex];
       if (fry.age < FRY_MIN_CATCH_AGE) continue;
 
-      for (let adultIndex = 0; adultIndex < this.adults.length; adultIndex += 1) {
+      for (
+        let adultIndex = 0;
+        adultIndex < this.adults.length;
+        adultIndex += 1
+      ) {
         if (adultsBusy.has(adultIndex)) continue;
         const adult = this.adults[adultIndex];
         const root = adult.runtime.pose.getRoot();
@@ -725,7 +732,10 @@ export class FishEcosystem {
   }
 
   private beginFission(parent: EcosystemAdult): void {
-    if (!this.population.canSplitOneAdult() && !this.population.isFissionPending()) {
+    if (
+      !this.population.canSplitOneAdult() &&
+      !this.population.isFissionPending()
+    ) {
       return;
     }
     const parentIndex = this.adults.indexOf(parent);
@@ -777,8 +787,7 @@ export class FishEcosystem {
     const children: EcosystemAdult[] = [];
     for (let side = 0; side < 2; side += 1) {
       const childIndex = this.adults.length + children.length;
-      const seed =
-        (this.rng.next() * 0x7fffffff) ^ (childIndex * 0x9e3779b9);
+      const seed = (this.rng.next() * 0x7fffffff) ^ (childIndex * 0x9e3779b9);
       const offset = (side === 0 ? -1 : 1) * 18;
       const runtime = this.createRuntime(
         Math.floor(seed) >>> 0,
@@ -818,7 +827,9 @@ export class FishEcosystem {
     }
 
     // Ensure exactly one leader at index 0.
-    const leaderIndex = this.adults.findIndex((adult) => adult.role === "leader");
+    const leaderIndex = this.adults.findIndex(
+      (adult) => adult.role === "leader",
+    );
     if (leaderIndex > 0) {
       const [leader] = this.adults.splice(leaderIndex, 1);
       this.adults.unshift(leader);

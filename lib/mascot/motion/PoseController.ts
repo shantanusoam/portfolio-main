@@ -89,11 +89,7 @@ export class PoseController {
       segmentLength: Math.max(0.5, config.segmentLength),
     };
 
-    const next = createSpineJoints(
-      this.spineConfig,
-      root.x,
-      root.y,
-    );
+    const next = createSpineJoints(this.spineConfig, root.x, root.y);
     for (let i = 0; i < next.length; i += 1) {
       const t = next.length > 1 ? i / (next.length - 1) : 0;
       const sample = sampleChain(previous, t);

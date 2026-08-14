@@ -18,6 +18,7 @@
 .eyebrow,
 .micro,
 .proofLabel,
+.evidenceNote strong,
 .caseCategory,
 .tag,
 .traceLabel,
@@ -86,7 +87,7 @@
 }
 
 .proofCard {
-  min-height: 230px;
+  min-height: 330px;
   padding: 24px;
   border-right: 1px solid rgba(238, 233, 223, 0.15);
   border-bottom: 1px solid rgba(238, 233, 223, 0.15);
@@ -124,6 +125,51 @@
   color: rgba(238, 233, 223, 0.5);
   font-size: 12px;
   line-height: 1.55;
+}
+
+.evidenceNote {
+  display: block;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(238, 233, 223, 0.11);
+  color: rgba(238, 233, 223, 0.42);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.evidenceNote strong {
+  display: block;
+  margin-bottom: 7px;
+  color: rgba(238, 233, 223, 0.72);
+  font-size: 7px;
+  font-weight: 400;
+}
+
+.currentBand {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.45fr) minmax(0, 1.55fr);
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: clamp(34px, 5vw, 58px) 0 clamp(62px, 7vw, 92px);
+  gap: clamp(24px, 6vw, 90px);
+  border-top: 1px solid rgba(238, 233, 223, 0.13);
+}
+
+.currentBody {
+  max-width: 860px;
+  color: rgba(238, 233, 223, 0.82);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(24px, 3vw, 42px);
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+.currentSupport {
+  max-width: 680px;
+  margin-top: 18px;
+  color: rgba(238, 233, 223, 0.5);
+  font-size: clamp(13px, 1.25vw, 16px);
+  line-height: 1.65;
 }
 
 .caseStack {
@@ -264,6 +310,131 @@
   margin-right: 8px;
   color: #ff5d2f;
   content: "↳";
+}
+
+.registryAnswerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.registryAnswerGrid div,
+.measurementGrid div,
+.modelDetail {
+  border: 1px solid rgba(238, 233, 223, 0.13);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.registryAnswerGrid div {
+  padding: 16px;
+}
+
+.registryAnswerGrid span,
+.measurementGrid span,
+.modelDetail span {
+  color: #ff5d2f;
+  font-family: var(--font-data), monospace;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.registryAnswerGrid p {
+  margin-top: 10px;
+  color: rgba(238, 233, 223, 0.56);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.modelDiagram {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.92fr) minmax(0, 1.08fr);
+  gap: 12px;
+}
+
+.modelSteps {
+  display: grid;
+  gap: 8px;
+}
+
+.modelSteps button {
+  padding: 12px;
+  border: 1px solid rgba(238, 233, 223, 0.12);
+  color: rgba(238, 233, 223, 0.5);
+  background: rgba(255, 255, 255, 0.018);
+  text-align: left;
+}
+
+.modelSteps button[aria-pressed="true"] {
+  border-color: rgba(255, 93, 47, 0.75);
+  background: rgba(255, 93, 47, 0.08);
+}
+
+.modelSteps span {
+  display: block;
+  color: #ff5d2f;
+  font-family: var(--font-data), monospace;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.modelSteps strong {
+  display: block;
+  margin-top: 7px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.modelDetail {
+  display: flex;
+  min-height: 250px;
+  padding: 22px;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.modelDetail h3 {
+  margin-top: 12px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(30px, 4vw, 52px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.modelDetail p,
+.debugRecording {
+  margin-top: 18px;
+  color: rgba(238, 233, 223, 0.55);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.measurementGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.measurementGrid div {
+  padding: 14px;
+}
+
+.measurementGrid strong {
+  display: block;
+  margin: 10px 0;
+  color: rgba(238, 233, 223, 0.78);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.measurementGrid p {
+  color: rgba(238, 233, 223, 0.48);
+  font-size: 10px;
+  line-height: 1.55;
 }
 
 .caseLink,
@@ -704,7 +875,8 @@
 
   .caseMain,
   .contactSection,
-  .registryDetail {
+  .registryDetail,
+  .modelDiagram {
     grid-template-columns: 1fr;
   }
 
@@ -735,6 +907,7 @@
 @media (max-width: 680px) {
   .section,
   .proofSection,
+  .currentBand,
   .contactSection,
   .buildFooter,
   .registryHero,
@@ -748,13 +921,16 @@
   }
 
   .sectionHeading,
-  .proofIntro {
+  .proofIntro,
+  .currentBand {
     grid-template-columns: 1fr;
     gap: 16px;
   }
 
   .proofGrid,
   .registryGrid,
+  .registryAnswerGrid,
+  .measurementGrid,
   .notesGrid,
   .credibilityGrid,
   .caseLists,
@@ -763,7 +939,7 @@
   }
 
   .proofCard {
-    min-height: 180px;
+    min-height: 250px;
   }
 
   .caseVisual {

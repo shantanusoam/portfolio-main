@@ -67,13 +67,7 @@ export type MascotBehavior =
   | "reducedMotion";
 
 export type AdvancedMascotBehavior =
-  | "crawl"
-  | "land"
-  | "step"
-  | "hide"
-  | "sleep"
-  | "celebrate"
-  | "textFeed";
+  "crawl" | "land" | "step" | "hide" | "sleep" | "celebrate" | "textFeed";
 
 export interface MotionRecipe {
   frequency: number;
@@ -174,21 +168,13 @@ export type MascotExpression =
   | "determined";
 
 export type AppearanceLayerName =
-  | "silhouette"
-  | "print"
-  | "rim"
-  | "dots"
-  | "face";
+  "silhouette" | "print" | "rim" | "dots" | "face";
 
 export type AppearancePresetName =
-  | "cute-bean"
-  | "signal-manta"
-  | "velvet-comet";
+  "cute-bean" | "signal-manta" | "velvet-comet";
 
 export type AppearancePatternRecipeName =
-  | "terrazzo-confetti"
-  | "constellation-freckles"
-  | "soft-stripes";
+  "terrazzo-confetti" | "constellation-freckles" | "soft-stripes";
 
 /** Continuous appearance-lab tuning knobs — see MascotAppearancePanel.tsx. */
 export interface AppearanceTuningOverrides {
@@ -240,11 +226,7 @@ export interface MascotStatus {
 }
 
 export type EcosystemFissionPhase =
-  | "settle"
-  | "round"
-  | "seam"
-  | "separate"
-  | "recover";
+  "settle" | "round" | "seam" | "separate" | "recover";
 
 /** Low-frequency public state for the hidden Signal Shoal interaction. */
 export interface MascotEcosystemStatus {

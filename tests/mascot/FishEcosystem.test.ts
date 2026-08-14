@@ -138,8 +138,7 @@ test("meals plump the fish and rebuild joint milestones", () => {
   const ecosystem = createEcosystem(77, 320, 280);
   const startLength = adultSpineLength(ecosystem.getAdults()[0]);
   const startJoints = ecosystem.getAdults()[0].runtime.pose.joints.length;
-  const startWidth =
-    ecosystem.getAdults()[0].anatomy.bodyProfile.maxWidth;
+  const startWidth = ecosystem.getAdults()[0].anatomy.bodyProfile.maxWidth;
 
   for (let meal = 0; meal < 5; meal += 1) feedOne(ecosystem);
 

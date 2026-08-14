@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Buttons";
 import GradientBlocker from "@/components/ui/GradientBlocker";
+import ProjectEvidenceDemo from "@/components/projects/ProjectEvidenceDemo";
 
 interface PageProps {
   params: { project_name: string };
@@ -158,6 +159,140 @@ export default function ProjectPage({ params }: PageProps) {
         <Heading>OVERVIEW</Heading>
         <p className="text-graytransparent">{project.description}</p>
       </motion.div>
+      {project.caseStudy && (
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          className="flex flex-col gap-8"
+        >
+          <Heading>CASE FILE</Heading>
+          <div className="grid gap-8 text-graytransparent">
+            <div>
+              <h3 className="max-w-4xl font-serif text-3xl leading-tight text-white md:text-5xl">
+                {project.caseStudy.headline}
+              </h3>
+              <p className="mt-5 max-w-4xl leading-8">
+                {project.caseStudy.context}
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="border border-white/15 bg-white/[0.02] p-5">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Ownership
+                </p>
+                <p className="mt-4 leading-7">{project.caseStudy.ownership}</p>
+              </div>
+              <div className="border border-white/15 bg-white/[0.02] p-5">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Failed approach
+                </p>
+                <p className="mt-4 leading-7">
+                  {project.caseStudy.failedApproach}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-3">
+              <div>
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Constraints
+                </p>
+                <ul className="ml-3.5 list-outside list-disc leading-7">
+                  {project.caseStudy.constraints.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Engineering decisions
+                </p>
+                <ul className="ml-3.5 list-outside list-disc leading-7">
+                  {project.caseStudy.engineeringDecisions.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Outcome
+                </p>
+                <ul className="ml-3.5 list-outside list-disc leading-7">
+                  {project.caseStudy.outcome.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="border border-white/15 bg-black/30 p-5">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                Architecture / sanitized diagram
+              </p>
+              <h4 className="mt-3 text-2xl font-semibold text-white">
+                {project.caseStudy.architecture.title}
+              </h4>
+              <p className="mt-3 max-w-4xl leading-7">
+                {project.caseStudy.architecture.description}
+              </p>
+              <div className="mt-5 grid gap-2 md:grid-cols-3 xl:grid-cols-6">
+                {project.caseStudy.architecture.nodes.map((node, index) => (
+                  <div
+                    className="relative border border-white/15 bg-white/[0.02] p-3"
+                    key={node}
+                  >
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <p className="mt-2 text-sm text-white/65">{node}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {project.caseStudy.artifact && (
+              <div>
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Evidence artifact
+                </p>
+                <ProjectEvidenceDemo artifact={project.caseStudy.artifact} />
+              </div>
+            )}
+
+            <div className="grid gap-5 lg:grid-cols-3">
+              <div>
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Measurement
+                </p>
+                <ul className="ml-3.5 list-outside list-disc leading-7">
+                  {project.caseStudy.measurement.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Trade-offs
+                </p>
+                <ul className="ml-3.5 list-outside list-disc leading-7">
+                  {project.caseStudy.tradeoffs.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Reflection
+                </p>
+                <p className="leading-7">{project.caseStudy.reflection}</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
       <motion.div
         variants={fadeUp}
         initial="hidden"

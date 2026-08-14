@@ -54,7 +54,10 @@ export function predictedThreatPoint(
   const dx = threat.x - fry.x;
   const dy = threat.y - fry.y;
   const distance = Math.hypot(dx, dy);
-  const closing = Math.max(40, fryEscapeSpeed + Math.hypot(threat.vx, threat.vy));
+  const closing = Math.max(
+    40,
+    fryEscapeSpeed + Math.hypot(threat.vx, threat.vy),
+  );
   const lookAhead = clamp(distance / closing, 0.05, 0.55);
   return {
     x: threat.x + threat.vx * lookAhead,
@@ -87,14 +90,12 @@ export function tangentialDodge(
   };
 }
 
-export function computeFryDesiredVelocity(input: FrySteerInput): FrySteerOutput {
+export function computeFryDesiredVelocity(
+  input: FrySteerInput,
+): FrySteerOutput {
   const fatigue = clamp(input.fatigue, 0, 1);
-  const baseSpeed = input.reducedMotion
-    ? 8
-    : lerp(48, 18, fatigue);
-  const burstSpeed = input.reducedMotion
-    ? 12
-    : lerp(128, 46, fatigue);
+  const baseSpeed = input.reducedMotion ? 8 : lerp(48, 18, fatigue);
+  const burstSpeed = input.reducedMotion ? 12 : lerp(128, 46, fatigue);
 
   let desiredX = Math.cos(input.age * 1.3) * baseSpeed * 0.22;
   let desiredY = Math.sin(input.age * 1.1) * baseSpeed * 0.18;
@@ -185,7 +186,9 @@ export function computeFryDesiredVelocity(input: FrySteerInput): FrySteerOutput 
   if (input.y < input.bounds.minY + edge) desiredY += 70;
   if (input.y > input.bounds.maxY - edge) desiredY -= 70;
 
-  const maxSpeed = burst ? burstSpeed : baseSpeed * (input.reducedMotion ? 1 : 1.15);
+  const maxSpeed = burst
+    ? burstSpeed
+    : baseSpeed * (input.reducedMotion ? 1 : 1.15);
   return {
     desiredVx: desiredX,
     desiredVy: desiredY,

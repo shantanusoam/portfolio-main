@@ -10,7 +10,11 @@ export function shouldDisableMascotStringContacts(
   cssWidth: number,
   matchMediaFn?: ((query: string) => MediaQueryList) | null,
 ): boolean {
-  if (Number.isFinite(cssWidth) && cssWidth > 0 && cssWidth <= MOBILE_STRING_CONTACT_MAX_WIDTH) {
+  if (
+    Number.isFinite(cssWidth) &&
+    cssWidth > 0 &&
+    cssWidth <= MOBILE_STRING_CONTACT_MAX_WIDTH
+  ) {
     return true;
   }
 

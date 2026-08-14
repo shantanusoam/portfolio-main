@@ -97,7 +97,7 @@ export const APPEARANCE_PRESETS: Record<
     id: "velvet-comet",
     label: "Velvet Comet",
     palette: DEEP_SEA_TOY_PALETTE,
-    patternRecipe: "constellation-freckles",
+    patternRecipe: "terrazzo-confetti",
   },
 };
 

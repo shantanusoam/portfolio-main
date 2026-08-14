@@ -534,10 +534,7 @@ export class MascotRuntime {
     };
     if (next.jointCount !== previousJointCount) {
       this.pose.rebuildSpine(spine);
-      this.skinPoints = generateSkinPoints(
-        next.jointCount,
-        this.dotSkinConfig,
-      );
+      this.skinPoints = generateSkinPoints(next.jointCount, this.dotSkinConfig);
     } else {
       this.pose.setSpineConfig(spine);
     }

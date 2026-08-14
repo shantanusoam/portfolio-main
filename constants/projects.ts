@@ -34,15 +34,15 @@ export const projects: MissionType[] = [
     cover_image: DndCover,
     screenshots: [DndCover, Dndscreenshot],
     description:
-      'dnd NPM Library for nth level D&D with Custom trigger, Custom drag, auto-positioning',
+      'An installable nested drag-and-drop tree package for React, built around semantic moves instead of visual array indexes.',
     url: '/projects/dnd-dynamic-tree',
     features: [
-      'Custom trigger element',
-      'Custom drag Element.',
-      'Multi nth level submenu support',
-      'Automatic state updates and position generation',
-      'Auto positioning of each dnd-item',
-      'Enhanced user interactions with auto-positioning for each DnD item, utilizing comprehensive DnD-kit helpers.',
+      'Custom trigger and custom drag surfaces without forcing a specific tree renderer.',
+      'Nth-level nesting where identity, ancestry, and sibling order stay separate.',
+      'Projected drag state for previewing a destination before committing canonical state.',
+      'Semantic move format: node, parent, and sibling position instead of raw array splices.',
+      'Keyboard-style move commands can reuse the same state model as pointer dragging.',
+      'Minimal install path for React teams that already own their stores and rendering.',
     ],
     skills: {
       Frontend: ['Storybook', 'React'],
@@ -52,14 +52,66 @@ export const projects: MissionType[] = [
     codeLink: 'https://github.com/shantanusoam/dnd-dynamic-tree',
     class: 'NPM Package Architect',
     specialMoves: [
+      'Semantic move model: node + parent + sibling position',
+      'Projection layer separate from committed tree state',
       'Custom trigger + custom drag elements',
-      'Multi nth-level submenu support',
-      'Automatic state and position generation',
     ],
     impact: [
       'Published and installable via npm for any React project',
       'Removes hand-rolled boilerplate for nth-level drag-and-drop menus',
+      'Turns nested DnD from an index-shuffling problem into a reusable interaction model',
     ],
+    caseStudy: {
+      headline: 'Why Nested Drag-and-Drop Is a State-Modelling Problem',
+      context:
+        'The package started from a familiar UI need: let people reorganize arbitrarily deep menu and folder trees without writing a bespoke drag layer for every product. The work mattered because nested builders fail quietly when visual order is mistaken for structural truth.',
+      ownership:
+        'Solo open-source project. I controlled the interaction model, package interface, examples, documentation, and release shape.',
+      constraints: [
+        'Unknown tree depth and unknown consumer rendering strategy.',
+        'Consumers needed custom drag handles and custom item markup.',
+        'The package could not own application state, routing, or persistence.',
+        'Keyboard and assistive-technology behavior needed a model that could be described without pointer coordinates.',
+      ],
+      failedApproach:
+        'The rejected approach was index-based: flatten the visible tree, splice the active item into a new position, then infer the parent from indentation. It worked in shallow demos and failed as soon as a parent crossed branches, because stale indexes looked valid while ancestry had already changed.',
+      engineeringDecisions: [
+        'Represent a drop as a semantic move: active node, destination parent, and before/after sibling position.',
+        'Keep projected drag state temporary so cancellation does not mutate the canonical tree.',
+        'Let consumers own the rendered item while the package owns the move calculation.',
+        'Expose a small installable interface instead of an application-specific state manager.',
+      ],
+      architecture: {
+        title: 'Semantic move flow',
+        description:
+          'Pointer or keyboard intent produces a projected destination. Only the final command crosses the package interface: move this node under this parent before or after this sibling.',
+        nodes: [
+          'User intent',
+          'Projected destination',
+          'Semantic move',
+          'Tree reducer',
+          'Consumer render',
+        ],
+      },
+      outcome: [
+        'Published as a public npm package and GitHub repository.',
+        'Supports nth-level nesting with custom trigger and drag surfaces.',
+        'Gives consumers a reusable state model for menus, folders, and nested builders.',
+      ],
+      measurement: [
+        'Public availability is verifiable through npm and GitHub.',
+        'The embedded demo exercises the same node/parent/sibling-position vocabulary used by the case study.',
+        'Adoption metrics are not claimed publicly because package usage telemetry is not under my control.',
+      ],
+      tradeoffs: [
+        'The semantic model is safer than index splicing, but consumers must understand node identity and parent relationships.',
+        'Keeping store ownership with the consumer improves adoption, but it means the package cannot optimize every rendering strategy.',
+        'Projection makes cancellation cleaner, but it adds one temporary state layer to reason about.',
+      ],
+      reflection:
+        'If rebuilding it today, I would start with keyboard behavior and screen-reader announcements first, then make pointer dragging another adapter over the same move interface.',
+      artifact: 'dynamic-tree-demo',
+    },
   },
   {
     id: 'maan',
@@ -262,13 +314,14 @@ export const projects: MissionType[] = [
     cover_image: null,
     screenshots: [],
     description:
-      'A performance and security overhaul of a healthcare insurer\'s core systems — legacy MongoDB clusters, agent-portal authentication, and deployment infrastructure — engaged via Cognizant/Shephertz.',
+      'A risk-reduction and performance pass on a live healthcare insurance platform: database latency, portal security, and safer deployment recovery, delivered through a client engagement via Cognizant/Shephertz.',
     url: '/projects/niva-bupa',
     features: [
-      'Cleaned obsolete build artifacts, added strategic indexes, and scheduled nightly housekeeping jobs on legacy MongoDB clusters.',
-      'Implemented SSO and two-factor authentication with IP whitelisting and 45-day password rotation.',
-      'Led a vulnerability audit patching XSS and CSRF vectors in agent portals, passing external penetration tests on the first run.',
-      'Containerized a monolithic React codebase with Docker, orchestrated via Kubernetes and Nginx ingress, enabling blue-green deployments.',
+      'Sanitized query-plan work: removed obsolete build artifacts, added strategic MongoDB indexes, and scheduled nightly housekeeping on legacy clusters.',
+      'Security control matrix covering SSO, two-factor authentication, IP whitelisting, 45-day password rotation, and portal remediation.',
+      'Vulnerability audit and fixes for XSS and CSRF vectors in agent portals, followed by external penetration-test validation.',
+      'Blue-green deployment path with Docker, Kubernetes, and Nginx ingress for safer promotion and rollback.',
+      'Rollback timeline reduced from operator-heavy manual steps to a rehearsed sub-five-minute recovery path.',
     ],
     skills: {
       Backend: ['MongoDB', 'Docker', 'Kubernetes', 'Nginx'],
@@ -279,15 +332,67 @@ export const projects: MissionType[] = [
     sourceAvailability: 'client',
     class: 'Performance + Security Engineer',
     specialMoves: [
-      'MongoDB indexing & nightly housekeeping',
-      'SSO + 2FA + IP whitelisting',
-      'Blue-green deployments via Docker/Kubernetes',
+      'Sanitized MongoDB query-plan repair',
+      'Security control matrix across identity and portal risks',
+      'Blue-green deployment and rollback timeline',
     ],
     impact: [
       'Reduced query latency by over 30% during peak policy-lookup traffic',
       'Resolved 15+ critical vulnerabilities and achieved 100% healthcare data-protection compliance',
       'Cut deployment rollback time from 20 minutes to under 5 minutes',
     ],
+    caseStudy: {
+      headline: 'Reducing Risk in a Live Healthcare Platform',
+      context:
+        'The product supported healthcare-insurance workflows where slow policy lookup and risky releases had direct operational cost. The work mattered because reliability, security, and release confidence were part of the customer experience, not back-office concerns.',
+      ownership:
+        'Senior Software Engineer on a client delivery team via Cognizant/Shephertz. I owned focused performance and security remediation tasks, containerization support, and rollback-flow improvements within the larger client-governed platform.',
+      constraints: [
+        'Live healthcare environment with confidentiality and data-protection requirements.',
+        'Legacy MongoDB and portal code that could not pause for a rewrite.',
+        'External penetration testing created a hard validation bar.',
+        'Release changes needed rollback safety because traffic could not be interrupted casually.',
+      ],
+      failedApproach:
+        'The deliberately rejected path was chasing individual slow screens without reading the query shape. That would have made isolated pages feel better while leaving peak policy-lookup traffic exposed to the same collection scans and cleanup debt.',
+      engineeringDecisions: [
+        'Used query-plan evidence to choose targeted indexes rather than broad schema churn.',
+        'Paired portal remediation with a visible security control matrix so fixes could be audited.',
+        'Introduced Docker/Kubernetes/Nginx release mechanics as one rollback interface instead of a pile of manual commands.',
+        'Kept diagrams and public examples sanitized because production traffic and vulnerability details are client-confidential.',
+      ],
+      architecture: {
+        title: 'Risk-reduction release lane',
+        description:
+          'Policy lookup performance, identity controls, portal remediation, and blue-green ingress were treated as one operational risk surface.',
+        nodes: [
+          'Policy lookup traffic',
+          'Sanitized query plan',
+          'Security controls',
+          'Container image',
+          'Blue-green ingress',
+          'Rollback lane',
+        ],
+      },
+      outcome: [
+        'Peak policy-lookup query latency reduced by more than 30%.',
+        '15+ critical vulnerabilities remediated before external validation.',
+        'Rollback time reduced from roughly 20 minutes to under 5 minutes.',
+      ],
+      measurement: [
+        'Latency was measured before and after index/cleanup changes on representative policy-lookup traffic; raw client data is not public.',
+        'Security count comes from the remediation list closed during the audit; exploit detail is withheld.',
+        'Rollback timing compares the previous manual recovery path with the rehearsed blue-green path.',
+      ],
+      tradeoffs: [
+        'Targeted indexing reduced latency quickly, but increased the need to document index ownership and cleanup jobs.',
+        'Stronger identity controls improved risk posture, but added operational support paths for lockouts and access changes.',
+        'Blue-green release mechanics made rollback safer, but introduced container and ingress complexity for the delivery team.',
+      ],
+      reflection:
+        'If rebuilding it today, I would put performance budgets, query-plan review, and rollback rehearsal into the delivery checklist from the start instead of treating them as a late hardening phase.',
+      artifact: 'niva-risk-release',
+    },
   },
   // Real case study — confidential B2B SaaS platform, no public screenshot.
   {
@@ -297,13 +402,14 @@ export const projects: MissionType[] = [
     cover_image: null,
     screenshots: [],
     description:
-      'Brownfield modernization of a legacy CRM/ERP into a multi-tenant SaaS operating system for B2B SMEs, rebuilt from Bootstrap/SCSS/Axios into React + TypeScript + Tailwind + shadcn/ui with minimal business disruption.',
+      'Brownfield modernization of a legacy CRM/ERP into a multi-tenant SaaS operating system for B2B SMEs, moving frontend architecture, permissions, performance, and deployment systems forward without stopping day-to-day business.',
     url: '/projects/knowbuild',
     features: [
-      'Multi-tenant architecture with subdomain-based isolation (company.app.com) and secure tenant context resolution.',
-      'Custom RBAC PermissionEngine with resource-level rules, inheritance, and dynamic checks integrated into routing guards.',
+      'Tenant-resolution flow with subdomain-based isolation (company.app.com), explicit tenant context, and guarded cross-tenant assumptions.',
+      'RBAC decision flow with resource-level rules, inheritance, and dynamic checks integrated into routing guards.',
+      'API-request comparison work that reduced redundant server calls and clarified server-state ownership.',
       'Re-architected state management to TanStack Query (server state) + Redux Toolkit (UI state).',
-      'Virtualization (@tanstack/react-virtual) for tables with 10k+ rows, keeping scrolling smooth on low-end devices.',
+      'Virtualized 10k-row operational tables, keeping scroll and selection responsive on low-end devices.',
       'CI/CD automation via atomic bash + rsync pipelines across local/staging/prod wildcard-subdomain environments.',
     ],
     skills: {
@@ -315,14 +421,68 @@ export const projects: MissionType[] = [
     sourceAvailability: 'client',
     class: 'Systems Architect',
     specialMoves: [
-      'Multi-tenant subdomain isolation',
-      'Custom RBAC PermissionEngine',
-      'TanStack Query + RTK re-architecture',
+      'Tenant-resolution diagram and permission decision flow',
+      'TanStack Query + Redux Toolkit ownership split',
+      'Virtualized 10k-row operational surfaces',
     ],
     impact: [
       '~40% fewer redundant API calls, no more cross-tab state inconsistency',
       '10k+ row tables stay smooth on low-end devices',
+      'Modernization shipped incrementally while the business kept using the product',
     ],
+    caseStudy: {
+      headline: 'Modernizing a Multi-Tenant CRM/ERP Without Stopping the Business',
+      context:
+        'Knowbuild is a multi-tenant CRM/ERP surface for B2B teams. The work mattered because every architecture decision had to preserve active business workflows while making future change safer.',
+      ownership:
+        'Staff Engineer / Senior Software Developer. I owned frontend architecture decisions, tenant-aware UI flows, permission integration, state-management migration, table performance work, and deployment automation in collaboration with product and backend stakeholders.',
+      constraints: [
+        'Brownfield product with existing users and legacy Bootstrap/SCSS/Axios patterns.',
+        'Multi-tenant isolation and permission mistakes could expose the wrong workflow or data.',
+        'Operational tables needed to handle 10k+ rows on modest hardware.',
+        'The migration had to land incrementally rather than through a full rewrite freeze.',
+      ],
+      failedApproach:
+        'The rejected path was a screen-by-screen UI rewrite that left state ownership vague. It made individual pages look newer but did not solve cross-tab drift, redundant requests, tenant assumptions, or permission debugging.',
+      engineeringDecisions: [
+        'Put tenant resolution behind an explicit flow before feature code asks for tenant-scoped data.',
+        'Split server state into TanStack Query and local UI state into Redux Toolkit so cache invalidation and view state stopped fighting.',
+        'Moved permission checks into a reusable decision path with route guards and resource rules instead of scattered conditional rendering.',
+        'Virtualized dense tables and treated low-end hardware as a real target, not an edge case.',
+        'Kept deployment automation boring and repeatable through atomic shell/rsync flows across local, staging, and production environments.',
+      ],
+      architecture: {
+        title: 'Tenant and permission request path',
+        description:
+          'A request resolves tenant context first, runs route/resource permission checks, then lets server-state modules fetch and cache the scoped result before a virtualized view renders it.',
+        nodes: [
+          'Subdomain',
+          'Tenant context',
+          'Route guard',
+          'Resource rule',
+          'Query cache',
+          'Virtualized view',
+        ],
+      },
+      outcome: [
+        '~40% fewer redundant API calls in representative workflows after server-state ownership changes.',
+        '10k+ row tables stayed usable on low-end devices through virtualization.',
+        'Multi-tenant and permission behavior became easier to debug because the decision path was explicit.',
+      ],
+      measurement: [
+        'API-request reduction was measured by comparing representative workflow request counts before and after TanStack Query ownership changes.',
+        '10k-row behavior was tested against representative operational tables with sanitized data.',
+        'Tenant and permission evidence is described structurally; customer-specific identifiers and workflows are withheld.',
+      ],
+      tradeoffs: [
+        'TanStack Query improved server-state locality, but required sharper invalidation discipline.',
+        'A central permission decision flow made debugging easier, but mistakes in its interface could affect many routes.',
+        'Virtualization kept large tables responsive, but complicated row measurement, keyboard focus, and sticky controls.',
+      ],
+      reflection:
+        'If rebuilding it today, I would define the tenant-resolution and permission interfaces even earlier, then migrate screens behind those seams one workflow at a time.',
+      artifact: 'knowbuild-tenant-flow',
+    },
   },
   // Real case study — the Amala Earth e-commerce/CMS platform built during
   // the Mobikasa engagement (constants/experiences.ts). No public repo.

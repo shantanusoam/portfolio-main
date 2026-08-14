@@ -50,6 +50,7 @@ export interface AppearanceRenderInput {
   /** Optional — null/undefined/not-yet-loaded all safely fall back to the procedural print. */
   generatedDecalAtlas?: GeneratedDecalAtlas | null;
   /** Optional soft fabric overlay (velvet microtexture) — clipped to silhouette at low opacity. */
+  // eslint-disable-next-line no-undef -- CanvasImageSource is a lib.dom.d.ts type alias, not a runtime global; base no-undef is not TS-type-aware.
   velvetMicrotexture?: CanvasImageSource | null;
 }
 
@@ -162,6 +163,7 @@ function drawSilhouetteFill(
 function drawVelvetOverlay(
   ctx: CanvasRenderingContext2D,
   contour: BodyContourPoints,
+  // eslint-disable-next-line no-undef -- CanvasImageSource is a lib.dom.d.ts type alias, not a runtime global; base no-undef is not TS-type-aware.
   texture: CanvasImageSource,
 ): void {
   let minX = Infinity;

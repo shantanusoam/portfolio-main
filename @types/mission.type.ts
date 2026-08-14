@@ -2,6 +2,30 @@ import { StaticImageData } from 'next/image';
 
 export type MissionSkillMap = Record<string, string[]>;
 
+export type CaseStudyArtifact =
+  | "knowbuild-tenant-flow"
+  | "niva-risk-release"
+  | "dynamic-tree-demo";
+
+export type CaseStudyDetail = {
+  headline: string;
+  context: string;
+  ownership: string;
+  constraints: string[];
+  failedApproach: string;
+  engineeringDecisions: string[];
+  architecture: {
+    title: string;
+    description: string;
+    nodes: string[];
+  };
+  outcome: string[];
+  measurement: string[];
+  tradeoffs: string[];
+  reflection: string;
+  artifact?: CaseStudyArtifact;
+};
+
 export type MissionType = {
   id: string;
   title: string;
@@ -23,6 +47,7 @@ export type MissionType = {
   class: string;
   specialMoves: string[];
   impact: string[];
+  caseStudy?: CaseStudyDetail;
   // Marks missions with no real case-study content yet — swap fields once available
   isPlaceholder?: boolean;
 };

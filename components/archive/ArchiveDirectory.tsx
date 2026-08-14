@@ -8,6 +8,10 @@ import {
 } from "@/lib/archive/data";
 import styles from "./archive.module.css";
 
+interface ArchiveDirectoryProps {
+  blogCount?: number;
+}
+
 const rooms = [
   {
     href: "/blog",
@@ -42,7 +46,15 @@ const rooms = [
   },
 ];
 
-export default function ArchiveDirectory() {
+export default function ArchiveDirectory({
+  blogCount = archiveArticles.length,
+}: ArchiveDirectoryProps) {
+  const roomList = rooms.map((room) =>
+    room.href === "/blog"
+      ? { ...room, count: `${blogCount} pieces` }
+      : room,
+  );
+
   return (
     <section className={`${styles.section} ${styles.directorySection}`}>
       <div className={styles.directoryIntro}>
@@ -53,7 +65,7 @@ export default function ArchiveDirectory() {
         </p>
       </div>
       <nav className={styles.directoryGrid} aria-label="Explore the archive">
-        {rooms.map((room) => (
+        {roomList.map((room) => (
           <Link
             className={`${styles.directoryCard} ${
               room.href === "/blog" ? styles.directoryCardActive : ""

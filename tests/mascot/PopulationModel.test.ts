@@ -49,7 +49,11 @@ test("fission unlocks only after twenty meals when the cap allows a split", () =
     assert.equal(feed(model, meal), "growth");
   }
   assert.equal(feed(model, MEALS_TO_FISSION), "fission");
-  assert.equal(model.requestFry(), false, "spawn remains locked during fission");
+  assert.equal(
+    model.requestFry(),
+    false,
+    "spawn remains locked during fission",
+  );
   assert.equal(model.completeFission(), 2);
   assert.equal(model.getStatus().population, 2);
 });
@@ -108,10 +112,7 @@ test("post-fission anatomy is equal and resets the meal counter", () => {
   const child = anatomyAfterFission(20);
   assert.equal(child.mealsEaten, 0);
   assert.equal(child.jointCount, resolveAnatomyForMeals(10).jointCount);
-  assert.equal(
-    child.segmentLength,
-    resolveAnatomyForMeals(10).segmentLength,
-  );
+  assert.equal(child.segmentLength, resolveAnatomyForMeals(10).segmentLength);
 });
 
 test("post-fission siblings use equal bounded scales", () => {

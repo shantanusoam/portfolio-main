@@ -136,16 +136,23 @@ if (scripts.lint) {
 
 // --- format (already scoped: only checks mascot directories) ---
 if (existsSync(path.join(root, "node_modules", ".bin", "prettier"))) {
-  console.log("\n▶ format: npx prettier --check <mascot dirs>");
-  const { status, error } = runInherited("npx", [
-    "prettier",
-    "--check",
+  // Some of these directories (e.g. resonance-weaver) are only present on
+  // branches where that feature is checked in — prettier errors out on a
+  // pattern that matches nothing, so skip whichever aren't there right now.
+  const formatDirs = [
     "lib/mascot",
     "components/mascot",
     "components/resonance-weaver",
     "app/motion-lab",
     "tests/mascot",
     "scripts/mascot",
+  ].filter((dir) => existsSync(path.join(root, dir)));
+
+  console.log("\n▶ format: npx prettier --check <mascot dirs>");
+  const { status, error } = runInherited("npx", [
+    "prettier",
+    "--check",
+    ...formatDirs,
   ]);
   results.push({ name: "format", ok: status === 0 && !error });
 }

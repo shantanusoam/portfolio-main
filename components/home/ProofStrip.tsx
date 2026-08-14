@@ -15,6 +15,10 @@ export default function ProofStrip() {
             <span className={styles.proofValue}>{metric.value}</span>
             <span className={styles.proofLabel}>{metric.label}</span>
             <span className={styles.proofContext}>{metric.context} ↗</span>
+            <span className={styles.evidenceNote}>
+              <strong>Evidence note</strong>
+              {metric.evidenceNote}
+            </span>
           </Link>
         ))}
       </div>

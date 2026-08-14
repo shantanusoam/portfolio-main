@@ -23,10 +23,7 @@ export function bodyWidth(
 
   const headGrowth =
     0.52 +
-    0.48 *
-      Math.sin(
-        Math.min(1, normalized * config.headScale) * Math.PI * 0.5,
-      );
+    0.48 * Math.sin(Math.min(1, normalized * config.headScale) * Math.PI * 0.5);
   const tailTaper = Math.pow(
     1 - normalized,
     Math.max(0.1, config.tailExponent),
@@ -41,9 +38,7 @@ export function bodyWidth(
   // Soft nose pinch on the first ~7% — closes the silhouette without a flat
   // wall of max head width (which made mouths look huge as the fish grew).
   const nosePinch =
-    normalized < 0.07
-      ? Math.sin((normalized / 0.07) * Math.PI * 0.5)
-      : 1;
+    normalized < 0.07 ? Math.sin((normalized / 0.07) * Math.PI * 0.5) : 1;
 
   return (
     Math.max(0, headGrowth * tailTaper * belly * nosePinch) *

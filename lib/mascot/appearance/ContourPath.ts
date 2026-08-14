@@ -104,10 +104,8 @@ export function pathFromContour(
   const forwardX = headMidX - nextMidX;
   const forwardY = headMidY - nextMidY;
   const forwardLength = Math.max(0.0001, Math.hypot(forwardX, forwardY));
-  const headHalfWidth = Math.hypot(
-    leftHead.x - rightHead.x,
-    leftHead.y - rightHead.y,
-  ) * 0.5;
+  const headHalfWidth =
+    Math.hypot(leftHead.x - rightHead.x, leftHead.y - rightHead.y) * 0.5;
   path.quadraticCurveTo(
     headMidX + (forwardX / forwardLength) * headHalfWidth * 0.72,
     headMidY + (forwardY / forwardLength) * headHalfWidth * 0.72,

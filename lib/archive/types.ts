@@ -1,9 +1,5 @@
 export type ArticleCategory =
-  | "Engineering"
-  | "AI Agents"
-  | "Interfaces"
-  | "Experiments"
-  | "Lessons";
+  "Engineering" | "AI Agents" | "Interfaces" | "Experiments" | "Lessons";
 
 export type ArticleFormat = "Essay" | "Build Log" | "Tutorial" | "Field Note";
 
@@ -33,6 +29,8 @@ export interface ArchiveArticle {
   accent: string;
   sections: ArticleSection[];
   revisions: Array<{ date: string; note: string }>;
+  /** Set only for posts written elsewhere (e.g. Hashnode) and syndicated here — presence marks the post as external. */
+  externalUrl?: string;
 }
 
 export type InspirationKind = "Web" | "Mobile" | "Hardware" | "Motion";
@@ -72,12 +70,7 @@ export interface TalkEntry {
 }
 
 export type RaqTopic =
-  | "Work"
-  | "Taste"
-  | "Failure"
-  | "Tools"
-  | "Life"
-  | "Internet";
+  "Work" | "Taste" | "Failure" | "Tools" | "Life" | "Internet";
 
 export interface RaqEntry {
   id: string;

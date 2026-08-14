@@ -202,7 +202,7 @@ export class DomObstacleRegistry {
 
       const interestTag =
         mode === "interest"
-          ? element.getAttribute("data-mascot-interest") ?? undefined
+          ? (element.getAttribute("data-mascot-interest") ?? undefined)
           : undefined;
 
       next.set(id, {
