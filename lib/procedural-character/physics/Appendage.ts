@@ -137,4 +137,19 @@ export class AppendageRuntime {
       spring: this.spec.spring,
     });
   }
+
+  reset(
+    bodyPosition: Vec2Like,
+    bodyFacing: number,
+    bodyRadius: number,
+    scale: number,
+  ): void {
+    this.placeAnchor(bodyPosition, bodyFacing, bodyRadius, scale);
+    this.placeInitialFoot(bodyPosition, bodyFacing, scale);
+    this.stepping = false;
+    this.stepProgress = 1;
+    this.timeSinceStep = Number.POSITIVE_INFINITY;
+    this.solve(this.solverOptions.iterations);
+    this.softChain.reset(this.points);
+  }
 }

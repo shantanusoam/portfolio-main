@@ -47,9 +47,11 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     context.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     context.clearRect(0, 0, this.width, this.height);
 
+    this.drawInkBurst(context, state);
     this.drawGlow(context, state);
     this.drawAppendages(context, state);
     this.drawBody(context, state);
+    this.drawMarkings(context, state);
     this.drawEyes(context, state);
     this.drawFace(context, state);
 
@@ -59,6 +61,34 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
   destroy(): void {
     this.context.setTransform(1, 0, 0, 1, 0, 0);
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  private drawInkBurst(
+    context: CanvasRenderingContext2D,
+    state: CharacterRenderState,
+  ): void {
+    const strength = state.action.inkPulse;
+    if (strength <= 0) return;
+    const progress = 1 - strength;
+    const radius = state.spec.body.radius * state.spec.scale;
+    context.save();
+    context.fillStyle = "#17122b";
+    for (let index = 0; index < 14; index += 1) {
+      const angle = index * 2.399963 + progress * 0.8;
+      const distance = radius * (0.55 + progress * (1.25 + (index % 4) * 0.16));
+      const dot = radius * (0.13 + (index % 3) * 0.045) * strength;
+      context.globalAlpha = strength * (0.34 + (index % 5) * 0.08);
+      context.beginPath();
+      context.arc(
+        state.body.position.x + Math.cos(angle) * distance,
+        state.body.position.y + Math.sin(angle) * distance,
+        Math.max(0.8, dot),
+        0,
+        Math.PI * 2,
+      );
+      context.fill();
+    }
+    context.restore();
   }
 
   private drawGlow(
@@ -94,7 +124,7 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     context.save();
     context.lineJoin = "round";
     context.shadowColor = "rgba(3, 12, 24, 0.24)";
-    context.shadowBlur = 7;
+    context.shadowBlur = 7 + state.action.grab * 7;
     context.shadowOffsetY = 4;
 
     for (let index = 0; index < appendages.length; index += 1) {
@@ -186,7 +216,10 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     context.save();
     context.translate(body.position.x, body.position.y);
     context.rotate(pose.rotation + pose.wobble);
-    context.scale(pose.scaleX, pose.scaleY);
+    context.scale(
+      pose.scaleX * (1 + state.action.crouch * 0.16),
+      pose.scaleY * (1 - state.action.crouch * 0.22),
+    );
     context.shadowColor = spec.rendering.bodyShadowColor;
     context.shadowBlur = 9;
     context.shadowOffsetY = 5;
@@ -320,6 +353,67 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
       );
     }
     context.closePath();
+  }
+
+  private drawMarkings(
+    context: CanvasRenderingContext2D,
+    state: CharacterRenderState,
+  ): void {
+    const { softBody, spec, body } = state;
+    const style = spec.rendering.markingStyle;
+    if (!softBody || style === "none" || softBody.points.length < 3) return;
+
+    const radius = spec.body.radius * spec.scale;
+    context.save();
+    this.traceSmoothClosedPolygon(context, softBody.points);
+    context.clip();
+    context.translate(body.position.x, body.position.y);
+    context.rotate(body.facingAngle);
+    context.fillStyle = spec.rendering.markingColor;
+    context.globalAlpha = 0.72;
+
+    if (style === "koi") {
+      const patches = [
+        { x: 0.34, y: -0.22, rx: 0.31, ry: 0.19, r: -0.35 },
+        { x: -0.08, y: 0.28, rx: 0.25, ry: 0.17, r: 0.42 },
+        { x: -0.42, y: -0.08, rx: 0.17, ry: 0.13, r: -0.18 },
+      ];
+      for (const patch of patches) {
+        context.beginPath();
+        context.ellipse(
+          patch.x * radius,
+          patch.y * radius,
+          patch.rx * radius,
+          patch.ry * radius,
+          patch.r,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      }
+    } else if (style === "bands") {
+      for (const position of [-0.48, -0.14, 0.2]) {
+        context.save();
+        context.translate(position * radius, 0);
+        context.rotate(-0.16);
+        context.fillRect(-radius * 0.075, -radius, radius * 0.15, radius * 2);
+        context.restore();
+      }
+    } else {
+      const spots = [
+        [-0.42, -0.3, 0.1],
+        [-0.18, 0.26, 0.08],
+        [0.08, -0.2, 0.12],
+        [0.34, 0.24, 0.07],
+        [0.46, -0.08, 0.055],
+      ] as const;
+      for (const [x, y, size] of spots) {
+        context.beginPath();
+        context.arc(x * radius, y * radius, size * radius, 0, Math.PI * 2);
+        context.fill();
+      }
+    }
+    context.restore();
   }
 
   private drawEyes(

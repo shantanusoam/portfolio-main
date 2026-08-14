@@ -9,7 +9,6 @@ import Link from "next/link";
 import { useSectionExitFade } from "@/hooks/useSectionExitFade";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import { cn } from "@/lib/utils";
-import SignalRoeButton from "./mascot/SignalRoeButton";
 
 const StringInstrument = dynamic(
   () => import("./IntrectiveComponents/StringInstrument"),
@@ -155,8 +154,6 @@ export default function Hero({ masked }: HeroProps) {
             className="via-white/10 pointer-events-none absolute inset-x-[12%] bottom-[22%] h-px bg-gradient-to-r from-transparent to-transparent"
             data-mascot-perch="rail"
           />
-
-          <SignalRoeButton />
 
           <motion.div
             variants={{ show: { transition: { staggerChildren: stagger } } }}

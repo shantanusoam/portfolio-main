@@ -1,6 +1,7 @@
 import type {
   CharacterKinematics,
   CharacterLocomotionSpec,
+  CharacterManualControl,
   EnvironmentSurface,
   Vec2Like,
 } from "../types";
@@ -40,12 +41,23 @@ export class PlatformLocomotionController {
     this.viewportHeight = Math.max(1, height);
   }
 
+  reset(): void {
+    this.grounded = false;
+    this.surfaceId = null;
+    this.groundY = Number.POSITIVE_INFINITY;
+    this.groundLeft = Number.NEGATIVE_INFINITY;
+    this.groundRight = Number.POSITIVE_INFINITY;
+    this.coyoteTimer = 0;
+    this.hopTimer = 0;
+  }
+
   update(
     dt: number,
     body: CharacterKinematics,
     target: Vec2Like,
     spec: CharacterLocomotionSpec,
     scale: number,
+    manual: CharacterManualControl | null = null,
   ): PlatformLocomotionResult {
     const result = this.result;
     result.landed = false;
@@ -64,18 +76,27 @@ export class PlatformLocomotionController {
 
     const horizontalDelta = target.x - previousX;
     const maximumHorizontalSpeed = spec.maxHorizontalSpeed * scale;
-    const desiredVelocityX = clamp(
-      horizontalDelta * 3.4,
-      -maximumHorizontalSpeed,
-      maximumHorizontalSpeed,
-    );
+    const manualSpeedScale = manual?.grab ? 0.08 : manual?.crouch ? 0.48 : 1;
+    const desiredVelocityX = manual?.enabled
+      ? clamp(manual.horizontal, -1, 1) *
+        maximumHorizontalSpeed *
+        manualSpeedScale
+      : clamp(
+          horizontalDelta * 3.4,
+          -maximumHorizontalSpeed,
+          maximumHorizontalSpeed,
+        );
     const accelerationStep = spec.horizontalAcceleration * scale * dt;
     const velocityDelta = desiredVelocityX - body.velocity.x;
     body.velocity.x =
       Math.abs(velocityDelta) <= accelerationStep
         ? desiredVelocityX
         : body.velocity.x + Math.sign(velocityDelta) * accelerationStep;
-    if (Math.abs(horizontalDelta) < 8 * scale) {
+    if (
+      manual?.enabled
+        ? Math.abs(manual.horizontal) < 0.01
+        : Math.abs(horizontalDelta) < 8 * scale
+    ) {
       body.velocity.x *= Math.max(0, 1 - spec.horizontalDrag * dt);
     }
 
@@ -86,10 +107,11 @@ export class PlatformLocomotionController {
     const wantsTravel =
       Math.abs(horizontalDelta) > spec.hopDistance * scale &&
       Math.abs(body.velocity.x) > maximumHorizontalSpeed * 0.28;
+    const wantsManualJump = Boolean(manual?.enabled && manual.jump);
     if (
       (this.grounded || this.coyoteTimer > 0) &&
       this.hopTimer <= 0 &&
-      (wantsHeight || wantsTravel)
+      (wantsManualJump || (!manual?.enabled && (wantsHeight || wantsTravel)))
     ) {
       body.velocity.y = -spec.jumpSpeed * scale;
       this.grounded = false;

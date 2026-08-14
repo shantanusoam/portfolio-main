@@ -134,14 +134,13 @@ function decideNextBehavior(
 
   switch (current) {
     case "dormant":
-      return runtime.pointerActive || elapsed > 3 ? "wake" : null;
+      // Production starts quietly. The fish only wakes when the visitor
+      // deliberately selects it, avoiding unsolicited motion in the hero.
+      return runtime.pointerActive ? "wake" : null;
     case "wake":
-      return runtime.pointerActive ? "follow" : "wander";
+      return runtime.pointerActive ? "follow" : "rest";
     case "follow":
-      return runtime.pointerIdleSeconds >
-        MASCOT_CONFIG.pointerIdleThresholdSeconds
-        ? "wander"
-        : null;
+      return runtime.pointerActive ? null : "rest";
     case "wander": {
       if (runtime.pointerActive) return "follow";
       if (runtime.pendingWanderHint === "rest") {
@@ -171,12 +170,14 @@ function decideNextBehavior(
     case "avoid":
       return runtime.getHardObstacleForce() <
         MASCOT_CONFIG.steering.avoidTriggerForce * 0.5
-        ? "wander"
+        ? runtime.pointerActive
+          ? "follow"
+          : "rest"
         : null;
     case "scatter":
       return "reform";
     case "reform":
-      return runtime.pointerActive ? "follow" : "wander";
+      return runtime.pointerActive ? "follow" : "rest";
     default:
       return null;
   }
@@ -657,11 +658,7 @@ export class MascotRuntime {
     const behavior = this.behaviorMachine.getCurrent();
     const allowPerch =
       !this.pointerActive &&
-      (behavior === "wander" ||
-        behavior === "rest" ||
-        behavior === "sprint" ||
-        behavior === "wake" ||
-        behavior === "dormant");
+      (behavior === "wander" || behavior === "sprint" || behavior === "wake");
 
     const obstacles = this.obstacles?.getAll() ?? [];
     const frame = this.heroInteraction.update({
@@ -884,11 +881,11 @@ export class MascotRuntime {
         target = this.pose.getRoot();
         break;
       case "rest":
-        if (this.heroSurfaceTarget) {
-          target = this.heroSurfaceTarget;
-          break;
-        }
-      // falls through
+        // A stopped fish should actually stop. Holding its current root lets
+        // the second-order filter shed velocity smoothly without beginning a
+        // fresh autonomous wander segment.
+        target = this.pose.getRoot();
+        break;
       default: {
         const drivePoint = this.getDrivePoint();
         if (
@@ -1268,17 +1265,39 @@ export class MascotRuntime {
   }
 
   setPointer(x: number, y: number, active: boolean): void {
-    if (active) {
-      if (Math.hypot(x - this.pointerX, y - this.pointerY) > 0.5) {
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      if (active && Math.hypot(x - this.pointerX, y - this.pointerY) > 0.5) {
         this.pointerIdleSeconds = 0;
       }
       this.pointerX = x;
       this.pointerY = y;
+    }
+    if (active) {
       // User pointer ownership clears autonomous chase for this runtime.
       this.autonomousTarget = null;
       this.autonomousChase = false;
     }
     this.pointerActive = active;
+  }
+
+  /** Fast capsule-style hit test against the already-solved body ribs. */
+  hitTest(x: number, y: number, padding = 12): boolean {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    if (this.ribs.length === 0) {
+      const root = this.pose.getRoot();
+      return Math.hypot(x - root.x, y - root.y) <= this.anatomy.coreRadius + padding;
+    }
+    for (let index = 0; index < this.ribs.length; index += 1) {
+      const rib = this.ribs[index];
+      const radius = Math.max(
+        this.contourWidths[index] ?? rib.width,
+        index === 0 ? this.anatomy.coreRadius * 0.72 : 0,
+      );
+      if (Math.hypot(x - rib.center.x, y - rib.center.y) <= radius + padding) {
+        return true;
+      }
+    }
+    return false;
   }
 
   setScrollVelocity(value: number): void {

@@ -196,6 +196,10 @@ export class FishEcosystem {
     return this.fry;
   }
 
+  hitTestLeader(x: number, y: number, padding = 12): boolean {
+    return this.adults[0]?.runtime.hitTest(x, y, padding) ?? false;
+  }
+
   getBloomStrength(): number {
     if (this.bloomSeconds <= 0) return 0;
     return clamp(this.bloomSeconds / 1.25, 0, 1);

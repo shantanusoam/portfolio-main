@@ -73,6 +73,9 @@ export class MascotEngine implements MascotEngineContract {
   private debug: boolean;
   private timeScale = 1;
   private readonly scratchDot = { x: 0, y: 0 };
+  private pointerX = 0;
+  private pointerY = 0;
+  private followEnabled = true;
 
   private userEnabled = true;
   private destroyed = false;
@@ -103,8 +106,8 @@ export class MascotEngine implements MascotEngineContract {
     this.runtime = new MascotRuntime({
       seed: options.seed,
       quality: options.quality,
-      originX: this.cssWidth / 2,
-      originY: this.cssHeight / 2,
+      originX: this.cssWidth * 0.82,
+      originY: this.cssHeight * 0.24,
       bounds: computeBounds(this.cssWidth, this.cssHeight),
       obstacles: this.obstacles,
       strings: this.stringRegistry,
@@ -220,8 +223,33 @@ export class MascotEngine implements MascotEngineContract {
     this.syncStringContactsForViewport();
   }
 
-  setPointer(x: number, y: number, active: boolean): void {
-    this.ecosystem.setPointer(x, y, active);
+  setPointer(x: number, y: number, _active: boolean): void {
+    if (Number.isFinite(x)) this.pointerX = x;
+    if (Number.isFinite(y)) this.pointerY = y;
+    // Once selected, the fish owns the pointer target until explicitly
+    // released. PointerInput's short "active" debounce must not cause it to
+    // flip between follow and wander every few hundred milliseconds.
+    this.ecosystem.setPointer(this.pointerX, this.pointerY, this.followEnabled);
+  }
+
+  setFollowEnabled(enabled: boolean): void {
+    if (this.followEnabled === enabled) return;
+    this.followEnabled = enabled;
+    this.ecosystem.setPointer(this.pointerX, this.pointerY, enabled);
+    this.ecosystem.trigger({ type: enabled ? "wake" : "rest" });
+  }
+
+  isFollowEnabled(): boolean {
+    return this.followEnabled;
+  }
+
+  toggleFollowAt(x: number, y: number): boolean {
+    if (!this.ecosystem.hitTestLeader(x, y, 14)) return false;
+    this.pointerX = x;
+    this.pointerY = y;
+    this.setFollowEnabled(!this.followEnabled);
+    this.ecosystem.trigger({ type: "click", x, y });
+    return true;
   }
 
   setPointerSuppressed(suppressed: boolean): void {
@@ -506,6 +534,11 @@ export class MascotEngine implements MascotEngineContract {
     ctx.scale(adult.scale, adult.scale);
     ctx.translate(-root.x, -root.y);
 
+    this.renderer.drawTailWhisker(
+      runtime.tailWhisker,
+      runtime.appearancePalette.face,
+    );
+
     // Silhouette -> internal gradient -> clipped print -> rim -> face —
     // upgrade spec "APPEARANCE RENDER PIPELINE". Structural dots and
     // particles stay batched through the existing renderers below.
@@ -531,6 +564,10 @@ export class MascotEngine implements MascotEngineContract {
       generatedDecalAtlas: null,
       velvetMicrotexture: null,
     });
+    this.renderer.drawSpineAccent(
+      runtime.pose.joints,
+      runtime.appearancePalette.face,
+    );
 
     if (layers.dots) {
       this.renderSparseDots(runtime, population);

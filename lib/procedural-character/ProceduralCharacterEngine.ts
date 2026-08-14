@@ -19,11 +19,13 @@ import { SoftBodyRuntime } from "./physics/SoftBody";
 import { TargetDriver } from "./TargetDriver";
 import type {
   CharacterDebugSnapshot,
+  CharacterActionState,
   CharacterKinematics,
   CharacterMode,
   CharacterPerformanceSnapshot,
   CharacterSpec,
   EnvironmentSurface,
+  CharacterManualControl,
   ProceduralCharacterCallbacks,
 } from "./types";
 import type {
@@ -81,6 +83,21 @@ export class ProceduralCharacterEngine {
   private frameWindowStartedAt = now();
   private normalizedMovementIntent = 0;
   private environmentSurfaces: readonly EnvironmentSurface[] = [];
+  private timeScale = 1;
+  private viewportWidth = 1;
+  private viewportHeight = 1;
+  private readonly manualControl: CharacterManualControl = {
+    enabled: false,
+    horizontal: 0,
+    jump: false,
+    crouch: false,
+    grab: false,
+  };
+  private readonly actionState: CharacterActionState = {
+    crouch: 0,
+    grab: 0,
+    inkPulse: 0,
+  };
 
   constructor(options: ProceduralCharacterEngineOptions) {
     this.spec = options.spec;
@@ -166,6 +183,7 @@ export class ProceduralCharacterEngine {
       pose: this.personalityController.pose,
       appendages: this.appendages,
       performance: this.performance,
+      action: this.actionState,
       environmentSurfaces: this.environmentSurfaces,
       elapsedTime: 0,
       debug: this.debug,
@@ -175,7 +193,7 @@ export class ProceduralCharacterEngine {
       fixedDt: this.spec.performance.fixedTimeStep,
       maxFrameDt: this.spec.performance.maxFrameDelta,
       maxSteps: this.spec.performance.maxSimulationSteps,
-      update: (dt) => this.update(dt),
+      update: (dt) => this.update(dt * this.timeScale),
       render: () => this.render(),
     });
   }
@@ -189,6 +207,8 @@ export class ProceduralCharacterEngine {
   }
 
   resize(width: number, height: number, dpr: number): void {
+    this.viewportWidth = Math.max(1, width);
+    this.viewportHeight = Math.max(1, height);
     const cappedDpr = Math.min(Math.max(1, dpr), this.spec.performance.dprCap);
     this.renderer.resize(Math.max(1, width), Math.max(1, height), cappedDpr);
     this.platformLocomotion?.resize(width, height);
@@ -224,6 +244,58 @@ export class ProceduralCharacterEngine {
 
   setLowPower(lowPower: boolean): void {
     this.lowPower = lowPower;
+  }
+
+  setTimeScale(scale: number): void {
+    if (Number.isFinite(scale)) this.timeScale = clamp(scale, 0.25, 2);
+  }
+
+  setManualControl(
+    horizontal: number,
+    options: { crouch?: boolean; grab?: boolean; enabled?: boolean } = {},
+  ): void {
+    this.manualControl.enabled = options.enabled ?? true;
+    this.manualControl.horizontal = clamp(horizontal, -1, 1);
+    this.manualControl.crouch = options.crouch ?? false;
+    this.manualControl.grab = options.grab ?? false;
+  }
+
+  clearManualControl(): void {
+    this.manualControl.enabled = false;
+    this.manualControl.horizontal = 0;
+    this.manualControl.crouch = false;
+    this.manualControl.grab = false;
+  }
+
+  requestJump(): void {
+    this.manualControl.enabled = true;
+    this.manualControl.jump = true;
+  }
+
+  triggerInkBurst(): void {
+    this.actionState.inkPulse = 1;
+  }
+
+  reset(x = this.viewportWidth * 0.5, y = this.viewportHeight * 0.48): void {
+    const position = vec2(x, y);
+    this.dynamics.reset(position);
+    this.targetDriver.reset(position);
+    this.elapsedTime = 0;
+    this.normalizedMovementIntent = 0;
+    this.platformLocomotion?.reset();
+    this.softBody?.reset(
+      position,
+      this.body.facingAngle,
+      this.spec.body.radius * this.spec.scale,
+    );
+    for (const appendage of this.appendages) {
+      appendage.reset(
+        position,
+        this.body.facingAngle,
+        this.spec.body.radius,
+        this.spec.scale,
+      );
+    }
   }
 
   destroy(): void {
@@ -297,7 +369,9 @@ export class ProceduralCharacterEngine {
       this.targetDriver.target,
       this.spec.locomotion,
       this.spec.scale,
+      this.manualControl.enabled ? this.manualControl : null,
     );
+    this.manualControl.jump = false;
     if (!this.platformLocomotion) {
       this.dynamics.update(
         dt,
@@ -353,6 +427,13 @@ export class ProceduralCharacterEngine {
       this.gaitPlanner.activeSteps,
       this.reducedMotion,
     );
+    const actionBlend = 1 - Math.exp(-dt * 12);
+    this.actionState.crouch +=
+      ((this.manualControl.crouch ? 1 : 0) - this.actionState.crouch) *
+      actionBlend;
+    this.actionState.grab +=
+      ((this.manualControl.grab ? 1 : 0) - this.actionState.grab) * actionBlend;
+    this.actionState.inkPulse = Math.max(0, this.actionState.inkPulse - dt * 1.35);
 
     const solverStartedAt = now();
     const solverIterations = this.resolveSolverIterations();

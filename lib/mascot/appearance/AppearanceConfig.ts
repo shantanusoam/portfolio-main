@@ -15,9 +15,9 @@ export type AppearanceLayerToggles = Record<AppearanceLayerName, boolean>;
 
 export const DEFAULT_APPEARANCE_LAYERS: AppearanceLayerToggles = {
   silhouette: true,
-  print: true,
+  print: false,
   rim: true,
-  dots: true,
+  dots: false,
   face: true,
 };
 
@@ -26,7 +26,7 @@ export const DEFAULT_APPEARANCE_TUNING: AppearanceTuningOverrides = {
   dotDensity: 0.28,
   bodyOpacity: 1,
   rimWidth: 1,
-  glowIntensity: 0.38,
+  glowIntensity: 0.12,
   patternScale: 0.72,
   patternContrast: 0.24,
 };

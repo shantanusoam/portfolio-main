@@ -132,6 +132,16 @@ export class SoftBodyRuntime {
     return this.currentArea / Math.max(EPSILON, this.targetArea);
   }
 
+  reset(center: Vec2Like, rotation: number, radius: number): void {
+    this.buildRestTargets(center, rotation, radius, 0, 0, true);
+    for (let index = 0; index < this.points.length; index += 1) {
+      copy(this.points[index], this.restTargets[index]);
+      copy(this.previous[index], this.restTargets[index]);
+      copy(this.predicted[index], this.restTargets[index]);
+    }
+    this.currentArea = Math.abs(this.calculateSignedArea(this.points));
+  }
+
   private buildRestTargets(
     center: Vec2Like,
     rotation: number,

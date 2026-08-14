@@ -17,6 +17,7 @@ export type BodyOrientationMode = "velocity" | "upright";
 export type SoftBodyDeformationMode = "none" | "wing" | "pulse";
 export type AppendageMode = "planted" | "trailing" | "free";
 export type GaitStyle = "wave" | "alternating" | "diagonal" | "tripod" | "free";
+export type CharacterMarkingStyle = "none" | "koi" | "bands" | "spots";
 
 export type BodyWidthProfile =
   | {
@@ -219,6 +220,8 @@ export interface CharacterRenderingSpec {
   glowColor: string;
   glow: number;
   appendageThickness: number;
+  markingStyle: CharacterMarkingStyle;
+  markingColor: string;
   debugPalette: readonly string[];
 }
 
@@ -262,6 +265,20 @@ export interface CharacterKinematics {
   normalizedSpeed: number;
   facingAngle: number;
   angularVelocity: number;
+}
+
+export interface CharacterManualControl {
+  enabled: boolean;
+  horizontal: number;
+  jump: boolean;
+  crouch: boolean;
+  grab: boolean;
+}
+
+export interface CharacterActionState {
+  crouch: number;
+  grab: number;
+  inkPulse: number;
 }
 
 /** Continuously blended animation signals calculated outside the renderer. */

@@ -3,39 +3,30 @@
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import type {
-  MascotEcosystemStatus,
-  MascotEngine,
-  MascotQuality,
-} from "@/lib/mascot/types";
-import {
-  MASCOT_ECOSYSTEM_COMMAND_EVENT,
-  MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
-  MASCOT_ECOSYSTEM_STATUS_EVENT,
-  type EcosystemCommandDetail,
-  type EcosystemPointerHintDetail,
-  type EcosystemStatusEventDetail,
-} from "@/lib/mascot/ecosystem/events";
-import { MEALS_TO_FISSION } from "@/lib/mascot/ecosystem/AnatomyGrowth";
+import type { MascotEngine, MascotQuality } from "@/lib/mascot/types";
 import MascotSoundControl from "./MascotSoundControl";
 import styles from "./Mascot.module.css";
 
 const ProceduralMascotCanvas = dynamic(
   () => import("./ProceduralMascotCanvas"),
-  {
-    ssr: false,
-    loading: () => null,
-  },
+  { ssr: false, loading: () => null },
 );
 
 const DISABLE_STORAGE_KEY = "mascot:disabled";
 
 function readStoredDisabled(): boolean {
-  if (typeof window === "undefined") return false;
   try {
     return window.localStorage.getItem(DISABLE_STORAGE_KEY) === "true";
   } catch {
     return false;
+  }
+}
+
+function storeDisabled(disabled: boolean): void {
+  try {
+    window.localStorage.setItem(DISABLE_STORAGE_KEY, String(disabled));
+  } catch {
+    // Privacy-restricted storage should not block this reversible control.
   }
 }
 
@@ -44,123 +35,141 @@ export interface ProceduralMascotLoaderProps {
 }
 
 /**
- * Production entry point. Delays mounting the mascot engine until browser
- * idle time so it never competes with initial hydration/paint, and honors
- * a simple opt-out (see docs/mascot/FINAL_REPORT.md, "How to disable the
- * mascot"). The `dynamic(..., { ssr: false })` import is declared inside
- * this Client Component per spec.
+ * Homepage-only production shell. The creature is not mounted for
+ * touch-first/mobile viewports, and desktop visitors retain explicit control
+ * over both the feature and pointer-following behavior.
  */
 export default function ProceduralMascotLoader({
   quality = "medium",
 }: ProceduralMascotLoaderProps) {
   const pathname = usePathname();
-  const archiveRoute =
-    pathname === "/blog" ||
-    pathname.startsWith("/blog/") ||
-    pathname === "/inspo" ||
-    pathname === "/worth-your-time" ||
-    pathname === "/raq";
-  const [ready, setReady] = useState(false);
+  const onHomepage = pathname === "/";
+  const [preferencesReady, setPreferencesReady] = useState(false);
+  const [desktopEligible, setDesktopEligible] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [following, setFollowing] = useState(false);
   const [engine, setEngine] = useState<MascotEngine | null>(null);
 
-  const broadcastEcosystemStatus = useCallback(
-    (status: MascotEcosystemStatus | null) => {
-      const detail: EcosystemStatusEventDetail = status
-        ? { ...status, ready: true }
-        : {
-            ready: false,
-            population: 1,
-            activeFry: false,
-            activeFryCount: 0,
-            growthStage: 0,
-            mealsToNextFission: MEALS_TO_FISSION,
-            fissionPhase: null,
-            capped: false,
-            canReleaseFry: false,
-          };
-      window.dispatchEvent(
-        new CustomEvent(MASCOT_ECOSYSTEM_STATUS_EVENT, { detail }),
-      );
-    },
-    [],
-  );
+  useEffect(() => {
+    if (!onHomepage) return undefined;
+    setDisabled(readStoredDisabled());
+    setPreferencesReady(true);
+
+    const narrow = window.matchMedia("(max-width: 767px)");
+    const coarse = window.matchMedia("(hover: none) and (pointer: coarse)");
+    const syncEligibility = () => {
+      setDesktopEligible(!narrow.matches && !coarse.matches);
+    };
+    syncEligibility();
+    narrow.addEventListener("change", syncEligibility);
+    coarse.addEventListener("change", syncEligibility);
+
+    return () => {
+      narrow.removeEventListener("change", syncEligibility);
+      coarse.removeEventListener("change", syncEligibility);
+    };
+  }, [onHomepage]);
 
   useEffect(() => {
-    if (archiveRoute) {
-      setReady(false);
+    if (!onHomepage || !desktopEligible || disabled) {
+      setCanvasReady(false);
       return undefined;
     }
-    setDisabled(readStoredDisabled());
 
     const win = window as Window & {
       requestIdleCallback?: (callback: () => void) => number;
       cancelIdleCallback?: (handle: number) => void;
     };
-
     let idleHandle: number | undefined;
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
-
     if (typeof win.requestIdleCallback === "function") {
-      idleHandle = win.requestIdleCallback(() => setReady(true));
+      idleHandle = win.requestIdleCallback(() => setCanvasReady(true));
     } else {
-      timeoutHandle = setTimeout(() => setReady(true), 400);
+      timeoutHandle = setTimeout(() => setCanvasReady(true), 300);
     }
-
     return () => {
       if (idleHandle !== undefined) win.cancelIdleCallback?.(idleHandle);
       if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
     };
-  }, [archiveRoute]);
+  }, [desktopEligible, disabled, onHomepage]);
 
-  useEffect(() => {
-    if (!engine) {
-      broadcastEcosystemStatus(null);
-      return undefined;
-    }
+  const handleEngineReady = useCallback((next: MascotEngine | null) => {
+    setEngine(next);
+    if (!next) setFollowing(false);
+  }, []);
 
-    const handleCommand = (event: Event) => {
-      const detail = (event as CustomEvent<EcosystemCommandDetail>).detail;
-      if (!detail) return;
-      if (detail.intent === "call") {
-        engine.trigger({ type: "callFish" });
-      } else {
-        engine.trigger({ type: "releaseFry", x: detail.x, y: detail.y });
-      }
-    };
-    const handlePointerHint = (event: Event) => {
-      const detail = (event as CustomEvent<EcosystemPointerHintDetail>).detail;
-      if (!detail) return;
-      engine.setPointerSuppressed(detail.overEgg);
-    };
-    window.addEventListener(MASCOT_ECOSYSTEM_COMMAND_EVENT, handleCommand);
-    window.addEventListener(
-      MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
-      handlePointerHint,
-    );
-    broadcastEcosystemStatus(engine.getEcosystemStatus());
-    return () => {
-      window.removeEventListener(MASCOT_ECOSYSTEM_COMMAND_EVENT, handleCommand);
-      window.removeEventListener(
-        MASCOT_ECOSYSTEM_POINTER_HINT_EVENT,
-        handlePointerHint,
-      );
-      engine.setPointerSuppressed(false);
-    };
-  }, [broadcastEcosystemStatus, engine]);
+  const toggleFeature = () => {
+    const nextDisabled = !disabled;
+    setDisabled(nextDisabled);
+    storeDisabled(nextDisabled);
+    setFollowing(false);
+  };
 
-  if (!ready || disabled || archiveRoute) return null;
+  const toggleFollowing = () => {
+    if (!engine) return;
+    const next = !following;
+    engine.setFollowEnabled(next);
+    setFollowing(next);
+  };
+
+  if (!onHomepage || !preferencesReady || !desktopEligible) return null;
 
   return (
     <>
-      <ProceduralMascotCanvas
-        quality={quality}
-        onEngineReady={setEngine}
-        onEcosystemStatus={broadcastEcosystemStatus}
-      />
-      <div className={styles.soundControlFixed}>
-        <MascotSoundControl engine={engine} />
-      </div>
+      {canvasReady && !disabled ? (
+        <ProceduralMascotCanvas
+          quality={quality}
+          requireFishActivation
+          onEngineReady={handleEngineReady}
+          onFollowChange={setFollowing}
+        />
+      ) : null}
+
+      <aside className={styles.mascotDock} aria-label="Interactive fish controls">
+        <div className={styles.mascotDockHeader}>
+          <span
+            className={styles.mascotStatusDot}
+            data-active={!disabled}
+            aria-hidden="true"
+          />
+          <span>Interactive fish</span>
+        </div>
+        <div className={styles.mascotDockActions}>
+          <button
+            type="button"
+            className={styles.mascotModeToggle}
+            role="switch"
+            aria-checked={!disabled}
+            data-active={!disabled}
+            onClick={toggleFeature}
+          >
+            Fish {disabled ? "Off" : "On"}
+          </button>
+          {!disabled ? (
+            <button
+              type="button"
+              className={styles.mascotModeToggle}
+              aria-pressed={following}
+              data-active={following}
+              onClick={toggleFollowing}
+              disabled={!engine}
+            >
+              {following ? "Following" : "Resting"}
+            </button>
+          ) : null}
+          {!disabled ? (
+            <MascotSoundControl engine={engine} showHint={false} />
+          ) : null}
+        </div>
+        <p className={styles.mascotDockHint} aria-live="polite">
+          {disabled
+            ? "The fish is hidden. Your choice is saved."
+            : following
+              ? "Following your pointer · click the fish or press Esc to rest"
+              : "Click the fish to make it follow"}
+        </p>
+      </aside>
     </>
   );
 }

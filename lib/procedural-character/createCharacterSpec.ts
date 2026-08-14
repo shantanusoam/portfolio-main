@@ -176,6 +176,8 @@ const DEFAULT_RENDERING: CharacterRenderingSpec = {
   glowColor: "#8b5cf6",
   glow: 0,
   appendageThickness: 5,
+  markingStyle: "none",
+  markingColor: "rgba(255, 255, 255, 0.34)",
   debugPalette: ["#22d3ee", "#f472b6", "#facc15", "#4ade80"],
 };
 

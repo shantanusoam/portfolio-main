@@ -32,11 +32,11 @@ export interface BodyContourConfig {
 export const DEFAULT_BODY_CONTOUR_CONFIG: BodyContourConfig = {
   // Compact rounded head, mid body, then a long soft tail that stays
   // readable — not a flat wide face-wall or a vanishing thread tip.
-  zones: { headEnd: 0.28, torsoEnd: 0.58 },
-  headBulge: 0.12,
-  tailTaperPower: 1.35,
-  tailVisualCap: 0.28,
-  minWidth: 2.5,
+  zones: { headEnd: 0.3, torsoEnd: 0.64 },
+  headBulge: 0.08,
+  tailTaperPower: 1.18,
+  tailVisualCap: 0.14,
+  minWidth: 1.8,
 };
 
 /**

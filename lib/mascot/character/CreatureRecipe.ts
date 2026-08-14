@@ -35,28 +35,28 @@ export interface CreatureRecipe {
 export const DEFAULT_CREATURE_RECIPE: CreatureRecipe = {
   name: "musical-signal-familiar",
   spine: {
-    // Preserve the dense procedural bend, but shorten its visible footprint so
-    // the familiar reads head-first rather than as a long swimming ribbon.
-    jointCount: 30,
-    segmentLength: 3.9,
-    headAngleLimitRadians: (9 * Math.PI) / 180,
-    tailAngleLimitRadians: (20 * Math.PI) / 180,
+    // A moderately sampled, fixed-length chain creates a readable S-curve
+    // without the old over-dense, folding ribbon.
+    jointCount: 21,
+    segmentLength: 6.4,
+    headAngleLimitRadians: (8 * Math.PI) / 180,
+    tailAngleLimitRadians: (22 * Math.PI) / 180,
     iterations: 5,
   },
   bodyProfile: {
-    maxWidth: 40,
-    headScale: 2.85,
-    shoulderPosition: 0.24,
-    tailExponent: 1.45,
-    bellyBias: 0.18,
+    maxWidth: 24.5,
+    headScale: 2.4,
+    shoulderPosition: 0.28,
+    tailExponent: 1.08,
+    bellyBias: 0.12,
   },
   regions: {
-    // ~24% head / ~28% torso / ~42% long cute tail across 30 joints.
-    head: { start: 0, end: 7 },
-    shoulders: { start: 6, end: 9 },
-    torso: { start: 9, end: 17 },
-    tailBase: { start: 17, end: 24 },
-    tailTip: { start: 25, end: 29 },
+    // ~24% head / ~34% torso / ~38% long soft tail across 21 joints.
+    head: { start: 0, end: 4 },
+    shoulders: { start: 3, end: 6 },
+    torso: { start: 6, end: 13 },
+    tailBase: { start: 13, end: 17 },
+    tailTip: { start: 17, end: 20 },
   },
   antennaeCount: 2,
   // Short soft ears — not long triangular spikes.
@@ -68,9 +68,9 @@ export const DEFAULT_CREATURE_RECIPE: CreatureRecipe = {
     maxSpeed: 2400,
   },
   tailWhiskerChain: {
-    segmentLength: 3,
-    drag: 0.92,
-    iterations: 3,
+    segmentLength: 11,
+    drag: 0.955,
+    iterations: 4,
     maxSpeed: 2400,
   },
   coreRadius: 14,

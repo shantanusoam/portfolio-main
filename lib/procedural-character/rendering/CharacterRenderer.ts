@@ -1,5 +1,6 @@
 import type {
   CharacterKinematics,
+  CharacterActionState,
   CharacterPerformanceSnapshot,
   CharacterPose,
   CharacterSpec,
@@ -17,6 +18,7 @@ export interface CharacterRenderState {
   readonly pose: CharacterPose;
   readonly appendages: readonly AppendageRuntime[];
   readonly performance: CharacterPerformanceSnapshot;
+  readonly action: CharacterActionState;
   environmentSurfaces: readonly EnvironmentSurface[];
   elapsedTime: number;
   debug: boolean;

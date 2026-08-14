@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import { learningTracks, logSeed } from "@/constants/learning";
 import type { LogEntry } from "@/@types/learning.type";
@@ -312,6 +313,19 @@ export default function Learning() {
           as I go. One track so far; the shape is built to hold more.
         </p>
       </header>
+
+      <Link className={styles.coursePromo} href="/learning/procedural-animation">
+        <span className={styles.coursePromoIndex}>NEW · 10 MODULES</span>
+        <div>
+          <p>Interactive field course</p>
+          <h3>Procedural animation, from noob to pro.</h3>
+          <span>
+            Live chain lab · perception and psychology · constraints · soft
+            bodies · production accessibility
+          </span>
+        </div>
+        <strong>Start course →</strong>
+      </Link>
 
       <HarnessPrimer />
 

@@ -291,3 +291,115 @@
   white-space: nowrap;
   border: 0;
 }
+
+.mascotDock {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 32;
+  width: min(440px, calc(100vw - 36px));
+  padding: 10px 11px 9px;
+  border: 1px solid rgba(166, 221, 232, 0.14);
+  border-radius: 14px;
+  background: rgba(7, 14, 20, 0.76);
+  box-shadow:
+    0 14px 42px rgba(0, 0, 0, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.035);
+  color: #d9edf0;
+  font-family: var(--font-data, ui-monospace, monospace);
+  backdrop-filter: blur(14px) saturate(1.15);
+  pointer-events: auto;
+}
+
+.mascotDockHeader {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 2px 8px;
+  color: rgba(219, 239, 242, 0.72);
+  font-size: 9px;
+  font-weight: 620;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mascotStatusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #66757a;
+  box-shadow: 0 0 0 3px rgba(102, 117, 122, 0.08);
+}
+
+.mascotStatusDot[data-active="true"] {
+  background: #8edbe5;
+  box-shadow: 0 0 0 3px rgba(142, 219, 229, 0.09);
+}
+
+.mascotDockActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mascotModeToggle,
+.mascotDock .soundToggle {
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid rgba(198, 231, 236, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(215, 235, 238, 0.72);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.035em;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.mascotModeToggle:hover:not(:disabled),
+.mascotModeToggle:focus-visible,
+.mascotDock .soundToggle:hover:not(:disabled),
+.mascotDock .soundToggle:focus-visible {
+  border-color: rgba(157, 222, 232, 0.34);
+  color: #f2fbfc;
+  background: rgba(95, 182, 198, 0.09);
+  outline: none;
+}
+
+.mascotModeToggle[data-active="true"],
+.mascotDock .soundToggle[data-active="true"] {
+  border-color: rgba(137, 217, 228, 0.3);
+  color: #eafafc;
+  background: rgba(72, 158, 177, 0.13);
+}
+
+.mascotModeToggle:disabled {
+  cursor: wait;
+  opacity: 0.42;
+}
+
+.mascotDockHint {
+  margin: 7px 2px 0;
+  color: rgba(172, 199, 204, 0.5);
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {
+  .canvas,
+  .mascotDock {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascotDock,
+  .mascotModeToggle {
+    transition: none;
+    backdrop-filter: none;
+  }
+}

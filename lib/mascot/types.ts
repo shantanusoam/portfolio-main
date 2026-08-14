@@ -288,6 +288,11 @@ export interface MascotEngine {
   resume(): void;
   resize(width: number, height: number, dpr: number): void;
   setPointer(x: number, y: number, active: boolean): void;
+  /** Enables persistent pointer following. Production keeps this off until the fish is selected. */
+  setFollowEnabled(enabled: boolean): void;
+  isFollowEnabled(): boolean;
+  /** Toggles follow only when the supplied viewport point intersects the leader. */
+  toggleFollowAt(x: number, y: number): boolean;
   /** While true, the leader ignores user pointer follow (roe egg hover). */
   setPointerSuppressed(suppressed: boolean): void;
   setScrollVelocity(value: number): void;

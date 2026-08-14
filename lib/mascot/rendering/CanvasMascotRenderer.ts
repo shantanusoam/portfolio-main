@@ -96,6 +96,58 @@ export class CanvasMascotRenderer {
     drawAppearanceLayers(this.ctx, input);
   }
 
+  drawTailWhisker(points: readonly Point[], color: string): void {
+    if (points.length < 2) return;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = 1.35;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let index = 1; index < points.length - 1; index += 1) {
+      const next = points[index + 1];
+      ctx.quadraticCurveTo(
+        points[index].x,
+        points[index].y,
+        (points[index].x + next.x) * 0.5,
+        (points[index].y + next.y) * 0.5,
+      );
+    }
+    const tip = points[points.length - 1];
+    ctx.lineTo(tip.x, tip.y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  drawSpineAccent(joints: readonly SpineJoint[], color: string): void {
+    if (joints.length < 8) return;
+    const start = Math.floor(joints.length * 0.36);
+    const end = Math.max(start + 2, Math.floor(joints.length * 0.78));
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.6;
+    ctx.lineWidth = 1.15;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(joints[start].x, joints[start].y);
+    for (let index = start + 1; index <= end; index += 1) {
+      const next = joints[Math.min(end, index + 1)];
+      ctx.quadraticCurveTo(
+        joints[index].x,
+        joints[index].y,
+        (joints[index].x + next.x) * 0.5,
+        (joints[index].y + next.y) * 0.5,
+      );
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
   /** @deprecated superseded by drawAppearance's contour+gradient fill; kept for any external/debug caller still passing raw ribs. */
   drawCore(
     x: number,

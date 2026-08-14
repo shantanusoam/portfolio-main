@@ -241,7 +241,7 @@ function drawFin(
   ctx.quadraticCurveTo(midInnerX, midInnerY, tipPadX, tipPadY);
   ctx.quadraticCurveTo(midOuterX, midOuterY, rootOuterX, rootOuterY);
   ctx.closePath();
-  ctx.fillStyle = palette.base;
+  ctx.fillStyle = palette.highlight;
   ctx.fill();
   ctx.strokeStyle = palette.rim;
   ctx.globalAlpha = 0.4;

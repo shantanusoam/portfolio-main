@@ -22,6 +22,9 @@ export interface ProceduralMascotCanvasProps {
   onEngineReady?: (engine: MascotEngineContract | null) => void;
   onStatus?: (status: MascotStatus) => void;
   onEcosystemStatus?: (status: MascotEcosystemStatus | null) => void;
+  /** Homepage mode: pointer following begins only after the fish itself is selected. */
+  requireFishActivation?: boolean;
+  onFollowChange?: (following: boolean) => void;
 }
 
 /**
@@ -39,14 +42,21 @@ export default function ProceduralMascotCanvas({
   onEngineReady,
   onStatus,
   onEcosystemStatus,
+  requireFishActivation = false,
+  onFollowChange,
 }: ProceduralMascotCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<MascotEngineContract | null>(null);
   const qualityRef = useRef(quality);
+  const onFollowChangeRef = useRef(onFollowChange);
 
   useEffect(() => {
     qualityRef.current = quality;
   }, [quality]);
+
+  useEffect(() => {
+    onFollowChangeRef.current = onFollowChange;
+  }, [onFollowChange]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -61,6 +71,7 @@ export default function ProceduralMascotCanvas({
       onStatus,
       onEcosystemStatus,
     });
+    engine.setFollowEnabled(!requireFishActivation);
     engineRef.current = engine;
     onEngineReady?.(engine);
 
@@ -69,6 +80,22 @@ export default function ProceduralMascotCanvas({
       engine.setPointer(state.x, state.y, state.active);
     });
     pointerInput.attach(window);
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!requireFishActivation) return;
+      if (engine.toggleFollowAt(event.clientX, event.clientY)) {
+        onFollowChangeRef.current?.(engine.isFollowEnabled());
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!requireFishActivation || event.key !== "Escape") return;
+      engine.setFollowEnabled(false);
+      onFollowChangeRef.current?.(false);
+    };
+    window.addEventListener("pointerdown", handlePointerDown, {
+      passive: true,
+    });
+    window.addEventListener("keydown", handleKeyDown);
 
     const scrollInput = new ScrollInput();
     const unsubscribeScroll = scrollInput.onChange((velocity) => {
@@ -99,6 +126,8 @@ export default function ProceduralMascotCanvas({
 
     return () => {
       window.removeEventListener("resize", applySize);
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
       resizeObserver?.disconnect();
       unsubscribePointer();
       unsubscribeScroll();
@@ -112,7 +141,7 @@ export default function ProceduralMascotCanvas({
     // Engine identity is tied to `seed` only; quality/enabled/reducedMotion/debug
     // are pushed to the running engine imperatively below instead of remounting it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed]);
+  }, [seed, requireFishActivation]);
 
   useEffect(() => {
     engineRef.current?.setQuality(quality);

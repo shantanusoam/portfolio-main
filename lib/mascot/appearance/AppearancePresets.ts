@@ -31,14 +31,14 @@ export interface AppearancePalette {
  * violet/cyan/magenta "effect" palette.
  */
 export const SOFT_SIGNAL_PLUSH_PALETTE: AppearancePalette = {
-  name: "Signal Cloth",
-  base: "#282725",
-  highlight: "#68635d",
-  printPrimary: "#ff6b3d",
-  printSecondary: "#c8bbae",
-  face: "#f3ede4",
-  shadow: "#11100f",
-  rim: "#a69b91",
+  name: "Quiet River",
+  base: "#4389a7",
+  highlight: "#8fd3df",
+  printPrimary: "#bcebf0",
+  printSecondary: "#eaf9fb",
+  face: "#f5fcfd",
+  shadow: "#173f52",
+  rim: "#e0f5f7",
 };
 
 /** @deprecated Alias kept for existing print tests — prefer SOFT_SIGNAL_PLUSH_PALETTE. */
@@ -81,7 +81,7 @@ export const APPEARANCE_PRESETS: Record<
 > = {
   "cute-bean": {
     id: "cute-bean",
-    label: "Signal Cloth",
+    label: "Quiet River",
     palette: SOFT_SIGNAL_PLUSH_PALETTE,
     // Sparse local stitches stay attached to the body and never turn into a
     // large pasted decal while the familiar bends.
