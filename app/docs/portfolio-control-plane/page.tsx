@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { getPublicOrigin } from "@/lib/oauth/config";
 
 const codeClass =
   "mt-4 overflow-x-auto rounded-xl border border-neutral-800 bg-black p-4 font-mono text-xs leading-6 text-emerald-200";
 
 export default function PortfolioControlPlaneDocs() {
+  const origin = getPublicOrigin();
+
   return (
     <main className="min-h-screen bg-neutral-950 px-5 py-16 text-neutral-100">
       <article className="mx-auto max-w-3xl">
@@ -34,7 +37,7 @@ export default function PortfolioControlPlaneDocs() {
               register a client, open the portfolio consent screen, and complete
               authorization-code + PKCE.
             </p>
-            <pre className={codeClass}>https://YOUR_DOMAIN/api/mcp</pre>
+            <pre className={codeClass}>{origin}/api/mcp</pre>
             <p className="mt-3 text-neutral-500">
               If the connector form asks for supplied credentials, configure the
               fixed Claude client environment variables and enter the matching
@@ -57,8 +60,8 @@ export default function PortfolioControlPlaneDocs() {
   -H "Content-Type: application/x-www-form-urlencoded" \\
   -d "grant_type=client_credentials" \\
   -d "scope=portfolio:read portfolio:write" \\
-  -d "resource=https://YOUR_DOMAIN/api/mcp" \\
-  "https://YOUR_DOMAIN/api/oauth/token"`}</pre>
+  -d "resource=${origin}/api/mcp" \\
+  "${origin}/api/oauth/token"`}</pre>
           </section>
 
           <section>

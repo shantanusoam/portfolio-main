@@ -9,17 +9,19 @@ import PageAtmosphere from "@/components/ui/PageAtmosphere";
 import ProceduralMascotLoader from "@/components/mascot/ProceduralMascotLoader";
 import { CommandPaletteProvider } from "@/components/command-palette/CommandPalette";
 import { createCommandIndex } from "@/lib/archive/command-index";
+import { getPublicOrigin } from "@/lib/oauth/config";
 
 const inter = Inter({ subsets: ["latin"] });
 const commandEntries = createCommandIndex();
+const publicOrigin = getPublicOrigin();
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://shantanusoam.vercel.app"),
+  metadataBase: new URL(publicOrigin),
   title: "Shantanu Soam — Creative Systems Engineer",
   description:
     "A creative systems engineer building fast software, playful interfaces, AI tools, and hardware experiments.",
   alternates: { canonical: "/" },
-  authors: [{ name: "Shantanu Soam", url: "https://shantanusoam.vercel.app" }],
+  authors: [{ name: "Shantanu Soam", url: publicOrigin }],
   creator: "Shantanu Soam",
   publisher: "Shantanu Soam",
   robots: { index: true, follow: true },
@@ -41,7 +43,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Shantanu Soam — Creative Systems Engineer",
-    description: "Product engineering, interactive systems, and a playable lab of original experiments.",
+    description:
+      "Product engineering, interactive systems, and a playable lab of original experiments.",
     images: ["/opengraph-image"],
   },
   keywords: [
