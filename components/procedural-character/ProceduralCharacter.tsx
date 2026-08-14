@@ -18,6 +18,8 @@ export interface ProceduralCharacterProps extends ProceduralCharacterCallbacks {
   reducedMotion?: boolean;
   className?: string;
   onEngineReady?: (engine: ProceduralCharacterEngine | null) => void;
+  /** Let a game provide its own moving collision surfaces. */
+  sampleEnvironment?: boolean;
 }
 
 /**
@@ -32,6 +34,7 @@ export default function ProceduralCharacter({
   onStep,
   onLand,
   onEngineReady,
+  sampleEnvironment = true,
 }: ProceduralCharacterProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<ProceduralCharacterEngine | null>(null);
@@ -83,7 +86,7 @@ export default function ProceduralCharacter({
     onEngineReadyRef.current?.(engine);
 
     const environmentSampler =
-      spec.locomotion.mode === "platform"
+      spec.locomotion.mode === "platform" && sampleEnvironment
         ? new EnvironmentSampler({
             onChange: (surfaces) => engine.setEnvironmentSurfaces(surfaces),
           })
@@ -141,7 +144,7 @@ export default function ProceduralCharacter({
     // The engine's identity follows the immutable character specification.
     // Live booleans and callbacks are pushed through refs/effects below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spec]);
+  }, [spec, sampleEnvironment]);
 
   useEffect(() => {
     engineRef.current?.setDebug(debug);

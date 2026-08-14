@@ -93,10 +93,17 @@ export class ProceduralCharacterEngine {
     crouch: false,
     grab: false,
   };
+
   private readonly actionState: CharacterActionState = {
     crouch: 0,
     grab: 0,
     inkPulse: 0,
+  };
+
+  private readonly locomotionState = {
+    grounded: false,
+    surfaceId: null as string | null,
+    groundY: null as number | null,
   };
 
   constructor(options: ProceduralCharacterEngineOptions) {
@@ -218,6 +225,19 @@ export class ProceduralCharacterEngine {
     this.environmentSurfaces = surfaces.map((surface) => ({ ...surface }));
     this.platformLocomotion?.setSurfaces(this.environmentSurfaces);
     this.renderState.environmentSurfaces = this.environmentSurfaces;
+  }
+
+  /**
+   * Applies a camera-space shift to the complete solved rig. Velocity is
+   * preserved, so an upward jump remains continuous while the world scrolls.
+   */
+  translate(dx: number, dy: number): void {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    this.dynamics.translate(dx, dy);
+    this.targetDriver.translate(dx, dy);
+    this.platformLocomotion?.translateSupport(dx, dy);
+    this.softBody?.translate(dx, dy);
+    for (const appendage of this.appendages) appendage.translate(dx, dy);
   }
 
   setTarget(
@@ -351,6 +371,22 @@ export class ProceduralCharacterEngine {
         stepDestination: { ...appendage.stepDestination },
       })),
     };
+  }
+
+  /** Allocation-free game-loop read; debug snapshots remain intentionally rich. */
+  getLocomotionState(): Readonly<{
+    grounded: boolean;
+    surfaceId: string | null;
+    groundY: number | null;
+  }> {
+    this.locomotionState.grounded = this.platformLocomotion?.grounded ?? false;
+    this.locomotionState.surfaceId = this.platformLocomotion?.surfaceId ?? null;
+    this.locomotionState.groundY = Number.isFinite(
+      this.platformLocomotion?.groundY,
+    )
+      ? this.platformLocomotion?.groundY ?? null
+      : null;
+    return this.locomotionState;
   }
 
   private update(dt: number): void {
@@ -646,6 +682,22 @@ export class ProceduralCharacterEngine {
   }
 
   private updateMovementIntent(): void {
+    if (
+      this.platformLocomotion &&
+      this.manualControl.enabled &&
+      Math.abs(this.manualControl.horizontal) > 0.01
+    ) {
+      this.movementIntentDirection.x = Math.sign(
+        this.manualControl.horizontal,
+      );
+      this.movementIntentDirection.y = 0;
+      this.normalizedMovementIntent = Math.max(
+        this.body.normalizedSpeed,
+        Math.abs(this.manualControl.horizontal) * 0.9,
+      );
+      return;
+    }
+
     const deltaX = this.targetDriver.target.x - this.body.position.x;
     const deltaY = this.targetDriver.target.y - this.body.position.y;
     const targetDistance = Math.hypot(deltaX, deltaY);

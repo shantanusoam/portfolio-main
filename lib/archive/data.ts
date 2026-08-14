@@ -7,6 +7,258 @@ import type {
 
 export const archiveArticles: ArchiveArticle[] = [
   {
+    slug: "procedural-fish-from-seek-to-forage",
+    title: "Make a Fish Think, Not Twitch: From Seek to Forage",
+    dek: "A noob-to-pro guide to giving a procedural creature perception, hunger, pursuit, rest, growth, and reproduction without turning the page into a screensaver.",
+    category: "Interfaces",
+    format: "Tutorial",
+    readingMinutes: 12,
+    publishedAt: "2026-08-14",
+    updatedAt: "2026-08-14",
+    featured: true,
+    accent: "steering / appetite / ecology",
+    sections: [
+      {
+        id: "start-with-three-layers",
+        heading: "1. Separate wanting, steering, and swimming",
+        paragraphs: [
+          "The beginner mistake is to point every body joint at the prey. The fish turns instantly, the tail has no opinion, and the result looks like a cursor wearing a costume. Start with three layers instead: action selection decides what the fish wants, steering chooses a direction, and locomotion turns that direction into a moving body.",
+          "Think of a rider, a set of reins, and a horse. Hunger is the rider choosing a destination. Pursuit is the reins changing direction. The spine solver is the horse producing motion under limits. Each layer can improve without rewriting the others.",
+        ],
+        list: [
+          "Action selection: rest, notice, hunt, digest, reproduce.",
+          "Steering: seek, predict, evade, avoid, arrive.",
+          "Locomotion: acceleration, turn rate, body wave, fins and tail lag.",
+        ],
+        quote:
+          "Believable motion begins when intention and articulation stop being the same variable.",
+      },
+      {
+        id: "tiny-seek-demo",
+        heading: "2. Build the smallest seek behavior",
+        paragraphs: [
+          "A seek behavior does not teleport the fish. It asks for a velocity toward a target, compares that with the current velocity, and applies only a bounded portion of the difference. The acceleration limit is what gives the creature weight.",
+          "Try this before adding a tail, prey, or personality. If one dot cannot approach and turn without buzzing around its target, a detailed body will only make the flaw more expensive to see.",
+        ],
+        code: {
+          language: "ts",
+          label: "one bounded steering step",
+          value: `const offset = subtract(target, position);
+const desired = scale(normalize(offset), maxSpeed);
+const steering = limit(subtract(desired, velocity), maxForce);
+
+velocity = limit(add(velocity, steering * dt), maxSpeed);
+position = add(position, velocity * dt);`,
+        },
+      },
+      {
+        id: "predict-the-quarry",
+        heading: "3. Chase where the prey is going",
+        paragraphs: [
+          "Seeking the prey's current position creates a permanently late predator. Prediction only needs to be modest: estimate a look-ahead time from distance, cap it, and add the prey's velocity over that interval. Recalculate every simulation step so a wrong guess expires almost immediately.",
+          "Near the prey, shorten the prediction and slow the turn. Far away, look farther ahead. This removes the sharp left-right corrections that make a chase look algorithmic while keeping capture understandable.",
+        ],
+        code: {
+          language: "ts",
+          label: "lightweight pursuit",
+          value: `const distance = length(prey.position - hunter.position);
+const lookAhead = clamp(distance / hunter.maxSpeed, 0.08, 0.55);
+const intercept = prey.position + prey.velocity * lookAhead;
+
+return arrive(intercept, { slowRadius: 54, stopRadius: 10 });`,
+        },
+      },
+      {
+        id: "burst-and-coast",
+        heading: "4. Let the fish look before it lunges",
+        paragraphs: [
+          "Continuous maximum-speed pursuit reads as panic. Real fish often alternate a burst with a coast. In an interface, that pause is useful twice: it lets the prey create a readable escape and gives the predator a moment that looks like perception rather than stalled animation.",
+          "Use a short burst timer, a shorter coast timer, and hysteresis around hunger. The state should not flip every frame at one threshold. A fed fish digests; a hungry fish notices; only then does it commit.",
+        ],
+        list: [
+          "Notice: face the school and sample an intercept point.",
+          "Burst: commit for a small window with stronger acceleration.",
+          "Coast: reduce thrust, keep momentum, and update the next decision.",
+          "Digest: ignore new prey long enough for the meal to feel consequential.",
+        ],
+      },
+      {
+        id: "make-prey-worth-reading",
+        heading: "5. Give prey an escape strategy, not random noise",
+        paragraphs: [
+          "Pure randomness is not intelligence; it is merely difficult to predict. Useful evasion blends four legible forces: flee the predator's predicted position, move sideways when it is close, separate from siblings, and prefer cover or safe edges. Add a brief dart only when danger crosses a threshold.",
+          "The viewer should be able to explain the motion after watching once: the small fish saw danger, cut across the attack line, and tried to hide. That causal readability matters more than biological fidelity.",
+        ],
+      },
+      {
+        id: "growth-and-reproduction",
+        heading: "6. Turn meals into a slow visible history",
+        paragraphs: [
+          "A meal should not scale the whole drawing by ten percent. Grow anatomy at milestones: a slightly longer spine, a fuller torso, a wider turn, then a calm recovery. The changes accumulate slowly enough that a returning visitor notices a different animal without watching a progress bar.",
+          "Reproduction needs an eligibility rule, room in the population cap, and a quiet delay after the final meal. Settling before division makes the event feel caused rather than triggered. The children inherit a portion of the parent's morphology, then restart their own meal counters.",
+        ],
+        quote:
+          "A living system is a history made visible, not an effect played on schedule.",
+      },
+      {
+        id: "protect-the-page",
+        heading: "7. Keep the ecology subordinate to the portfolio",
+        paragraphs: [
+          "The most sophisticated behavior rule is knowing where not to run. Confine the ecology to the hero, stop it when the hero leaves the viewport, hide it on touch-first screens, honor reduced motion, and let the visitor turn it off. Pointer following should begin only after the fish itself is selected and stop on the second selection.",
+          "Your turn: draw a dot that seeks one moving target with bounded acceleration. Do not add a body yet. Reverse the target while the dot is moving and tune only maximum force until the turn feels intentional rather than instant.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-08-14",
+        note: "Initial guide with pursuit, burst-and-coast appetite, growth, and hero-boundary design.",
+      },
+    ],
+  },
+  {
+    slug: "spring-octopus-platformer-one-force-at-a-time",
+    title: "Build a Spring Octopus Platformer, One Force at a Time",
+    dek: "A practical route from one falling circle to an endless keyboard-controlled ascent game with live tentacles, reachable platforms, a soft camera, and honest failure states.",
+    category: "Engineering",
+    format: "Tutorial",
+    readingMinutes: 11,
+    publishedAt: "2026-08-14",
+    updatedAt: "2026-08-14",
+    accent: "platform physics / FABRIK / game feel",
+    sections: [
+      {
+        id: "one-body-one-platform",
+        heading: "1. Begin with a circle that can land",
+        paragraphs: [
+          "Do not begin with eight tentacles. Begin with a body position, velocity, gravity, and one platform segment. A landing occurs only when the body crossed the platform from above during the current step, is moving downward, and overlaps the platform horizontally.",
+          "This swept test prevents the character from landing through the underside and reduces tunnelling when a frame arrives late. Keep the fixed simulation step boring before the silhouette becomes expressive.",
+        ],
+        code: {
+          language: "ts",
+          label: "crossing a platform from above",
+          value: `const wasAbove = previousBottom <= platform.y;
+const crossedTop = nextBottom >= platform.y;
+const overlaps = x + radius >= platform.left && x - radius <= platform.right;
+
+if (velocityY > 0 && wasAbove && crossedTop && overlaps) land();`,
+        },
+      },
+      {
+        id: "steer-air-not-pose",
+        heading: "2. Let keys change momentum, not coordinates",
+        paragraphs: [
+          "A and D should express desired horizontal velocity. Acceleration moves the actual velocity toward that desire, drag settles it when input stops, and a speed cap protects reachability. Directly adding pixels to x makes the character feel detached from every jump.",
+          "On touch, hold buttons should write to the same input channel as the keyboard. Pointer capture and blur cleanup matter because a stuck virtual key can ruin the whole run.",
+        ],
+      },
+      {
+        id: "generate-only-reachable-steps",
+        heading: "3. Generate platforms from the previous launch",
+        paragraphs: [
+          "Random placement is not procedural level design. Each new platform should be sampled inside the horizontal distance the character can cover before reaching that height. Compute flight time from gravity and launch velocity, then multiply by the horizontal speed budget with a safety margin.",
+          "The first few platforms should be wider and closer. Difficulty can then tighten width, increase lateral change, or introduce moving surfaces—but never ask for a jump the current physics cannot produce.",
+        ],
+        quote:
+          "Procedural does not mean unrestricted. It means variety generated inside a contract.",
+      },
+      {
+        id: "camera-reveals-intent",
+        heading: "4. Make the camera reveal, not chase",
+        paragraphs: [
+          "Keep the character below an upper screen threshold until it reaches it. After that, move the camera upward only and ease toward the target. Platforms descend through view while their world coordinates remain stable.",
+          "A camera that follows every vertical wobble makes landing harder to read. An upward-only camera preserves recent context and uses the top of the screen to promise the next decision.",
+        ],
+      },
+      {
+        id: "attach-the-eight-feet",
+        heading: "5. Add tentacles as a portrayal layer",
+        paragraphs: [
+          "The root physics decides where the octopus is. The gait planner decides which feet may move. FABRIK solves each planted chain toward its target, and a soft spring ribbon follows the solved guide to add recoil and curl. The renderer never fixes a bad landing or invents a footstep.",
+          "During flight, feet trail and gather beneath the body. On contact, they plant across the platform in a wave. Limiting concurrent steps preserves support and stops all eight arms from snapping at once.",
+        ],
+      },
+      {
+        id: "finish-the-loop",
+        heading: "6. Finish the run before adding effects",
+        paragraphs: [
+          "The playable loop is start, steer, land, climb, fall, recover, and restart. Score the highest platform or height, persist a best value locally, pause when the tab is hidden, and keep a visible exit. Only then add ink, landing squash, particles, sound, or collectibles.",
+          "Your turn: make one body bounce from one platform and steer in the air. Once three consecutive landings feel controllable, add a second reachable platform. Leave tentacles out until the root game is fun as a circle.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-08-14",
+        note: "Initial noob-to-pro build path for the keyboard octopus ascent game.",
+      },
+    ],
+  },
+  {
+    slug: "learn-hard-technical-systems-with-one-small-loop",
+    title: "How to Learn a Hard Technical System Without Drowning",
+    dek: "A psychology-backed learning loop for turning documentation, terminals, and unfamiliar code into durable mental models—one prediction and one experiment at a time.",
+    category: "Lessons",
+    format: "Field Note",
+    readingMinutes: 9,
+    publishedAt: "2026-08-14",
+    updatedAt: "2026-08-14",
+    accent: "mental models / retrieval / feedback",
+    sections: [
+      {
+        id: "replace-coverage-with-capability",
+        heading: "1. Stop trying to cover the topic",
+        paragraphs: [
+          "A long syllabus feels responsible because it names everything. It also hides the only useful question: what can you explain, predict, and change after the session? Choose one capability small enough to complete, such as reading one SQL query plan or explaining why one animation overshoots.",
+          "The goal is not to consume a chapter. It is to leave with one model that can survive a new example.",
+        ],
+      },
+      {
+        id: "explanation-model-demo-action",
+        heading: "2. Use one four-part learning loop",
+        paragraphs: [
+          "First explain the problem in plain language. Then attach a mental model. Show the smallest demo that could contradict that model. Finally, make one change or prediction yourself. The action is deliberately small so feedback arrives before working memory fills up.",
+        ],
+        list: [
+          "Explain: what problem does this idea solve?",
+          "Model: what familiar system behaves similarly?",
+          "Demo: what is the smallest visible example?",
+          "Action: what single prediction or edit proves understanding?",
+        ],
+      },
+      {
+        id: "predict-before-run",
+        heading: "3. Predict before you run",
+        paragraphs: [
+          "A command that merely succeeds gives a pleasant feeling and weak evidence. Pause first and predict one observable detail: the row count, the direction of the bounce, the state transition, or the error class. The gap between prediction and result is where the mental model becomes editable.",
+          "Wrong predictions are useful when they are specific. They reveal the exact rule your intuition invented.",
+        ],
+      },
+      {
+        id: "retrieve-not-reread",
+        heading: "4. Retrieve the idea instead of rereading it",
+        paragraphs: [
+          "After the example works, close the explanation and answer a small question from memory. Retrieval feels harder than rereading because it exposes missing structure. That difficulty is productive: the answer becomes easier to access later because you practiced accessing it now.",
+          "Keep questions short and answers shorter. A useful memory note might be: ‘Why can fixed-step simulation drop time?’ → ‘To avoid an unbounded catch-up spiral after a stall.’",
+        ],
+      },
+      {
+        id: "store-mistakes-not-transcripts",
+        heading: "5. Save corrected mistakes, not session transcripts",
+        paragraphs: [
+          "Learning memory should contain the analogy that worked, the prediction that failed, the corrected rule, and the next smallest step. Command logs and copied documentation make a poor external brain because they preserve activity without preserving understanding.",
+          "Your turn: choose one technical idea you currently describe with vague words. Write one sentence predicting what a tiny example will do. Then run only the example needed to prove or break that sentence.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-08-14",
+        note: "Initial publication using the explain, model, demo, action, and retrieval loop.",
+      },
+    ],
+  },
+  {
     slug: "building-signal-breaker-step-by-step",
     title: "How I Built Signal Breaker: A Browser Game in Seven Layers",
     dek: "A step-by-step build log for turning a dead 404 route into a small, testable canvas game without letting game state leak into React.",
@@ -1041,6 +1293,128 @@ export const inspirationEntries: InspirationEntry[] = [
     palette: ["#f8f2fa", "#6750a4", "#1d192b"],
     motif: "stack",
   },
+  {
+    id: "active-theory",
+    name: "Active Theory",
+    kind: "Motion",
+    url: "https://activetheory.net/",
+    note: "Immersive work stays navigable because spectacle, loading, sound, and input are treated as one product system.",
+    tags: ["webgl", "world-building", "performance"],
+    pinned: true,
+    palette: ["#050505", "#d7ff4f", "#f2f2ee"],
+    motif: "orbital",
+  },
+  {
+    id: "merodev",
+    name: "Merouane Bali",
+    kind: "Motion",
+    url: "https://merodev.net/",
+    note: "A 3D portfolio earns exploration by turning each transition into spatial orientation rather than a loading trick.",
+    tags: ["portfolio", "3d", "spatial"],
+    pinned: true,
+    palette: ["#10141a", "#fb7d4d", "#dce8ff"],
+    motif: "orbital",
+  },
+  {
+    id: "unseen-studio",
+    name: "Unseen Studio",
+    kind: "Motion",
+    url: "https://unseen.co/",
+    note: "Drag, hold, and sound interactions create a world, while a quiet entry path keeps the experience consensual.",
+    tags: ["sound", "gesture", "world-building"],
+    palette: ["#090909", "#bbff3c", "#ecece6"],
+    motif: "signal",
+  },
+  {
+    id: "daybreak-studio",
+    name: "Daybreak Studio",
+    kind: "Web",
+    url: "https://www.daybreak.studio/",
+    note: "Editorial restraint and keyboard-level detail make large identity systems feel browsable instead of presented at you.",
+    tags: ["brand-system", "editorial", "keyboard"],
+    palette: ["#f0eee7", "#1b1b1b", "#4169ff"],
+    motif: "editorial",
+  },
+  {
+    id: "dennis-snellenberg",
+    name: "Dennis Snellenberg",
+    kind: "Web",
+    url: "https://dennissnellenberg.com/",
+    note: "A portfolio with expressive type and motion that still makes role, work, availability, and contact obvious in seconds.",
+    tags: ["portfolio", "type", "clarity"],
+    palette: ["#1c1d20", "#455ce9", "#f1f1f1"],
+    motif: "rails",
+  },
+  {
+    id: "basement-studio",
+    name: "basement.studio",
+    kind: "Web",
+    url: "https://basement.studio/",
+    note: "Bold art direction remains commercially legible because every visual system resolves into proof, capability, and a next action.",
+    tags: ["art-direction", "brand", "conversion"],
+    palette: ["#0c0c0c", "#ff5138", "#f0e9dc"],
+    motif: "stack",
+  },
+  {
+    id: "dogstudio",
+    name: "Dogstudio",
+    kind: "Motion",
+    url: "https://dogstudio.co/",
+    note: "Art, technology, and case-study evidence share one emotional surface without hiding the studio's actual work.",
+    tags: ["immersive", "case-study", "studio"],
+    palette: ["#0a0b0d", "#ff6044", "#d9e8ee"],
+    motif: "signal",
+  },
+  {
+    id: "aristide-benoist",
+    name: "Aristide Benoist",
+    kind: "Motion",
+    url: "https://aristidebenoist.com/folio-v1",
+    note: "A personal archive behaves like an audiovisual instrument while project names and authorship remain the stable spine.",
+    tags: ["creative-code", "sound", "portfolio"],
+    palette: ["#0d0d0d", "#ece7dd", "#d25f3d"],
+    motif: "console",
+  },
+  {
+    id: "max-milkin",
+    name: "Max Milkin",
+    kind: "Web",
+    url: "https://www.maxmilkin.com/",
+    note: "Performance-first motion gives typography physical presence without making the portfolio slower to understand.",
+    tags: ["performance", "typography", "motion"],
+    palette: ["#121315", "#e7e6df", "#89a7ff"],
+    motif: "rails",
+  },
+  {
+    id: "new-computer",
+    name: "New Computer",
+    kind: "Mobile",
+    url: "https://new.computer/",
+    note: "An AI product introduces an unfamiliar relationship through warm language, character, and visible conversational memory.",
+    tags: ["ai", "character", "product-story"],
+    palette: ["#f4efe3", "#e95b3f", "#23334a"],
+    motif: "editorial",
+  },
+  {
+    id: "cursor",
+    name: "Cursor",
+    kind: "Web",
+    url: "https://cursor.com/",
+    note: "Product proof, technical depth, and a strong visual identity arrive in layers instead of competing in one hero.",
+    tags: ["developer-tool", "product-proof", "pacing"],
+    palette: ["#111111", "#f3f0e8", "#8b8bff"],
+    motif: "stack",
+  },
+  {
+    id: "playdate",
+    name: "Playdate",
+    kind: "Hardware",
+    url: "https://play.date/",
+    note: "The site teaches an unusual physical control by letting the crank shape the entire tone, motion language, and game catalog.",
+    tags: ["hardware", "play", "controls"],
+    palette: ["#f8cf25", "#6c54a3", "#161616"],
+    motif: "console",
+  },
 ];
 
 export const talkEntries: TalkEntry[] = [
@@ -1293,6 +1667,150 @@ export const talkEntries: TalkEntry[] = [
     takeaway:
       "Incubation is part of work when it is fed by careful preparation.",
   },
+  {
+    id: "stop-drawing-dead-fish",
+    title: "Stop Drawing Dead Fish",
+    speaker: "Bret Victor",
+    url: "https://www.youtube.com/watch?v=ZfytHvgHybA",
+    youtubeId: "ZfytHvgHybA",
+    durationMinutes: 32,
+    displayDuration: "32 min",
+    topic: "Design",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Talk",
+    why: "The clearest argument that digital objects should behave, respond, and remain editable as living material.",
+    leavesYouWith:
+      "A standard for interactive art that goes beyond playing a finished timeline after a click.",
+    takeaway:
+      "A dynamic medium deserves creations whose behavior can be directly shaped.",
+  },
+  {
+    id: "the-mess-were-in",
+    title: "The Mess We're In",
+    speaker: "Joe Armstrong",
+    url: "https://www.youtube.com/watch?v=lKXe3HUG2l4",
+    youtubeId: "lKXe3HUG2l4",
+    durationMinutes: 46,
+    displayDuration: "46 min",
+    topic: "Systems",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Talk",
+    why: "A funny, uncomfortable tour of how software complexity and connectivity outran our ability to reason about failure.",
+    leavesYouWith:
+      "Better suspicion of accidental coupling, universal reachability, and systems that cannot fail in isolation.",
+    takeaway:
+      "The parts we connect become one failure domain unless we design boundaries deliberately.",
+  },
+  {
+    id: "data-oriented-design",
+    title: "Data-Oriented Design and C++",
+    speaker: "Mike Acton",
+    url: "https://www.youtube.com/watch?v=rX0ItVEVjHc",
+    youtubeId: "rX0ItVEVjHc",
+    durationMinutes: 107,
+    displayDuration: "1 hr 47",
+    topic: "Systems",
+    difficulty: "Deep dive",
+    evergreen: true,
+    kind: "Talk",
+    why: "A forceful demonstration that performance begins with the shape and movement of data, not isolated clever instructions.",
+    leavesYouWith:
+      "Concrete questions about access patterns, transformations, measurement, and what the hardware actually receives.",
+    takeaway:
+      "Understand the data you have, the answer you need, and the transformations between them.",
+  },
+  {
+    id: "mother-of-all-demos",
+    title: "The Mother of All Demos",
+    speaker: "Douglas Engelbart and team",
+    url: "https://www.youtube.com/watch?v=yJDv-zdhzMY",
+    youtubeId: "yJDv-zdhzMY",
+    durationMinutes: 100,
+    displayDuration: "1 hr 40",
+    topic: "Design",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "A 1968 system demonstrates pointing, hypertext, collaborative editing, windows, and video calls as one coherent augmentation vision.",
+    leavesYouWith:
+      "Humility about novelty and a more ambitious definition of tools for collective thought.",
+    takeaway:
+      "The important invention is often the connected working system, not any single interface object.",
+  },
+  {
+    id: "preventing-collapse-civilization",
+    title: "Preventing the Collapse of Civilization",
+    speaker: "Jonathan Blow",
+    url: "https://www.youtube.com/watch?v=ZSRHeXYDLko",
+    youtubeId: "ZSRHeXYDLko",
+    durationMinutes: 64,
+    displayDuration: "1 hr 04",
+    topic: "Craft",
+    difficulty: "Deep dive",
+    evergreen: true,
+    kind: "Talk",
+    why: "A provocative case for preserving deep implementation knowledge instead of accepting layers nobody can rebuild.",
+    leavesYouWith:
+      "A reason to document mechanisms, practice fundamentals, and keep critical knowledge executable.",
+    takeaway:
+      "A capability is fragile when a culture remembers the interface but forgets how to recreate the mechanism.",
+  },
+  {
+    id: "nothing-is-something",
+    title: "Nothing Is Something",
+    speaker: "Sandi Metz",
+    url: "https://www.youtube.com/watch?v=9lv2lBq6x4A",
+    youtubeId: "9lv2lBq6x4A",
+    durationMinutes: 44,
+    displayDuration: "44 min",
+    topic: "Craft",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Talk",
+    why: "A precise lesson in replacing conditionals and missing values with objects that make behavior explicit.",
+    leavesYouWith:
+      "A practical way to recognize when null handling is hiding a missing concept in the model.",
+    takeaway:
+      "Absence can have behavior; naming it can simplify every caller.",
+  },
+  {
+    id: "concurrency-not-parallelism",
+    title: "Concurrency Is Not Parallelism",
+    speaker: "Rob Pike",
+    url: "https://www.youtube.com/watch?v=oV9rvDllKEg",
+    youtubeId: "oV9rvDllKEg",
+    durationMinutes: 31,
+    displayDuration: "31 min",
+    topic: "Systems",
+    difficulty: "Intermediate",
+    evergreen: true,
+    kind: "Talk",
+    why: "Simple gophers, burning books, and composition make a commonly muddled systems distinction memorable.",
+    leavesYouWith:
+      "A way to separate structuring independent work from executing work at the same instant.",
+    takeaway:
+      "Concurrency is about composition; parallelism is about simultaneous execution.",
+  },
+  {
+    id: "principles-technology-leadership",
+    title: "Principles of Technology Leadership",
+    speaker: "Bryan Cantrill",
+    url: "https://www.youtube.com/watch?v=9QMGAtxUlAc",
+    youtubeId: "9QMGAtxUlAc",
+    durationMinutes: 35,
+    displayDuration: "35 min",
+    topic: "Business",
+    difficulty: "Open",
+    evergreen: true,
+    kind: "Talk",
+    why: "It treats integrity, decency, and customer care as engineering constraints rather than culture-deck decoration.",
+    leavesYouWith:
+      "A sharper test for whether organizational values can guide a hard decision instead of merely describing ambition.",
+    takeaway:
+      "Technology leadership needs explicit principles because optimization alone cannot decide what is right.",
+  },
 ];
 
 export const raqEntries: RaqEntry[] = [
@@ -1482,6 +2000,116 @@ export const raqEntries: RaqEntry[] = [
     longAnswer: [
       "Early ideas are unusually sensitive to metrics. Asking about audience, reuse, or revenue too quickly pushes them toward shapes that already have names and examples.",
       "I give the first prototype a small protected window to become specific. After that, constraints are welcome. Before that, efficiency can erase the very signal I am trying to find.",
+    ],
+  },
+  {
+    id: "delete-to-improve",
+    question: "What did you delete that made the work much better?",
+    topic: "Taste",
+    askedAt: "After the third portfolio redesign",
+    shortAnswer: "The requirement that every good idea had to appear on the homepage.",
+    longAnswer: [
+      "The homepage became more honest when it stopped carrying the whole archive, every experiment, and every proof detail at once. A visitor can understand the main claim quickly, then choose whether to descend into systems, writing, or play.",
+      "Deleting from the main path did not erase the work. It gave the work an address where the right person could find it without making everyone else pay the attention cost.",
+    ],
+  },
+  {
+    id: "ai-should-not-decide",
+    question: "What should an AI agent never decide on your behalf?",
+    topic: "Tools",
+    askedAt: "While designing an automation boundary",
+    shortAnswer: "Which irreversible consequence is acceptable to another person.",
+    longAnswer: [
+      "An agent can gather evidence, compare options, draft language, and execute a clearly bounded decision. It should not silently choose who absorbs a risk, whether a public claim is fair, or when another person's data may be repurposed.",
+      "The boundary is not intelligence. It is authority. More capable tools make that distinction more important, not less.",
+    ],
+  },
+  {
+    id: "motion-earns-place",
+    question: "How does an animation earn its place?",
+    topic: "Taste",
+    askedAt: "During a motion critique",
+    shortAnswer: "It explains state, preserves context, or creates a feeling worth the delay.",
+    longAnswer: [
+      "I ask what becomes harder to understand if the motion disappears. A transition may show origin and destination; a spring may communicate weight; a living creature may make an otherwise abstract system approachable.",
+      "If removing the animation changes nothing except the amount of visible effort, it belongs in a lab rather than the main product path.",
+    ],
+  },
+  {
+    id: "leave-failure-visible",
+    question: "Which failure would you leave visible in a case study?",
+    topic: "Failure",
+    askedAt: "While editing a polished build log",
+    shortAnswer: "The one that changed the architecture, not merely the screenshot.",
+    longAnswer: [
+      "A dead end is useful when it exposes a wrong assumption: React state used as a frame bus, a random level generator producing impossible jumps, or an agent retrying without a recovery boundary.",
+      "Showing the correction makes judgment inspectable. A gallery of only final states proves taste; a well-chosen failure can prove learning speed.",
+    ],
+  },
+  {
+    id: "why-creatures",
+    question: "Why keep building strange little creatures?",
+    topic: "Life",
+    askedAt: "By someone expecting a practical project",
+    shortAnswer: "Because a creature makes dozens of invisible engineering decisions emotionally legible.",
+    longAnswer: [
+      "A procedural animal forces timing, state, input, constraints, performance, accessibility, and rendering to cooperate. People notice immediately when those systems disagree, even if they cannot name the failing subsystem.",
+      "The result is playful, but the lesson transfers: products also feel trustworthy when intention, feedback, and recovery belong to one coherent model.",
+    ],
+  },
+  {
+    id: "defaults-win",
+    question: "When should the boring default win?",
+    topic: "Work",
+    askedAt: "Before replacing a familiar control",
+    shortAnswer: "Whenever novelty asks the user to learn but gives them no lasting leverage.",
+    longAnswer: [
+      "A new interaction can be justified by speed, spatial understanding, accessibility, or expressive capability. It cannot be justified only by making the interface feel owned.",
+      "I like unusual systems, so this is a useful constraint: the stranger the control, the clearer its payoff and escape route must be.",
+    ],
+  },
+  {
+    id: "research-grade",
+    question: "What does research-grade mean in product work?",
+    topic: "Work",
+    askedAt: "After a request to make the motion more intelligent",
+    shortAnswer: "A claim connected to evidence, then translated into a testable design choice.",
+    longAnswer: [
+      "Citing a paper is not the outcome. If pursuit research says prediction beats chasing the current position, the product decision is a bounded intercept point. If reading guidance says long lines lose people, the decision is a readable measure and a preference control.",
+      "Research earns its place when someone can point from source to assumption to implementation—and change the implementation if the evidence changes.",
+    ],
+  },
+  {
+    id: "redo-invisible",
+    question: "What would you rebuild even if nobody noticed the difference?",
+    topic: "Tools",
+    askedAt: "During a maintenance week",
+    shortAnswer: "A state boundary that currently works only because events arrive in a lucky order.",
+    longAnswer: [
+      "Temporal luck is expensive. The feature can look perfect while refreshes, retries, hidden tabs, or slow responses are quietly constructing invalid states.",
+      "I would rather replace that luck before adding a visible feature. The visitor may never notice the rewrite, but the next feature will not inherit a trap.",
+    ],
+  },
+  {
+    id: "taste-without-copying",
+    question: "How do you study great portfolios without copying them?",
+    topic: "Internet",
+    askedAt: "With too many inspiration tabs open",
+    shortAnswer: "Record the decision and its effect, not the surface treatment.",
+    longAnswer: [
+      "Instead of saving ‘large orange type,’ I save ‘one dominant signal makes a dense page scannable.’ Instead of copying a cursor, I ask how the interaction preserved context or made the maker's skill undeniable.",
+      "The principle can combine with my own constraints. The color, typeface, 3D object, and transition should emerge from this site's material rather than another site's screenshot.",
+    ],
+  },
+  {
+    id: "portfolio-memory",
+    question: "What should someone remember after closing this portfolio?",
+    topic: "Internet",
+    askedAt: "At the start of this redesign",
+    shortAnswer: "That the systems were serious and the person making them was still curious.",
+    longAnswer: [
+      "Proof matters: shipped work, architecture, outcomes, and the ability to explain trade-offs. But proof without personality becomes interchangeable with a polished résumé template.",
+      "The creatures, field notes, strange questions, and small instruments are not there to distract from competence. They show what the competence is in service of: making technology feel understandable, alive, and worth exploring.",
     ],
   },
 ];

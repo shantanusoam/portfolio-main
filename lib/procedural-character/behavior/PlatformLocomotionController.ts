@@ -51,6 +51,12 @@ export class PlatformLocomotionController {
     this.hopTimer = 0;
   }
 
+  translateSupport(dx: number, dy: number): void {
+    if (Number.isFinite(this.groundY)) this.groundY += dy;
+    if (Number.isFinite(this.groundLeft)) this.groundLeft += dx;
+    if (Number.isFinite(this.groundRight)) this.groundRight += dx;
+  }
+
   update(
     dt: number,
     body: CharacterKinematics,

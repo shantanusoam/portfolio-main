@@ -152,4 +152,21 @@ export class AppendageRuntime {
     this.solve(this.solverOptions.iterations);
     this.softChain.reset(this.points);
   }
+
+  translate(dx: number, dy: number): void {
+    const vectors: Vec2Like[] = [
+      this.anchor,
+      this.idealFootTarget,
+      this.lockedFootPosition,
+      this.foot,
+      this.stepStart,
+      this.stepDestination,
+      ...this.points,
+    ];
+    for (const point of vectors) {
+      point.x += dx;
+      point.y += dy;
+    }
+    this.softChain.translate(dx, dy);
+  }
 }

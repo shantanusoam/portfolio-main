@@ -53,6 +53,7 @@ export default function ProceduralMascotLoader({
   const [preferencesReady, setPreferencesReady] = useState(false);
   const [desktopEligible, setDesktopEligible] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
+  const [heroVisible, setHeroVisible] = useState(true);
   const [disabled, setDisabled] = useState(false);
   const [following, setFollowing] = useState(false);
   const [engine, setEngine] = useState<MascotEngine | null>(null);
@@ -76,6 +77,24 @@ export default function ProceduralMascotLoader({
       narrow.removeEventListener("change", syncEligibility);
       coarse.removeEventListener("change", syncEligibility);
     };
+  }, [onHomepage]);
+
+  useEffect(() => {
+    if (!onHomepage) return undefined;
+    const hero = document.querySelector<HTMLElement>("#hero");
+    if (!hero || typeof IntersectionObserver === "undefined") {
+      setHeroVisible(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeroVisible(entry.isIntersecting && entry.intersectionRatio > 0.02);
+      },
+      { threshold: [0, 0.02, 0.12] },
+    );
+    observer.observe(hero);
+    return () => observer.disconnect();
   }, [onHomepage]);
 
   useEffect(() => {
@@ -147,6 +166,8 @@ export default function ProceduralMascotLoader({
       {canvasReady && !disabled ? (
         <ProceduralMascotCanvas
           quality={quality}
+          enabled={heroVisible}
+          arenaSelector="#hero"
           requireFishActivation
           onEngineReady={handleEngineReady}
           onFollowChange={setFollowing}
@@ -192,6 +213,8 @@ export default function ProceduralMascotLoader({
         <p className={styles.mascotDockHint} aria-live="polite">
           {disabled
             ? "The fish is hidden. Your choice is saved."
+            : !heroVisible
+              ? "The fish rests inside the hero and returns when you do."
             : following
               ? "Following your pointer · click the fish or press Esc to rest"
               : "Click the fish to make it follow"}

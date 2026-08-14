@@ -142,6 +142,19 @@ export class SoftBodyRuntime {
     this.currentArea = Math.abs(this.calculateSignedArea(this.points));
   }
 
+  translate(dx: number, dy: number): void {
+    for (let index = 0; index < this.points.length; index += 1) {
+      this.points[index].x += dx;
+      this.points[index].y += dy;
+      this.previous[index].x += dx;
+      this.previous[index].y += dy;
+      this.predicted[index].x += dx;
+      this.predicted[index].y += dy;
+      this.restTargets[index].x += dx;
+      this.restTargets[index].y += dy;
+    }
+  }
+
   private buildRestTargets(
     center: Vec2Like,
     rotation: number,

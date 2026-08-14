@@ -6,9 +6,10 @@ import { talkEntries } from "@/lib/archive/data";
 import type { TalkEntry, TalkTopic } from "@/lib/archive/types";
 import styles from "./archive.module.css";
 
-type Budget = "quick" | "medium" | "deep";
+type Budget = "all" | "quick" | "medium" | "deep";
 
 const budgets: Array<{ id: Budget; label: string; hint: string }> = [
+  { id: "all", label: "Any time", hint: "browse the whole shelf" },
   { id: "quick", label: "10 min", hint: "clips and sharp ideas" },
   { id: "medium", label: "30 min", hint: "one focused sitting" },
   { id: "deep", label: "60+ min", hint: "the full argument" },
@@ -24,13 +25,14 @@ const topics: Array<"All" | TalkTopic> = [
 ];
 
 function fitsBudget(talk: TalkEntry, budget: Budget) {
+  if (budget === "all") return true;
   if (budget === "quick") return talk.durationMinutes <= 15;
   if (budget === "medium") return talk.durationMinutes <= 35;
   return talk.durationMinutes > 35;
 }
 
 export default function ScreeningRoom() {
-  const [budget, setBudget] = useState<Budget>("medium");
+  const [budget, setBudget] = useState<Budget>("all");
   const [topic, setTopic] = useState<(typeof topics)[number]>("All");
   const [active, setActive] = useState<TalkEntry | null>(null);
 

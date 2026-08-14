@@ -164,8 +164,8 @@
     );
   gap: clamp(24px, 3.5vw, 54px);
   align-items: center;
-  min-height: clamp(430px, 58vh, 610px);
-  padding: clamp(68px, 8vw, 108px) 0 clamp(42px, 5vw, 66px);
+  min-height: clamp(380px, 48vh, 520px);
+  padding: clamp(58px, 6.5vw, 82px) 0 clamp(36px, 4vw, 52px);
   border-bottom: 1px solid var(--archive-line);
 }
 
@@ -310,7 +310,7 @@
 }
 
 .section {
-  padding: clamp(52px, 6.5vw, 88px) 0 0;
+  padding: clamp(40px, 5vw, 66px) 0 0;
 }
 
 .sectionHeader {
@@ -584,8 +584,8 @@
 
 .featureCard {
   display: flex;
-  min-height: 350px;
-  padding: clamp(24px, 3vw, 44px);
+  min-height: 292px;
+  padding: clamp(22px, 2.6vw, 36px);
   flex-direction: column;
   justify-content: space-between;
 }
@@ -621,8 +621,8 @@
 }
 
 .featureCard:not(.featureCardPrimary) {
-  min-height: 174px;
-  padding: 24px;
+  min-height: 154px;
+  padding: 22px;
 }
 
 .cardMeta {
@@ -677,7 +677,7 @@
 
 .featureDek {
   max-width: 600px;
-  margin-top: 20px;
+  margin-top: 15px;
   font-size: 14px;
 }
 
@@ -686,7 +686,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
-  margin-top: 28px;
+  margin-top: 20px;
 }
 
 .signalArrow {
@@ -712,15 +712,15 @@
 
 .articleGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
   padding: 1px;
   background: var(--archive-line);
 }
 
 .articleCard {
-  min-height: 280px;
-  padding: 28px;
+  min-height: 224px;
+  padding: 24px;
 }
 
 .articleLink {
@@ -731,13 +731,13 @@
 }
 
 .articleTitle {
-  margin-top: 44px;
-  font-size: clamp(26px, 2.35vw, 36px);
-  line-height: 1.02;
+  margin-top: 22px;
+  font-size: clamp(25px, 2.15vw, 34px);
+  line-height: 1.04;
 }
 
 .articleDek {
-  margin-top: 18px;
+  margin-top: 13px;
   font-size: 13px;
 }
 
@@ -749,15 +749,15 @@
 }
 
 .readerHero {
-  max-width: 1120px;
-  padding: clamp(108px, 12vw, 158px) 0 56px;
+  max-width: 980px;
+  padding: clamp(82px, 8vw, 112px) 0 42px;
 }
 
 .backLink {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 60px;
+  margin-bottom: 32px;
   color: var(--archive-muted);
   font-family: var(--font-data), monospace;
   font-size: 9px;
@@ -767,28 +767,28 @@
 }
 
 .readerTitle {
-  max-width: 920px;
-  margin-top: 26px;
+  max-width: 850px;
+  margin-top: 18px;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(42px, 6.5vw, 88px);
+  font-size: clamp(42px, 5.7vw, 74px);
   font-weight: 500;
   line-height: 0.94;
   letter-spacing: -0.045em;
 }
 
 .readerDek {
-  max-width: 720px;
-  margin-top: 36px;
+  max-width: 68ch;
+  margin-top: 24px;
   color: var(--archive-muted);
-  font-size: clamp(18px, 2vw, 27px);
-  line-height: 1.5;
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1.58;
 }
 
 .readerCover {
   position: relative;
-  width: min(980px, 100%);
-  aspect-ratio: 16 / 8.2;
-  margin-top: 46px;
+  width: min(900px, 100%);
+  aspect-ratio: 16 / 7.4;
+  margin-top: 32px;
   overflow: hidden;
   border: 1px solid var(--archive-line);
   background: #080807;
@@ -816,7 +816,7 @@
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
-  margin-top: 34px;
+  margin-top: 24px;
   color: rgba(238, 233, 223, 0.42);
   font-family: var(--font-data), monospace;
   font-size: 9px;
@@ -845,13 +845,11 @@
 
 .readerLayout {
   display: grid;
-  grid-template-columns: minmax(160px, 0.65fr) minmax(0, 2fr) minmax(
-      150px,
-      0.65fr
-    );
-  gap: clamp(28px, 5vw, 76px);
+  grid-template-columns: minmax(170px, 220px) minmax(0, 72ch);
+  gap: clamp(36px, 6vw, 82px);
   align-items: start;
-  padding-top: 60px;
+  justify-content: center;
+  padding-top: 44px;
   border-top: 1px solid var(--archive-line);
 }
 
@@ -887,11 +885,14 @@
 }
 
 .articleBody {
+  --reader-font-size: clamp(16px, 1.25vw, 18px);
+
   min-width: 0;
+  max-width: 72ch;
 }
 
 .articleBodyQuiet {
-  font-size: 1.08em;
+  --reader-font-size: clamp(18px, 1.45vw, 20px);
 }
 
 .workbench {
@@ -1172,32 +1173,33 @@
 
 .articleSection {
   scroll-margin-top: 110px;
-  padding: 0 0 68px;
+  padding: 0 0 50px;
 }
 
 .articleSection + .articleSection {
-  padding-top: 68px;
+  padding-top: 50px;
   border-top: 1px solid var(--archive-line);
 }
 
 .articleSection h2 {
-  max-width: 760px;
-  margin-bottom: 28px;
+  max-width: 680px;
+  margin-bottom: 22px;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(30px, 3.8vw, 52px);
+  font-size: clamp(30px, 3.25vw, 46px);
   font-weight: 500;
   line-height: 1.02;
 }
 
 .articleSection p,
 .articleSection li {
+  max-width: 72ch;
   color: rgba(238, 233, 223, 0.76);
-  font-size: clamp(16px, 1.35vw, 19px);
-  line-height: 1.85;
+  font-size: var(--reader-font-size);
+  line-height: 1.75;
 }
 
 .articleSection p + p {
-  margin-top: 24px;
+  margin-top: 22px;
 }
 
 .articleSection ul {
@@ -1272,18 +1274,40 @@
   color: var(--archive-orange);
 }
 
+.revisionDisclosure {
+  margin-top: 6px;
+  padding: 18px 0;
+  border-top: 1px solid var(--archive-line);
+  border-bottom: 1px solid var(--archive-line);
+  color: var(--archive-muted);
+  font-family: var(--font-data), monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.revisionDisclosure summary {
+  cursor: pointer;
+  color: var(--archive-paper);
+  text-transform: uppercase;
+}
+
+.revisionDisclosure p {
+  letter-spacing: 0;
+  line-height: 1.55;
+}
+
 .nextReads {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1px;
-  margin-top: 80px;
+  margin-top: 56px;
   padding: 1px;
   background: var(--archive-line);
 }
 
 .nextRead {
-  min-height: 190px;
-  padding: 28px;
+  min-height: 160px;
+  padding: 24px;
   color: inherit;
   background: rgba(9, 9, 8, 0.96);
   text-decoration: none;
@@ -1300,7 +1324,7 @@
 .nextRead strong {
   display: block;
   max-width: 420px;
-  margin-top: 42px;
+  margin-top: 28px;
   font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(25px, 3vw, 42px);
   font-weight: 400;
@@ -1642,7 +1666,7 @@
 
 .budgetOptions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1px;
   margin-top: 34px;
   background: var(--archive-line);
@@ -2079,11 +2103,8 @@
   }
 
   .readerLayout {
-    grid-template-columns: minmax(140px, 0.45fr) minmax(0, 2fr);
-  }
-
-  .readerLayout > aside:last-child {
-    display: none;
+    grid-template-columns: minmax(150px, 190px) minmax(0, 72ch);
+    gap: 34px;
   }
 
   .workbenchHeader {
@@ -2185,7 +2206,7 @@
   }
 
   .section {
-    padding-top: 46px;
+    padding-top: 40px;
   }
 
   .sectionHeader,
@@ -2220,24 +2241,42 @@
 
   .featureCard,
   .featureCard:not(.featureCardPrimary) {
-    min-height: 260px;
+    min-height: 230px;
   }
 
   .articleCard,
   .talkCard,
   .questionCard {
-    min-height: 270px;
+    min-height: 230px;
     padding: 22px;
   }
 
   .articleTitle,
   .talkTitle,
   .questionTitle {
-    margin-top: 34px;
+    margin-top: 24px;
+  }
+
+  .readerHero {
+    padding: 56px 0 34px;
+  }
+
+  .backLink {
+    margin-bottom: 26px;
+  }
+
+  .readerTitle {
+    font-size: clamp(40px, 12vw, 62px);
+  }
+
+  .readerCover {
+    aspect-ratio: 16 / 9;
   }
 
   .readerLayout {
     grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 32px;
   }
 
   .articleAside {

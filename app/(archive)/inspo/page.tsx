@@ -19,7 +19,7 @@ export default function InspoPage() {
         title="Interfaces I return to"
         description="A living evidence board for the moments when my own taste gets noisy. Every save includes the detail that made it worth keeping."
         status={`${inspirationEntries.length} references in rotation`}
-        updated="15.05.2026"
+        updated="14.08.2026"
         artwork={{
           src: "/signal-archive/inspo-specimen-table.webp",
           alt: "A table of translucent interface specimens and tactile controls",

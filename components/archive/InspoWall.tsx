@@ -36,7 +36,7 @@ function seededShuffle<T>(input: T[], seed: number): T[] {
 
 export default function InspoWall() {
   const [kind, setKind] = useState<(typeof kinds)[number]>("All");
-  const [showArchive, setShowArchive] = useState(false);
+  const [showArchive, setShowArchive] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [seed, setSeed] = useState(1);
 
@@ -75,12 +75,12 @@ export default function InspoWall() {
         <p className={styles.sectionKicker}>01 / Evidence board</p>
         <div>
           <h2 className={styles.sectionTitle} id="reference-wall">
-            The current rotation
+            The full reference wall
           </h2>
           <p className={styles.sectionIntro}>
             Hover or focus a tile to inspect the exact detail worth keeping.
-            Pinned references stay; the remaining wall reshuffles into a stable
-            four-hour edition.
+            Start with the full wall, then switch to a smaller shuffled edition
+            when you want a fresh prompt instead of a catalog.
           </p>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function InspoWall() {
         </div>
         <div className={styles.toolbarActions}>
           <span className={styles.wallStatus}>
-            {visible.length} references · edition locked for 4 hours
+            {visible.length} references · {showArchive ? "full archive" : "four-hour edition"}
           </span>
           <button
             className={styles.actionButton}
@@ -120,7 +120,7 @@ export default function InspoWall() {
             type="button"
             aria-pressed={showArchive}
           >
-            {showArchive ? "Current edition" : "Full archive"}
+            {showArchive ? "Curated edition" : "Full archive"}
           </button>
         </div>
       </div>

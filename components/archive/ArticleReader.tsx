@@ -59,7 +59,7 @@ export default function ArticleReader({
   next?: ArchiveArticle;
 }) {
   const progressRef = useRef<HTMLDivElement>(null);
-  const [quietMode, setQuietMode] = useState(false);
+  const [comfortableReading, setComfortableReading] = useState(true);
   const workbench = articleWorkbenches[article.slug];
 
   useEffect(() => {
@@ -139,17 +139,17 @@ export default function ArticleReader({
           </nav>
           <button
             className={`${styles.modeButton} ${styles.readingModeButton}`}
-            onClick={() => setQuietMode((value) => !value)}
+            onClick={() => setComfortableReading((value) => !value)}
             type="button"
-            aria-pressed={quietMode}
+            aria-pressed={comfortableReading}
           >
-            {quietMode ? "Compact type" : "Quiet reading"}
+            {comfortableReading ? "Use compact type" : "Use comfort reading"}
           </button>
         </aside>
 
         <article
           className={`${styles.articleBody} ${
-            quietMode ? styles.articleBodyQuiet : ""
+            comfortableReading ? styles.articleBodyQuiet : ""
           }`}
         >
           {workbench ? <ArticleWorkbench workbench={workbench} /> : null}
@@ -179,6 +179,20 @@ export default function ArticleReader({
             </section>
           ))}
 
+          <details className={styles.revisionDisclosure}>
+            <summary>Revision history · {article.revisions.length}</summary>
+            <ol className={styles.revisionList}>
+              {article.revisions.map((revision) => (
+                <li key={`${revision.date}-${revision.note}`}>
+                  <time dateTime={revision.date}>
+                    {formatArchiveDate(revision.date)}
+                  </time>
+                  <p>{revision.note}</p>
+                </li>
+              ))}
+            </ol>
+          </details>
+
           <nav className={styles.nextReads} aria-label="More articles">
             {previous ? (
               <Link className={styles.nextRead} href={`/blog/${previous.slug}`}>
@@ -199,19 +213,6 @@ export default function ArticleReader({
           </nav>
         </article>
 
-        <aside className={styles.articleAside} aria-label="Revision history">
-          <span>Revision history</span>
-          <ol className={styles.revisionList}>
-            {article.revisions.map((revision) => (
-              <li key={`${revision.date}-${revision.note}`}>
-                <time dateTime={revision.date}>
-                  {formatArchiveDate(revision.date)}
-                </time>
-                <p>{revision.note}</p>
-              </li>
-            ))}
-          </ol>
-        </aside>
       </div>
     </main>
   );

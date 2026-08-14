@@ -34,6 +34,12 @@ const FRY_HUNT_GRACE_SECONDS = 2.1;
 const FISSION_DURATION = 2.2;
 const REDUCED_FISSION_DURATION = 0.85;
 const REDUCED_CATCH_ASSIST_RADIUS = 90;
+const HUNT_HUNGER_THRESHOLD = 0.42;
+const HUNGER_PER_SECOND = 0.06;
+const NATURAL_SCHOOL_SIZE = 4;
+const FIRST_SCHOOL_DELAY = [3.8, 5.4] as const;
+const SCHOOL_RESPAWN_DELAY = [6.5, 10.5] as const;
+const REPRODUCTION_SETTLE_DELAY = [1.8, 2.4] as const;
 const FRY_COLORS = [
   "#ffb178",
   "#8fe9c9",
@@ -76,6 +82,12 @@ export interface EcosystemAdult {
   phaseOffset: number;
   laneBias: number;
   preferredSpeed: number;
+  /** Appetite is deliberately slow so predation reads as a choice, not noise. */
+  hunger: number;
+  digestionSeconds: number;
+  pursuitBurstSeconds: number;
+  coastSeconds: number;
+  coastTarget: Point | null;
 }
 
 export interface EcosystemFry {
@@ -112,6 +124,13 @@ interface FissionState {
   parentMeals: number;
 }
 
+interface ReproductionState {
+  adultId: string;
+  elapsed: number;
+  duration: number;
+  settlePoint: Point;
+}
+
 export interface FishEcosystemOptions {
   leader: MascotRuntime;
   seed: number;
@@ -125,6 +144,7 @@ export interface FishEcosystemOptions {
   ) => MascotRuntime;
   getHideTargets?: () => readonly Point[];
   onStatus?: (status: MascotEcosystemStatus) => void;
+  autoPopulate?: boolean;
 }
 
 /**
@@ -138,11 +158,13 @@ export class FishEcosystem {
   private readonly createRuntime: FishEcosystemOptions["createRuntime"];
   private readonly onStatus?: FishEcosystemOptions["onStatus"];
   private readonly getHideTargets?: FishEcosystemOptions["getHideTargets"];
+  private readonly autoPopulate: boolean;
   private readonly adults: EcosystemAdult[];
   private bounds: WanderBounds;
   private quality: MascotQuality;
   private fry: EcosystemFry[] = [];
   private fission: FissionState | null = null;
+  private reproduction: ReproductionState | null = null;
   private pointer = { x: 0, y: 0, active: false };
   private pointerSuppressed = false;
   private simTime = 0;
@@ -155,12 +177,14 @@ export class FishEcosystem {
   private huntAssignments: Array<number | null> = [];
   private divergenceSeconds = 0;
   private nextFryId = 1;
+  private nextNaturalSchoolAt = 0;
 
   constructor(options: FishEcosystemOptions) {
     this.rng = new SeededRandom(options.seed + 0x5f3759df);
     this.createRuntime = options.createRuntime;
     this.onStatus = options.onStatus;
     this.getHideTargets = options.getHideTargets;
+    this.autoPopulate = options.autoPopulate ?? false;
     this.bounds = options.bounds;
     this.quality = options.quality;
     const anatomy = createBaseAnatomy(0);
@@ -179,8 +203,14 @@ export class FishEcosystem {
         phaseOffset: 0,
         laneBias: 0,
         preferredSpeed: 1,
+        hunger: 0.72,
+        digestionSeconds: 0,
+        pursuitBurstSeconds: 0,
+        coastSeconds: 0,
+        coastTarget: null,
       },
     ];
+    this.nextNaturalSchoolAt = this.rng.range(...FIRST_SCHOOL_DELAY);
     this.emitStatus(true);
   }
 
@@ -225,6 +255,7 @@ export class FishEcosystem {
       this.spawnCooldown <= 0 &&
       this.fry.length === 0 &&
       !this.fission &&
+      !this.reproduction &&
       !this.population.isFissionPending();
     const leader = this.adults.find((adult) => adult.role === "leader");
     const meals = leader?.mealsEaten ?? 0;
@@ -233,7 +264,9 @@ export class FishEcosystem {
       meals,
       Math.max(0, MEALS_TO_FISSION - meals),
     );
-    status.fissionPhase = this.getFissionVisual()?.phase ?? null;
+    status.fissionPhase = this.reproduction
+      ? "settle"
+      : (this.getFissionVisual()?.phase ?? null);
     return status;
   }
 
@@ -303,7 +336,12 @@ export class FishEcosystem {
    * to override (tests often use 1 for precise meal accounting).
    */
   releaseFry(x?: number, y?: number, count: number = FRY_SCHOOL_SIZE): boolean {
-    if (!this.enabled || this.spawnCooldown > 0 || this.fission) {
+    if (
+      !this.enabled ||
+      this.spawnCooldown > 0 ||
+      this.fission ||
+      this.reproduction
+    ) {
       return false;
     }
     const granted = this.population.requestSchool(count);
@@ -329,6 +367,8 @@ export class FishEcosystem {
       this.fry.push(this.createDroppedFry(originX, originY, index, granted));
     }
     this.spawnCooldown = 2.4;
+    this.nextNaturalSchoolAt =
+      this.simTime + this.rng.range(...SCHOOL_RESPAWN_DELAY);
     this.huntAssignments = this.adults.map(() => null);
     this.emitStatus();
     return true;
@@ -346,7 +386,21 @@ export class FishEcosystem {
     this.bloomSeconds = Math.max(0, this.bloomSeconds - dt);
     this.divergenceSeconds = Math.max(0, this.divergenceSeconds - dt);
 
+    for (const adult of this.adults) this.updateAdultState(adult, dt);
+
+    if (
+      this.autoPopulate &&
+      this.simTime >= this.nextNaturalSchoolAt &&
+      this.fry.length === 0 &&
+      !this.fission &&
+      !this.reproduction &&
+      !this.population.isFissionPending()
+    ) {
+      this.releaseNaturalSchool();
+    }
+
     if (this.fission) this.updateFission(dt);
+    else if (this.reproduction) this.updateReproduction(dt);
 
     // Reason: fry move first so predators chase current positions.
     if (this.fry.length > 0 && !this.fission) {
@@ -365,6 +419,53 @@ export class FishEcosystem {
     if (this.fry.length > 0 && !this.fission) this.checkFryCatch();
 
     this.emitStatus();
+  }
+
+  private updateAdultState(adult: EcosystemAdult, dt: number): void {
+    adult.hunger = clamp(adult.hunger + dt * HUNGER_PER_SECOND, 0, 1);
+    adult.digestionSeconds = Math.max(0, adult.digestionSeconds - dt);
+    adult.coastSeconds = Math.max(0, adult.coastSeconds - dt);
+    if (adult.coastSeconds === 0) adult.coastTarget = null;
+
+    const wasBursting = adult.pursuitBurstSeconds > 0;
+    adult.pursuitBurstSeconds = Math.max(
+      0,
+      adult.pursuitBurstSeconds - dt,
+    );
+    if (wasBursting && adult.pursuitBurstSeconds === 0) {
+      // A short coast phase creates a visible observe/act rhythm and prevents
+      // the adult from pinning a fry with continuous acceleration.
+      adult.coastSeconds = this.rng.range(0.16, 0.28);
+      const root = adult.runtime.pose.getRoot();
+      const velocity = adult.runtime.pose.getVelocity();
+      adult.coastTarget = {
+        x: clamp(
+          root.x + velocity.x * 0.2,
+          this.bounds.minX,
+          this.bounds.maxX,
+        ),
+        y: clamp(
+          root.y + velocity.y * 0.2,
+          this.bounds.minY,
+          this.bounds.maxY,
+        ),
+      };
+    }
+  }
+
+  private releaseNaturalSchool(): void {
+    const fromRight = this.rng.next() > 0.5;
+    const x = fromRight
+      ? lerp(this.bounds.minX, this.bounds.maxX, 0.8)
+      : lerp(this.bounds.minX, this.bounds.maxX, 0.2);
+    const y = this.rng.range(
+      lerp(this.bounds.minY, this.bounds.maxY, 0.24),
+      lerp(this.bounds.minY, this.bounds.maxY, 0.62),
+    );
+
+    if (!this.releaseFry(x, y, NATURAL_SCHOOL_SIZE)) {
+      this.nextNaturalSchoolAt = this.simTime + 1.5;
+    }
   }
 
   private createDroppedFry(
@@ -415,6 +516,10 @@ export class FishEcosystem {
       this.routeFissionTargets();
       return;
     }
+    if (this.reproduction) {
+      this.routeReproductionTargets();
+      return;
+    }
 
     if (this.fry.length > 0 && this.canHuntYet()) this.assignHunters();
     else this.huntAssignments = this.adults.map(() => null);
@@ -427,11 +532,22 @@ export class FishEcosystem {
           ? this.fry[preyIndex]
           : null;
 
+      if (adult.coastSeconds > 0 && adult.coastTarget) {
+        adult.runtime.setPointer(0, 0, false);
+        adult.runtime.setSteerTarget(
+          adult.coastTarget.x,
+          adult.coastTarget.y,
+          false,
+        );
+        continue;
+      }
+
       if (adult.role === "leader") {
         if (prey) {
+          const intercept = this.predictIntercept(adult, prey);
           adult.runtime.clearSteerTarget();
-          adult.runtime.setPointer(prey.x, prey.y, false);
-          adult.runtime.setSteerTarget(prey.x, prey.y, true);
+          adult.runtime.setPointer(intercept.x, intercept.y, false);
+          adult.runtime.setSteerTarget(intercept.x, intercept.y, true);
         } else if (this.pointerSuppressed) {
           adult.runtime.clearSteerTarget();
           adult.runtime.setPointer(this.pointer.x, this.pointer.y, false);
@@ -448,7 +564,8 @@ export class FishEcosystem {
 
       adult.runtime.setPointer(0, 0, false);
       if (prey) {
-        adult.runtime.setSteerTarget(prey.x, prey.y, true);
+        const intercept = this.predictIntercept(adult, prey);
+        adult.runtime.setSteerTarget(intercept.x, intercept.y, true);
       } else {
         const target = this.independentTarget(index);
         adult.runtime.setSteerTarget(target.x, target.y, false);
@@ -469,10 +586,26 @@ export class FishEcosystem {
     const claimed = new Set<number>();
     const adultsByHunger = this.adults
       .map((adult, index) => ({ adult, index }))
-      .sort((a, b) => a.index - b.index);
+      .sort((a, b) => b.adult.hunger - a.adult.hunger);
 
-    for (const { index } of adultsByHunger) {
-      const root = this.adults[index].runtime.pose.getRoot();
+    for (const { adult, index } of adultsByHunger) {
+      const userHasLeader =
+        adult.role === "leader" &&
+        this.pointer.active &&
+        !this.pointerSuppressed;
+      if (
+        userHasLeader ||
+        adult.hunger < HUNT_HUNGER_THRESHOLD ||
+        adult.digestionSeconds > 0 ||
+        adult.coastSeconds > 0
+      ) {
+        continue;
+      }
+      if (adult.pursuitBurstSeconds <= 0) {
+        adult.pursuitBurstSeconds = this.rng.range(0.72, 1.08);
+      }
+
+      const root = adult.runtime.pose.getRoot();
       let bestFry = -1;
       let bestDistance = Number.POSITIVE_INFINITY;
       for (let fryIndex = 0; fryIndex < this.fry.length; fryIndex += 1) {
@@ -490,6 +623,27 @@ export class FishEcosystem {
         this.huntAssignments[index] = bestFry;
       }
     }
+  }
+
+  private predictIntercept(
+    adult: EcosystemAdult,
+    prey: EcosystemFry,
+  ): Point {
+    const root = adult.runtime.pose.getRoot();
+    const distance = Math.hypot(prey.x - root.x, prey.y - root.y);
+    const lookAhead = clamp(distance / 240, 0.08, 0.5);
+    return {
+      x: clamp(
+        prey.x + prey.vx * lookAhead,
+        this.bounds.minX,
+        this.bounds.maxX,
+      ),
+      y: clamp(
+        prey.y + prey.vy * lookAhead,
+        this.bounds.minY,
+        this.bounds.maxY,
+      ),
+    };
   }
 
   private independentTarget(index: number): Point {
@@ -639,7 +793,7 @@ export class FishEcosystem {
   }
 
   private checkFryCatch(): void {
-    if (this.fry.length === 0) return;
+    if (this.fry.length === 0 || this.reproduction) return;
     // One catch per adult per frame keeps multi-hunter schools fair.
     const adultsBusy = new Set<number>();
 
@@ -654,6 +808,12 @@ export class FishEcosystem {
       ) {
         if (adultsBusy.has(adultIndex)) continue;
         const adult = this.adults[adultIndex];
+        if (
+          this.huntAssignments[adultIndex] !== fryIndex ||
+          adult.digestionSeconds > 0
+        ) {
+          continue;
+        }
         const root = adult.runtime.pose.getRoot();
         const catchRadius =
           FRY_CATCH_RADIUS *
@@ -674,10 +834,15 @@ export class FishEcosystem {
         this.fry.splice(fryIndex, 1);
         adultsBusy.add(adultIndex);
         adult.feedPulse = 1;
+        adult.hunger = 0.05;
+        adult.digestionSeconds = this.rng.range(2.8, 4.4);
+        adult.pursuitBurstSeconds = 0;
+        adult.coastSeconds = this.rng.range(0.65, 1.05);
+        adult.coastTarget = null;
         adult.runtime.trigger({ type: "click", x: caughtAt.x, y: caughtAt.y });
 
         if (outcome === "fission") {
-          this.beginFission(adult);
+          this.scheduleReproduction(adult);
           this.emitStatus(true);
           return;
         }
@@ -686,6 +851,10 @@ export class FishEcosystem {
           for (const member of this.adults) member.feedPulse = 1;
         }
         this.emitStatus(true);
+        if (this.fry.length === 0) {
+          this.nextNaturalSchoolAt =
+            this.simTime + this.rng.range(...SCHOOL_RESPAWN_DELAY);
+        }
         fryIndex -= 1;
         break;
       }
@@ -733,6 +902,52 @@ export class FishEcosystem {
     });
     adult.anatomy = next;
     adult.runtime.applyAnatomy(next);
+  }
+
+  private scheduleReproduction(adult: EcosystemAdult): void {
+    const root = adult.runtime.pose.getRoot();
+    this.reproduction = {
+      adultId: adult.id,
+      elapsed: 0,
+      duration: this.reducedMotion
+        ? 0.9
+        : this.rng.range(...REPRODUCTION_SETTLE_DELAY),
+      settlePoint: {
+        x: clamp(root.x, this.bounds.minX, this.bounds.maxX),
+        y: clamp(root.y, this.bounds.minY, this.bounds.maxY),
+      },
+    };
+    this.huntAssignments = this.adults.map(() => null);
+  }
+
+  private updateReproduction(dt: number): void {
+    if (!this.reproduction) return;
+    this.reproduction.elapsed += dt;
+    if (this.reproduction.elapsed < this.reproduction.duration) return;
+
+    const adult = this.adults.find(
+      (candidate) => candidate.id === this.reproduction?.adultId,
+    );
+    this.reproduction = null;
+    if (adult) this.beginFission(adult);
+  }
+
+  private routeReproductionTargets(): void {
+    if (!this.reproduction) return;
+    for (let index = 0; index < this.adults.length; index += 1) {
+      const adult = this.adults[index];
+      adult.runtime.setPointer(0, 0, false);
+      if (adult.id === this.reproduction.adultId) {
+        adult.runtime.setSteerTarget(
+          this.reproduction.settlePoint.x,
+          this.reproduction.settlePoint.y,
+          false,
+        );
+      } else {
+        const target = this.independentTarget(index);
+        adult.runtime.setSteerTarget(target.x, target.y, false);
+      }
+    }
   }
 
   private beginFission(parent: EcosystemAdult): void {
@@ -819,6 +1034,11 @@ export class FishEcosystem {
         phaseOffset: this.rng.range(0, Math.PI * 2),
         laneBias: this.rng.range(-1, 1),
         preferredSpeed: 0.75 + this.rng.next() * 0.55,
+        hunger: this.rng.range(0.2, 0.36),
+        digestionSeconds: 1.2,
+        pursuitBurstSeconds: 0,
+        coastSeconds: this.rng.range(0.4, 1.1),
+        coastTarget: null,
       });
     }
 
@@ -846,6 +1066,10 @@ export class FishEcosystem {
 
     this.population.completeFission();
     this.divergenceSeconds = 0.7;
+    if (this.fry.length === 0) {
+      this.nextNaturalSchoolAt =
+        this.simTime + this.rng.range(...SCHOOL_RESPAWN_DELAY);
+    }
     this.emitStatus(true);
   }
 
