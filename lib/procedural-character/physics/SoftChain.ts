@@ -35,6 +35,15 @@ export class SoftChain {
     }
   }
 
+  translate(dx: number, dy: number): void {
+    for (let index = 0; index < this.points.length; index += 1) {
+      this.points[index].x += dx;
+      this.points[index].y += dy;
+      this.previous[index].x += dx;
+      this.previous[index].y += dy;
+    }
+  }
+
   update(
     guide: readonly Vec2Like[],
     anchor: Vec2Like,

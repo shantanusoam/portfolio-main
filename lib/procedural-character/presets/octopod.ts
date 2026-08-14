@@ -44,7 +44,7 @@ export const octopodPreset = createCharacterSpec({
     maxHorizontalSpeed: 245,
     horizontalAcceleration: 1320,
     horizontalDrag: 9,
-    jumpSpeed: 510,
+    jumpSpeed: 650,
     hopDistance: 70,
     hopHeightBias: 34,
     hopCooldown: 0.2,

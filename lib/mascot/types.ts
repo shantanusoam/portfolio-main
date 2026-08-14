@@ -278,6 +278,8 @@ export interface MascotEngineOptions {
   quality: MascotQuality;
   debug?: boolean;
   reducedMotion?: boolean;
+  /** Enables autonomous prey schools for the homepage hero ecosystem. */
+  autoEcology?: boolean;
   onStatus?: (status: MascotStatus) => void;
   onEcosystemStatus?: (status: MascotEcosystemStatus) => void;
 }
@@ -287,6 +289,13 @@ export interface MascotEngine {
   pause(reason?: string): void;
   resume(): void;
   resize(width: number, height: number, dpr: number): void;
+  /** Restricts creature steering to a viewport-space arena such as the hero. */
+  setArenaBounds(bounds: {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+  }): void;
   setPointer(x: number, y: number, active: boolean): void;
   /** Enables persistent pointer following. Production keeps this off until the fish is selected. */
   setFollowEnabled(enabled: boolean): void;

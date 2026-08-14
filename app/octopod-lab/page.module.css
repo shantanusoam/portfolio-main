@@ -4,55 +4,101 @@
   overflow: hidden;
   color: #dce8ed;
   background:
-    radial-gradient(circle at 54% 44%, rgba(42, 87, 108, 0.2), transparent 34%),
-    radial-gradient(circle at 12% 88%, rgba(64, 42, 104, 0.2), transparent 28%),
-    #07111d;
+    radial-gradient(circle at 50% 44%, rgba(51, 104, 124, 0.18), transparent 31%),
+    radial-gradient(circle at 12% 88%, rgba(66, 43, 106, 0.19), transparent 26%),
+    linear-gradient(180deg, #0a1724 0%, #07111d 58%, #050b13 100%);
   font-family: var(--font-data, ui-monospace, monospace);
   outline: none;
 }
 
-.page::before {
+.page::before,
+.depthField {
   position: fixed;
   inset: 0;
-  z-index: 0;
-  background-image: radial-gradient(circle at center, rgba(164, 197, 211, 0.12) 0.6px, transparent 0.8px);
-  background-size: 26px 26px;
-  content: "";
-  mask-image: linear-gradient(to bottom, transparent, black 30%, transparent 92%);
-  opacity: 0.24;
   pointer-events: none;
 }
 
-.floatingPlatform,
-.leftPlatform,
-.rightPlatform {
+.page::before {
+  z-index: 0;
+  background-image: radial-gradient(
+    circle at center,
+    rgba(164, 197, 211, 0.14) 0.6px,
+    transparent 0.85px
+  );
+  background-size: 26px 26px;
+  content: "";
+  mask-image: linear-gradient(to bottom, transparent, black 24%, transparent 94%);
+  opacity: 0.27;
+}
+
+.depthField {
+  z-index: 1;
+  background:
+    linear-gradient(90deg, transparent 49.8%, rgba(157, 215, 231, 0.035) 50%, transparent 50.2%),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0,
+      transparent 119px,
+      rgba(157, 215, 231, 0.035) 120px
+    );
+  mask-image: linear-gradient(90deg, transparent, black 22%, black 78%, transparent);
+}
+
+.world {
   position: fixed;
+  inset: 0;
   z-index: 4;
+  pointer-events: none;
+}
+
+.ascentPlatform {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 10px;
   border: 1px solid rgba(186, 214, 225, 0.22);
   border-radius: 999px;
-  background: rgba(129, 160, 174, 0.09);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 9px 28px rgba(0, 0, 0, 0.22);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent, rgba(173, 209, 221, 0.17), transparent),
+    rgba(129, 160, 174, 0.075);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.08),
+    0 9px 28px rgba(0, 0, 0, 0.24),
+    0 0 22px rgba(99, 190, 206, 0.035);
+  opacity: 0.78;
+  will-change: transform;
 }
 
-.floatingPlatform {
-  top: 38%;
-  left: 52%;
-  width: clamp(104px, 14vw, 174px);
+.ascentPlatform::after {
+  position: absolute;
+  top: -10px;
+  right: 8px;
+  left: 8px;
+  height: 10px;
+  background: linear-gradient(to top, rgba(116, 196, 211, 0.055), transparent);
+  content: "";
 }
 
-.leftPlatform {
-  top: 58%;
-  left: 24%;
-  width: clamp(92px, 12vw, 150px);
+.ascentPlatform[data-visible="false"] {
+  visibility: hidden;
 }
 
-.rightPlatform {
-  top: 60%;
-  left: 79%;
-  width: clamp(84px, 11vw, 136px);
+.ascentPlatform[data-milestone="true"] {
+  border-color: rgba(151, 226, 236, 0.34);
+  background: rgba(93, 183, 198, 0.12);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.1),
+    0 0 34px rgba(111, 211, 224, 0.1);
+}
+
+.ascentPlatform span {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  color: rgba(157, 215, 231, 0.44);
+  font-size: 7px;
+  letter-spacing: 0.13em;
+  transform: translateX(-50%);
 }
 
 .titlebar {
@@ -60,11 +106,12 @@
   top: 20px;
   left: 22px;
   z-index: 30;
-  max-width: 390px;
+  max-width: 405px;
   padding: 14px 15px;
   border: 1px solid rgba(159, 197, 208, 0.13);
   border-radius: 15px;
-  background: rgba(5, 16, 28, 0.7);
+  background: rgba(5, 16, 28, 0.74);
+  box-shadow: 0 16px 54px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(14px);
 }
 
@@ -114,7 +161,8 @@
 .headerLinks button:hover,
 .headerLinks a:focus-visible,
 .headerLinks button:focus-visible {
-  border-color: rgba(152, 220, 233, 0.3);
+  border-color: rgba(152, 220, 233, 0.34);
+  color: #f0fbfc;
   outline: none;
 }
 
@@ -124,11 +172,12 @@
   right: 22px;
   z-index: 30;
   display: grid;
-  min-width: 136px;
+  min-width: 172px;
   padding: 13px 14px;
   border: 1px solid rgba(159, 197, 208, 0.13);
   border-radius: 15px;
-  background: rgba(5, 16, 28, 0.7);
+  background: rgba(5, 16, 28, 0.74);
+  box-shadow: 0 16px 54px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(14px);
 }
 
@@ -145,47 +194,29 @@
   font-family: var(--font-display, sans-serif);
   font-size: 30px;
   font-weight: 520;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.05em;
 }
 
 .scoreCard small {
-  color: rgba(151, 182, 189, 0.54);
+  max-width: 190px;
+  overflow: hidden;
+  color: rgba(151, 182, 189, 0.57);
   font-size: 7px;
-}
-
-.pearl {
-  position: fixed;
-  z-index: 24;
-  width: 25px;
-  height: 25px;
-  border: 1px solid rgba(204, 251, 255, 0.58);
-  border-radius: 50%;
-  background: radial-gradient(circle at 34% 30%, #f8ffff, #8ed9e4 34%, #377f94 70%, transparent 72%);
-  box-shadow: 0 0 16px rgba(118, 224, 238, 0.42), 0 0 38px rgba(95, 202, 218, 0.17);
-  transform: translate(-50%, -50%);
-  animation: pearl-float 2.3s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.pearl span {
-  position: absolute;
-  inset: -8px;
-  border: 1px solid rgba(156, 228, 238, 0.12);
-  border-radius: 50%;
-  animation: pearl-ring 1.7s ease-out infinite;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .keymap {
   position: fixed;
   right: 22px;
-  bottom: 170px;
+  bottom: 160px;
   z-index: 30;
   display: grid;
   gap: 5px;
   padding: 11px;
   border: 1px solid rgba(155, 194, 205, 0.11);
   border-radius: 13px;
-  background: rgba(6, 18, 30, 0.66);
+  background: rgba(6, 18, 30, 0.68);
   backdrop-filter: blur(12px);
 }
 
@@ -218,21 +249,24 @@
 
 .deck {
   position: fixed;
-  top: 74%;
   right: clamp(20px, 5vw, 72px);
+  bottom: 22px;
   left: clamp(20px, 5vw, 72px);
   z-index: 24;
   display: flex;
-  min-height: 118px;
+  min-height: 96px;
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  padding: 22px 24px 18px;
-  border: 1px solid rgba(151, 185, 200, 0.18);
+  padding: 19px 22px 17px;
+  border: 1px solid rgba(151, 185, 200, 0.16);
   border-radius: 18px;
   color: rgba(184, 207, 214, 0.7);
   background: rgba(9, 23, 38, 0.72);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035), 0 28px 70px rgba(0, 0, 0, 0.24);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.035),
+    0 28px 70px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(10px);
 }
 
 .deck p {
@@ -276,21 +310,38 @@
   outline: none;
 }
 
-@keyframes pearl-float {
-  0%, 100% { translate: 0 -3px; }
-  50% { translate: 0 4px; }
+.recoveryVeil {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle, rgba(63, 135, 153, 0.08), rgba(3, 9, 15, 0.54));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
 }
 
-@keyframes pearl-ring {
-  from { opacity: 0.6; transform: scale(0.72); }
-  to { opacity: 0; transform: scale(1.45); }
+.recoveryVeil[data-active="true"] {
+  opacity: 1;
+}
+
+.recoveryVeil span {
+  padding: 9px 12px;
+  border: 1px solid rgba(167, 220, 231, 0.13);
+  border-radius: 999px;
+  color: rgba(203, 235, 240, 0.7);
+  background: rgba(5, 16, 28, 0.7);
+  font-size: 8px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 @media (max-width: 720px) {
   .titlebar {
     top: 10px;
     left: 10px;
-    max-width: calc(100vw - 104px);
+    max-width: calc(100vw - 116px);
     padding: 10px 11px;
   }
 
@@ -307,7 +358,8 @@
   .scoreCard {
     top: 10px;
     right: 10px;
-    min-width: 82px;
+    min-width: 96px;
+    max-width: 108px;
     padding: 9px;
   }
 
@@ -320,13 +372,12 @@
   }
 
   .deck {
-    top: auto;
     right: 10px;
     bottom: 10px;
     left: 10px;
     display: block;
     min-height: 0;
-    padding: 12px;
+    padding: 11px;
   }
 
   .deck > div:first-child {
@@ -336,17 +387,22 @@
   .touchControls {
     justify-content: center;
   }
+
+  .touchControls button {
+    min-height: 40px;
+    flex: 1 1 56px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pearl,
-  .pearl span {
-    animation: none;
-  }
-
   .titlebar,
   .scoreCard,
-  .keymap {
+  .keymap,
+  .deck {
     backdrop-filter: none;
+  }
+
+  .recoveryVeil {
+    transition: none;
   }
 }

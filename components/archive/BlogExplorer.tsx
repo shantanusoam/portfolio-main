@@ -63,7 +63,8 @@ export default function BlogExplorer({
   }, [articles, category, query]);
 
   const featured = filtered.filter((article) => article.featured).slice(0, 3);
-  const archive = filtered;
+  const featuredSlugs = new Set(featured.map((article) => article.slug));
+  const archive = filtered.filter((article) => !featuredSlugs.has(article.slug));
 
   return (
     <>
@@ -197,8 +198,8 @@ export default function BlogExplorer({
               The full archive
             </h2>
             <p className={styles.sectionIntro} aria-live="polite">
-              {filtered.length} {filtered.length === 1 ? "piece" : "pieces"} in
-              this signal.
+              {archive.length} {archive.length === 1 ? "additional piece" : "additional pieces"}
+              {featured.length > 0 ? " below the selected guides" : " in this signal"}.
             </p>
           </div>
         </div>

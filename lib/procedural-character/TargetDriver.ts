@@ -60,4 +60,12 @@ export class TargetDriver {
     this.initialized = false;
     this.active = false;
   }
+
+  translate(dx: number, dy: number): void {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    this.target.x += dx;
+    this.target.y += dy;
+    this.previousTarget.x += dx;
+    this.previousTarget.y += dy;
+  }
 }

@@ -57,6 +57,16 @@ export class SecondOrderDynamics2D implements SecondOrderDynamics2DState {
     set(this.acceleration, 0, 0);
   }
 
+  /** Moves the complete filter frame without injecting camera velocity. */
+  translate(dx: number, dy: number): void {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    const velocity = { ...this.velocity };
+    this.reset(
+      { x: this.position.x + dx, y: this.position.y + dy },
+      velocity,
+    );
+  }
+
   update(
     dt: number,
     target: Vec2Like,

@@ -119,6 +119,7 @@ export class MascotEngine implements MascotEngineContract {
       seed: options.seed,
       quality: options.quality,
       bounds: initialBounds,
+      autoPopulate: options.autoEcology ?? false,
       onStatus: options.onEcosystemStatus,
       getHideTargets: () =>
         this.obstacles
@@ -221,6 +222,15 @@ export class MascotEngine implements MascotEngineContract {
     this.ecosystem.setBounds(computeBounds(this.cssWidth, this.cssHeight));
     this.obstacles.refresh();
     this.syncStringContactsForViewport();
+  }
+
+  setArenaBounds(bounds: WanderBounds): void {
+    const margin = MASCOT_CONFIG.wanderBoundsMargin;
+    const minX = clamp(bounds.minX, margin, this.cssWidth - margin);
+    const minY = clamp(bounds.minY, margin, this.cssHeight - margin);
+    const maxX = clamp(bounds.maxX, minX + 1, this.cssWidth - margin);
+    const maxY = clamp(bounds.maxY, minY + 1, this.cssHeight - margin);
+    this.ecosystem.setBounds({ minX, minY, maxX, maxY });
   }
 
   setPointer(x: number, y: number, _active: boolean): void {

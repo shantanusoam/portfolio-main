@@ -10,6 +10,12 @@
   height: 100%;
   pointer-events: none;
   z-index: 5;
+  opacity: 1;
+  transition: opacity 220ms ease;
+}
+
+.canvas[data-enabled="false"] {
+  opacity: 0;
 }
 
 .roeButton {

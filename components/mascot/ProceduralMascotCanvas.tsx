@@ -2,7 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { MascotEngine } from "@/lib/mascot/MascotEngine";
-import { getQualityDprCap } from "@/lib/mascot/MascotConfig";
+import {
+  getQualityDprCap,
+  MASCOT_CONFIG,
+} from "@/lib/mascot/MascotConfig";
 import { PointerInput } from "@/lib/mascot/input/PointerInput";
 import { ScrollInput } from "@/lib/mascot/input/ScrollInput";
 import type {
@@ -25,6 +28,8 @@ export interface ProceduralMascotCanvasProps {
   /** Homepage mode: pointer following begins only after the fish itself is selected. */
   requireFishActivation?: boolean;
   onFollowChange?: (following: boolean) => void;
+  /** Optional viewport-space arena; the canvas remains full-screen for clean compositing. */
+  arenaSelector?: string;
 }
 
 /**
@@ -44,6 +49,7 @@ export default function ProceduralMascotCanvas({
   onEcosystemStatus,
   requireFishActivation = false,
   onFollowChange,
+  arenaSelector,
 }: ProceduralMascotCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<MascotEngineContract | null>(null);
@@ -68,6 +74,7 @@ export default function ProceduralMascotCanvas({
       quality: qualityRef.current,
       debug,
       reducedMotion,
+      autoEcology: Boolean(arenaSelector),
       onStatus,
       onEcosystemStatus,
     });
@@ -103,6 +110,20 @@ export default function ProceduralMascotCanvas({
     });
     scrollInput.attach();
 
+    const applyArenaBounds = () => {
+      if (!arenaSelector) return;
+      const arena = document.querySelector<HTMLElement>(arenaSelector);
+      if (!arena) return;
+      const rect = arena.getBoundingClientRect();
+      const margin = MASCOT_CONFIG.wanderBoundsMargin;
+      const minX = Math.max(margin, rect.left + margin);
+      const minY = Math.max(margin, rect.top + margin);
+      const maxX = Math.min(window.innerWidth - margin, rect.right - margin);
+      const maxY = Math.min(window.innerHeight - margin, rect.bottom - margin);
+      if (maxX <= minX || maxY <= minY) return;
+      engine.setArenaBounds({ minX, minY, maxX, maxY });
+    };
+
     const applySize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -111,8 +132,18 @@ export default function ProceduralMascotCanvas({
         getQualityDprCap(qualityRef.current),
       );
       engine.resize(width, height, dpr);
+      applyArenaBounds();
     };
     applySize();
+
+    let arenaFrame = 0;
+    const syncArenaOnScroll = () => {
+      if (arenaFrame) return;
+      arenaFrame = window.requestAnimationFrame(() => {
+        arenaFrame = 0;
+        applyArenaBounds();
+      });
+    };
 
     const resizeObserver =
       typeof ResizeObserver !== "undefined"
@@ -120,15 +151,20 @@ export default function ProceduralMascotCanvas({
         : null;
     resizeObserver?.observe(document.documentElement);
     window.addEventListener("resize", applySize, { passive: true });
+    if (arenaSelector) {
+      window.addEventListener("scroll", syncArenaOnScroll, { passive: true });
+    }
 
     engine.setEnabled(enabled);
     engine.start();
 
     return () => {
       window.removeEventListener("resize", applySize);
+      window.removeEventListener("scroll", syncArenaOnScroll);
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
       resizeObserver?.disconnect();
+      if (arenaFrame) window.cancelAnimationFrame(arenaFrame);
       unsubscribePointer();
       unsubscribeScroll();
       pointerInput.detach();
@@ -141,7 +177,7 @@ export default function ProceduralMascotCanvas({
     // Engine identity is tied to `seed` only; quality/enabled/reducedMotion/debug
     // are pushed to the running engine imperatively below instead of remounting it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed, requireFishActivation]);
+  }, [seed, requireFishActivation, arenaSelector]);
 
   useEffect(() => {
     engineRef.current?.setQuality(quality);
@@ -160,6 +196,11 @@ export default function ProceduralMascotCanvas({
   }, [debug]);
 
   return (
-    <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+    <canvas
+      ref={canvasRef}
+      className={styles.canvas}
+      data-enabled={enabled}
+      aria-hidden="true"
+    />
   );
 }

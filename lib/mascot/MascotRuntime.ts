@@ -135,12 +135,22 @@ function decideNextBehavior(
   switch (current) {
     case "dormant":
       // Production starts quietly. The fish only wakes when the visitor
-      // deliberately selects it, avoiding unsolicited motion in the hero.
-      return runtime.pointerActive ? "wake" : null;
+      // selects it or the ecosystem presents real prey.
+      return runtime.pointerActive || runtime.hasAutonomousDrive()
+        ? "wake"
+        : null;
     case "wake":
-      return runtime.pointerActive ? "follow" : "rest";
+      return runtime.pointerActive
+        ? "follow"
+        : runtime.hasAutonomousDrive()
+          ? "wander"
+          : "rest";
     case "follow":
-      return runtime.pointerActive ? null : "rest";
+      return runtime.pointerActive
+        ? null
+        : runtime.hasAutonomousDrive()
+          ? "wander"
+          : "rest";
     case "wander": {
       if (runtime.pointerActive) return "follow";
       if (runtime.pendingWanderHint === "rest") {
@@ -162,7 +172,11 @@ function decideNextBehavior(
         ? "wander"
         : null;
     case "rest":
-      return runtime.pointerActive ? "follow" : null;
+      return runtime.pointerActive
+        ? "follow"
+        : runtime.hasAutonomousDrive()
+          ? "wander"
+          : null;
     case "inspect":
       return runtime.pointerActive ? "follow" : "orbit";
     case "orbit":
@@ -554,6 +568,10 @@ export class MascotRuntime {
   clearSteerTarget(): void {
     this.autonomousTarget = null;
     this.autonomousChase = false;
+  }
+
+  hasAutonomousDrive(): boolean {
+    return this.autonomousTarget !== null;
   }
 
   update(dt: number): void {
