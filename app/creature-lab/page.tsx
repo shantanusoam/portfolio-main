@@ -8,14 +8,15 @@ export const metadata: Metadata = {
 };
 
 interface CreatureLabPageProps {
-  searchParams?: { creature?: string; debug?: string };
+  searchParams?: Promise<{ creature?: string; debug?: string }>;
 }
 
-export default function CreatureLabPage({ searchParams }: CreatureLabPageProps) {
+export default async function CreatureLabPage({ searchParams }: CreatureLabPageProps) {
+  const query = await searchParams;
   return (
     <CreatureLabClient
-      selectedId={searchParams?.creature ?? "manta"}
-      initialDebug={searchParams?.debug === "1"}
+      selectedId={query?.creature ?? "manta"}
+      initialDebug={query?.debug === "1"}
     />
   );
 }

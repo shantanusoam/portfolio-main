@@ -1,4 +1,4 @@
-export type LearningStatus = 'now' | 'next' | 'later' | 'done';
+export type LearningStatus = "now" | "next" | "later" | "done";
 
 export type LearningLink = {
   label: string;
@@ -38,4 +38,8 @@ export type LogEntry = {
   text: string;
   seed: boolean;
   ts: number | null;
+};
+
+export type LearningTrackWithEntries = LearningTrack & {
+  entries: LogEntry[];
 };

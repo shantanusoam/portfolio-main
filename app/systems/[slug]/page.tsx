@@ -6,18 +6,20 @@ import RegistryTabs from "@/components/systems/RegistryTabs";
 import { systemsRegistry } from "@/lib/portfolio/evidence";
 import styles from "@/components/home/ProofFirstHome.module.css";
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() { return systemsRegistry.map((entry) => ({ slug: entry.slug })); }
 
-export function generateMetadata({ params }: Props): Metadata {
-  const entry = systemsRegistry.find((item) => item.slug === params.slug);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const entry = systemsRegistry.find((item) => item.slug === slug);
   if (!entry) return {};
   return { title: `${entry.name} — Systems Lab`, description: entry.description, alternates: { canonical: `/systems/${entry.slug}` }, openGraph: { images: [entry.image] } };
 }
 
-export default function SystemDetailPage({ params }: Props) {
-  const entry = systemsRegistry.find((item) => item.slug === params.slug);
+export default async function SystemDetailPage({ params }: Props) {
+  const { slug } = await params;
+  const entry = systemsRegistry.find((item) => item.slug === slug);
   if (!entry) notFound();
   const jsonLd = { "@context": "https://schema.org", "@type": "SoftwareSourceCode", name: entry.name, description: entry.description, codeRepository: entry.sourceHref, programmingLanguage: entry.tech, author: { "@type": "Person", name: "Shantanu Soam" } };
   return (

@@ -24,8 +24,9 @@ function todayString() {
 
 export async function PUT(
   request: Request,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
+  const { slug } = await params;
   const body = await request.json().catch(() => null);
   if (!body) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
@@ -75,7 +76,7 @@ export async function PUT(
 
   let parsedSections;
   try {
-    parsedSections = JSON.parse(sections);
+    parsedSections = typeof sections === "string" ? JSON.parse(sections) : sections;
   } catch {
     return NextResponse.json(
       { error: "Sections must be valid JSON" },
@@ -110,7 +111,7 @@ export async function PUT(
   const existing = await db
     .select({ revisions: contentEntries.revisions })
     .from(contentEntries)
-    .where(eq(contentEntries.slug, params.slug))
+    .where(eq(contentEntries.slug, slug))
     .limit(1);
 
   if (existing.length === 0) {
@@ -141,15 +142,16 @@ export async function PUT(
       ],
       syncedAt: new Date(),
     })
-    .where(eq(contentEntries.slug, params.slug));
+    .where(eq(contentEntries.slug, slug));
 
   return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
+  const { slug } = await params;
   const db = getDb();
   if (!db) {
     return NextResponse.json(
@@ -160,7 +162,7 @@ export async function DELETE(
 
   const result = await db
     .delete(contentEntries)
-    .where(eq(contentEntries.slug, params.slug))
+    .where(eq(contentEntries.slug, slug))
     .returning({ slug: contentEntries.slug });
 
   if (result.length === 0) {

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [password, setPassword] = useState("");
@@ -28,7 +28,11 @@ export default function AdminLoginPage() {
       return;
     }
 
-    const next = searchParams.get("next") || "/admin/blog";
+    const requestedNext = searchParams.get("next");
+    const next =
+      requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
+        ? requestedNext
+        : "/admin";
     router.push(next);
     router.refresh();
   }
@@ -63,5 +67,19 @@ export default function AdminLoginPage() {
         </button>
       </form>
     </main>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-neutral-950 text-sm text-neutral-500">
+          Opening secure login…
+        </main>
+      }
+    >
+      <AdminLoginForm />
+    </Suspense>
   );
 }

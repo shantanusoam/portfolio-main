@@ -5,7 +5,7 @@ import { listArchiveArticles, getArchiveArticle } from "@/lib/archive/store";
 import { noteCoverBySlug } from "@/lib/portfolio/evidence";
 
 interface ArticlePageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -18,7 +18,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: ArticlePageProps): Promise<Metadata> {
-  const article = await getArchiveArticle(params.slug);
+  const { slug } = await params;
+  const article = await getArchiveArticle(slug);
   if (!article) return {};
   return {
     title: `${article.title} — Shantanu Soam`,
@@ -37,8 +38,9 @@ export async function generateMetadata({
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
+  const { slug } = await params;
   const articles = await listArchiveArticles();
-  const article = await getArchiveArticle(params.slug);
+  const article = await getArchiveArticle(slug);
   if (!article || article.externalUrl) notFound();
   const internalArticles = articles.filter((item) => !item.externalUrl);
   const index = internalArticles.findIndex(

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listArchiveArticles } from "@/lib/archive/store";
-import LogoutButton from "@/components/admin/LogoutButton";
 import DeletePostButton from "@/components/admin/DeletePostButton";
+import AdminNav from "@/components/admin/AdminNav";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +11,7 @@ export default async function AdminBlogPage() {
   return (
     <main className="min-h-screen bg-neutral-950 px-4 py-10 text-neutral-100">
       <div className="mx-auto max-w-3xl space-y-6">
+        <AdminNav />
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Blog posts</h1>
           <div className="flex items-center gap-3">
@@ -20,7 +21,6 @@ export default async function AdminBlogPage() {
             >
               New post
             </Link>
-            <LogoutButton />
           </div>
         </div>
 

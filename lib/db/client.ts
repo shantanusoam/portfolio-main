@@ -25,10 +25,21 @@ function createPool() {
   });
 }
 
+export function getDbPool(): Pool | null {
+  if (globalThis.__portfolioDbPool) return globalThis.__portfolioDbPool;
+
+  const pool = createPool();
+  if (!pool) return null;
+
+  globalThis.__portfolioDbPool = pool;
+
+  return pool;
+}
+
 export function getDb(): PortfolioDb | null {
   if (globalThis.__portfolioDb) return globalThis.__portfolioDb;
 
-  const pool = globalThis.__portfolioDbPool ?? createPool();
+  const pool = getDbPool();
   if (!pool) return null;
 
   if (process.env.NODE_ENV !== "production") {
@@ -36,9 +47,7 @@ export function getDb(): PortfolioDb | null {
   }
 
   const db = drizzle(pool, { schema });
-  if (process.env.NODE_ENV !== "production") {
-    globalThis.__portfolioDb = db;
-  }
+  globalThis.__portfolioDb = db;
 
   return db;
 }

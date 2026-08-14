@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:tunnel": "ssh -F /dev/null -N -L 5433:10.47.0.5:5432 root@168.144.92.215",
+    "db:migrate": "tsx scripts/migrate.ts",
     "db:seed:archive": "tsx scripts/seed-archive.ts",
     "test:game": "tsx --test components/easter-egg/game/logic.test.ts",
     "test:break404": "node --import tsx --test components/not-found-breaker/game/logic.test.ts",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.8",
+    "@modelcontextprotocol/sdk": "1.26.0",
     "@splinetool/react-spline": "^2.2.6",
     "@studio-freight/lenis": "^1.0.22",
     "@types/node": "20.4.2",
@@ -30,7 +32,7 @@
     "clsx": "^2.0.0",
     "drizzle-orm": "^0.45.2",
     "eslint": "8.45.0",
-    "eslint-config-next": "13.4.10",
+    "eslint-config-next": "15.5.21",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-tailwindcss": "^3.13.0",
@@ -39,7 +41,8 @@
     "kbar": "^1.0.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.263.0",
-    "next": "13.4.10",
+    "mcp-handler": "1.1.0",
+    "next": "15.5.21",
     "pg": "^8.23.0",
     "postcss": "8.4.26",
     "react": "18.2.0",
@@ -49,7 +52,8 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "3.3.3",
     "typescript": "5.1.6",
-    "use-sound": "^4.0.1"
+    "use-sound": "^4.0.1",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/pg": "^8.21.0",

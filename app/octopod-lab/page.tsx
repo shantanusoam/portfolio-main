@@ -8,9 +8,10 @@ export const metadata: Metadata = {
 };
 
 interface OctopodLabPageProps {
-  searchParams?: { debug?: string };
+  searchParams?: Promise<{ debug?: string }>;
 }
 
-export default function OctopodLabPage({ searchParams }: OctopodLabPageProps) {
-  return <OctopodArena initialDebug={searchParams?.debug === "1"} />;
+export default async function OctopodLabPage({ searchParams }: OctopodLabPageProps) {
+  const query = await searchParams;
+  return <OctopodArena initialDebug={query?.debug === "1"} />;
 }

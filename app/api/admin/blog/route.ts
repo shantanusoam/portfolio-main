@@ -80,7 +80,7 @@ export async function POST(request: Request) {
 
   let parsedSections;
   try {
-    parsedSections = JSON.parse(sections);
+    parsedSections = typeof sections === "string" ? JSON.parse(sections) : sections;
   } catch {
     return NextResponse.json(
       { error: "Sections must be valid JSON" },

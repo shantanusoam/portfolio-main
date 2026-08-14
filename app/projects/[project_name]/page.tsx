@@ -6,22 +6,19 @@ import { MoveLeft, MoveRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { redirect } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Buttons";
 import GradientBlocker from "@/components/ui/GradientBlocker";
 import ProjectEvidenceDemo from "@/components/projects/ProjectEvidenceDemo";
-
-interface PageProps {
-  params: { project_name: string };
-}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
-export default function ProjectPage({ params }: PageProps) {
+export default function ProjectPage() {
+  const params = useParams<{ project_name: string }>();
   const projectName = params.project_name;
   const projectIndex = projects.findIndex(
     (project) => project.id === projectName

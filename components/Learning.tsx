@@ -6,15 +6,13 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
-import { learningTracks, logSeed } from "@/constants/learning";
-import type { LogEntry } from "@/@types/learning.type";
+import type {
+  LearningTrackWithEntries,
+  LogEntry,
+} from "@/@types/learning.type";
 import styles from "./Learning.module.css";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const STORE_KEY = "learning-log-entries-v1";
-const COUNTER_KEY = "learning-log-next-id";
-const STATUS_KEY = "learning-status-line";
 
 function pad(n: number) {
   return String(n).padStart(3, "0");
@@ -26,18 +24,6 @@ function formatTs(ts: number | null) {
     dateStyle: "medium",
     timeStyle: "short",
   });
-}
-
-function seedEntries(): LogEntry[] {
-  let nextId = 1;
-  return logSeed.map((s) => ({
-    id: nextId++,
-    trackId: s.trackId,
-    tag: s.tag,
-    text: s.text,
-    seed: true,
-    ts: null,
-  }));
 }
 
 function CornerBrackets() {
@@ -102,132 +88,35 @@ function HarnessPrimer() {
   );
 }
 
-function EditableStatus() {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [justSaved, setJustSaved] = useState(false);
-  const defaultText =
-    "circling durable execution and the sandbox boundary — the part of the harness that decides what survives a crash, and what the model never touches directly.";
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(STATUS_KEY);
-    if (saved && ref.current) ref.current.textContent = saved;
-  }, []);
-
-  function handleBlur() {
-    if (!ref.current) return;
-    const value = ref.current.textContent?.trim() ?? "";
-    window.localStorage.setItem(STATUS_KEY, value);
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 900);
-  }
-
+function CurrentStatus({ tracks }: { tracks: LearningTrackWithEntries[] }) {
+  const current = tracks.find((track) => track.status === "now");
+  if (!current) return null;
   return (
     <div className={styles.statusLine}>
       <span className={styles.statusPrefix}>Right now —</span>
-      <span
-        ref={ref}
-        className={`${styles.editable} ${justSaved ? styles.justSaved : ""}`}
-        contentEditable
-        suppressContentEditableWarning
-        spellCheck={false}
-        onBlur={handleBlur}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            (e.target as HTMLElement).blur();
-          }
-        }}
-      >
-        {defaultText}
-      </span>
-      <span className={styles.editHint}>click to edit — saves in this browser only</span>
+      <span className={styles.editable}>{current.summary}</span>
+      <span className={styles.editHint}>synced from the learning control plane</span>
     </div>
   );
 }
 
-function TrackLogPanel({ trackId, logTags }: { trackId: string; logTags: Record<string, string> }) {
-  const [entries, setEntries] = useState<LogEntry[]>([]);
+function TrackLogPanel({
+  entries,
+  logTags,
+}: {
+  entries: LogEntry[];
+  logTags: Record<string, string>;
+}) {
   const [filter, setFilter] = useState("all");
-  const [text, setText] = useState("");
-  const [tag, setTag] = useState(Object.keys(logTags)[0] ?? "general");
-
-  useEffect(() => {
-    let all: LogEntry[];
-    const raw = window.localStorage.getItem(STORE_KEY);
-    if (raw) {
-      try {
-        all = JSON.parse(raw);
-      } catch {
-        all = seedEntries();
-        window.localStorage.setItem(STORE_KEY, JSON.stringify(all));
-        window.localStorage.setItem(COUNTER_KEY, String(all.length + 1));
-      }
-    } else {
-      all = seedEntries();
-      window.localStorage.setItem(STORE_KEY, JSON.stringify(all));
-      window.localStorage.setItem(COUNTER_KEY, String(all.length + 1));
-    }
-    setEntries(all);
-  }, []);
-
-  function persist(next: LogEntry[]) {
-    setEntries(next);
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(next));
-  }
-
-  function addEntry() {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    const nextId = parseInt(window.localStorage.getItem(COUNTER_KEY) || "1", 10);
-    window.localStorage.setItem(COUNTER_KEY, String(nextId + 1));
-    const entry: LogEntry = { id: nextId, trackId, tag, text: trimmed, seed: false, ts: Date.now() };
-    persist([...entries, entry]);
-    setText("");
-  }
-
-  function deleteEntry(id: number) {
-    persist(entries.filter((e) => e.id !== id));
-  }
-
-  const trackEntries = useMemo(
-    () => entries.filter((e) => e.trackId === trackId),
-    [entries, trackId],
-  );
 
   const visible = useMemo(() => {
-    const filtered = filter === "all" ? trackEntries : trackEntries.filter((e) => e.tag === filter);
+    const filtered = filter === "all" ? entries : entries.filter((e) => e.tag === filter);
     return filtered.slice().sort((a, b) => b.id - a.id);
-  }, [trackEntries, filter]);
+  }, [entries, filter]);
 
   return (
     <div>
       <span className={styles.panelLabel}>{"// Field notes"}</span>
-
-      <div className={styles.composer}>
-        <textarea
-          placeholder="What did you just learn? (⌘/Ctrl + Enter to checkpoint)"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-              e.preventDefault();
-              addEntry();
-            }
-          }}
-        />
-        <div className={styles.composerRow}>
-          <select className={styles.tagSelect} value={tag} onChange={(e) => setTag(e.target.value)}>
-            {Object.entries(logTags).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <button type="button" className={styles.submitBtn} onClick={addEntry}>
-            Checkpoint this →
-          </button>
-        </div>
-      </div>
 
       <div className={styles.filters}>
         <button
@@ -263,14 +152,6 @@ function TrackLogPanel({ trackId, logTags }: { trackId: string; logTags: Record<
                 <time>{formatTs(entry.ts)}</time>
               </div>
             </div>
-            <button
-              type="button"
-              className={styles.deleteBtn}
-              aria-label="Delete this entry"
-              onClick={() => deleteEntry(entry.id)}
-            >
-              ×
-            </button>
           </li>
         ))}
       </ol>
@@ -281,9 +162,42 @@ function TrackLogPanel({ trackId, logTags }: { trackId: string; logTags: Record<
 export default function Learning() {
   const sectionRef = useRef<HTMLElement>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
-  const [openTrackId, setOpenTrackId] = useState<string | null>(
-    learningTracks.find((t) => t.status === "now")?.id ?? null,
-  );
+  const [tracks, setTracks] = useState<LearningTrackWithEntries[]>([]);
+  const [openTrackId, setOpenTrackId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const initializedOpenTrack = useRef(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadLearning() {
+      try {
+        const response = await fetch("/api/learning", {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) throw new Error(`Learning API returned ${response.status}`);
+        const data = (await response.json()) as { tracks?: LearningTrackWithEntries[] };
+        const nextTracks = Array.isArray(data.tracks) ? data.tracks : [];
+        setTracks(nextTracks);
+        setLoadError(null);
+        if (!initializedOpenTrack.current) {
+          initializedOpenTrack.current = true;
+          setOpenTrackId(nextTracks.find((track) => track.status === "now")?.id ?? null);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Unable to load learning tracks", error);
+        setLoadError("The learning log is temporarily offline. Please check back shortly.");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
+
+    void loadLearning();
+    return () => controller.abort();
+  }, []);
 
   useLayoutEffect(() => {
     if (!sectionRef.current || prefersReducedMotion) return;
@@ -301,7 +215,7 @@ export default function Learning() {
     }, sectionRef);
 
     return () => context.revert();
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, tracks.length]);
 
   return (
     <section ref={sectionRef} id="learning" className={styles.section}>
@@ -310,7 +224,7 @@ export default function Learning() {
         <h2 className={styles.heading}>Field notes on the systems I&apos;m building.</h2>
         <p className={styles.lede}>
           Not a portfolio pitch — a running log of what I&apos;m actually learning, checkpointed
-          as I go. One track so far; the shape is built to hold more.
+          as I go. Tracks and checkpoints are shared from the same durable learning system.
         </p>
       </header>
 
@@ -330,11 +244,28 @@ export default function Learning() {
       <HarnessPrimer />
 
       <div className={styles.header}>
-        <EditableStatus />
+        <CurrentStatus tracks={tracks} />
       </div>
 
-      <div className={styles.timeline}>
-        {learningTracks.map((track) => {
+      <div className={styles.timeline} aria-live="polite">
+        {loading && (
+          <article className={styles.trackCard}>
+            <span className={styles.panelLabel}>{"// Syncing field notes"}</span>
+            <p className={styles.trackSummary}>Loading the latest learning checkpoints…</p>
+          </article>
+        )}
+        {!loading && loadError && (
+          <article className={styles.trackCard}>
+            <span className={styles.panelLabel}>{"// Signal interrupted"}</span>
+            <p className={styles.trackSummary}>{loadError}</p>
+          </article>
+        )}
+        {!loading && !loadError && tracks.length === 0 && (
+          <article className={styles.trackCard}>
+            <p className={styles.trackSummary}>No learning tracks have been published yet.</p>
+          </article>
+        )}
+        {tracks.map((track) => {
           const isOpen = openTrackId === track.id;
           return (
             <article className={styles.trackCard} key={track.id}>
@@ -380,7 +311,7 @@ export default function Learning() {
               {isOpen && (
                 <div className={styles.panel}>
                   <CornerBrackets />
-                  <TrackLogPanel trackId={track.id} logTags={track.logTags} />
+                  <TrackLogPanel entries={track.entries} logTags={track.logTags} />
 
                   {track.mapping && track.mapping.length > 0 && (
                     <div className={styles.mappingWrap}>

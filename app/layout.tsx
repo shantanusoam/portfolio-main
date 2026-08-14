@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import PageScrollProgress from "@/components/ui/PageScrollProgress";
@@ -55,6 +55,9 @@ export const metadata: Metadata = {
     "developer",
     "backend",
   ],
+};
+
+export const viewport: Viewport = {
   themeColor: "#0d0d0d",
 };
 
