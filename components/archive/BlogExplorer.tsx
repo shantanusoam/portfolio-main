@@ -8,6 +8,7 @@ import {
   externalArticleLabel,
   formatArchiveDate,
 } from "@/lib/archive/data";
+import { articleWorkbenches } from "@/lib/archive/workbenches";
 import type { ArchiveArticle, ArticleCategory } from "@/lib/archive/types";
 import styles from "./archive.module.css";
 
@@ -140,6 +141,9 @@ export default function BlogExplorer({
                       <span>{article.format}</span>
                       <span>{article.category}</span>
                       <span>{article.readingMinutes} min</span>
+                      {articleWorkbenches[article.slug] && (
+                        <span>Interactive</span>
+                      )}
                       {article.externalUrl && (
                         <span>
                           ↗ {externalArticleLabel(article.externalUrl)}
@@ -208,6 +212,9 @@ export default function BlogExplorer({
                     <div className={styles.cardMeta}>
                       <span>{article.format}</span>
                       <span>{article.readingMinutes} min</span>
+                      {articleWorkbenches[article.slug] && (
+                        <span>Interactive</span>
+                      )}
                       {article.externalUrl && (
                         <span>
                           ↗ {externalArticleLabel(article.externalUrl)}

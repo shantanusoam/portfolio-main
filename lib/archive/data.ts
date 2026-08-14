@@ -7,6 +7,285 @@ import type {
 
 export const archiveArticles: ArchiveArticle[] = [
   {
+    slug: "building-signal-breaker-step-by-step",
+    title: "How I Built Signal Breaker: A Browser Game in Seven Layers",
+    dek: "A step-by-step build log for turning a dead 404 route into a small, testable canvas game without letting game state leak into React.",
+    category: "Engineering",
+    format: "Build Log",
+    readingMinutes: 13,
+    publishedAt: "2026-08-14",
+    updatedAt: "2026-08-14",
+    featured: true,
+    accent: "game loop / collision / game feel",
+    sections: [
+      {
+        id: "start-with-a-complete-contract",
+        heading: "1. Start with a complete contract, not a list of effects",
+        paragraphs: [
+          "Signal Breaker began with a product question: can an error route recover attention instead of merely apologizing? The answer did not need a large game. It needed one complete loop that a visitor could understand immediately: move the paddle, serve the ball, break the 404, recover the route, or leave.",
+          "I wrote the states before the visuals: ready, playing, still lost, won, and game over. That forced every transition to have an exit. The home link and restart action are not UI added around the game; they are part of the game contract because a playful error page must never become another trap.",
+        ],
+        list: [
+          "One readable objective: clear the 404 brick field.",
+          "One movement axis: horizontal paddle control.",
+          "One primary action: launch the ball.",
+          "Two honest exits: restart or return home.",
+        ],
+        quote:
+          "Build the smallest loop that can finish. Effects only matter after a player can win, lose, and leave.",
+      },
+      {
+        id: "model-state-before-canvas",
+        heading: "2. Model the game before drawing it",
+        paragraphs: [
+          "The canvas is a view. It should not be the place where score, collision rules, power-up timers, or life transitions are invented. I keep those facts in one plain Break404Model containing world dimensions, status, balls, bricks, paddle, timers, particles, input state, and one-shot sound cues.",
+          "The model factory makes a full valid starting state, while resizeModel converts it to a new canvas size without erasing every broken brick. That separation makes the risky rules inspectable without a browser and prevents rendering concerns from becoming hidden state.",
+        ],
+        code: {
+          language: "ts",
+          label: "a renderer-independent model",
+          value: `type Break404Model = {
+  status: "ready" | "playing" | "stillLost" | "won" | "gameOver";
+  time: number;
+  lives: number;
+  score: number;
+  combo: number;
+  bricks: Brick[];
+  balls: Ball[];
+  paddle: Paddle;
+  powers: FallingPower[];
+  particles: Particle[];
+  input: { pointerX: number | null; left: boolean; right: boolean };
+};`,
+        },
+      },
+      {
+        id: "separate-loop-update-render",
+        heading: "3. Give time, rules, drawing, and React separate jobs",
+        paragraphs: [
+          "The requestAnimationFrame loop measures elapsed time, clamps it to 33 milliseconds, consumes one-shot input, advances the model, dispatches sound cues, renders the canvas, and schedules the next frame. It does not contain the collision rules themselves.",
+          "updateGame mutates only the model. renderGame reads it. React receives a small HUD snapshot roughly every 80 milliseconds rather than every frame. The canvas stays immediate while the surrounding page keeps normal component semantics for text, buttons, and links.",
+        ],
+        code: {
+          language: "ts",
+          label: "the frame boundary",
+          value: `const tick = (now: number) => {
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+
+  updateGame(model, { dt, launch: consumeLaunch() });
+  for (const cue of model.sfx) audio.play(cue);
+  renderGame(context, model);
+
+  if (hudAccumulator > 0.08) syncHud(model);
+  requestAnimationFrame(tick);
+};`,
+        },
+      },
+      {
+        id: "make-the-paddle-a-control-surface",
+        heading: "4. Make collision response part of player control",
+        paragraphs: [
+          "A technically correct bounce can still feel arbitrary. Wall and brick contacts reflect the ball along the shallow collision axis, but the paddle does something more useful: the contact position becomes an outgoing angle. A center hit travels mostly upward; an edge hit creates a sharper return.",
+          "The current speed grows slightly after contact but remains clamped between a readable minimum and maximum. That small rule turns the paddle from a moving wall into an aiming surface and gives the player a way to influence the next several seconds.",
+        ],
+        code: {
+          language: "ts",
+          label: "paddle hit to outgoing angle",
+          value: `const hit = (ball.x - paddle.x) / paddle.w;
+const offset = clamp(hit, 0, 1) * 2 - 1;
+const angle = -Math.PI / 2 + offset * 1.05;
+const speed = clamp(
+  Math.hypot(ball.vx, ball.vy) * 1.02,
+  baseSpeed * 0.9,
+  maxSpeed,
+);
+
+ball.vx = Math.cos(angle) * speed;
+ball.vy = Math.sin(angle) * speed;`,
+        },
+      },
+      {
+        id: "add-feel-as-bounded-systems",
+        heading: "5. Add game feel as bounded systems",
+        paragraphs: [
+          "Combos, particles, shake, sound, and power-ups arrived only after the base game was playable. Each effect has an owner and an end condition. Combo resets through a timer. Wide, fire, and slow modes expire against model time. Particles are capped. Shake decays. Sound is emitted as a cue and played by the shell after the update.",
+          "That structure makes polish removable. Reduced-motion mode can skip particles and shake without changing collision or scoring. Muting audio does not suppress game events. If all effects disappear, the player still sees the ball, understands the objective, and can finish the route.",
+        ],
+        list: [
+          "Combo: rewards consecutive hits, expires after a quiet window.",
+          "Multi-ball: creates temporary complexity from one existing ball state.",
+          "Wide paddle: modifies a measured dimension, then restores the base width.",
+          "Fire ball: changes brick response without creating a second collision system.",
+          "Slow motion: scales simulation time while UI and recovery timers remain understandable.",
+        ],
+      },
+      {
+        id: "design-the-quiet-path",
+        heading: "6. Treat alternate input and quiet behavior as mechanics",
+        paragraphs: [
+          "Pointer and keyboard input both write to the same paddle model. Space and pointer-down both create the same one-frame launch intent. Audio is created or resumed only after an actual gesture, and mute state persists independently of the run.",
+          "Reduced motion removes decorative shake and particle bursts. Hidden-tab time is ignored so returning to the page does not simulate a long invisible interval. These are not concessions after the game is finished; they define what a trustworthy browser game means inside a larger product.",
+        ],
+      },
+      {
+        id: "test-rules-tune-feel",
+        heading: "7. Test rules and tune feel with different evidence",
+        paragraphs: [
+          "State transitions deserve assertions: a cleared field wins, losing the final ball spends a life, timed powers expire, and resize preserves broken bricks. Feel needs a different record: slow replays, awkward angles, repeated sessions, and notes about the exact tuning value under review.",
+          "Keeping those evidence types separate protects the architecture. A future pass can change ball speed, combo timeout, or shake intensity without reopening model ownership. A test failure means the contract changed; a tuning change means the experience changed deliberately.",
+        ],
+        list: [
+          "Test the model and update function without rendering.",
+          "Keep tuning numbers in one configuration module.",
+          "Capture hard-to-reproduce feel problems before changing values.",
+          "Label measured performance separately from design judgment.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-08-14",
+        note: "Initial publication with the interactive seven-step build sequence.",
+      },
+    ],
+  },
+  {
+    slug: "procedural-motion-from-target-to-character",
+    title: "Procedural Motion, Step by Step: From a Target to a Character",
+    dek: "How fixed time, second-order dynamics, constraints, behavior states, page geometry, and a performance governor become one inspectable mascot engine.",
+    category: "Interfaces",
+    format: "Tutorial",
+    readingMinutes: 14,
+    publishedAt: "2026-08-14",
+    updatedAt: "2026-08-14",
+    featured: true,
+    accent: "procedural motion / constraints / behavior",
+    sections: [
+      {
+        id: "begin-with-the-engine-boundary",
+        heading: "1. Begin with the engine boundary",
+        paragraphs: [
+          "The mascot is rendered inside a React product, but its motion is not React state. Positions, velocities, solver arrays, behavior timers, and particle pools can change sixty times per second without changing the semantic UI. Mirroring them through setState would turn the component tree into an expensive frame bus.",
+          "React mounts the canvas and talks to one imperative engine: start, pause, resize, setPointer, setReducedMotion, setQuality, setDebug, getSnapshot, and destroy. This keeps lifecycle and accessibility controls in the product layer while continuous simulation stays local to the runtime.",
+        ],
+        quote:
+          "React configures and observes the motion system. It does not need to own every frame the system produces.",
+      },
+      {
+        id: "make-time-boring",
+        heading: "2. Make time boring before making motion expressive",
+        paragraphs: [
+          "Display frames are not a stable clock. A laptop changes refresh rate, a background tab pauses, and a busy main thread returns late. The engine therefore accumulates real frame time but advances the simulation in fixed 1/60-second steps.",
+          "Frame delta, catch-up work, and the accumulator are bounded. If the engine falls too far behind, it drops excess simulation time and records that fact instead of trying to replay an unbounded backlog. Deterministic scenarios can drive the same public tick method with a manual clock in tests.",
+        ],
+        code: {
+          language: "ts",
+          label: "bounded fixed-step update",
+          value: `accumulator += clamp(frameDt, 0, maxFrameDt);
+
+let steps = 0;
+while (accumulator >= fixedDt && steps < maxSteps) {
+  update(fixedDt);
+  accumulator -= fixedDt;
+  steps += 1;
+}
+
+if (steps === maxSteps && accumulator >= fixedDt) {
+  accumulator = 0;
+  onDroppedSimulationTime();
+}`,
+        },
+      },
+      {
+        id: "choose-a-target-not-a-pose",
+        heading: "3. Choose a target, not a finished pose",
+        paragraphs: [
+          "Pointer input, wandering, scroll velocity, inspect targets, and scripted actions all express intent. They choose where the creature wants to be or what it should notice; they do not write spine joints directly.",
+          "That distinction keeps input replaceable. Switching from pointer-follow to autonomous wander changes the target source. The motion filters and body solver continue reading the same kind of target, so behavior can evolve without multiplying pose implementations.",
+        ],
+        list: [
+          "Observe raw input and page conditions.",
+          "Choose one active target source.",
+          "Filter target position and direction.",
+          "Solve the body from those filtered values.",
+          "Render and expose a debug snapshot.",
+        ],
+      },
+      {
+        id: "use-dynamics-as-a-motion-vocabulary",
+        heading: "4. Use dynamics as a motion vocabulary",
+        paragraphs: [
+          "A second-order dynamics filter gives each continuous channel three useful ideas: frequency controls response speed, damping controls how quickly oscillation settles, and response shapes anticipation or overshoot. The same implementation can make follow feel heavy, sprint feel eager, and rest feel soft by switching recipes.",
+          "The filter substeps when delta time is large relative to its natural period and guards against invalid numeric state. That stability work matters more than the perfect default values because one NaN in a root channel can contaminate the entire rig.",
+        ],
+        code: {
+          language: "ts",
+          label: "a readable motion recipe",
+          value: `const motion = {
+  root: { frequency: 2.2, damping: 0.82, response: 0.12 },
+  facing: { frequency: 3.1, damping: 0.9, response: 0.08 },
+  squash: { frequency: 4.0, damping: 0.72, response: -0.05 },
+};
+
+rootX.update(dt, target.x, target.vx);
+rootY.update(dt, target.y, target.vy);`,
+        },
+      },
+      {
+        id: "solve-the-body-in-layers",
+        heading: "5. Solve the body in layers",
+        paragraphs: [
+          "The filtered root is not yet a character. A body profile defines proportions; the pose controller places the main chain; distance and angle constraints keep it coherent; appendage solvers resolve toward local targets; deformation and expression turn motion state into silhouette and face decisions.",
+          "The important rule is directional ownership: simulation solves, rendering reads. The canvas renderer can hide or decorate the rig, but it does not repair joint distances or invent a gait. If the debug skeleton looks wrong, the renderer is not allowed to disguise the mistake.",
+        ],
+      },
+      {
+        id: "behavior-selects-recipes",
+        heading: "6. Let behavior select recipes and targets",
+        paragraphs: [
+          "Follow, wander, inspect, sprint, rest, and recovery are decision states, not animation clips. Each state owns a minimum duration, optional maximum duration, entry and exit hooks, and a motion recipe. One decision function decides when a transition is allowed.",
+          "This prevents ambient behavior from flickering between states every time the pointer moves. It also gives explicit product actions a clean interruption path: a click, scatter, wake, or debug scenario can force a transition without sprinkling special cases through the render loop.",
+        ],
+        code: {
+          language: "ts",
+          label: "behavior definition shape",
+          value: `type BehaviorDefinition = {
+  name: MascotBehavior;
+  minimumDuration: number;
+  maximumDuration?: number;
+  motion: MotionRecipe;
+  enter?(): void;
+  update?(dt: number): void;
+  canExit?(elapsed: number): boolean;
+  exit?(): void;
+};`,
+        },
+      },
+      {
+        id: "make-the-page-part-of-the-world",
+        heading: "7. Make the page part of the world—and budget for it",
+        paragraphs: [
+          "A portfolio mascot should react to the actual interface without querying layout every frame. A DOM obstacle registry captures relevant rectangles, refreshes them on meaningful layout events, and exposes a spatially useful cache to steering. Visibility and reduced-motion controllers define when the system should pause or simplify.",
+          "Finally, a performance governor records simulation plus render time across a rolling window. It downgrades quality after sustained slow frames and upgrades cautiously. The character can lose dot density, effects, or secondary motion while preserving its target, silhouette, and input response.",
+        ],
+        list: [
+          "Cache page geometry instead of mixing getBoundingClientRect into the frame loop.",
+          "Stop the loop when the document is hidden.",
+          "Reduce motion at the behavior and rendering layers, not only in CSS.",
+          "Expose state, targets, obstacles, and timings in a debug route.",
+          "Degrade detail before degrading control or meaning.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-08-14",
+        note: "Initial publication with the interactive seven-step motion sequence.",
+      },
+    ],
+  },
+  {
     slug: "rbac-isnt-if-statements",
     title: "RBAC Isn't a Collection of if Statements",
     dek: "Resource rules, inheritance, routing guards, and permission debugging belong in a decision interface, not scattered UI branches.",

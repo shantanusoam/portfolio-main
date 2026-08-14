@@ -4,10 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import styles from "./Break404.module.css";
-import {
-  createBreak404Audio,
-  type Break404Audio,
-} from "./game/audio";
+import { createBreak404Audio, type Break404Audio } from "./game/audio";
 import { GAME_TUNING, POWER_LABELS } from "./game/config";
 import { createModel, resizeModel } from "./game/model";
 import { renderGame } from "./game/render";
@@ -77,10 +74,14 @@ export default function Break404() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const rect = canvas.getBoundingClientRect();
-    const model = createModel(rect.width || window.innerWidth, rect.height || window.innerHeight, {
-      muted: audio.isMuted(),
-      reducedMotion,
-    });
+    const model = createModel(
+      rect.width || window.innerWidth,
+      rect.height || window.innerHeight,
+      {
+        muted: audio.isMuted(),
+        reducedMotion,
+      },
+    );
     modelRef.current = model;
     syncHud(model);
 
@@ -90,6 +91,7 @@ export default function Break404() {
     let raf = 0;
     let last = performance.now();
     let hudAcc = 0;
+    let pageVisible = !document.hidden;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -154,8 +156,17 @@ export default function Break404() {
     const onKeyUp = (event: KeyboardEvent) => {
       const m = modelRef.current;
       if (!m) return;
-      if (event.code === "ArrowLeft" || event.code === "KeyA") m.keys.left = false;
-      if (event.code === "ArrowRight" || event.code === "KeyD") m.keys.right = false;
+      if (event.code === "ArrowLeft" || event.code === "KeyA")
+        m.keys.left = false;
+      if (event.code === "ArrowRight" || event.code === "KeyD")
+        m.keys.right = false;
+    };
+
+    const onVisibilityChange = () => {
+      pageVisible = !document.hidden;
+      // Ignore time spent outside the visible session. The game should
+      // resume from the same readable state, not simulate a hidden backlog.
+      last = performance.now();
     };
 
     window.addEventListener("pointermove", onPointerMove);
@@ -163,10 +174,16 @@ export default function Break404() {
     canvas.addEventListener("pointerleave", onPointerLeave);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const tick = (now: number) => {
       const m = modelRef.current;
       if (!m) return;
+      if (!pageVisible) {
+        last = now;
+        raf = requestAnimationFrame(tick);
+        return;
+      }
       const dt = Math.min(0.033, (now - last) / 1000);
       last = now;
 
@@ -199,6 +216,7 @@ export default function Break404() {
       canvas.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       audio.destroy();
       audioRef.current = null;
     };
@@ -216,7 +234,11 @@ export default function Break404() {
 
   return (
     <div className={styles.stage}>
-      <canvas ref={canvasRef} className={styles.canvas} aria-label="404 brick breaker" />
+      <canvas
+        ref={canvasRef}
+        className={styles.canvas}
+        aria-label="404 brick breaker"
+      />
 
       <div className={styles.hud}>
         <div className={styles.topBar}>

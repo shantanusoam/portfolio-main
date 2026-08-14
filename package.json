@@ -10,6 +10,7 @@
     "db:tunnel": "ssh -F /dev/null -N -L 5433:10.47.0.5:5432 root@168.144.92.215",
     "db:seed:archive": "tsx scripts/seed-archive.ts",
     "test:game": "tsx --test components/easter-egg/game/logic.test.ts",
+    "test:break404": "node --import tsx --test components/not-found-breaker/game/logic.test.ts",
     "test:mascot": "tsx --test $(find tests/mascot -name '*.test.ts')",
     "test:mascot:watch": "tsx --test --watch $(find tests/mascot -name '*.test.ts')",
     "test:procedural-character": "node --import tsx --test $(find tests/procedural-character -name '*.test.ts')",

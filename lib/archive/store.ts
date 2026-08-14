@@ -24,6 +24,18 @@ function rowToArticle(row: ContentEntryRow): ArchiveArticle {
   };
 }
 
+function mergeWithBundledArticles(
+  databaseArticles: ArchiveArticle[],
+): ArchiveArticle[] {
+  const databaseSlugs = new Set(
+    databaseArticles.map((article) => article.slug),
+  );
+  return [
+    ...databaseArticles,
+    ...archiveArticles.filter((article) => !databaseSlugs.has(article.slug)),
+  ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+}
+
 export async function listArchiveArticles(): Promise<ArchiveArticle[]> {
   const db = getDb();
   if (!db) return archiveArticles;
@@ -35,7 +47,7 @@ export async function listArchiveArticles(): Promise<ArchiveArticle[]> {
       .where(eq(contentEntries.kind, "blog"))
       .orderBy(desc(contentEntries.publishedAt));
 
-    return rows.map(rowToArticle);
+    return mergeWithBundledArticles(rows.map(rowToArticle));
   } catch {
     return archiveArticles;
   }
@@ -56,7 +68,9 @@ export async function getArchiveArticle(
       )
       .limit(1);
 
-    return rows[0] ? rowToArticle(rows[0]) : undefined;
+    return rows[0]
+      ? rowToArticle(rows[0])
+      : archiveArticles.find((article) => article.slug === slug);
   } catch {
     return archiveArticles.find((article) => article.slug === slug);
   }

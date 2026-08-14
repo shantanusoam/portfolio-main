@@ -5,8 +5,10 @@ import Link from "next/link";
 import { ArrowLeft, Copy } from "lucide-react";
 import type { ArchiveArticle } from "@/lib/archive/types";
 import { formatArchiveDate } from "@/lib/archive/data";
+import { articleWorkbenches } from "@/lib/archive/workbenches";
 import { noteCoverBySlug } from "@/lib/portfolio/evidence";
 import Image from "next/image";
+import ArticleWorkbench from "./ArticleWorkbench";
 import styles from "./archive.module.css";
 
 function CodeBlock({
@@ -58,6 +60,7 @@ export default function ArticleReader({
 }) {
   const progressRef = useRef<HTMLDivElement>(null);
   const [quietMode, setQuietMode] = useState(false);
+  const workbench = articleWorkbenches[article.slug];
 
   useEffect(() => {
     let frame = 0;
@@ -112,7 +115,10 @@ export default function ArticleReader({
             fill
             priority
             sizes="(max-width: 760px) 100vw, 980px"
-            src={noteCoverBySlug[article.slug] ?? "/proof-assets/notes/portfolio-product.webp"}
+            src={
+              noteCoverBySlug[article.slug] ??
+              "/proof-assets/notes/portfolio-product.webp"
+            }
           />
           <span>Original editorial artifact / conceptual</span>
         </div>
@@ -122,6 +128,9 @@ export default function ArticleReader({
         <aside className={styles.articleAside} aria-label="Article contents">
           <span>On this page</span>
           <nav className={styles.toc}>
+            {workbench ? (
+              <a href="#workbench">Interactive build sequence</a>
+            ) : null}
             {article.sections.map((section) => (
               <a href={`#${section.id}`} key={section.id}>
                 {section.heading}
@@ -143,6 +152,7 @@ export default function ArticleReader({
             quietMode ? styles.articleBodyQuiet : ""
           }`}
         >
+          {workbench ? <ArticleWorkbench workbench={workbench} /> : null}
           {article.sections.map((section) => (
             <section
               className={styles.articleSection}
