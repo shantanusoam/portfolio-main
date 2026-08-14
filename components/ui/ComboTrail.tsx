@@ -9,6 +9,7 @@ import { useDebounce } from "@/hooks/debounce";
 // Matches the real DOM order of sections in app/page.tsx.
 const SECTION_IDS = [
   "hero",
+  "living-index",
   "trail-map",
   "mission-select",
   "pattern-library",
@@ -23,6 +24,7 @@ const SECTION_IDS = [
 // the signature scroll interaction, without ever copying any game's assets.
 const SECTION_STYLE: Record<string, { color: string; dasharray: string }> = {
   hero: { color: "#ff4d1c", dasharray: "1 0" }, // brush stroke
+  "living-index": { color: "#42bfb0", dasharray: "2 4" }, // specimen signal
   "trail-map": { color: "#4caf6d", dasharray: "10 6" }, // trail dashes
   "mission-select": { color: "#e63946", dasharray: "6 3" }, // code-like dash
   "pattern-library": { color: "#e0a458", dasharray: "2 2" }, // yarn, tight
