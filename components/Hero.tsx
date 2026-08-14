@@ -22,7 +22,7 @@ interface HeroProps {
 // Inert until the section they point at exists: #trail-map lands in Phase 3
 // (Experience.tsx gets renamed/re-id'd there), #maker-lab in Phase 4.
 const START_MENU = [
-  { label: "Start Journey", href: "#trail-map" },
+  { label: "Living Index", href: "#living-index" },
   { label: "View Case Studies", href: "#mission-select" },
   { label: "Signal Room", href: "#signal-room" },
   { label: "Enter Lab", href: "#maker-lab" },

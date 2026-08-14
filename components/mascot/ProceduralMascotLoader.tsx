@@ -4,6 +4,12 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { MascotEngine, MascotQuality } from "@/lib/mascot/types";
+import {
+  PORTFOLIO_MODE_EVENT,
+  readPortfolioViewMode,
+  type PortfolioModeEventDetail,
+  type PortfolioViewMode,
+} from "@/lib/portfolio/viewMode";
 import MascotSoundControl from "./MascotSoundControl";
 import styles from "./Mascot.module.css";
 
@@ -50,6 +56,7 @@ export default function ProceduralMascotLoader({
   const [disabled, setDisabled] = useState(false);
   const [following, setFollowing] = useState(false);
   const [engine, setEngine] = useState<MascotEngine | null>(null);
+  const [viewMode, setViewMode] = useState<PortfolioViewMode>("explore");
 
   useEffect(() => {
     if (!onHomepage) return undefined;
@@ -72,7 +79,21 @@ export default function ProceduralMascotLoader({
   }, [onHomepage]);
 
   useEffect(() => {
-    if (!onHomepage || !desktopEligible || disabled) {
+    if (!onHomepage) return undefined;
+    setViewMode(readPortfolioViewMode());
+
+    const handleModeChange = (event: Event) => {
+      const detail = (event as CustomEvent<PortfolioModeEventDetail>).detail;
+      if (detail?.mode) setViewMode(detail.mode);
+    };
+
+    window.addEventListener(PORTFOLIO_MODE_EVENT, handleModeChange);
+    return () =>
+      window.removeEventListener(PORTFOLIO_MODE_EVENT, handleModeChange);
+  }, [onHomepage]);
+
+  useEffect(() => {
+    if (!onHomepage || !desktopEligible || disabled || viewMode === "focus") {
       setCanvasReady(false);
       return undefined;
     }
@@ -92,7 +113,7 @@ export default function ProceduralMascotLoader({
       if (idleHandle !== undefined) win.cancelIdleCallback?.(idleHandle);
       if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
     };
-  }, [desktopEligible, disabled, onHomepage]);
+  }, [desktopEligible, disabled, onHomepage, viewMode]);
 
   const handleEngineReady = useCallback((next: MascotEngine | null) => {
     setEngine(next);
@@ -113,7 +134,13 @@ export default function ProceduralMascotLoader({
     setFollowing(next);
   };
 
-  if (!onHomepage || !preferencesReady || !desktopEligible) return null;
+  if (
+    !onHomepage ||
+    !preferencesReady ||
+    !desktopEligible ||
+    viewMode === "focus"
+  )
+    return null;
 
   return (
     <>

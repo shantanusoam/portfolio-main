@@ -1,0 +1,114 @@
+.dock {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1000;
+  width: 272px;
+  padding: 10px 11px 9px;
+  border: 1px solid rgba(238, 233, 223, 0.15);
+  border-radius: 14px;
+  color: #eee9df;
+  background: rgba(9, 9, 8, 0.8);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.32);
+  font-family: var(--font-data), monospace;
+  backdrop-filter: blur(16px) saturate(1.15);
+}
+
+.header {
+  display: flex;
+  margin: 0 2px 8px;
+  align-items: center;
+  gap: 7px;
+  color: rgba(238, 233, 223, 0.58);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.signal {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(238, 233, 223, 0.34);
+  box-shadow: 0 0 0 3px rgba(238, 233, 223, 0.05);
+}
+
+.signal[data-active="true"] {
+  background: #ff5d2f;
+  box-shadow:
+    0 0 0 3px rgba(255, 93, 47, 0.11),
+    0 0 16px rgba(255, 93, 47, 0.42);
+}
+
+.switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border: 1px solid rgba(238, 233, 223, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.switcher button {
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(238, 233, 223, 0.5);
+  background: transparent;
+  font: inherit;
+  font-size: 8px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.switcher button:hover,
+.switcher button:focus-visible {
+  color: #eee9df;
+  outline: none;
+}
+
+.switcher button[aria-pressed="true"] {
+  color: #0b0b0a;
+  background: #ff5d2f;
+}
+
+.detail {
+  margin: 7px 2px 0;
+  color: rgba(238, 233, 223, 0.36);
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+@media (max-width: 767px) {
+  .dock {
+    right: 12px;
+    bottom: 12px;
+    width: 208px;
+    padding: 8px;
+  }
+
+  .header,
+  .detail {
+    display: none;
+  }
+
+  .switcher button {
+    min-height: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock {
+    backdrop-filter: none;
+  }
+
+  .switcher button {
+    transition: none;
+  }
+}

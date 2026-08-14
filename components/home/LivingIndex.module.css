@@ -1,0 +1,708 @@
+.section {
+  width: min(1320px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: clamp(76px, 10vw, 144px) 0;
+  border-top: 1px solid rgba(238, 233, 223, 0.13);
+}
+
+.heading {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.42fr) minmax(0, 1.58fr);
+  margin-bottom: clamp(38px, 6vw, 78px);
+  align-items: start;
+  gap: clamp(24px, 6vw, 92px);
+}
+
+.eyebrow,
+.stageMeta,
+.stagePrompt,
+.cardIndex,
+.inspectButton,
+.layers p,
+.enterLink,
+.note span,
+.note a {
+  font-family: var(--font-data), monospace;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.eyebrow,
+.cardIndex,
+.layers p,
+.note span {
+  color: #ff5d2f;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.heading h2 {
+  max-width: 920px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(42px, 7vw, 96px);
+  font-weight: 500;
+  line-height: 0.91;
+  letter-spacing: -0.05em;
+}
+
+.heading div > p {
+  max-width: 700px;
+  margin-top: 20px;
+  color: rgba(238, 233, 223, 0.57);
+  font-size: clamp(14px, 1.5vw, 19px);
+  line-height: 1.7;
+}
+
+.specimenGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+}
+
+.card {
+  --pointer-x: 0;
+  --pointer-y: 0;
+  overflow: hidden;
+  border: 1px solid rgba(238, 233, 223, 0.14);
+  background: rgba(255, 255, 255, 0.014);
+  transform: perspective(1200px) rotateX(calc(var(--pointer-y) * -1.1deg))
+    rotateY(calc(var(--pointer-x) * 1.1deg));
+  transform-style: preserve-3d;
+  transition:
+    border-color 220ms ease,
+    transform 160ms ease;
+}
+
+.card:nth-child(2) {
+  margin-top: clamp(36px, 5vw, 74px);
+}
+
+.card:hover,
+.card[data-inspected="true"] {
+  border-color: rgba(255, 93, 47, 0.52);
+}
+
+.stage {
+  position: relative;
+  aspect-ratio: 0.82;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(238, 233, 223, 0.13);
+  background:
+    radial-gradient(
+      circle at calc(50% + var(--pointer-x) * 12%)
+        calc(42% + var(--pointer-y) * 12%),
+      rgba(255, 93, 47, 0.13),
+      transparent 44%
+    ),
+    linear-gradient(145deg, #161513, #090908 68%);
+}
+
+.card[data-kind="octopod"] .stage {
+  background:
+    radial-gradient(
+      circle at calc(50% + var(--pointer-x) * 12%)
+        calc(42% + var(--pointer-y) * 12%),
+      rgba(68, 220, 199, 0.14),
+      transparent 45%
+    ),
+    linear-gradient(145deg, #101b1c, #080a0a 68%);
+}
+
+.card[data-kind="course"] .stage {
+  background:
+    radial-gradient(
+      circle at calc(50% + var(--pointer-x) * 12%)
+        calc(42% + var(--pointer-y) * 12%),
+      rgba(157, 43, 255, 0.1),
+      transparent 46%
+    ),
+    linear-gradient(145deg, #19130f, #090908 68%);
+}
+
+.stage::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(rgba(238, 233, 223, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(238, 233, 223, 0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+  content: "";
+  pointer-events: none;
+}
+
+.stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.18),
+    transparent 22%,
+    transparent 72%,
+    rgba(0, 0, 0, 0.64)
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.stageMeta {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  left: 17px;
+  z-index: 6;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: rgba(238, 233, 223, 0.43);
+  font-size: 6px;
+}
+
+.stageMeta span:last-child {
+  text-align: right;
+}
+
+.stagePrompt {
+  position: absolute;
+  right: 17px;
+  bottom: 16px;
+  left: 17px;
+  z-index: 6;
+  color: rgba(238, 233, 223, 0.55);
+  font-size: 6px;
+  line-height: 1.5;
+}
+
+.crosshair {
+  position: absolute;
+  top: calc(50% + var(--pointer-y) * 22px);
+  left: calc(50% + var(--pointer-x) * 22px);
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(238, 233, 223, 0.11);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition:
+    top 100ms linear,
+    left 100ms linear;
+}
+
+.crosshair::before,
+.crosshair::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: rgba(238, 233, 223, 0.18);
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.crosshair::before {
+  width: 44px;
+  height: 1px;
+}
+
+.crosshair::after {
+  width: 1px;
+  height: 44px;
+}
+
+.artwork {
+  position: absolute;
+  inset: 7% 3% 5%;
+  z-index: 2;
+  width: 94%;
+  height: 88%;
+  overflow: visible;
+  transform: translate3d(
+    calc(var(--pointer-x) * 10px),
+    calc(var(--pointer-y) * 10px),
+    0
+  );
+  transition: transform 180ms ease-out;
+}
+
+.koiField circle,
+.koiField path,
+.octoGrid path,
+.courseContours path {
+  fill: none;
+  stroke: rgba(238, 233, 223, 0.095);
+  stroke-width: 1;
+}
+
+.koiField path,
+.courseContours path {
+  stroke-dasharray: 5 7;
+}
+
+.koiGlow {
+  fill: rgba(255, 93, 47, 0.16);
+}
+
+.koiFish {
+  transform-origin: 260px 310px;
+  animation: koi-drift 6s ease-in-out infinite;
+}
+
+.koiBody {
+  fill: url(#living-koi-fill);
+  stroke: #f7f0e5;
+  stroke-width: 3;
+}
+
+.koiPatch {
+  fill: rgba(126, 26, 13, 0.6);
+  stroke: rgba(255, 255, 255, 0.26);
+  stroke-width: 1.5;
+}
+
+.koiTail,
+.koiFin {
+  fill: rgba(255, 116, 72, 0.72);
+  stroke: rgba(247, 240, 229, 0.86);
+  stroke-width: 2;
+}
+
+.koiSpine {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.75);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.koiEye {
+  fill: #0a0a09;
+  stroke: #f7f0e5;
+  stroke-width: 2;
+}
+
+.bubbles circle {
+  fill: none;
+  stroke: rgba(255, 188, 153, 0.5);
+  animation: bubble-rise 4.8s ease-in-out infinite;
+}
+
+.bubbles circle:nth-child(2) {
+  animation-delay: -1.2s;
+}
+.bubbles circle:nth-child(3) {
+  animation-delay: -2.7s;
+}
+.bubbles circle:nth-child(4) {
+  animation-delay: -3.4s;
+}
+
+.octoRig {
+  transform-origin: 278px 300px;
+  animation: octo-breathe 4.8s ease-in-out infinite;
+}
+
+.tentacleShadow,
+.tentacle {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.tentacleShadow {
+  stroke: rgba(4, 11, 14, 0.72);
+  stroke-width: 24;
+}
+
+.tentacle {
+  stroke: #42bfb0;
+  stroke-width: 16;
+  stroke-dasharray: 18 5 56 7;
+  animation: tentacle-signal 3.2s linear infinite;
+}
+
+.octoHead {
+  fill: url(#living-octo-fill);
+  stroke: rgba(211, 255, 248, 0.88);
+  stroke-width: 3;
+}
+
+.octoCore {
+  fill: rgba(5, 34, 42, 0.3);
+  stroke: rgba(210, 255, 247, 0.22);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 6;
+}
+
+.octoEye {
+  fill: #061416;
+  stroke: #d8fff7;
+  stroke-width: 3;
+}
+
+.octoMouth {
+  fill: none;
+  stroke: rgba(216, 255, 247, 0.72);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.octoNodes circle {
+  fill: #d8fff7;
+  stroke: #2eaa9d;
+  stroke-width: 3;
+  animation: node-pulse 2s ease-in-out infinite;
+}
+
+.coursePathGhost,
+.coursePath {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.coursePathGhost {
+  stroke: rgba(238, 233, 223, 0.1);
+  stroke-width: 22;
+}
+
+.coursePath {
+  stroke: url(#living-course-line);
+  stroke-width: 5;
+  stroke-dasharray: 12 9;
+  animation: path-study 4s linear infinite;
+}
+
+.courseNodes circle {
+  fill: #11100f;
+  stroke: #ff6f43;
+  stroke-width: 2;
+}
+
+.courseNodes g:last-child circle {
+  fill: #ff5d2f;
+  stroke: #ffdb82;
+  animation: node-pulse 2.4s ease-in-out infinite;
+}
+
+.courseNodes text,
+.courseEquation,
+.courseCaption {
+  fill: rgba(238, 233, 223, 0.78);
+  font-family: ui-monospace, monospace;
+  text-anchor: middle;
+}
+
+.courseNodes text {
+  font-size: 10px;
+}
+
+.courseNodes g:last-child text {
+  fill: #11100f;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.courseVectors path {
+  fill: none;
+  stroke: rgba(255, 208, 113, 0.58);
+  stroke-width: 2;
+  marker-end: none;
+}
+
+.courseEquation,
+.courseCaption {
+  text-anchor: start;
+}
+
+.courseEquation {
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.courseCaption {
+  fill: rgba(238, 233, 223, 0.35);
+  font-size: 8px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.copy {
+  padding: clamp(24px, 3.2vw, 38px);
+}
+
+.copy h3 {
+  margin: 12px 0 16px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(32px, 3.4vw, 51px);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.description {
+  min-height: 74px;
+  color: rgba(238, 233, 223, 0.54);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.inspectButton {
+  display: flex;
+  width: 100%;
+  margin-top: 24px;
+  padding: 12px 0;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  border-top: 1px solid rgba(238, 233, 223, 0.12);
+  border-bottom: 1px solid rgba(238, 233, 223, 0.12);
+  color: rgba(238, 233, 223, 0.62);
+  background: transparent;
+  font-size: 7px;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.inspectButton:hover,
+.inspectButton:focus-visible {
+  color: #ff7951;
+  outline: none;
+}
+
+.inspectButton span:last-child {
+  font-size: 15px;
+}
+
+.layers {
+  display: grid;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+
+.card[data-inspected="true"] .layers {
+  max-height: 210px;
+  padding-top: 20px;
+  opacity: 1;
+}
+
+.layers ul {
+  display: grid;
+  margin-top: 12px;
+  gap: 9px;
+  list-style: none;
+}
+
+.layers li {
+  color: rgba(238, 233, 223, 0.52);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.layers li::before {
+  margin-right: 8px;
+  color: #ff5d2f;
+  content: "↳";
+}
+
+.enterLink {
+  display: inline-flex;
+  margin-top: 26px;
+  align-items: center;
+  gap: 8px;
+  color: #eee9df;
+  font-size: 8px;
+  text-decoration: none;
+}
+
+.enterLink span {
+  color: #ff5d2f;
+  transition: transform 160ms ease;
+}
+
+.enterLink:hover span {
+  transform: translate(3px, -3px);
+}
+
+.note {
+  display: grid;
+  grid-template-columns: 0.4fr 1.25fr auto;
+  margin-top: clamp(44px, 7vw, 92px);
+  padding: 26px 0;
+  align-items: start;
+  gap: 30px;
+  border-top: 1px solid rgba(238, 233, 223, 0.13);
+  border-bottom: 1px solid rgba(238, 233, 223, 0.13);
+}
+
+.note p {
+  max-width: 700px;
+  color: rgba(238, 233, 223, 0.68);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(20px, 2.5vw, 33px);
+  line-height: 1.2;
+}
+
+.note a {
+  color: rgba(238, 233, 223, 0.6);
+  font-size: 7px;
+  text-decoration: none;
+}
+
+.note a:hover {
+  color: #ff5d2f;
+}
+
+@keyframes koi-drift {
+  0%,
+  100% {
+    transform: rotate(-28deg) translate3d(-3px, 4px, 0);
+  }
+  50% {
+    transform: rotate(-25deg) translate3d(5px, -7px, 0);
+  }
+}
+
+@keyframes bubble-rise {
+  0%,
+  100% {
+    opacity: 0.24;
+    transform: translateY(7px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes octo-breathe {
+  0%,
+  100% {
+    transform: translateY(4px) scale(0.99, 1.01);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.01, 0.99);
+  }
+}
+
+@keyframes tentacle-signal {
+  to {
+    stroke-dashoffset: -86;
+  }
+}
+
+@keyframes node-pulse {
+  0%,
+  100% {
+    opacity: 0.48;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes path-study {
+  to {
+    stroke-dashoffset: -84;
+  }
+}
+
+:global(html[data-portfolio-mode="focus"]) .koiFish,
+:global(html[data-portfolio-mode="focus"]) .bubbles circle,
+:global(html[data-portfolio-mode="focus"]) .octoRig,
+:global(html[data-portfolio-mode="focus"]) .tentacle,
+:global(html[data-portfolio-mode="focus"]) .octoNodes circle,
+:global(html[data-portfolio-mode="focus"]) .coursePath,
+:global(html[data-portfolio-mode="focus"]) .courseNodes g:last-child circle {
+  animation-play-state: paused;
+}
+
+:global(html[data-portfolio-mode="focus"]) .card,
+:global(html[data-portfolio-mode="focus"]) .artwork,
+:global(html[data-portfolio-mode="focus"]) .crosshair {
+  transform: none;
+  transition: none;
+}
+
+@media (max-width: 980px) {
+  .specimenGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card:nth-child(2) {
+    margin-top: 38px;
+  }
+
+  .card:nth-child(3) {
+    grid-column: 1 / -1;
+    width: calc(50% - 7px);
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .section {
+    width: min(100% - 28px, 580px);
+  }
+
+  .heading {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .specimenGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .card:nth-child(2),
+  .card:nth-child(3) {
+    grid-column: auto;
+    width: auto;
+    margin: 0;
+  }
+
+  .stage {
+    aspect-ratio: 0.98;
+  }
+
+  .description {
+    min-height: 0;
+  }
+
+  .note {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (hover: none) {
+  .card,
+  .artwork,
+  .crosshair {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .artwork,
+  .crosshair,
+  .inspectButton,
+  .layers,
+  .enterLink span {
+    transition: none;
+  }
+
+  .koiFish,
+  .bubbles circle,
+  .octoRig,
+  .tentacle,
+  .octoNodes circle,
+  .coursePath,
+  .courseNodes g:last-child circle {
+    animation: none;
+  }
+}

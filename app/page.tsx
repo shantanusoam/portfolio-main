@@ -22,6 +22,7 @@ import HomeInteractiveLayer from "@/components/home/HomeInteractiveLayer";
 import HomeSideChrome from "@/components/home/HomeSideChrome";
 import HomeSignalDivider from "@/components/home/HomeSignalDivider";
 import BuildInfoFooter from "@/components/home/BuildInfoFooter";
+import LivingIndex from "@/components/home/LivingIndex";
 
 export const metadata: Metadata = {
   title: "Shantanu Soam — Creative Systems Engineer",
@@ -80,6 +81,7 @@ export default function Home() {
         <ProofStrip />
 
         <CurrentPosition />
+        <LivingIndex />
         <FlagshipCaseStudies />
 
         <div className="container">
