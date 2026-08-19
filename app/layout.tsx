@@ -10,6 +10,7 @@ import ProceduralMascotLoader from "@/components/mascot/ProceduralMascotLoader";
 import { CommandPaletteProvider } from "@/components/command-palette/CommandPalette";
 import { createCommandIndex } from "@/lib/archive/command-index";
 import { getPublicOrigin } from "@/lib/oauth/config";
+import PortfolioAnalytics from "@/components/analytics/PortfolioAnalytics";
 
 const inter = Inter({ subsets: ["latin"] });
 const commandEntries = createCommandIndex();
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <CommandPaletteProvider entries={commandEntries}>
           <PageAtmosphere />
           <PageScrollProgress />
+          <PortfolioAnalytics />
           <ProceduralMascotLoader />
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </CommandPaletteProvider>

@@ -22,6 +22,7 @@ import {
 } from "./AnatomyGrowth";
 import {
   FRY_SCHOOL_SIZE,
+  MAX_ACTIVE_FRY,
   MAX_ADULT_FISH,
   PopulationModel,
 } from "./PopulationModel";
@@ -253,7 +254,7 @@ export class FishEcosystem {
     const canRelease =
       this.enabled &&
       this.spawnCooldown <= 0 &&
-      this.fry.length === 0 &&
+      this.fry.length < MAX_ACTIVE_FRY &&
       !this.fission &&
       !this.reproduction &&
       !this.population.isFissionPending();
@@ -362,9 +363,17 @@ export class FishEcosystem {
       this.bounds.maxY,
     );
 
-    this.fry = [];
+    const existingFry = this.fry.length;
     for (let index = 0; index < granted; index += 1) {
-      this.fry.push(this.createDroppedFry(originX, originY, index, granted));
+      this.fry.push(
+        this.createDroppedFry(
+          originX,
+          originY,
+          index,
+          granted,
+          existingFry + index,
+        ),
+      );
     }
     this.spawnCooldown = 2.4;
     this.nextNaturalSchoolAt =
@@ -428,10 +437,7 @@ export class FishEcosystem {
     if (adult.coastSeconds === 0) adult.coastTarget = null;
 
     const wasBursting = adult.pursuitBurstSeconds > 0;
-    adult.pursuitBurstSeconds = Math.max(
-      0,
-      adult.pursuitBurstSeconds - dt,
-    );
+    adult.pursuitBurstSeconds = Math.max(0, adult.pursuitBurstSeconds - dt);
     if (wasBursting && adult.pursuitBurstSeconds === 0) {
       // A short coast phase creates a visible observe/act rhythm and prevents
       // the adult from pinning a fry with continuous acceleration.
@@ -439,16 +445,8 @@ export class FishEcosystem {
       const root = adult.runtime.pose.getRoot();
       const velocity = adult.runtime.pose.getVelocity();
       adult.coastTarget = {
-        x: clamp(
-          root.x + velocity.x * 0.2,
-          this.bounds.minX,
-          this.bounds.maxX,
-        ),
-        y: clamp(
-          root.y + velocity.y * 0.2,
-          this.bounds.minY,
-          this.bounds.maxY,
-        ),
+        x: clamp(root.x + velocity.x * 0.2, this.bounds.minX, this.bounds.maxX),
+        y: clamp(root.y + velocity.y * 0.2, this.bounds.minY, this.bounds.maxY),
       };
     }
   }
@@ -473,6 +471,7 @@ export class FishEcosystem {
     originY: number,
     index: number,
     total: number,
+    colorIndex: number,
   ): EcosystemFry {
     // Reason: fry must appear where the user clicked the egg — a tight ring,
     // not a random page-wide scatter.
@@ -501,7 +500,7 @@ export class FishEcosystem {
       heading,
       age: 0,
       tailPhase: this.rng.angle(),
-      color: FRY_COLORS[index % FRY_COLORS.length],
+      color: FRY_COLORS[colorIndex % FRY_COLORS.length],
       dodgeSign: index % 2 === 0 ? 1 : -1,
       hideTarget: null,
       nextHideAt: this.rng.range(0.6, 1.4),
@@ -551,13 +550,15 @@ export class FishEcosystem {
         } else if (this.pointerSuppressed) {
           adult.runtime.clearSteerTarget();
           adult.runtime.setPointer(this.pointer.x, this.pointer.y, false);
-        } else {
+          const target = this.independentTarget(index);
+          adult.runtime.setSteerTarget(target.x, target.y, false);
+        } else if (this.pointer.active) {
           adult.runtime.clearSteerTarget();
-          adult.runtime.setPointer(
-            this.pointer.x,
-            this.pointer.y,
-            this.pointer.active,
-          );
+          adult.runtime.setPointer(this.pointer.x, this.pointer.y, true);
+        } else {
+          adult.runtime.setPointer(this.pointer.x, this.pointer.y, false);
+          const target = this.independentTarget(index);
+          adult.runtime.setSteerTarget(target.x, target.y, false);
         }
         continue;
       }
@@ -625,10 +626,7 @@ export class FishEcosystem {
     }
   }
 
-  private predictIntercept(
-    adult: EcosystemAdult,
-    prey: EcosystemFry,
-  ): Point {
+  private predictIntercept(adult: EcosystemAdult, prey: EcosystemFry): Point {
     const root = adult.runtime.pose.getRoot();
     const distance = Math.hypot(prey.x - root.x, prey.y - root.y);
     const lookAhead = clamp(distance / 240, 0.08, 0.5);

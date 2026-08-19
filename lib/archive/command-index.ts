@@ -107,6 +107,15 @@ const pageEntries: CommandEntry[] = [
     kind: "page",
   },
   {
+    id: "page-learning",
+    name: "Learning Log",
+    subtitle: "Tracks, checkpoints, and procedural animation guides",
+    href: "/learning",
+    keywords: "learning log tracks guides procedural animation course",
+    section: "Navigate",
+    kind: "page",
+  },
+  {
     id: "page-maker-lab",
     name: "Maker Lab",
     subtitle: "Original experiments, prototypes, and playful tools",

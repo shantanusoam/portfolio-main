@@ -39,7 +39,7 @@ export default function Contact() {
       id="contact"
       className="relative mx-[10%] my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
-      <Heading>CONTACT</Heading>
+      <Heading>PREFER TO TALK IT THROUGH?</Heading>
       <motion.div
         variants={hideAndShowVariant}
         initial="hide"
@@ -52,13 +52,14 @@ export default function Contact() {
           widthStart={0.4}
           widthEnd={0.8}
         >
-          {["Let's turn your ideas into", "reality. Contact me!"].map(
-            (text, i) => (
-              <RevealingTextItem index={i} key={i}>
-                {text}
-              </RevealingTextItem>
-            ),
-          )}
+          {[
+            "Bring the hard problem.",
+            "We'll map the first move together.",
+          ].map((text, i) => (
+            <RevealingTextItem index={i} key={i}>
+              {text}
+            </RevealingTextItem>
+          ))}
         </RevealingTextContainer>
         <div className="mt-16 flex w-full flex-row flex-wrap items-center justify-start gap-8 text-sm sm:text-base">
           <Link
@@ -66,7 +67,9 @@ export default function Contact() {
             target="_blank"
             className="grow"
           >
-            <ButtonWithIcon icon={Calendar}>Schedule a meeting</ButtonWithIcon>
+            <ButtonWithIcon icon={Calendar}>
+              Schedule a working call
+            </ButtonWithIcon>
           </Link>
           <a href="mailto:shantanu.singh.soam@gmail.com" className="grow">
             <ButtonWithIcon icon={Mail}>
