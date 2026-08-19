@@ -19,10 +19,11 @@ export class PopulationModel {
   private fissionPending = false;
 
   requestSchool(count: number): number {
-    if (this.activeFryCount > 0 || this.fissionPending) return 0;
-    const allowed = Math.max(0, Math.min(MAX_ACTIVE_FRY, Math.floor(count)));
+    if (this.fissionPending) return 0;
+    const remainingCapacity = MAX_ACTIVE_FRY - this.activeFryCount;
+    const allowed = Math.max(0, Math.min(remainingCapacity, Math.floor(count)));
     if (allowed <= 0) return 0;
-    this.activeFryCount = allowed;
+    this.activeFryCount += allowed;
     return allowed;
   }
 

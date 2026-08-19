@@ -12,6 +12,10 @@ import ProceduralCharacter from "@/components/procedural-character/ProceduralCha
 import type { ProceduralCharacterEngine } from "@/lib/procedural-character/ProceduralCharacterEngine";
 import type { EnvironmentSurface } from "@/lib/procedural-character/types";
 import { octopodPreset } from "@/lib/procedural-character/presets/octopod";
+import {
+  PORTFOLIO_EVENTS,
+  trackPortfolioEvent,
+} from "@/lib/analytics/portfolioAnalytics";
 import styles from "./page.module.css";
 
 type ControlKey = "left" | "right" | "crouch" | "grab";
@@ -28,6 +32,7 @@ interface AscentPlatform {
 
 const PLATFORM_COUNT = 72;
 const BODY_GROUND_OFFSET = 52;
+const AUTO_BOUNCE_DELAY_MS = 156;
 const BEST_STORAGE_KEY = "octopod-ascent:best";
 
 const relevantKey = (key: string): boolean =>
@@ -74,9 +79,11 @@ function createAscentPlatforms(
         : clamp(100 + random() * 76, 92, viewportWidth * 0.4);
 
     if (index > 0) {
-      y -= 82 + random() * 30;
+      const lateRun = Math.min(1, index / 28);
+      y -= 70 + random() * (20 + lateRun * 8);
       const direction = index % 2 === 0 ? -1 : 1;
-      const shift = 54 + random() * Math.min(118, viewportWidth * 0.22);
+      const shift =
+        44 + random() * Math.min(92 + lateRun * 18, viewportWidth * 0.17);
       x = clamp(
         x + direction * shift + (random() - 0.5) * 42,
         sideMargin + width * 0.5,
@@ -90,7 +97,7 @@ function createAscentPlatforms(
       x,
       y,
       width,
-      drift: index > 2 && index % 6 === 0 ? 18 + random() * 16 : 0,
+      drift: index > 10 && index % 9 === 0 ? 10 + random() * 10 : 0,
       phase: random() * Math.PI * 2,
     });
   }
@@ -112,6 +119,8 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
   const checkpointIndex = useRef(0);
   const highestIndex = useRef(0);
   const recoveringRef = useRef(false);
+  const autoBounceRef = useRef(false);
+  const trackedMilestones = useRef(new Set<number>());
   const recoveryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [engine, setEngine] = useState<ProceduralCharacterEngine | null>(null);
   const [platforms, setPlatforms] = useState<AscentPlatform[]>([]);
@@ -119,12 +128,12 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
   const [recovering, setRecovering] = useState(false);
+  const [autoBounce, setAutoBounce] = useState(false);
   const [lastAction, setLastAction] = useState("Finding a foothold");
 
   const platformX = useCallback(
     (platform: AscentPlatform, timeMs: number): number =>
-      platform.x +
-      Math.sin(timeMs * 0.00072 + platform.phase) * platform.drift,
+      platform.x + Math.sin(timeMs * 0.00072 + platform.phase) * platform.drift,
     [],
   );
 
@@ -173,29 +182,23 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
   const placeAtPlatform = useCallback(
     (index: number, preserveRun = true) => {
       if (!engine || platformsRef.current.length === 0) return;
-      const safeIndex = clamp(
-        index,
-        0,
-        platformsRef.current.length - 1,
-      );
+      const safeIndex = clamp(index, 0, platformsRef.current.length - 1);
       const platform = platformsRef.current[safeIndex];
-      const screenY = safeIndex === 0 ? window.innerHeight * 0.74 : window.innerHeight * 0.68;
+      const screenY =
+        safeIndex === 0 ? window.innerHeight * 0.74 : window.innerHeight * 0.68;
       cameraY.current = platform.y - screenY;
       const nowMs = performance.now();
       engine.setEnvironmentSurfaces(layoutWorld(nowMs));
-      engine.reset(
-        platformX(platform, nowMs),
-        screenY - BODY_GROUND_OFFSET,
-      );
+      engine.reset(platformX(platform, nowMs), screenY - BODY_GROUND_OFFSET);
       syncMovement();
       lastGrounded.current = false;
-      bounceAt.current = nowMs + 220;
+      bounceAt.current = 0;
       recoveringRef.current = false;
       setRecovering(false);
       setLastAction(
         preserveRun && safeIndex > 0
           ? `Recovered at platform ${safeIndex}`
-          : "Auto-bounce armed",
+          : "Ready for your first jump",
       );
     },
     [engine, layoutWorld, platformX, syncMovement],
@@ -207,6 +210,7 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
     pressed.current.clear();
     checkpointIndex.current = 0;
     highestIndex.current = 0;
+    trackedMilestones.current.clear();
     setScore(0);
     placeAtPlatform(0, false);
   }, [placeAtPlatform]);
@@ -217,6 +221,10 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
     setRecovering(true);
     bounceAt.current = 0;
     engine.triggerInkBurst();
+    trackPortfolioEvent(PORTFOLIO_EVENTS.octopodFall, {
+      altitude: highestIndex.current * 12,
+      checkpoint: checkpointIndex.current,
+    });
     setLastAction("Missed — rewinding to the last foothold");
     recoveryTimer.current = setTimeout(() => {
       recoveryTimer.current = null;
@@ -244,8 +252,23 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
 
   const jump = useCallback(() => {
     if (!engine || recoveringRef.current) return;
+    bounceAt.current = 0;
     engine.requestJump();
-    setLastAction("Bounce pulsed");
+    setLastAction("Jump queued");
+  }, [engine]);
+
+  const toggleAutoBounce = useCallback(() => {
+    const next = !autoBounceRef.current;
+    autoBounceRef.current = next;
+    setAutoBounce(next);
+    if (!next) bounceAt.current = 0;
+    else if (engine?.getLocomotionState().grounded) {
+      bounceAt.current = performance.now() + AUTO_BOUNCE_DELAY_MS;
+    }
+    setLastAction(next ? "Rhythm bounce enabled" : "Manual jump enabled");
+    trackPortfolioEvent(PORTFOLIO_EVENTS.octopodJumpModeChanged, {
+      mode: next ? "rhythm" : "manual",
+    });
   }, [engine]);
 
   const ink = useCallback(() => {
@@ -287,10 +310,8 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
       event.preventDefault();
       const key = event.key.toLowerCase();
       if (key === "a" || key === "arrowleft") setControl("left", true);
-      else if (key === "d" || key === "arrowright")
-        setControl("right", true);
-      else if (key === "s" || key === "arrowdown")
-        setControl("crouch", true);
+      else if (key === "d" || key === "arrowright") setControl("right", true);
+      else if (key === "s" || key === "arrowdown") setControl("crouch", true);
       else if (key === "e") setControl("grab", true);
       else if (
         (key === "w" || key === "arrowup" || key === " ") &&
@@ -303,10 +324,8 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
     const handleKeyUp = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       if (key === "a" || key === "arrowleft") setControl("left", false);
-      else if (key === "d" || key === "arrowright")
-        setControl("right", false);
-      else if (key === "s" || key === "arrowdown")
-        setControl("crouch", false);
+      else if (key === "d" || key === "arrowright") setControl("right", false);
+      else if (key === "s" || key === "arrowdown") setControl("crouch", false);
       else if (key === "e") setControl("grab", false);
     };
     const releaseAll = () => {
@@ -346,7 +365,9 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
         if (surfaceId === "viewport-floor") {
           recoverFromFall();
         } else if (surfaceId?.startsWith("octopod-platform-")) {
-          const landedIndex = Number(surfaceId.slice("octopod-platform-".length));
+          const landedIndex = Number(
+            surfaceId.slice("octopod-platform-".length),
+          );
           if (Number.isFinite(landedIndex)) {
             checkpointIndex.current = Math.max(
               checkpointIndex.current,
@@ -375,9 +396,18 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
             }
             if (landedIndex > 0 && landedIndex % 8 === 0) {
               engine.triggerInkBurst();
+              if (!trackedMilestones.current.has(landedIndex)) {
+                trackedMilestones.current.add(landedIndex);
+                trackPortfolioEvent(PORTFOLIO_EVENTS.octopodMilestone, {
+                  altitude: landedIndex * 12,
+                  platform: landedIndex,
+                });
+              }
             }
           }
-          bounceAt.current = timeMs + 72;
+          bounceAt.current = autoBounceRef.current
+            ? timeMs + AUTO_BOUNCE_DELAY_MS
+            : 0;
         }
       }
 
@@ -430,6 +460,8 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
           <div
             className={styles.ascentPlatform}
             data-milestone={platform.index > 0 && platform.index % 8 === 0}
+            data-current={platform.index === score}
+            data-target={platform.index === score + 1}
             data-visible="true"
             key={platform.id}
             ref={(node) => {
@@ -454,7 +486,10 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
       <header className={styles.titlebar}>
         <p className={styles.eyebrow}>Procedural ascent / endless study</p>
         <h1>Spring Octopus</h1>
-        <p>It bounces on its own. You steer the landing; the camera reveals the next decision.</p>
+        <p>
+          You choose each jump and steer the landing. Rhythm mode adds automatic
+          rebounds when you want the reference-video flow.
+        </p>
         <div className={styles.headerLinks}>
           <Link href="/creature-lab?creature=octopus">Open the rig lab</Link>
           <button
@@ -463,6 +498,13 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
             onClick={() => setDebug((value) => !value)}
           >
             {debug ? "Hide anatomy" : "Show anatomy"}
+          </button>
+          <button
+            type="button"
+            aria-pressed={autoBounce}
+            onClick={toggleAutoBounce}
+          >
+            Rhythm {autoBounce ? "on" : "off"}
           </button>
         </div>
       </header>
@@ -476,30 +518,69 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
       </aside>
 
       <section className={styles.keymap} aria-label="Keyboard controls">
-        <div><kbd>A</kbd><kbd>D</kbd><span>steer in the air</span></div>
-        <div><kbd>W</kbd><kbd>Space</kbd><span>pulse a landing</span></div>
-        <div><kbd>S</kbd><span>soften / brake</span></div>
-        <div><kbd>E</kbd><span>brace tentacles</span></div>
-        <div><kbd>Q</kbd><span>ink signal</span></div>
-        <div><kbd>R</kbd><span>new run</span></div>
+        <div>
+          <kbd>A</kbd>
+          <kbd>D</kbd>
+          <span>steer in the air</span>
+        </div>
+        <div>
+          <kbd>W</kbd>
+          <kbd>Space</kbd>
+          <span>jump / buffer landing</span>
+        </div>
+        <div>
+          <kbd>S</kbd>
+          <span>soften / brake</span>
+        </div>
+        <div>
+          <kbd>E</kbd>
+          <span>brace tentacles</span>
+        </div>
+        <div>
+          <kbd>Q</kbd>
+          <span>ink signal</span>
+        </div>
+        <div>
+          <kbd>R</kbd>
+          <span>new run</span>
+        </div>
       </section>
 
       <section className={styles.deck}>
         <div>
-          <p>Land, compress, rebound.</p>
-          <span>Horizontal intent changes momentum; eight spring feet solve every contact live.</span>
+          <p>Read the next ledge, jump, then shape the landing.</p>
+          <span>
+            Inputs buffer just before contact; eight spring feet solve every
+            landing live.
+          </span>
         </div>
         <div className={styles.touchControls} aria-label="Touch controls">
-          <button type="button" aria-label="Move left" {...bindHold("left")}>←</button>
-          <button type="button" aria-label="Move right" {...bindHold("right")}>→</button>
-          <button type="button" onClick={jump}>Pulse</button>
-          <button type="button" {...bindHold("crouch")}>Soften</button>
-          <button type="button" onClick={ink}>Ink</button>
-          <button type="button" onClick={reset}>Restart</button>
+          <button type="button" aria-label="Move left" {...bindHold("left")}>
+            ←
+          </button>
+          <button type="button" aria-label="Move right" {...bindHold("right")}>
+            →
+          </button>
+          <button type="button" onClick={jump}>
+            Pulse
+          </button>
+          <button type="button" {...bindHold("crouch")}>
+            Soften
+          </button>
+          <button type="button" onClick={ink}>
+            Ink
+          </button>
+          <button type="button" onClick={reset}>
+            Restart
+          </button>
         </div>
       </section>
 
-      <div className={styles.recoveryVeil} data-active={recovering} aria-hidden="true">
+      <div
+        className={styles.recoveryVeil}
+        data-active={recovering}
+        aria-hidden="true"
+      >
         <span>rewinding the current</span>
       </div>
     </main>

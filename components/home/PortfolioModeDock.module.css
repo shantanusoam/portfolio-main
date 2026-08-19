@@ -70,7 +70,13 @@
 .switcher button:hover,
 .switcher button:focus-visible {
   color: #eee9df;
-  outline: none;
+}
+
+.switcher button:focus-visible {
+  background: rgba(255, 93, 47, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 121, 81, 0.5);
+  outline: 2px solid rgba(255, 121, 81, 0.32);
+  outline-offset: 3px;
 }
 
 .switcher button[aria-pressed="true"] {

@@ -1,6 +1,10 @@
 import React from "react";
+import {
+  PORTFOLIO_MODE_EVENT,
+  readPortfolioViewMode,
+} from "@/lib/portfolio/viewMode";
 
-const QUERY = '(prefers-reduced-motion: no-preference)';
+const QUERY = "(prefers-reduced-motion: no-preference)";
 
 /**
  * Always starts `true` (assume reduced motion) on both the server AND the
@@ -23,6 +27,7 @@ const QUERY = '(prefers-reduced-motion: no-preference)';
  */
 function usePrefersReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(true);
+  const [focusMode, setFocusMode] = React.useState(false);
 
   React.useEffect(() => {
     const mediaQueryList = window.matchMedia(QUERY);
@@ -32,19 +37,28 @@ function usePrefersReducedMotion() {
       setPrefersReducedMotion(!event.matches);
     };
     if (mediaQueryList.addEventListener) {
-      mediaQueryList.addEventListener('change', listener);
+      mediaQueryList.addEventListener("change", listener);
     } else {
       mediaQueryList.addListener(listener);
     }
     return () => {
       if (mediaQueryList.removeEventListener) {
-        mediaQueryList.removeEventListener('change', listener);
+        mediaQueryList.removeEventListener("change", listener);
       } else {
         mediaQueryList.removeListener(listener);
       }
     };
   }, []);
 
-  return prefersReducedMotion;
+  React.useEffect(() => {
+    setFocusMode(readPortfolioViewMode() === "focus");
+    const handleMode = (event) => {
+      setFocusMode(event.detail?.mode === "focus");
+    };
+    window.addEventListener(PORTFOLIO_MODE_EVENT, handleMode);
+    return () => window.removeEventListener(PORTFOLIO_MODE_EVENT, handleMode);
+  }, []);
+
+  return prefersReducedMotion || focusMode;
 }
 export default usePrefersReducedMotion;

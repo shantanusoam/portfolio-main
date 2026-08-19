@@ -3,7 +3,18 @@
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import type { MascotEngine, MascotQuality } from "@/lib/mascot/types";
+import type {
+  MascotBehavior,
+  MascotEcosystemStatus,
+  MascotEngine,
+  MascotQuality,
+} from "@/lib/mascot/types";
+import { MAX_ACTIVE_FRY } from "@/lib/mascot/ecosystem/PopulationModel";
+import {
+  PORTFOLIO_EVENTS,
+  trackPortfolioEvent,
+} from "@/lib/analytics/portfolioAnalytics";
+import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import {
   PORTFOLIO_MODE_EVENT,
   readPortfolioViewMode,
@@ -50,6 +61,7 @@ export default function ProceduralMascotLoader({
 }: ProceduralMascotLoaderProps) {
   const pathname = usePathname();
   const onHomepage = pathname === "/";
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [preferencesReady, setPreferencesReady] = useState(false);
   const [desktopEligible, setDesktopEligible] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
@@ -57,6 +69,9 @@ export default function ProceduralMascotLoader({
   const [disabled, setDisabled] = useState(false);
   const [following, setFollowing] = useState(false);
   const [engine, setEngine] = useState<MascotEngine | null>(null);
+  const [behavior, setBehavior] = useState<MascotBehavior>("dormant");
+  const [ecosystemStatus, setEcosystemStatus] =
+    useState<MascotEcosystemStatus | null>(null);
   const [viewMode, setViewMode] = useState<PortfolioViewMode>("explore");
 
   useEffect(() => {
@@ -136,7 +151,19 @@ export default function ProceduralMascotLoader({
 
   const handleEngineReady = useCallback((next: MascotEngine | null) => {
     setEngine(next);
-    if (!next) setFollowing(false);
+    setEcosystemStatus(next?.getEcosystemStatus() ?? null);
+    if (!next) {
+      setFollowing(false);
+      setBehavior("dormant");
+    }
+  }, []);
+
+  const handleCanvasFollowChange = useCallback((next: boolean) => {
+    setFollowing(next);
+    trackPortfolioEvent(PORTFOLIO_EVENTS.fishFollowChanged, {
+      enabled: next,
+      source: "fish-or-keyboard",
+    });
   }, []);
 
   const toggleFeature = () => {
@@ -144,6 +171,9 @@ export default function ProceduralMascotLoader({
     setDisabled(nextDisabled);
     storeDisabled(nextDisabled);
     setFollowing(false);
+    trackPortfolioEvent(PORTFOLIO_EVENTS.fishVisibilityChanged, {
+      enabled: !nextDisabled,
+    });
   };
 
   const toggleFollowing = () => {
@@ -151,7 +181,30 @@ export default function ProceduralMascotLoader({
     const next = !following;
     engine.setFollowEnabled(next);
     setFollowing(next);
+    trackPortfolioEvent(PORTFOLIO_EVENTS.fishFollowChanged, {
+      enabled: next,
+      source: "dock",
+    });
   };
+
+  const releasePrey = () => {
+    if (!engine || !ecosystemStatus?.canReleaseFry) return;
+    trackPortfolioEvent(PORTFOLIO_EVENTS.preySchoolReleased, {
+      adults: ecosystemStatus.population,
+      preyBeforeRelease: ecosystemStatus.activeFryCount,
+    });
+    engine.trigger({ type: "releaseFry" });
+  };
+
+  const mood = following
+    ? "curious"
+    : behavior === "sprint"
+      ? "playful"
+      : behavior === "inspect" || behavior === "orbit"
+        ? "nosy"
+        : behavior === "rest"
+          ? "drifting"
+          : "exploring";
 
   if (
     !onHomepage ||
@@ -167,14 +220,20 @@ export default function ProceduralMascotLoader({
         <ProceduralMascotCanvas
           quality={quality}
           enabled={heroVisible}
+          reducedMotion={prefersReducedMotion}
           arenaSelector="#hero"
           requireFishActivation
           onEngineReady={handleEngineReady}
-          onFollowChange={setFollowing}
+          onFollowChange={handleCanvasFollowChange}
+          onStatus={(status) => setBehavior(status.behavior)}
+          onEcosystemStatus={setEcosystemStatus}
         />
       ) : null}
 
-      <aside className={styles.mascotDock} aria-label="Interactive fish controls">
+      <aside
+        className={styles.mascotDock}
+        aria-label="Interactive fish controls"
+      >
         <div className={styles.mascotDockHeader}>
           <span
             className={styles.mascotStatusDot}
@@ -203,7 +262,18 @@ export default function ProceduralMascotLoader({
               onClick={toggleFollowing}
               disabled={!engine}
             >
-              {following ? "Following" : "Resting"}
+              {following ? "Following" : "Exploring"}
+            </button>
+          ) : null}
+          {!disabled ? (
+            <button
+              type="button"
+              className={styles.mascotModeToggle}
+              onClick={releasePrey}
+              disabled={!engine || !ecosystemStatus?.canReleaseFry}
+              title="Release a small prey school into the hero"
+            >
+              Add prey {ecosystemStatus?.activeFryCount ?? 0}/{MAX_ACTIVE_FRY}
             </button>
           ) : null}
           {!disabled ? (
@@ -214,10 +284,12 @@ export default function ProceduralMascotLoader({
           {disabled
             ? "The fish is hidden. Your choice is saved."
             : !heroVisible
-              ? "The fish rests inside the hero and returns when you do."
-            : following
-              ? "Following your pointer · click the fish or press Esc to rest"
-              : "Click the fish to make it follow"}
+              ? "The shoal pauses outside the hero and returns when you do."
+              : following
+                ? "Following your pointer · click the fish or press Esc to rest"
+                : `${mood} · ${ecosystemStatus?.population ?? 1} adult${
+                    ecosystemStatus?.population === 1 ? "" : "s"
+                  } · click the fish to follow`}
         </p>
       </aside>
     </>

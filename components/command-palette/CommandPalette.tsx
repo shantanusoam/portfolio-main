@@ -22,8 +22,15 @@ import {
   Sparkles,
   Wrench,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type {
   CommandEntry,
   CommandEntryKind,
@@ -147,6 +154,33 @@ function CommandDialog({ count }: { count: number }) {
   );
 }
 
+function CommandQueryOpener() {
+  const searchParams = useSearchParams();
+  const { query } = useKBar();
+  const handled = useRef(false);
+  const shouldOpen = searchParams.get("command") === "open";
+
+  useEffect(() => {
+    if (!shouldOpen) {
+      handled.current = false;
+      return;
+    }
+    if (handled.current) return;
+    handled.current = true;
+    query.toggle();
+
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.delete("command");
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`,
+    );
+  }, [query, shouldOpen]);
+
+  return null;
+}
+
 export function CommandPaletteProvider({
   children,
   entries,
@@ -181,6 +215,9 @@ export function CommandPaletteProvider({
       }}
     >
       {children}
+      <Suspense fallback={null}>
+        <CommandQueryOpener />
+      </Suspense>
       <CommandDialog count={entries.length} />
     </KBarProvider>
   );

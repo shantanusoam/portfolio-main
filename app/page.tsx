@@ -23,6 +23,7 @@ import HomeSideChrome from "@/components/home/HomeSideChrome";
 import HomeSignalDivider from "@/components/home/HomeSignalDivider";
 import BuildInfoFooter from "@/components/home/BuildInfoFooter";
 import LivingIndex from "@/components/home/LivingIndex";
+import ProofJourneyMotion from "@/components/home/ProofJourneyMotion";
 
 export const metadata: Metadata = {
   title: "Shantanu Soam — Creative Systems Engineer",
@@ -42,7 +43,7 @@ const jsonLd = {
       jobTitle: "Creative Systems Engineer",
       sameAs: [
         "https://github.com/shantanusoam",
-        "https://www.linkedin.com/in/shantanusoam/",
+        "https://www.linkedin.com/in/shantanu007/",
       ],
       knowsAbout: [
         "Next.js",
@@ -70,6 +71,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HomeInteractiveLayer />
+      <ProofJourneyMotion />
       <Navbar />
       <HomeSideChrome />
 

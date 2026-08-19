@@ -9,6 +9,10 @@ import { articleWorkbenches } from "@/lib/archive/workbenches";
 import { noteCoverBySlug } from "@/lib/portfolio/evidence";
 import Image from "next/image";
 import ArticleWorkbench from "./ArticleWorkbench";
+import {
+  PORTFOLIO_EVENTS,
+  trackPortfolioEvent,
+} from "@/lib/analytics/portfolioAnalytics";
 import styles from "./archive.module.css";
 
 function CodeBlock({
@@ -59,11 +63,14 @@ export default function ArticleReader({
   next?: ArchiveArticle;
 }) {
   const progressRef = useRef<HTMLDivElement>(null);
+  const completedRef = useRef(false);
   const [comfortableReading, setComfortableReading] = useState(true);
   const workbench = articleWorkbenches[article.slug];
 
   useEffect(() => {
     let frame = 0;
+    completedRef.current = false;
+    const startedAt = performance.now();
     const update = () => {
       frame = 0;
       const root = document.documentElement;
@@ -74,19 +81,42 @@ export default function ArticleReader({
         "--reading-progress",
         `${progress}`,
       );
+      if (
+        !completedRef.current &&
+        progress >= 0.9 &&
+        performance.now() - startedAt >= 10_000
+      ) {
+        completedRef.current = true;
+        trackPortfolioEvent(PORTFOLIO_EVENTS.articleCompleted, {
+          slug: article.slug,
+          readingMinutes: article.readingMinutes,
+        });
+      }
     };
     const onScroll = () => {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
     update();
+    const eligibilityTimer = window.setTimeout(update, 10_000);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      window.clearTimeout(eligibilityTimer);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [article.readingMinutes, article.slug]);
+
+  const toggleReadingMode = () => {
+    setComfortableReading((current) => {
+      const comfortable = !current;
+      trackPortfolioEvent(PORTFOLIO_EVENTS.readingModeChanged, {
+        mode: comfortable ? "comfort" : "compact",
+      });
+      return comfortable;
+    });
+  };
 
   return (
     <main className={styles.page}>
@@ -139,7 +169,7 @@ export default function ArticleReader({
           </nav>
           <button
             className={`${styles.modeButton} ${styles.readingModeButton}`}
-            onClick={() => setComfortableReading((value) => !value)}
+            onClick={toggleReadingMode}
             type="button"
             aria-pressed={comfortableReading}
           >
@@ -212,7 +242,6 @@ export default function ArticleReader({
             )}
           </nav>
         </article>
-
       </div>
     </main>
   );

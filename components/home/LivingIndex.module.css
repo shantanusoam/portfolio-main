@@ -464,8 +464,12 @@
 
 .inspectButton:hover,
 .inspectButton:focus-visible {
+  border-top-color: rgba(255, 121, 81, 0.48);
+  border-bottom-color: rgba(255, 121, 81, 0.48);
   color: #ff7951;
-  outline: none;
+  background: rgba(255, 93, 47, 0.075);
+  outline: 2px solid rgba(255, 121, 81, 0.34);
+  outline-offset: 3px;
 }
 
 .inspectButton span:last-child {

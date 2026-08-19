@@ -13,6 +13,8 @@ export interface PlatformLocomotionResult {
   jumped: boolean;
 }
 
+const JUMP_BUFFER_SECONDS = 0.16;
+
 /** Gravity-driven root motion for characters that walk on page surfaces. */
 export class PlatformLocomotionController {
   grounded = false;
@@ -26,6 +28,7 @@ export class PlatformLocomotionController {
   private viewportHeight = 1;
   private coyoteTimer = 0;
   private hopTimer = 0;
+  private jumpBufferTimer = 0;
   private readonly result: PlatformLocomotionResult = {
     landed: false,
     impactSpeed: 0,
@@ -34,6 +37,17 @@ export class PlatformLocomotionController {
 
   setSurfaces(surfaces: readonly EnvironmentSurface[]): void {
     this.surfaces = surfaces;
+    if (
+      !this.grounded ||
+      !this.surfaceId ||
+      this.surfaceId === "viewport-floor"
+    )
+      return;
+    const support = surfaces.find((surface) => surface.id === this.surfaceId);
+    if (!support) return;
+    this.groundY = support.top;
+    this.groundLeft = support.left;
+    this.groundRight = support.right;
   }
 
   resize(width: number, height: number): void {
@@ -49,6 +63,7 @@ export class PlatformLocomotionController {
     this.groundRight = Number.POSITIVE_INFINITY;
     this.coyoteTimer = 0;
     this.hopTimer = 0;
+    this.jumpBufferTimer = 0;
   }
 
   translateSupport(dx: number, dy: number): void {
@@ -73,6 +88,10 @@ export class PlatformLocomotionController {
 
     this.hopTimer = Math.max(0, this.hopTimer - dt);
     this.coyoteTimer = Math.max(0, this.coyoteTimer - dt);
+    this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - dt);
+    if (manual?.enabled && manual.jump) {
+      this.jumpBufferTimer = JUMP_BUFFER_SECONDS;
+    }
     const previousX = body.position.x;
     const previousY = body.position.y;
     const previousVelocityX = body.velocity.x;
@@ -113,17 +132,21 @@ export class PlatformLocomotionController {
     const wantsTravel =
       Math.abs(horizontalDelta) > spec.hopDistance * scale &&
       Math.abs(body.velocity.x) > maximumHorizontalSpeed * 0.28;
-    const wantsManualJump = Boolean(manual?.enabled && manual.jump);
+    const wantsManualJump = Boolean(
+      manual?.enabled && this.jumpBufferTimer > 0,
+    );
     if (
       (this.grounded || this.coyoteTimer > 0) &&
       this.hopTimer <= 0 &&
       (wantsManualJump || (!manual?.enabled && (wantsHeight || wantsTravel)))
     ) {
-      body.velocity.y = -spec.jumpSpeed * scale;
+      const jumpStrength = manual?.grab ? 0.68 : manual?.crouch ? 0.8 : 1;
+      body.velocity.y = -spec.jumpSpeed * scale * jumpStrength;
       this.grounded = false;
       this.surfaceId = null;
       this.groundY = Number.POSITIVE_INFINITY;
       this.hopTimer = spec.hopCooldown;
+      this.jumpBufferTimer = 0;
       this.coyoteTimer = 0;
       result.jumped = true;
     }

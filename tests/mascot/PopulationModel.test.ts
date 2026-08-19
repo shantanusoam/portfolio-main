@@ -23,11 +23,12 @@ function feed(
   return model.consumeFry(mealsAfter, canSplit);
 }
 
-test("only one school can be active at a time", () => {
+test("active prey can be topped up without exceeding the bounded pool", () => {
   const model = new PopulationModel();
   assert.equal(model.requestSchool(FRY_SCHOOL_SIZE), FRY_SCHOOL_SIZE);
-  assert.equal(model.requestSchool(FRY_SCHOOL_SIZE), 0);
-  assert.equal(model.getActiveFryCount(), FRY_SCHOOL_SIZE);
+  assert.equal(model.requestSchool(FRY_SCHOOL_SIZE), 3);
+  assert.equal(model.requestSchool(1), 0);
+  assert.equal(model.getActiveFryCount(), 8);
   model.cancelFry();
   assert.equal(model.requestSchool(2), 2);
 });
@@ -84,20 +85,20 @@ test("feeding at the cap blooms without increasing the population", () => {
   assert.equal(model.getStatus().mealsToNextFission, 0);
 });
 
-test("anatomy milestones grow to sixty joints with a long cute tail", () => {
+test("anatomy milestones grow a longer, balanced body with a cute tail", () => {
   const meal0 = resolveAnatomyForMeals(0);
   const meal1 = resolveAnatomyForMeals(1);
   const meal5 = resolveAnatomyForMeals(5);
   const meal20 = resolveAnatomyForMeals(20);
 
-  assert.equal(meal0.jointCount, 30);
+  assert.equal(meal0.jointCount, 21);
   assert.ok(meal1.segmentLength > meal0.segmentLength);
   assert.ok(meal1.bodyProfile.maxWidth >= meal0.bodyProfile.maxWidth);
-  assert.equal(meal5.jointCount, 38);
-  assert.equal(meal20.jointCount, 60);
-  assert.ok(spineLengthPx(meal20) > spineLengthPx(meal0) * 1.8);
+  assert.equal(meal5.jointCount, 23);
+  assert.equal(meal20.jointCount, 29);
+  assert.ok(spineLengthPx(meal20) > spineLengthPx(meal0) * 1.35);
   // Not a screen-filling ribbon — width stays in a cute fish range.
-  assert.ok(spineLengthPx(meal20) < spineLengthPx(meal0) * 3.2);
+  assert.ok(spineLengthPx(meal20) < spineLengthPx(meal0) * 1.8);
   assert.ok(meal20.bodyProfile.maxWidth > meal0.bodyProfile.maxWidth);
   assert.ok(meal20.bodyProfile.headScale < meal0.bodyProfile.headScale);
   assert.ok(
