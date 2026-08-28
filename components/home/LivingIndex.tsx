@@ -25,14 +25,15 @@ const SPECIMENS: Specimen[] = [
     name: "Signal Koi",
     type: "Procedural companion",
     description:
-      "A touch-to-wake fish with an interruptible mind, a soft spine and a deliberate resting state.",
-    prompt: "Click the fish to follow. Click again to let it rest.",
+      "A site-roaming fish with an interruptible mind, a soft spine and a wake shared with the interface beneath it.",
+    prompt:
+      "Click the fish to follow. Pluck the hero strings to disturb its current.",
     href: "/creature-lab",
     linkLabel: "Enter Creature Lab",
     layers: [
       "Second-order body dynamics",
       "Follow / rest behavior contract",
-      "Canvas rig with quality governor",
+      "Canvas rig + bounded WebGL wake",
     ],
   },
   {
@@ -321,6 +322,7 @@ export default function LivingIndex() {
               onPointerMove={setCardPointer}
               onPointerLeave={resetCardPointer}
               data-mascot-interest="project"
+              data-canvas-pulse={specimen.id === "octopod" ? "cool" : "warm"}
             >
               <div className={styles.stage}>
                 <div className={styles.stageMeta}>

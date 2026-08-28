@@ -2,10 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { MascotEngine } from "@/lib/mascot/MascotEngine";
-import {
-  getQualityDprCap,
-  MASCOT_CONFIG,
-} from "@/lib/mascot/MascotConfig";
+import { getQualityDprCap, MASCOT_CONFIG } from "@/lib/mascot/MascotConfig";
 import { PointerInput } from "@/lib/mascot/input/PointerInput";
 import { ScrollInput } from "@/lib/mascot/input/ScrollInput";
 import type {
@@ -30,6 +27,8 @@ export interface ProceduralMascotCanvasProps {
   onFollowChange?: (following: boolean) => void;
   /** Optional viewport-space arena; the canvas remains full-screen for clean compositing. */
   arenaSelector?: string;
+  /** Enables bounded prey/fission ecology without requiring a section arena. */
+  autoEcology?: boolean;
 }
 
 /**
@@ -50,6 +49,7 @@ export default function ProceduralMascotCanvas({
   requireFishActivation = false,
   onFollowChange,
   arenaSelector,
+  autoEcology = false,
 }: ProceduralMascotCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<MascotEngineContract | null>(null);
@@ -74,7 +74,7 @@ export default function ProceduralMascotCanvas({
       quality: qualityRef.current,
       debug,
       reducedMotion,
-      autoEcology: Boolean(arenaSelector),
+      autoEcology,
       onStatus,
       onEcosystemStatus,
     });
@@ -177,7 +177,7 @@ export default function ProceduralMascotCanvas({
     // Engine identity is tied to `seed` only; quality/enabled/reducedMotion/debug
     // are pushed to the running engine imperatively below instead of remounting it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed, requireFishActivation, arenaSelector]);
+  }, [seed, requireFishActivation, arenaSelector, autoEcology]);
 
   useEffect(() => {
     engineRef.current?.setQuality(quality);

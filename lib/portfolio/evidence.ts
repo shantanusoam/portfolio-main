@@ -379,6 +379,86 @@ export const systemsRegistry: SystemRegistryEntry[] = [
     ],
   },
   {
+    slug: "living-signal-field",
+    name: "Living Signal Field",
+    status: "live",
+    description:
+      "A restrained shader habitat that lets the roaming fish, musical strings, controls, pointer and scroll share one visual current.",
+    why: "The portfolio already had several strong interactions. The field makes them feel like one authored world instead of unrelated demos.",
+    difficult:
+      "The atmosphere had to remain behind accessible HTML, react to an independent canvas engine, survive without WebGL, and leave enough frame budget for the creature itself.",
+    learned:
+      "A shared signal contract creates more coherence than stacking effects: each input contributes to one bounded renderer with one performance policy.",
+    image: "/proof-assets/systems/living-signal-field.svg",
+    previewHref: "/#hero",
+    sourceHref: "https://github.com/shantanusoam/portfolio-main",
+    tech: ["WebGL", "GLSL", "Canvas 2D"],
+    how: [
+      "The fish exposes a lightweight position/velocity snapshot rather than its full body rig",
+      "A fragment shader turns pose, pointer and scroll signals into low-alpha caustics and a direction-aware wake",
+      "String plucks and intentional control presses enter a four-slot ripple pool",
+      "Explore mode mounts the field lazily; Focus mode and touch-first layouts skip it",
+      "A Canvas 2D renderer and static CSS layer preserve the atmosphere when WebGL is unavailable",
+    ],
+    accessibility: [
+      "The canvas is decorative, aria-hidden and pointer-transparent",
+      "All content stays normal selectable HTML",
+      "Reduced motion renders one static frame with no travelling pulses",
+      "Focus mode removes the field and creature together",
+    ],
+    performance: [
+      "30fps render cap",
+      "Device pixel ratio capped at 1.25",
+      "Four ripple slots with fixed-size shader uniforms",
+      "Animation pauses in hidden tabs and is dynamically loaded after idle",
+    ],
+    usage:
+      "Use Explore mode, move through the homepage, pluck a string, or toggle a case-study view.",
+    diagram: [
+      {
+        label: "Sense",
+        title: "Small signals",
+        detail:
+          "Creature pose, pointer, scroll and deliberate pulses enter as normalized viewport data.",
+      },
+      {
+        label: "Bound",
+        title: "Fixed budget",
+        detail:
+          "Frame rate, DPR, pulse count and shader work are capped before rendering begins.",
+      },
+      {
+        label: "Render",
+        title: "One habitat",
+        detail:
+          "Caustics, wake and ripples are composed in one transparent pass beneath the DOM.",
+      },
+      {
+        label: "Fallback",
+        title: "Keep the page",
+        detail:
+          "Canvas 2D or a static gradient replaces the shader without changing content or input.",
+      },
+    ],
+    measurements: [
+      {
+        label: "Render ceiling",
+        value: "30 fps",
+        note: "The requestAnimationFrame loop skips paints until at least 32ms has elapsed.",
+      },
+      {
+        label: "Pixel ceiling",
+        value: "1.25 DPR",
+        note: "The fixed full-screen layer deliberately avoids native high-DPR cost.",
+      },
+      {
+        label: "Pulse pool",
+        value: "4 slots",
+        note: "New signals evict the oldest pulse instead of growing memory or shader uniforms.",
+      },
+    ],
+  },
+  {
     slug: "procedural-mascot",
     name: "Procedural Mascot Engine",
     status: "live",

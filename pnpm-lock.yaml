@@ -14,6 +14,9 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: 1.26.0
         version: 1.26.0(supports-color@8.1.1)(zod@3.25.76)
+      '@next/env':
+        specifier: 15.5.21
+        version: 15.5.21
       '@splinetool/react-spline':
         specifier: ^2.2.6
         version: 2.2.6(@splinetool/runtime@1.12.98)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)

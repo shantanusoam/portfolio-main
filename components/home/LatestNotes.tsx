@@ -71,6 +71,8 @@ export default function LatestNotes() {
             className={styles.noteCard}
             href={`/blog/${article.slug}`}
             key={article.slug}
+            data-mascot-interest="project"
+            data-canvas-pulse="warm"
           >
             <div className={styles.noteVisual}>
               <Image

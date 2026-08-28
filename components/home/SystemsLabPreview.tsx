@@ -57,6 +57,8 @@ export default function SystemsLabPreview() {
             className={styles.registryCard}
             href={`/systems/${entry.slug}`}
             key={entry.slug}
+            data-mascot-interest="project"
+            data-canvas-pulse="cool"
           >
             <div className={styles.registryCardImage}>
               <Image

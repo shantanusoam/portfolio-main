@@ -15,6 +15,7 @@
     "test:mascot": "tsx --test $(find tests/mascot -name '*.test.ts')",
     "test:mascot:watch": "tsx --test --watch $(find tests/mascot -name '*.test.ts')",
     "test:procedural-character": "node --import tsx --test $(find tests/procedural-character -name '*.test.ts')",
+    "test:living-canvas": "node --import tsx --test tests/living-canvas/pulseField.test.ts",
     "verify:mascot": "node scripts/mascot/verify.mjs",
     "verify:mascot-upgrade": "node scripts/mascot/verify-upgrade.mjs",
     "perf:mascot": "node scripts/mascot/perf-budget.mjs"
@@ -22,6 +23,7 @@
   "dependencies": {
     "@chenglou/pretext": "^0.0.8",
     "@modelcontextprotocol/sdk": "1.26.0",
+    "@next/env": "15.5.21",
     "@splinetool/react-spline": "^2.2.6",
     "@studio-freight/lenis": "^1.0.22",
     "@types/node": "20.4.2",

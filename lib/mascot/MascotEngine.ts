@@ -29,6 +29,7 @@ import type {
   MascotEngineOptions,
   MascotExpression,
   MascotQuality,
+  MascotSignalSnapshot,
   MascotStatus,
   MusicalEvent,
   ResonanceGateState,
@@ -294,6 +295,17 @@ export class MascotEngine implements MascotEngineContract {
 
   getEcosystemStatus(): MascotEcosystemStatus {
     return this.ecosystem.getStatus();
+  }
+
+  getSignalSnapshot(): MascotSignalSnapshot {
+    const root = this.runtime.pose.getRoot();
+    const velocity = this.runtime.pose.getVelocity();
+    return {
+      rootPosition: { x: root.x, y: root.y },
+      velocity: { x: velocity.x, y: velocity.y },
+      behavior: this.runtime.behaviorMachine.getCurrent(),
+      timestamp: now(),
+    };
   }
 
   /** Dev/motion-lab only: toggles the spine/normals/obstacle debug overlay live. */
