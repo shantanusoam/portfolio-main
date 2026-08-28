@@ -749,15 +749,23 @@
 }
 
 .readerHero {
-  max-width: 980px;
-  padding: clamp(82px, 8vw, 112px) 0 42px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: end;
+  padding: clamp(54px, 6vw, 80px) 0 48px;
+}
+
+.readerHeroCopy {
+  min-width: 0;
+  padding-bottom: 4px;
 }
 
 .backLink {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   color: var(--archive-muted);
   font-family: var(--font-data), monospace;
   font-size: 9px;
@@ -767,28 +775,30 @@
 }
 
 .readerTitle {
-  max-width: 850px;
+  max-width: 760px;
   margin-top: 18px;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(42px, 5.7vw, 74px);
+  font-size: clamp(42px, 4.7vw, 68px);
   font-weight: 500;
-  line-height: 0.94;
+  line-height: 0.98;
   letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 
 .readerDek {
-  max-width: 68ch;
-  margin-top: 24px;
+  max-width: 60ch;
+  margin-top: 22px;
   color: var(--archive-muted);
-  font-size: clamp(18px, 1.6vw, 22px);
-  line-height: 1.58;
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.62;
+  text-wrap: pretty;
 }
 
 .readerCover {
   position: relative;
-  width: min(900px, 100%);
-  aspect-ratio: 16 / 7.4;
-  margin-top: 32px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin: 0;
   overflow: hidden;
   border: 1px solid var(--archive-line);
   background: #080807;
@@ -835,21 +845,21 @@
   top: 0;
   left: 0;
   z-index: 1100;
-  width: 3px;
-  height: 100vh;
+  width: 100%;
+  height: 3px;
   background: var(--archive-orange);
   box-shadow: 0 0 12px rgba(255, 93, 47, 0.58);
-  transform: scaleY(var(--reading-progress, 0));
-  transform-origin: top;
+  transform: scaleX(var(--reading-progress, 0));
+  transform-origin: left;
 }
 
 .readerLayout {
   display: grid;
-  grid-template-columns: minmax(170px, 220px) minmax(0, 72ch);
-  gap: clamp(36px, 6vw, 82px);
+  grid-template-columns: minmax(180px, 210px) minmax(0, 68ch);
+  gap: clamp(38px, 5vw, 70px);
   align-items: start;
   justify-content: center;
-  padding-top: 44px;
+  padding-top: 38px;
   border-top: 1px solid var(--archive-line);
 }
 
@@ -862,6 +872,43 @@
   line-height: 1.6;
 }
 
+.readerStatus {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  margin-bottom: 26px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--archive-line);
+}
+
+.readerStatus > span:first-child,
+.readingModeControl > span {
+  color: rgba(238, 233, 223, 0.4);
+}
+
+.readerStatus strong {
+  color: var(--archive-paper);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.readerMeter {
+  grid-column: 1 / -1;
+  height: 2px;
+  overflow: hidden;
+  background: var(--archive-line);
+}
+
+.readerMeter > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--archive-orange);
+  transform: scaleX(var(--reading-progress, 0));
+  transform-origin: left;
+}
+
 .toc {
   display: grid;
   gap: 12px;
@@ -869,30 +916,61 @@
 }
 
 .toc a {
+  padding-left: 10px;
+  border-left: 1px solid transparent;
   color: var(--archive-muted);
   text-decoration: none;
-  transition: color 160ms ease;
+  text-wrap: pretty;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
-.toc a:hover {
+.toc a:hover,
+.toc a[aria-current="location"] {
+  border-left-color: var(--archive-orange);
   color: var(--archive-orange);
 }
 
 .readingModeButton {
-  width: 100%;
+  flex: 1 1 0;
+  padding: 9px 8px;
+  font-size: 7px;
+}
+
+.readingModeButton[aria-pressed="true"] {
+  border-color: var(--archive-orange);
+  color: var(--archive-paper);
+  background: rgba(255, 93, 47, 0.1);
+}
+
+.readingModeControl {
+  display: grid;
+  gap: 10px;
   margin-top: 28px;
-  padding: 10px;
+}
+
+.readingModeControl > div {
+  display: flex;
+  gap: 6px;
 }
 
 .articleBody {
-  --reader-font-size: clamp(16px, 1.25vw, 18px);
+  --reader-font-size: clamp(16px, 1.2vw, 18px);
 
   min-width: 0;
-  max-width: 72ch;
+  max-width: 68ch;
 }
 
 .articleBodyQuiet {
-  --reader-font-size: clamp(18px, 1.45vw, 20px);
+  --reader-font-size: clamp(19px, 1.5vw, 21px);
+  max-width: 66ch;
+}
+
+.articleBodyQuiet .articleSection p,
+.articleBodyQuiet .articleSection li {
+  font-family: var(--font-editorial), Georgia, serif;
+  line-height: 1.72;
 }
 
 .workbench {
@@ -1173,29 +1251,33 @@
 
 .articleSection {
   scroll-margin-top: 110px;
-  padding: 0 0 50px;
+  padding: 0 0 clamp(32px, 4vw, 44px);
 }
 
 .articleSection + .articleSection {
-  padding-top: 50px;
+  padding-top: clamp(32px, 4vw, 44px);
   border-top: 1px solid var(--archive-line);
 }
 
 .articleSection h2 {
   max-width: 680px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(30px, 3.25vw, 46px);
+  font-size: clamp(29px, 3vw, 43px);
   font-weight: 500;
-  line-height: 1.02;
+  line-height: 1.06;
+  text-wrap: balance;
 }
 
 .articleSection p,
 .articleSection li {
-  max-width: 72ch;
+  max-width: 68ch;
   color: rgba(238, 233, 223, 0.76);
+  font-family: var(--font-body), sans-serif;
   font-size: var(--reader-font-size);
-  line-height: 1.75;
+  line-height: 1.7;
+  letter-spacing: -0.008em;
+  text-wrap: pretty;
 }
 
 .articleSection p + p {
@@ -1209,8 +1291,8 @@
 }
 
 .pullQuote {
-  margin: 42px 0;
-  padding: 30px 0 30px 30px;
+  margin: 34px 0;
+  padding: 24px 0 24px 26px;
   border-left: 2px solid var(--archive-orange);
   color: var(--archive-paper);
   font-family: var(--font-editorial), Georgia, serif;
@@ -2107,6 +2189,11 @@
     gap: 34px;
   }
 
+  .readerHero {
+    grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+    gap: 30px;
+  }
+
   .workbenchHeader {
     grid-template-columns: 1fr;
   }
@@ -2258,7 +2345,9 @@
   }
 
   .readerHero {
-    padding: 56px 0 34px;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 46px 0 34px;
   }
 
   .backLink {
@@ -2285,8 +2374,19 @@
     border-bottom: 1px solid var(--archive-line);
   }
 
+  .readerStatus {
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+  }
+
   .toc {
     grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+  }
+
+  .readingModeControl {
+    max-width: 280px;
+    margin-top: 22px;
   }
 
   .workbenchLayout {

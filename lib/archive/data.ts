@@ -7,6 +7,221 @@ import type {
 
 export const archiveArticles: ArchiveArticle[] = [
   {
+    slug: "reliable-agent-harness-from-one-loop",
+    title: "From One LLM Loop to a Reliable Agent Harness",
+    dek: "A practical guide to turning a model-and-tools demo into a resumable system with events, idempotency, bounded context, approvals, and failure recovery.",
+    category: "AI Agents",
+    format: "Tutorial",
+    readingMinutes: 13,
+    publishedAt: "2026-08-28",
+    updatedAt: "2026-08-28",
+    accent: "events / checkpoints / approvals",
+    sections: [
+      {
+        id: "keep-the-loop-boring",
+        heading: "1. Keep the agent loop boring",
+        paragraphs: [
+          "At its smallest, an agent calls a model, executes the requested tool, returns the result, and repeats. That loop is useful because it separates semantic judgment from ordinary execution. It is also fragile: a process restart loses its place, a retried tool can run twice, and an ever-growing transcript eventually becomes the system's memory strategy by accident.",
+          "Treat the loop as a replaceable worker. The harness around it owns identity, history, policy, recovery, and human decisions. This mental model prevents model prompts from becoming an invisible operating system.",
+        ],
+        code: {
+          language: "ts",
+          label: "the deliberately small semantic loop",
+          value: `while (!run.finished) {
+  const context = await hydrateContext(run.id);
+  const decision = await model.next(context);
+  const event = await journal.append(run.id, decision);
+
+  await dispatcher.handle(event);
+}`,
+        },
+        quote:
+          "The model chooses the next semantic step. The harness decides whether, when, and how that step may execute.",
+      },
+      {
+        id: "write-an-event-ledger",
+        heading: "2. Make events the source of truth",
+        paragraphs: [
+          "Do not save only the latest array of messages. Record what happened as append-only events: run started, model decided, tool requested, approval required, tool completed, checkpoint written, run paused, and run finished. A current status is then a projection of that history rather than the only surviving fact.",
+          "The event ledger answers the questions that matter after a failure: what did the model intend, what actually ran, what result was accepted, and where can execution safely resume? It also gives observability without asking log lines to behave like durable state.",
+        ],
+        list: [
+          "Give every run and every step a stable identifier.",
+          "Store inputs and bounded outputs with the event that owns them.",
+          "Record attempts separately from completed effects.",
+          "Derive the UI status from events instead of mutating several status fields.",
+        ],
+      },
+      {
+        id: "make-effects-idempotent",
+        heading: "3. Make tool effects safe to retry",
+        paragraphs: [
+          "Distributed work eventually repeats. A worker can finish a tool call and crash before marking the step complete; a queue can redeliver; a human can refresh while an approval is resolving. The harness must assume that the same semantic request may arrive more than once.",
+          "Assign an idempotency key before execution and let the tool boundary remember its outcome. A repeated request returns the recorded result instead of sending a second email, creating a second issue, or charging twice. Read-only tools can often retry freely; irreversible tools need explicit keys and stronger policy.",
+        ],
+        code: {
+          language: "ts",
+          label: "one effect, even after redelivery",
+          value: `const key = [runId, stepId, "send-email"].join(":");
+const previous = await effects.find(key);
+
+if (previous) return previous.result;
+
+const result = await mailer.send(input);
+await effects.complete({ key, result });
+return result;`,
+        },
+      },
+      {
+        id: "hydrate-bounded-context",
+        heading: "4. Hydrate context instead of replaying everything",
+        paragraphs: [
+          "A transcript is a record of conversation, not a complete memory architecture. Before each model call, assemble a bounded working set: the current goal, relevant constraints, the most recent steps, unresolved approvals, selected durable memories, and the exact tool results needed for the next decision.",
+          "Summaries should point back to durable evidence rather than replace it. If a later decision needs the original value, the harness can retrieve that event or artifact. This keeps context small without turning compression into silent data loss.",
+        ],
+        list: [
+          "Working context: what the model needs for this decision.",
+          "Run journal: the complete ordered history of execution.",
+          "Durable memory: facts useful across runs, with provenance.",
+          "Artifacts: large outputs stored outside the prompt and retrieved by reference.",
+        ],
+      },
+      {
+        id: "put-policy-outside-the-prompt",
+        heading: "5. Put execution policy outside the prompt",
+        paragraphs: [
+          "A prompt can ask the model to be careful, but it cannot enforce filesystem boundaries, tool scopes, recipient verification, budgets, or approval requirements. The dispatcher should evaluate every requested action against code-level policy before a tool receives it.",
+          "Keep the agent domain-neutral where possible. Route work to a specialist with a narrow tool set, validate its structured request, and supervise the result at the handoff. Specialization is useful because it reduces both context and authority, not because multiple agents automatically think better than one.",
+        ],
+      },
+      {
+        id: "pause-for-humans",
+        heading: "6. Model approval as resumable state",
+        paragraphs: [
+          "Human approval is not a modal dialog around a synchronous function. It is a durable pause. Persist the proposed action, its exact target and risk, the policy that required approval, and the event the run should continue from. The worker can stop completely while the decision waits.",
+          "When approval arrives, append a new event and resume from the checkpoint. Revalidate time-sensitive facts before execution; approval to send yesterday's draft is not permission to send a materially different draft today.",
+        ],
+        quote:
+          "A trustworthy agent can wait without holding a process open and resume without guessing what the human approved.",
+      },
+      {
+        id: "test-the-unhappy-resume",
+        heading: "7. Prove recovery before adding more autonomy",
+        paragraphs: [
+          "Test the boundary conditions deliberately: kill the worker after a tool succeeds but before acknowledgement, deliver the same queue item twice, reject an approval, expire a credential, return malformed tool output, and overflow the context budget. The expected result is not that nothing fails; it is that failure remains legible and recoverable.",
+          "Your turn: take one tool call in a small agent and give it a run ID, step ID, and idempotency key. Record requested and completed events. Then stop the process between those events and confirm that restarting does not repeat the external effect.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-08-28",
+        note: "Initial guide covering durable execution, context hydration, policy, approvals, and recovery.",
+      },
+    ],
+  },
+  {
+    slug: "motion-that-explains-the-interface",
+    title: "Design Motion That Explains the Interface",
+    dek: "A field guide to using hierarchy, continuity, interruption, scroll choreography, and reduced-motion fallbacks so animation communicates instead of decorating.",
+    category: "Interfaces",
+    format: "Tutorial",
+    readingMinutes: 11,
+    publishedAt: "2026-08-28",
+    updatedAt: "2026-08-28",
+    accent: "hierarchy / continuity / restraint",
+    sections: [
+      {
+        id: "start-with-the-question",
+        heading: "1. Start with the question motion must answer",
+        paragraphs: [
+          "Before choosing an easing curve, write the user question that exists at the state change: what appeared, where did it come from, what changed, what can I act on now, or did my action work? If a still frame answers the question completely, motion may not deserve the cost.",
+          "Useful animation preserves causality. A panel grows from the control that opened it. A filtered list rearranges instead of blinking into a new order. A save indicator responds near the field that changed. The movement creates an explanation the eye can follow.",
+        ],
+        quote:
+          "Motion earns its place when it carries information through time.",
+      },
+      {
+        id: "map-meaning-to-properties",
+        heading: "2. Map meaning to the smallest visual property",
+        paragraphs: [
+          "Use position to explain spatial relationship, opacity to introduce or retire supporting information, scale to acknowledge a local action, and shape or color to show a state change. Combining all four on every component creates spectacle but weakens the signal.",
+          "Animate containers when a group enters as one idea. Animate children only when their order matters. Keep real controls visible with their parent so a mistimed trigger can never leave the interactive part at zero opacity.",
+        ],
+        list: [
+          "Entrance: modest distance plus opacity, once.",
+          "Relationship: shared position or shape continuity.",
+          "Confirmation: local scale, color, or line draw near the action.",
+          "Status: a restrained repeating signal only while the state is live.",
+        ],
+      },
+      {
+        id: "choreograph-attention",
+        heading: "3. Let the primary signal arrive first",
+        paragraphs: [
+          "A title, image, evidence value, and supporting paragraph should not all compete at the same instant. Reveal the primary object first, trail the explanation by a small interval, then stop. The delay only needs to be long enough for the eye to understand order.",
+          "Stagger is a hierarchy tool, not a card-grid preset. A list of equivalent facts can use a shallow stagger; a decisive metric may arrive alone. When every section performs the same cascade, the choreography becomes wallpaper.",
+        ],
+        code: {
+          language: "ts",
+          label: "one restrained evidence sequence",
+          value: `const timeline = gsap.timeline({
+  scrollTrigger: { trigger: section, start: "top 82%", once: true },
+});
+
+timeline
+  .from(title, { y: 18, opacity: 0, duration: 0.55 })
+  .from(evidence, { y: 12, opacity: 0, stagger: 0.06 }, "-=0.22")
+  .from(note, { opacity: 0, duration: 0.32 }, "-=0.12");`,
+        },
+      },
+      {
+        id: "build-scroll-tension",
+        heading: "4. Build tension and release across the scroll",
+        paragraphs: [
+          "A long page needs rhythm rather than constant activity. An invitation can be expressive, proof should be precise, dense reading needs calm, and the close should release energy. Alternating those modes makes the visitor feel progression without requiring pinned scenes or a new effect in every viewport.",
+          "Use scroll triggers at section boundaries and avoid changing document height after the page's navigation measurements are calculated. Pinning is powerful, but it can desynchronize other scroll systems and trap keyboard or touch users when the content does not justify it.",
+        ],
+      },
+      {
+        id: "design-for-interruption",
+        heading: "5. Design the interrupted animation",
+        paragraphs: [
+          "People reverse direction, click twice, switch tabs, resize windows, and navigate before a transition finishes. Every animation needs a coherent destination when interrupted. Prefer transforms that can be replaced, timelines that can be killed on cleanup, and state-derived variants that always converge on the current truth.",
+          "Clear temporary inline transforms after entrance choreography when CSS owns hover or focus transforms. Otherwise the arrival animation silently disables the interaction animation that was meant to follow it.",
+        ],
+      },
+      {
+        id: "protect-access-and-performance",
+        heading: "6. Protect access, focus, and the frame budget",
+        paragraphs: [
+          "Reduced motion is a separate presentation, not the same animation at twice the speed. Skip decorative scroll timelines, preserve the final visible state, and keep feedback available through color, text, or shape. Focus indicators must remain visible before, during, and after transforms.",
+          "Prefer opacity and transform, avoid reading layout in the same loop that writes it, pause offscreen continuous work, and test on a constrained device. A beautiful 60-frame entrance is not a success if it delays input or makes text shimmer while somebody is trying to read.",
+        ],
+        list: [
+          "No motion should be required to discover a control.",
+          "No looping effect should compete with long-form reading.",
+          "No entrance should leave content hidden if JavaScript fails.",
+          "No animation library should outlive the component that created it.",
+        ],
+      },
+      {
+        id: "test-the-explanation",
+        heading: "7. Test whether the explanation survived",
+        paragraphs: [
+          "Watch the interaction once at normal speed and describe what changed without naming the animation technique. Then disable motion and repeat the task. If the first version is confusing or the second version loses essential feedback, the system needs another pass.",
+          "Your turn: choose one state change in an interface and finish this sentence: ‘The movement helps the user understand…’ If the ending is only ‘that the page is polished,’ remove the movement and use the saved attention somewhere with a real job.",
+        ],
+      },
+    ],
+    revisions: [
+      {
+        date: "2026-08-28",
+        note: "Initial field guide for semantic motion, scroll rhythm, interruption, accessibility, and performance.",
+      },
+    ],
+  },
+  {
     slug: "procedural-fish-from-seek-to-forage",
     title: "Make a Fish Think, Not Twitch: From Seek to Forage",
     dek: "A noob-to-pro guide to giving a procedural creature perception, hunger, pursuit, rest, growth, and reproduction without turning the page into a screensaver.",
@@ -1772,8 +1987,7 @@ export const talkEntries: TalkEntry[] = [
     why: "A precise lesson in replacing conditionals and missing values with objects that make behavior explicit.",
     leavesYouWith:
       "A practical way to recognize when null handling is hiding a missing concept in the model.",
-    takeaway:
-      "Absence can have behavior; naming it can simplify every caller.",
+    takeaway: "Absence can have behavior; naming it can simplify every caller.",
   },
   {
     id: "concurrency-not-parallelism",
@@ -2007,7 +2221,8 @@ export const raqEntries: RaqEntry[] = [
     question: "What did you delete that made the work much better?",
     topic: "Taste",
     askedAt: "After the third portfolio redesign",
-    shortAnswer: "The requirement that every good idea had to appear on the homepage.",
+    shortAnswer:
+      "The requirement that every good idea had to appear on the homepage.",
     longAnswer: [
       "The homepage became more honest when it stopped carrying the whole archive, every experiment, and every proof detail at once. A visitor can understand the main claim quickly, then choose whether to descend into systems, writing, or play.",
       "Deleting from the main path did not erase the work. It gave the work an address where the right person could find it without making everyone else pay the attention cost.",
@@ -2018,7 +2233,8 @@ export const raqEntries: RaqEntry[] = [
     question: "What should an AI agent never decide on your behalf?",
     topic: "Tools",
     askedAt: "While designing an automation boundary",
-    shortAnswer: "Which irreversible consequence is acceptable to another person.",
+    shortAnswer:
+      "Which irreversible consequence is acceptable to another person.",
     longAnswer: [
       "An agent can gather evidence, compare options, draft language, and execute a clearly bounded decision. It should not silently choose who absorbs a risk, whether a public claim is fair, or when another person's data may be repurposed.",
       "The boundary is not intelligence. It is authority. More capable tools make that distinction more important, not less.",
@@ -2029,7 +2245,8 @@ export const raqEntries: RaqEntry[] = [
     question: "How does an animation earn its place?",
     topic: "Taste",
     askedAt: "During a motion critique",
-    shortAnswer: "It explains state, preserves context, or creates a feeling worth the delay.",
+    shortAnswer:
+      "It explains state, preserves context, or creates a feeling worth the delay.",
     longAnswer: [
       "I ask what becomes harder to understand if the motion disappears. A transition may show origin and destination; a spring may communicate weight; a living creature may make an otherwise abstract system approachable.",
       "If removing the animation changes nothing except the amount of visible effort, it belongs in a lab rather than the main product path.",
@@ -2040,7 +2257,8 @@ export const raqEntries: RaqEntry[] = [
     question: "Which failure would you leave visible in a case study?",
     topic: "Failure",
     askedAt: "While editing a polished build log",
-    shortAnswer: "The one that changed the architecture, not merely the screenshot.",
+    shortAnswer:
+      "The one that changed the architecture, not merely the screenshot.",
     longAnswer: [
       "A dead end is useful when it exposes a wrong assumption: React state used as a frame bus, a random level generator producing impossible jumps, or an agent retrying without a recovery boundary.",
       "Showing the correction makes judgment inspectable. A gallery of only final states proves taste; a well-chosen failure can prove learning speed.",
@@ -2051,7 +2269,8 @@ export const raqEntries: RaqEntry[] = [
     question: "Why keep building strange little creatures?",
     topic: "Life",
     askedAt: "By someone expecting a practical project",
-    shortAnswer: "Because a creature makes dozens of invisible engineering decisions emotionally legible.",
+    shortAnswer:
+      "Because a creature makes dozens of invisible engineering decisions emotionally legible.",
     longAnswer: [
       "A procedural animal forces timing, state, input, constraints, performance, accessibility, and rendering to cooperate. People notice immediately when those systems disagree, even if they cannot name the failing subsystem.",
       "The result is playful, but the lesson transfers: products also feel trustworthy when intention, feedback, and recovery belong to one coherent model.",
@@ -2062,7 +2281,8 @@ export const raqEntries: RaqEntry[] = [
     question: "When should the boring default win?",
     topic: "Work",
     askedAt: "Before replacing a familiar control",
-    shortAnswer: "Whenever novelty asks the user to learn but gives them no lasting leverage.",
+    shortAnswer:
+      "Whenever novelty asks the user to learn but gives them no lasting leverage.",
     longAnswer: [
       "A new interaction can be justified by speed, spatial understanding, accessibility, or expressive capability. It cannot be justified only by making the interface feel owned.",
       "I like unusual systems, so this is a useful constraint: the stranger the control, the clearer its payoff and escape route must be.",
@@ -2073,7 +2293,8 @@ export const raqEntries: RaqEntry[] = [
     question: "What does research-grade mean in product work?",
     topic: "Work",
     askedAt: "After a request to make the motion more intelligent",
-    shortAnswer: "A claim connected to evidence, then translated into a testable design choice.",
+    shortAnswer:
+      "A claim connected to evidence, then translated into a testable design choice.",
     longAnswer: [
       "Citing a paper is not the outcome. If pursuit research says prediction beats chasing the current position, the product decision is a bounded intercept point. If reading guidance says long lines lose people, the decision is a readable measure and a preference control.",
       "Research earns its place when someone can point from source to assumption to implementation—and change the implementation if the evidence changes.",
@@ -2084,7 +2305,8 @@ export const raqEntries: RaqEntry[] = [
     question: "What would you rebuild even if nobody noticed the difference?",
     topic: "Tools",
     askedAt: "During a maintenance week",
-    shortAnswer: "A state boundary that currently works only because events arrive in a lucky order.",
+    shortAnswer:
+      "A state boundary that currently works only because events arrive in a lucky order.",
     longAnswer: [
       "Temporal luck is expensive. The feature can look perfect while refreshes, retries, hidden tabs, or slow responses are quietly constructing invalid states.",
       "I would rather replace that luck before adding a visible feature. The visitor may never notice the rewrite, but the next feature will not inherit a trap.",
@@ -2095,7 +2317,8 @@ export const raqEntries: RaqEntry[] = [
     question: "How do you study great portfolios without copying them?",
     topic: "Internet",
     askedAt: "With too many inspiration tabs open",
-    shortAnswer: "Record the decision and its effect, not the surface treatment.",
+    shortAnswer:
+      "Record the decision and its effect, not the surface treatment.",
     longAnswer: [
       "Instead of saving ‘large orange type,’ I save ‘one dominant signal makes a dense page scannable.’ Instead of copying a cursor, I ask how the interaction preserved context or made the maker's skill undeniable.",
       "The principle can combine with my own constraints. The color, typeface, 3D object, and transition should emerge from this site's material rather than another site's screenshot.",
@@ -2106,7 +2329,8 @@ export const raqEntries: RaqEntry[] = [
     question: "What should someone remember after closing this portfolio?",
     topic: "Internet",
     askedAt: "At the start of this redesign",
-    shortAnswer: "That the systems were serious and the person making them was still curious.",
+    shortAnswer:
+      "That the systems were serious and the person making them was still curious.",
     longAnswer: [
       "Proof matters: shipped work, architecture, outcomes, and the ability to explain trade-offs. But proof without personality becomes interchangeable with a polished résumé template.",
       "The creatures, field notes, strange questions, and small instruments are not there to distract from competence. They show what the competence is in service of: making technology feel understandable, alive, and worth exploring.",
