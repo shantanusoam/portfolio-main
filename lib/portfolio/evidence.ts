@@ -957,6 +957,15 @@ export const experienceEvidence = [
 ];
 
 export const noteCoverBySlug: Record<string, string> = {
+  "reliable-agent-harness-from-one-loop": "/proof-assets/notes/two-brains.webp",
+  "motion-that-explains-the-interface":
+    "/proof-assets/systems/combo-trail.webp",
+  "procedural-fish-from-seek-to-forage":
+    "/proof-assets/systems/creature-rig.webp",
+  "spring-octopus-platformer-one-force-at-a-time":
+    "/proof-assets/systems/mascot-engine.webp",
+  "learn-hard-technical-systems-with-one-small-loop":
+    "/proof-assets/notes/memory.webp",
   "building-signal-breaker-step-by-step":
     "/proof-assets/systems/signal-breaker.webp",
   "procedural-motion-from-target-to-character":

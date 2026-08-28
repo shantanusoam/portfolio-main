@@ -29,41 +29,105 @@ function formatTs(ts: number | null) {
 function CornerBrackets() {
   return (
     <>
-      <span className={`${styles.cornerBracket} ${styles.cornerTL}`} aria-hidden="true" />
-      <span className={`${styles.cornerBracket} ${styles.cornerTR}`} aria-hidden="true" />
-      <span className={`${styles.cornerBracket} ${styles.cornerBR}`} aria-hidden="true" />
-      <span className={`${styles.cornerBracket} ${styles.cornerBL}`} aria-hidden="true" />
+      <span
+        className={`${styles.cornerBracket} ${styles.cornerTL}`}
+        aria-hidden="true"
+      />
+      <span
+        className={`${styles.cornerBracket} ${styles.cornerTR}`}
+        aria-hidden="true"
+      />
+      <span
+        className={`${styles.cornerBracket} ${styles.cornerBR}`}
+        aria-hidden="true"
+      />
+      <span
+        className={`${styles.cornerBracket} ${styles.cornerBL}`}
+        aria-hidden="true"
+      />
     </>
   );
 }
 
 const HARNESS_BREAKS: Array<{ break: string; fix: string }> = [
-  { break: "Process crashes — state lost, tool calls get re-fired", fix: "→ durable execution" },
-  { break: "A tool can do anything it wants — unsafe runtime", fix: "→ sandboxed tool calls" },
-  { break: "Context grows forever — slow, expensive, worse answers", fix: "→ memory & context hydration" },
-  { break: "One agent tries to do everything — no specialization", fix: "→ routing & handoffs" },
-  { break: "Sub-agents fail or disagree — no recovery path", fix: "→ supervision" },
-  { break: "Waiting on approval blocks the whole server", fix: "→ human-in-the-loop" },
+  {
+    break: "Process crashes — state lost, tool calls get re-fired",
+    fix: "→ durable execution",
+  },
+  {
+    break: "A tool can do anything it wants — unsafe runtime",
+    fix: "→ sandboxed tool calls",
+  },
+  {
+    break: "Context grows forever — slow, expensive, worse answers",
+    fix: "→ memory & context hydration",
+  },
+  {
+    break: "One agent tries to do everything — no specialization",
+    fix: "→ routing & handoffs",
+  },
+  {
+    break: "Sub-agents fail or disagree — no recovery path",
+    fix: "→ supervision",
+  },
+  {
+    break: "Waiting on approval blocks the whole server",
+    fix: "→ human-in-the-loop",
+  },
 ];
+
+const GUIDE_PATHS = [
+  {
+    index: "01",
+    meta: "Interactive course · 10 modules",
+    title: "Procedural animation, from noob to pro.",
+    description:
+      "Build steering, chains, constraints, soft bodies, behavior, perception, and production-safe motion one observable step at a time.",
+    href: "/learning/procedural-animation",
+    action: "Start course",
+    featured: true,
+  },
+  {
+    index: "02",
+    meta: "Agent systems · 13 min guide",
+    title: "From one LLM loop to a reliable harness.",
+    description:
+      "Events, resumable checkpoints, idempotent tools, bounded context, execution policy, approvals, and failure recovery.",
+    href: "/blog/reliable-agent-harness-from-one-loop",
+    action: "Read guide",
+    featured: false,
+  },
+  {
+    index: "03",
+    meta: "Interface craft · 11 min guide",
+    title: "Motion that explains instead of decorating.",
+    description:
+      "Use hierarchy, continuity, scroll rhythm, interruption, reduced-motion fallbacks, and frame budgets with intent.",
+    href: "/blog/motion-that-explains-the-interface",
+    action: "Read guide",
+    featured: false,
+  },
+] as const;
 
 function HarnessPrimer() {
   return (
     <section className={styles.primer}>
       <h3 className={styles.primerHeading}>What a harness actually is</h3>
       <p className={styles.primerLede}>
-        Strip everything away and an &quot;agent&quot; is just a <code>while</code> loop
-        with an LLM in the middle — call the model, run whatever tool it asks for, push
-        the result onto an array, repeat. That works in a demo and dies in production a
-        dozen ways. A <strong>harness</strong> is the layer built around that loop to make
-        it survive: an event log, checkpoints, a sandbox around every tool call, a way to
-        hydrate context instead of just appending to it forever, routing to specialists,
-        supervision, and a place for a human to say yes before anything irreversible
-        happens. The agent stays a deliberately boring, domain-neutral task-runner — the
-        harness is the actual engineering.
+        Strip everything away and an &quot;agent&quot; is just a{" "}
+        <code>while</code> loop with an LLM in the middle — call the model, run
+        whatever tool it asks for, push the result onto an array, repeat. That
+        works in a demo and dies in production a dozen ways. A{" "}
+        <strong>harness</strong> is the layer built around that loop to make it
+        survive: an event log, checkpoints, a sandbox around every tool call, a
+        way to hydrate context instead of just appending to it forever, routing
+        to specialists, supervision, and a place for a human to say yes before
+        anything irreversible happens. The agent stays a deliberately boring,
+        domain-neutral task-runner — the harness is the actual engineering.
       </p>
       <p className={styles.primerMantra}>
-        &quot;Agent systems are workflow systems. The LLM decides the next semantic step;
-        the harness owns execution.&quot;
+        &quot;Agent systems are workflow systems. The LLM decides the next
+        semantic step; the harness owns execution.&quot;
       </p>
 
       <span className={styles.primerLabel}>
@@ -79,10 +143,10 @@ function HarnessPrimer() {
       </div>
 
       <p className={styles.primerNote}>
-        In production, this outer layer — loop, tools, message history, event stream — is
-        what LangGraph, Mastra, and the agent SDKs hand you already built. Building it by
-        hand once is what makes it obvious what those frameworks are actually doing
-        underneath.
+        In production, this outer layer — loop, tools, message history, event
+        stream — is what LangGraph, Mastra, and the agent SDKs hand you already
+        built. Building it by hand once is what makes it obvious what those
+        frameworks are actually doing underneath.
       </p>
     </section>
   );
@@ -95,7 +159,9 @@ function CurrentStatus({ tracks }: { tracks: LearningTrackWithEntries[] }) {
     <div className={styles.statusLine}>
       <span className={styles.statusPrefix}>Right now —</span>
       <span className={styles.editable}>{current.summary}</span>
-      <span className={styles.editHint}>synced from the learning control plane</span>
+      <span className={styles.editHint}>
+        synced from the learning control plane
+      </span>
     </div>
   );
 }
@@ -110,7 +176,8 @@ function TrackLogPanel({
   const [filter, setFilter] = useState("all");
 
   const visible = useMemo(() => {
-    const filtered = filter === "all" ? entries : entries.filter((e) => e.tag === filter);
+    const filtered =
+      filter === "all" ? entries : entries.filter((e) => e.tag === filter);
     return filtered.slice().sort((a, b) => b.id - a.id);
   }, [entries, filter]);
 
@@ -141,7 +208,11 @@ function TrackLogPanel({
       </div>
 
       <ol className={styles.logList}>
-        {visible.length === 0 && <li className={styles.emptyState}>Nothing checkpointed under this tag yet.</li>}
+        {visible.length === 0 && (
+          <li className={styles.emptyState}>
+            Nothing checkpointed under this tag yet.
+          </li>
+        )}
         {visible.map((entry) => (
           <li className={styles.logEntry} key={entry.id}>
             <span className={styles.logId}>{`CKPT-${pad(entry.id)}`}</span>
@@ -177,25 +248,32 @@ export default function Learning() {
           signal: controller.signal,
           headers: { Accept: "application/json" },
         });
-        if (!response.ok) throw new Error(`Learning API returned ${response.status}`);
-        const data = (await response.json()) as { tracks?: LearningTrackWithEntries[] };
+        if (!response.ok)
+          throw new Error(`Learning API returned ${response.status}`);
+        const data = (await response.json()) as {
+          tracks?: LearningTrackWithEntries[];
+        };
         const nextTracks = Array.isArray(data.tracks) ? data.tracks : [];
         setTracks(nextTracks);
         setLoadError(null);
         if (!initializedOpenTrack.current) {
           initializedOpenTrack.current = true;
-          setOpenTrackId(nextTracks.find((track) => track.status === "now")?.id ?? null);
+          setOpenTrackId(
+            nextTracks.find((track) => track.status === "now")?.id ?? null,
+          );
         }
       } catch (error) {
         if (controller.signal.aborted) return;
         console.error("Unable to load learning tracks", error);
-        setLoadError("The learning log is temporarily offline. Please check back shortly.");
+        setLoadError(
+          "The learning log is temporarily offline. Please check back shortly.",
+        );
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
     }
 
-    void loadLearning();
+    loadLearning();
     return () => controller.abort();
   }, []);
 
@@ -203,15 +281,17 @@ export default function Learning() {
     if (!sectionRef.current || prefersReducedMotion) return;
 
     const context = gsap.context(() => {
-      gsap.utils.toArray<HTMLElement>(`.${styles.trackCard}`).forEach((item) => {
-        gsap.from(item, {
-          opacity: 0,
-          y: 28,
-          duration: 0.75,
-          ease: "power3.out",
-          scrollTrigger: { trigger: item, start: "top 84%", once: true },
+      gsap.utils
+        .toArray<HTMLElement>(`.${styles.trackCard}`)
+        .forEach((item) => {
+          gsap.from(item, {
+            opacity: 0,
+            y: 28,
+            duration: 0.75,
+            ease: "power3.out",
+            scrollTrigger: { trigger: item, start: "top 84%", once: true },
+          });
         });
-      });
     }, sectionRef);
 
     return () => context.revert();
@@ -221,25 +301,51 @@ export default function Learning() {
     <section ref={sectionRef} id="learning" className={styles.section}>
       <header className={styles.header}>
         <span className={styles.eyebrow}>Terminal / Learning Log</span>
-        <h2 className={styles.heading}>Field notes on the systems I&apos;m building.</h2>
+        <h2 className={styles.heading}>
+          Field notes on the systems I&apos;m building.
+        </h2>
         <p className={styles.lede}>
-          Not a portfolio pitch — a running log of what I&apos;m actually learning, checkpointed
-          as I go. Tracks and checkpoints are shared from the same durable learning system.
+          Not a portfolio pitch — a running log of what I&apos;m actually
+          learning, checkpointed as I go. Tracks and checkpoints are shared from
+          the same durable learning system.
         </p>
       </header>
 
-      <Link className={styles.coursePromo} href="/learning/procedural-animation">
-        <span className={styles.coursePromoIndex}>NEW · 10 MODULES</span>
-        <div>
-          <p>Interactive field course</p>
-          <h3>Procedural animation, from noob to pro.</h3>
-          <span>
-            Live chain lab · perception and psychology · constraints · soft
-            bodies · production accessibility
-          </span>
+      <section
+        className={styles.guideShelf}
+        aria-labelledby="guided-learning-paths"
+      >
+        <div className={styles.guideShelfHeader}>
+          <span className={styles.panelLabel}>{"// Guided paths"}</span>
+          <div>
+            <h3 id="guided-learning-paths">Choose one useful thread.</h3>
+            <p>
+              Each path starts with a mental model, proves it with a small
+              example, and ends with one concrete action.
+            </p>
+          </div>
         </div>
-        <strong>Start course →</strong>
-      </Link>
+
+        <div className={styles.guideGrid}>
+          {GUIDE_PATHS.map((guide) => (
+            <Link
+              className={`${styles.guideCard} ${
+                guide.featured ? styles.guideCardFeatured : ""
+              }`}
+              href={guide.href}
+              key={guide.href}
+            >
+              <span className={styles.guideIndex}>{guide.index}</span>
+              <div>
+                <p>{guide.meta}</p>
+                <h4>{guide.title}</h4>
+                <span>{guide.description}</span>
+              </div>
+              <strong>{guide.action} →</strong>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <HarnessPrimer />
 
@@ -250,8 +356,12 @@ export default function Learning() {
       <div className={styles.timeline} aria-live="polite">
         {loading && (
           <article className={styles.trackCard}>
-            <span className={styles.panelLabel}>{"// Syncing field notes"}</span>
-            <p className={styles.trackSummary}>Loading the latest learning checkpoints…</p>
+            <span className={styles.panelLabel}>
+              {"// Syncing field notes"}
+            </span>
+            <p className={styles.trackSummary}>
+              Loading the latest learning checkpoints…
+            </p>
           </article>
         )}
         {!loading && loadError && (
@@ -262,7 +372,9 @@ export default function Learning() {
         )}
         {!loading && !loadError && tracks.length === 0 && (
           <article className={styles.trackCard}>
-            <p className={styles.trackSummary}>No learning tracks have been published yet.</p>
+            <p className={styles.trackSummary}>
+              No learning tracks have been published yet.
+            </p>
           </article>
         )}
         {tracks.map((track) => {
@@ -270,7 +382,9 @@ export default function Learning() {
           return (
             <article className={styles.trackCard} key={track.id}>
               <div className={styles.trackHead}>
-                <span className={styles.checkpoint}>Checkpoint {track.checkpoint}</span>
+                <span className={styles.checkpoint}>
+                  Checkpoint {track.checkpoint}
+                </span>
                 <span className={styles.statusChip} data-status={track.status}>
                   <span className={styles.statusDot} aria-hidden="true" />
                   {track.status}
@@ -290,7 +404,12 @@ export default function Learning() {
               {track.links && track.links.length > 0 && (
                 <div className={styles.linkRow}>
                   {track.links.map((link) => (
-                    <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       {link.label} ↗
                     </a>
                   ))}
@@ -311,7 +430,10 @@ export default function Learning() {
               {isOpen && (
                 <div className={styles.panel}>
                   <CornerBrackets />
-                  <TrackLogPanel entries={track.entries} logTags={track.logTags} />
+                  <TrackLogPanel
+                    entries={track.entries}
+                    logTags={track.logTags}
+                  />
 
                   {track.mapping && track.mapping.length > 0 && (
                     <div className={styles.mappingWrap}>
