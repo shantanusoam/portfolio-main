@@ -9,6 +9,7 @@ const HINT_DISMISSED_KEY = "mascot-sound-hint-dismissed";
 
 export interface MascotSoundControlProps {
   engine: MascotEngineContract | null;
+  tabIndex?: number;
   /**
    * Shows a small "tap to hear strings" hint until dismissed or sound is
    * turned on. Purely visual — this component knows nothing about specific
@@ -66,6 +67,7 @@ function storeHintDismissed(): void {
  */
 export default function MascotSoundControl({
   engine,
+  tabIndex,
   showHint = true,
 }: MascotSoundControlProps) {
   const [hydrated, setHydrated] = useState(false);
@@ -116,6 +118,7 @@ export default function MascotSoundControl({
         data-active={wantsSound}
         onClick={handleClick}
         disabled={!engine}
+        tabIndex={tabIndex}
       >
         {label}
       </button>

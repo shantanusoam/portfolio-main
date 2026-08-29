@@ -26,6 +26,29 @@ export const WANDER_PATH_KINDS: readonly WanderPathKind[] = [
   "rest-curl",
 ];
 
+/**
+ * Calm paths deliberately outnumber flourishes. This keeps autonomous motion
+ * legible over a reading surface while preserving occasional curiosity and
+ * speed changes. The seeded picker still makes every session deterministic.
+ */
+const WANDER_PATH_POOL: readonly WanderPathKind[] = [
+  "wide-loop",
+  "wide-loop",
+  "wide-loop",
+  "lazy-sweep",
+  "lazy-sweep",
+  "lazy-sweep",
+  "figure-eight",
+  "figure-eight",
+  "edge-cruise",
+  "edge-cruise",
+  "curiosity-circle",
+  "curiosity-circle",
+  "card-orbit",
+  "diagonal-sprint",
+  "rest-curl",
+];
+
 export interface WanderBounds {
   minX: number;
   minY: number;
@@ -40,7 +63,6 @@ export interface WanderPlannerConfig {
 }
 
 function pathKindSpeedCurve(kind: WanderPathKind): SpeedCurve {
-  if (kind === "rest-curl") return "hold";
   if (kind === "diagonal-sprint") return "ease-out";
   return "ease-in-out";
 }
@@ -48,7 +70,6 @@ function pathKindSpeedCurve(kind: WanderPathKind): SpeedCurve {
 function pathKindNextBehavior(
   kind: WanderPathKind,
 ): WanderSegment["nextBehavior"] {
-  if (kind === "rest-curl") return "rest";
   if (kind === "card-orbit" || kind === "curiosity-circle") return "inspect";
   return undefined;
 }
@@ -66,10 +87,10 @@ export class WanderPlanner {
   }
 
   private pickKind(): WanderPathKind {
-    let candidate = this.rng.pick(WANDER_PATH_KINDS);
+    let candidate = this.rng.pick(WANDER_PATH_POOL);
     let attempts = 0;
-    while (candidate === this.lastKind && attempts < WANDER_PATH_KINDS.length) {
-      candidate = this.rng.pick(WANDER_PATH_KINDS);
+    while (candidate === this.lastKind && attempts < WANDER_PATH_POOL.length) {
+      candidate = this.rng.pick(WANDER_PATH_POOL);
       attempts += 1;
     }
     this.lastKind = candidate;
@@ -155,8 +176,29 @@ export class WanderPlanner {
         const to = this.randomPoint();
         return [start, from, to];
       }
+      case "rest-curl": {
+        // A former implementation held the target completely still for the
+        // full segment and then entered Rest. A compact loop reads as a calm
+        // breath without making the creature appear frozen.
+        const radius = Math.min(width, height) * 0.055;
+        const angle0 = this.rng.angle();
+        const points: Point[] = [start];
+        for (let i = 1; i <= 4; i += 1) {
+          const angle = angle0 + (i / 4) * Math.PI * 2;
+          points.push(
+            clampToBounds(
+              {
+                x: start.x + Math.cos(angle) * radius,
+                y: start.y + Math.sin(angle) * radius,
+              },
+              bounds,
+            ),
+          );
+        }
+        points.push(start);
+        return points;
+      }
       case "lazy-sweep":
-      case "rest-curl":
       default: {
         return [start, this.randomPoint(), this.randomPoint()];
       }

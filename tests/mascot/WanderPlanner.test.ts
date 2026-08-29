@@ -88,6 +88,41 @@ test("never repeats the same path kind twice in a row", () => {
   }
 });
 
+test("calm wander paths outnumber abrupt sprints", () => {
+  const planner = new WanderPlanner(73, config, { x: 640, y: 400 });
+  let calmPaths = 0;
+  let sprints = 0;
+
+  for (let i = 0; i < 180; i += 1) {
+    const kind = planner.nextSegment(i * 5).kind;
+    if (kind === "wide-loop" || kind === "lazy-sweep") calmPaths += 1;
+    if (kind === "diagonal-sprint") sprints += 1;
+  }
+
+  assert.ok(calmPaths > sprints * 3, `${calmPaths} calm vs ${sprints} sprint`);
+});
+
+test("rest-curl is a moving local loop, not a frozen target", () => {
+  const planner = new WanderPlanner(19, config, { x: 640, y: 400 });
+  let restCurl = planner.nextSegment(0);
+
+  for (let i = 1; restCurl.kind !== "rest-curl" && i < 200; i += 1) {
+    restCurl = planner.nextSegment(i * 5);
+  }
+
+  assert.equal(restCurl.kind, "rest-curl");
+  assert.equal(restCurl.speedCurve, "ease-in-out");
+  assert.equal(restCurl.nextBehavior, undefined);
+
+  const start = sampleWanderSegment(restCurl, restCurl.startTime, bounds);
+  const middle = sampleWanderSegment(
+    restCurl,
+    restCurl.startTime + restCurl.duration * 0.5,
+    bounds,
+  );
+  assert.ok(Math.hypot(middle.x - start.x, middle.y - start.y) > 1);
+});
+
 test("isWanderSegmentFinished flips true once duration elapses", () => {
   const planner = new WanderPlanner(1, config, { x: 0, y: 0 });
   const segment = planner.nextSegment(0);

@@ -18,9 +18,9 @@ export const MASCOT_CONFIG = {
   creature: DEFAULT_CREATURE_RECIPE,
 
   wanderBoundsMargin: 48,
-  wanderSegmentDuration: { min: 3, max: 7 },
+  wanderSegmentDuration: { min: 4, max: 8 },
 
-  targetBlendDurationSeconds: 0.6,
+  targetBlendDurationSeconds: 0.72,
 
   pointerIdleThresholdSeconds: 2.5,
 

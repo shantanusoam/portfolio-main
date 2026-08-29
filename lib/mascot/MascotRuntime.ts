@@ -232,8 +232,8 @@ function createBehaviorRegistry(): BehaviorRegistry<MascotRuntime> {
     },
     rest: {
       name: "rest",
-      minimumDuration: 2,
-      maximumDuration: 12,
+      minimumDuration: 1.1,
+      maximumDuration: 5.5,
       motion: MOTION_RECIPES.rest,
     },
     inspect: {
@@ -1303,7 +1303,9 @@ export class MascotRuntime {
     if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
     if (this.ribs.length === 0) {
       const root = this.pose.getRoot();
-      return Math.hypot(x - root.x, y - root.y) <= this.anatomy.coreRadius + padding;
+      return (
+        Math.hypot(x - root.x, y - root.y) <= this.anatomy.coreRadius + padding
+      );
     }
     for (let index = 0; index < this.ribs.length; index += 1) {
       const rib = this.ribs[index];
