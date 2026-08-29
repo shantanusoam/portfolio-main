@@ -32,7 +32,13 @@ export default function BuildInfoFooter() {
   }, [prefersReducedMotion]);
 
   return (
-    <footer ref={footerRef} className={styles.buildFooter}>
+    <footer
+      ref={footerRef}
+      className={styles.buildFooter}
+      data-signal-zone="rest"
+      data-signal-energy="0.06"
+      data-signal-tone="neutral"
+    >
       <div className={styles.footerMeta}>
         <span>Living build / shipped continuously</span>
         <span>Next.js / TypeScript / Canvas</span>

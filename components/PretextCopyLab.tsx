@@ -495,6 +495,9 @@ export default function PretextCopyLab() {
       id="signal-room"
       ref={sectionRef}
       style={{ opacity: sectionOpacity }}
+      data-signal-zone="moment"
+      data-signal-energy="0.68"
+      data-signal-tone="cool"
       className={styles.section}
     >
       <div className={styles.header}>

@@ -43,6 +43,9 @@ export default function CurrentPosition() {
       ref={sectionRef}
       className={styles.currentBand}
       aria-label="Current focus"
+      data-signal-zone="bridge"
+      data-signal-energy="0.34"
+      data-signal-tone="cool"
     >
       <p className={`${styles.eyebrow} ${styles.currentEyebrow}`}>
         <span className={styles.statusBeacon} aria-hidden="true" />

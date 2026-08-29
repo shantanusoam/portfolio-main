@@ -400,6 +400,9 @@ export default function Experience() {
       id="trail-map"
       className={styles.section}
       onPointerMove={handlePointerMove}
+      data-signal-zone="bridge"
+      data-signal-energy="0.34"
+      data-signal-tone="cool"
     >
       <header className={styles.header}>
         <CareerCounter />

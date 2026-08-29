@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   advanceSignalPulses,
   createSignalPulse,
+  packSignalPulseKinds,
   packSignalPulseUniforms,
   pushSignalPulse,
 } from "../../lib/living-canvas/pulseField";
@@ -10,7 +11,14 @@ import {
 test("createSignalPulse clamps unsafe input", () => {
   assert.deepEqual(
     createSignalPulse({ x: -4, y: 2, intensity: Number.NaN, tone: "cool" }),
-    { x: 0, y: 1, age: 0, intensity: 0, tone: "cool" },
+    {
+      x: 0,
+      y: 1,
+      age: 0,
+      intensity: 0,
+      tone: "cool",
+      source: "control",
+    },
   );
 });
 
@@ -55,4 +63,32 @@ test("packSignalPulseUniforms reuses and clears a fixed target", () => {
   assert.equal(packed, target);
   assert.equal(packed[4], 0);
   assert.equal(packed[15], 0);
+});
+
+test("packSignalPulseKinds preserves semantic source and clears unused slots", () => {
+  const target = new Float32Array(4).fill(9);
+  const packed = packSignalPulseKinds(
+    [
+      createSignalPulse({ x: 0.1, y: 0.2, source: "string" }),
+      createSignalPulse({ x: 0.3, y: 0.4, source: "card" }),
+      createSignalPulse({ x: 0.5, y: 0.6, source: "control" }),
+      createSignalPulse({ x: 0.7, y: 0.8, source: "creature" }),
+    ],
+    4,
+    target,
+  );
+
+  assert.equal(packed, target);
+  assert.ok(Math.abs(packed[0] - 0.15) < 1e-6);
+  assert.ok(Math.abs(packed[1] - 0.45) < 1e-6);
+  assert.ok(Math.abs(packed[2] - 0.7) < 1e-6);
+  assert.equal(packed[3], 1);
+
+  const cleared = packSignalPulseKinds(
+    [createSignalPulse({ x: 0.2, y: 0.2, source: "card" })],
+    4,
+    target,
+  );
+  assert.equal(cleared[1], 0);
+  assert.equal(cleared[3], 0);
 });

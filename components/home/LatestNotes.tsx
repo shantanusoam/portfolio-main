@@ -50,7 +50,14 @@ export default function LatestNotes() {
   }, [prefersReducedMotion]);
 
   return (
-    <section ref={sectionRef} className={styles.section} id="latest-notes">
+    <section
+      ref={sectionRef}
+      className={styles.section}
+      id="latest-notes"
+      data-signal-zone="bridge"
+      data-signal-energy="0.4"
+      data-signal-tone="warm"
+    >
       <header className={styles.sectionHeading}>
         <p className={styles.eyebrow}>04 / Latest field notes</p>
         <div>
@@ -73,6 +80,7 @@ export default function LatestNotes() {
             key={article.slug}
             data-mascot-interest="project"
             data-canvas-pulse="warm"
+            data-canvas-pulse-source="card"
           >
             <div className={styles.noteVisual}>
               <Image

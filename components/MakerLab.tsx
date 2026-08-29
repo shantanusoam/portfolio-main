@@ -153,6 +153,9 @@ export default function MakerLab() {
       style={{ opacity: sectionOpacity }}
       id="maker-lab"
       ref={sectionRef}
+      data-signal-zone="moment"
+      data-signal-energy="0.74"
+      data-signal-tone="cool"
       className="relative mx-[10%] my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
       <Heading>MAKER LAB</Heading>

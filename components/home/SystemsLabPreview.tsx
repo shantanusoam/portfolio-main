@@ -37,7 +37,14 @@ export default function SystemsLabPreview() {
   }, [prefersReducedMotion]);
 
   return (
-    <section ref={sectionRef} className={styles.section} id="systems-lab">
+    <section
+      ref={sectionRef}
+      className={styles.section}
+      id="systems-lab"
+      data-signal-zone="bridge"
+      data-signal-energy="0.64"
+      data-signal-tone="cool"
+    >
       <header className={styles.sectionHeading}>
         <p className={styles.eyebrow}>02 / Systems Lab</p>
         <div>
@@ -59,6 +66,7 @@ export default function SystemsLabPreview() {
             key={entry.slug}
             data-mascot-interest="project"
             data-canvas-pulse="cool"
+            data-canvas-pulse-source="card"
           >
             <div className={styles.registryCardImage}>
               <Image

@@ -60,6 +60,9 @@ export default function Projects() {
       ref={sectionRef}
       style={{ opacity: sectionOpacity }}
       id="mission-select"
+      data-signal-zone="moment"
+      data-signal-energy="0.62"
+      data-signal-tone="warm"
       className="relative mx-[10%] my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
       <Heading>Mission Select</Heading>

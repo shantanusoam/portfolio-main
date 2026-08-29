@@ -226,6 +226,7 @@ export default function ProceduralMascotLoader({
         className={styles.mascotDock}
         aria-label="Interactive fish controls"
         data-canvas-pulse="cool"
+        data-canvas-pulse-source="control"
       >
         <div className={styles.mascotDockHeader}>
           <span
@@ -243,6 +244,8 @@ export default function ProceduralMascotLoader({
             aria-checked={!disabled}
             data-active={!disabled}
             onClick={toggleFeature}
+            data-canvas-pulse="cool"
+            data-canvas-pulse-source="creature"
           >
             Fish {disabled ? "Off" : "On"}
           </button>
@@ -254,6 +257,8 @@ export default function ProceduralMascotLoader({
               data-active={following}
               onClick={toggleFollowing}
               disabled={!engine}
+              data-canvas-pulse="cool"
+              data-canvas-pulse-source="creature"
             >
               {following ? "Following" : "Exploring"}
             </button>
@@ -265,6 +270,8 @@ export default function ProceduralMascotLoader({
               onClick={releasePrey}
               disabled={!engine || !ecosystemStatus?.canReleaseFry}
               title="Release a small prey school into the signal habitat"
+              data-canvas-pulse="cool"
+              data-canvas-pulse-source="creature"
             >
               Add prey {ecosystemStatus?.activeFryCount ?? 0}/{MAX_ACTIVE_FRY}
             </button>

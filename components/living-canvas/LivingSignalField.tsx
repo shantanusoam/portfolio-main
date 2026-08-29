@@ -9,12 +9,20 @@ import {
 import {
   advanceSignalPulses,
   createSignalPulse,
-  MAX_SIGNAL_PULSES,
-  packSignalPulseUniforms,
   pushSignalPulse,
   type SignalPulse,
+  type SignalPulseSource,
   type SignalPulseTone,
 } from "@/lib/living-canvas/pulseField";
+import {
+  createLivingFieldRenderer,
+  type LivingFieldRenderer,
+} from "@/lib/living-canvas/fieldRenderer";
+import {
+  DEFAULT_SIGNAL_ZONE_PROFILE,
+  resolveCreatureIntent,
+  resolveSignalZoneProfile,
+} from "@/lib/living-canvas/zoneField";
 import styles from "./LivingSignalField.module.css";
 
 interface LivingSignalFieldProps {
@@ -22,312 +30,35 @@ interface LivingSignalFieldProps {
   reducedMotion?: boolean;
 }
 
-interface FieldState {
-  width: number;
-  height: number;
-  time: number;
-  pointerX: number;
-  pointerY: number;
-  pointerActivity: number;
-  creatureX: number;
-  creatureY: number;
-  velocityX: number;
-  velocityY: number;
-  scrollVelocity: number;
-  pulses: readonly SignalPulse[];
-}
-
-interface FieldRenderer {
-  resize(width: number, height: number, dpr: number): void;
-  render(state: FieldState): void;
-  destroy(): void;
-  kind: "webgl" | "canvas2d";
-}
-
-const VERTEX_SHADER = `
-  attribute vec2 a_position;
-
-  void main() {
-    gl_Position = vec4(a_position, 0.0, 1.0);
-  }
-`;
-
-const FRAGMENT_SHADER = `
-  precision mediump float;
-
-  uniform vec2 u_resolution;
-  uniform float u_time;
-  uniform vec2 u_pointer;
-  uniform vec2 u_creature;
-  uniform vec2 u_velocity;
-  uniform float u_scroll;
-  uniform float u_activity;
-  uniform vec4 u_pulses[4];
-
-  float hash21(vec2 p) {
-    p = fract(p * vec2(123.34, 456.21));
-    p += dot(p, p + 45.32);
-    return fract(p.x * p.y);
-  }
-
-  float valueNoise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x),
-      mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0)), f.x),
-      f.y
-    );
-  }
-
-  float fbm(vec2 p) {
-    float value = 0.0;
-    float amplitude = 0.5;
-    for (int i = 0; i < 4; i++) {
-      value += amplitude * valueNoise(p);
-      p = mat2(1.62, 1.18, -1.18, 1.62) * p + 7.3;
-      amplitude *= 0.5;
-    }
-    return value;
-  }
-
-  float segmentDistance(vec2 p, vec2 a, vec2 b) {
-    vec2 pa = p - a;
-    vec2 ba = b - a;
-    float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.0001), 0.0, 1.0);
-    return length(pa - ba * h);
-  }
-
-  void main() {
-    vec2 normalized = gl_FragCoord.xy / u_resolution.xy;
-    float aspect = u_resolution.x / max(1.0, u_resolution.y);
-    vec2 uv = (normalized - 0.5) * vec2(aspect, 1.0);
-    vec2 pointer = (u_pointer - 0.5) * vec2(aspect, 1.0);
-    vec2 creature = (u_creature - 0.5) * vec2(aspect, 1.0);
-    vec2 velocity = u_velocity * vec2(aspect, 1.0);
-
-    float slowTime = u_time * 0.075;
-    vec2 flowUv = uv * 3.1;
-    flowUv.x += u_scroll * 0.12;
-    float warpA = fbm(flowUv + vec2(slowTime, -slowTime * 0.65));
-    float warpB = fbm(flowUv * 1.45 + vec2(-slowTime * 0.7, slowTime));
-    float band = sin((uv.y + warpA * 0.15 + warpB * 0.07) * 28.0 - u_time * 0.22);
-    float caustic = pow(max(0.0, band), 10.0) * (0.35 + warpB * 0.65);
-
-    float pointerDistance = length(uv - pointer);
-    float pointerCurrent = exp(-pointerDistance * 8.5) * u_activity;
-    pointerCurrent *= 0.55 + 0.45 * sin(pointerDistance * 34.0 - u_time * 1.2);
-
-    float velocityMagnitude = length(velocity);
-    vec2 direction = velocityMagnitude > 0.0001
-      ? normalize(velocity)
-      : vec2(-1.0, 0.0);
-    vec2 wakeStart = creature - direction * (0.16 + min(0.26, velocityMagnitude * 0.9));
-    float wakeDistance = segmentDistance(uv, wakeStart, creature);
-    float wake = exp(-wakeDistance * 30.0) * smoothstep(0.004, 0.11, velocityMagnitude);
-    wake *= 0.62 + 0.38 * sin((uv.x + uv.y) * 46.0 - u_time * 2.1);
-
-    vec3 cool = vec3(0.32, 0.78, 0.86);
-    vec3 warm = vec3(1.0, 0.28, 0.075);
-    vec3 color = cool * (caustic * 0.18 + pointerCurrent * 0.085 + wake * 0.24);
-    float alpha = caustic * 0.035 + pointerCurrent * 0.04 + wake * 0.09;
-
-    for (int i = 0; i < 4; i++) {
-      vec4 pulse = u_pulses[i];
-      float pulseStrength = abs(pulse.w);
-      float life = 1.0 - smoothstep(0.0, 2.4, pulse.z);
-      float radius = pulse.z * 0.095;
-      vec2 pulsePoint = (pulse.xy - 0.5) * vec2(aspect, 1.0);
-      float distanceToPulse = length(uv - pulsePoint);
-      float ring = exp(-abs(distanceToPulse - radius) * 72.0);
-      float core = exp(-distanceToPulse * 18.0) * max(0.0, 0.35 - pulse.z * 0.2);
-      float signal = (ring + core) * pulseStrength * life;
-      vec3 pulseColor = pulse.w < 0.0 ? cool : warm;
-      color += pulseColor * signal * 0.5;
-      alpha += signal * 0.16;
-    }
-
-    float edgeFade = 1.0 - smoothstep(0.28, 0.86, length(normalized - 0.5));
-    alpha *= 0.62 + edgeFade * 0.38;
-    float grain = hash21(gl_FragCoord.xy + floor(u_time * 12.0)) - 0.5;
-    color += grain * 0.012;
-
-    gl_FragColor = vec4(max(color, 0.0), clamp(alpha, 0.0, 0.22));
-  }
-`;
-
-function compileShader(
-  gl: WebGLRenderingContext,
-  type: number,
-  source: string,
-): WebGLShader | null {
-  const shader = gl.createShader(type);
-  if (!shader) return null;
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    gl.deleteShader(shader);
-    return null;
-  }
-  return shader;
-}
-
-function createWebGlRenderer(canvas: HTMLCanvasElement): FieldRenderer | null {
-  const gl = canvas.getContext("webgl", {
-    alpha: true,
-    antialias: false,
-    depth: false,
-    stencil: false,
-    premultipliedAlpha: false,
-    powerPreference: "low-power",
-  });
-  if (!gl) return null;
-
-  const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
-  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
-  if (!vertex || !fragment) {
-    if (vertex) gl.deleteShader(vertex);
-    if (fragment) gl.deleteShader(fragment);
-    return null;
-  }
-
-  const program = gl.createProgram();
-  if (!program) return null;
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    gl.deleteProgram(program);
-    return null;
-  }
-
-  const buffer = gl.createBuffer();
-  if (!buffer) {
-    gl.deleteProgram(program);
-    return null;
-  }
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW,
-  );
-
-  const position = gl.getAttribLocation(program, "a_position");
-  const resolution = gl.getUniformLocation(program, "u_resolution");
-  const time = gl.getUniformLocation(program, "u_time");
-  const pointer = gl.getUniformLocation(program, "u_pointer");
-  const creature = gl.getUniformLocation(program, "u_creature");
-  const velocity = gl.getUniformLocation(program, "u_velocity");
-  const scroll = gl.getUniformLocation(program, "u_scroll");
-  const activity = gl.getUniformLocation(program, "u_activity");
-  const pulses = gl.getUniformLocation(program, "u_pulses[0]");
-  const pulseUniformBuffer = new Float32Array(MAX_SIGNAL_PULSES * 4);
-
-  gl.useProgram(program);
-  gl.enableVertexAttribArray(position);
-  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-  gl.clearColor(0, 0, 0, 0);
-
-  return {
-    kind: "webgl",
-    resize(width, height, dpr) {
-      canvas.width = Math.max(1, Math.round(width * dpr));
-      canvas.height = Math.max(1, Math.round(height * dpr));
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    },
-    render(state) {
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.useProgram(program);
-      gl.uniform2f(resolution, canvas.width, canvas.height);
-      gl.uniform1f(time, state.time);
-      gl.uniform2f(pointer, state.pointerX, 1 - state.pointerY);
-      gl.uniform2f(creature, state.creatureX, 1 - state.creatureY);
-      gl.uniform2f(velocity, state.velocityX, -state.velocityY);
-      gl.uniform1f(scroll, state.scrollVelocity);
-      gl.uniform1f(activity, state.pointerActivity);
-      gl.uniform4fv(
-        pulses,
-        packSignalPulseUniforms(
-          state.pulses,
-          MAX_SIGNAL_PULSES,
-          pulseUniformBuffer,
-        ),
-      );
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-    },
-    destroy() {
-      gl.deleteBuffer(buffer);
-      gl.deleteProgram(program);
-    },
-  };
-}
-
-function createCanvas2DRenderer(
-  canvas: HTMLCanvasElement,
-): FieldRenderer | null {
-  const context = canvas.getContext("2d", { alpha: true });
-  if (!context) return null;
-
-  return {
-    kind: "canvas2d",
-    resize(width, height, dpr) {
-      canvas.width = Math.max(1, Math.round(width * dpr));
-      canvas.height = Math.max(1, Math.round(height * dpr));
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
-    },
-    render(state) {
-      context.clearRect(0, 0, state.width, state.height);
-
-      const creatureGradient = context.createRadialGradient(
-        state.creatureX * state.width,
-        state.creatureY * state.height,
-        0,
-        state.creatureX * state.width,
-        state.creatureY * state.height,
-        Math.min(state.width, state.height) * 0.28,
-      );
-      creatureGradient.addColorStop(0, "rgba(87, 205, 224, 0.075)");
-      creatureGradient.addColorStop(1, "rgba(87, 205, 224, 0)");
-      context.fillStyle = creatureGradient;
-      context.fillRect(0, 0, state.width, state.height);
-
-      for (const pulse of state.pulses) {
-        const life = Math.max(0, 1 - pulse.age / 2.4);
-        const radius = pulse.age * Math.min(state.width, state.height) * 0.095;
-        context.beginPath();
-        context.arc(
-          pulse.x * state.width,
-          pulse.y * state.height,
-          radius,
-          0,
-          Math.PI * 2,
-        );
-        context.strokeStyle =
-          pulse.tone === "cool"
-            ? `rgba(92, 211, 228, ${life * pulse.intensity * 0.16})`
-            : `rgba(255, 93, 47, ${life * pulse.intensity * 0.18})`;
-        context.lineWidth = 1.5;
-        context.stroke();
-      }
-    },
-    destroy() {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    },
-  };
-}
-
 function resolvePulseTone(value: string | undefined): SignalPulseTone {
   return value === "cool" ? "cool" : "warm";
 }
 
+function resolvePulseSource(value: string | undefined): SignalPulseSource {
+  if (
+    value === "string" ||
+    value === "card" ||
+    value === "control" ||
+    value === "creature"
+  ) {
+    return value;
+  }
+  return "control";
+}
+
+function findPulseTarget(path: EventTarget[]): HTMLElement | null {
+  return (
+    path.find(
+      (item): item is HTMLElement =>
+        item instanceof HTMLElement && item.hasAttribute("data-canvas-pulse"),
+    ) ?? null
+  );
+}
+
+/**
+ * Shared atmospheric compositor. The real DOM remains the interaction and
+ * accessibility layer; this canvas only visualizes existing page signals.
+ */
 export default function LivingSignalField({
   engine,
   reducedMotion = false,
@@ -343,8 +74,8 @@ export default function LivingSignalField({
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
 
-    const renderer =
-      createWebGlRenderer(canvas) ?? createCanvas2DRenderer(canvas);
+    let renderer: LivingFieldRenderer | null =
+      createLivingFieldRenderer(canvas);
     canvas.dataset.renderer = renderer?.kind ?? "static";
     if (!renderer) return undefined;
 
@@ -352,26 +83,66 @@ export default function LivingSignalField({
     let height = window.innerHeight;
     let pointerX = 0.5;
     let pointerY = 0.42;
-    let pointerActivity = reducedMotion ? 0 : 0.12;
+    let pointerActivity = reducedMotion ? 0 : 0.1;
     let creatureX = 0.78;
     let creatureY = 0.24;
     let velocityX = 0;
     let velocityY = 0;
+    let creatureIntent = 0.3;
+    let creatureIntentTarget = 0.3;
     let scrollVelocity = 0;
     let scrollTarget = 0;
+    let scrollProgress = 0;
+    let zoneEnergy = DEFAULT_SIGNAL_ZONE_PROFILE.energy;
+    let zoneEnergyTarget = zoneEnergy;
+    let warmth = DEFAULT_SIGNAL_ZONE_PROFILE.warmth;
+    let warmthTarget = warmth;
     let pulses: SignalPulse[] = [];
     let frame = 0;
     let previousFrame = performance.now();
     let lastPaint = 0;
     let lastScrollY = window.scrollY;
     let lastScrollAt = performance.now();
+    let lastZoneCheck = 0;
     let visible = document.visibilityState !== "hidden";
+    let contextLost = false;
+
+    const conservativeHardware =
+      navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4;
+    let dprCap = conservativeHardware ? 0.9 : 1.25;
+    let targetFrameInterval = conservativeHardware ? 40 : 32;
+    let renderCostAverage = 0;
+    let renderSamples = 0;
+    let qualityReduced = conservativeHardware;
+    canvas.dataset.quality = conservativeHardware ? "conservative" : "balanced";
+
+    const updateScrollProgress = () => {
+      const scrollRange = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
+      scrollProgress = Math.min(1, Math.max(0, window.scrollY / scrollRange));
+    };
+
+    const syncZoneFromViewport = () => {
+      const centerElement = document.elementFromPoint(
+        width * 0.5,
+        height * 0.48,
+      );
+      const zone = centerElement?.closest<HTMLElement>("[data-signal-zone]");
+      const profile = resolveSignalZoneProfile(zone?.dataset);
+      zoneEnergyTarget = profile.energy;
+      warmthTarget = profile.warmth;
+      canvas.dataset.zone = profile.kind;
+    };
 
     const resize = () => {
       width = window.innerWidth;
       height = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
-      renderer.resize(width, height, dpr);
+      const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+      renderer?.resize(width, height, dpr);
+      updateScrollProgress();
+      syncZoneFromViewport();
     };
 
     const addPulse = (
@@ -379,11 +150,12 @@ export default function LivingSignalField({
       y: number,
       intensity: number,
       tone: SignalPulseTone,
+      source: SignalPulseSource,
     ) => {
       if (reducedMotion) return;
       pulses = pushSignalPulse(
         pulses,
-        createSignalPulse({ x, y, intensity, tone }),
+        createSignalPulse({ x, y, intensity, tone, source }),
       );
     };
 
@@ -394,26 +166,41 @@ export default function LivingSignalField({
     };
 
     const handlePointerDown = (event: PointerEvent) => {
-      const target = event
-        .composedPath()
-        .find(
-          (item): item is HTMLElement =>
-            item instanceof HTMLElement &&
-            item.hasAttribute("data-canvas-pulse"),
-        );
+      const target = findPulseTarget(event.composedPath());
       if (!target) return;
       addPulse(
         event.clientX / Math.max(1, width),
         event.clientY / Math.max(1, height),
         0.64,
         resolvePulseTone(target.dataset.canvasPulse),
+        resolvePulseSource(target.dataset.canvasPulseSource),
+      );
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return;
+      const target = findPulseTarget(event.composedPath());
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      addPulse(
+        (rect.left + rect.width / 2) / Math.max(1, width),
+        (rect.top + rect.height / 2) / Math.max(1, height),
+        0.58,
+        resolvePulseTone(target.dataset.canvasPulse),
+        resolvePulseSource(target.dataset.canvasPulseSource),
       );
     };
 
     const handleCustomPulse = (event: Event) => {
       const detail = (event as CustomEvent<LivingCanvasPulseDetail>).detail;
       if (!detail) return;
-      addPulse(detail.x, detail.y, detail.intensity, detail.tone);
+      addPulse(
+        detail.x,
+        detail.y,
+        detail.intensity,
+        detail.tone,
+        detail.source,
+      );
     };
 
     const handleScroll = () => {
@@ -423,17 +210,21 @@ export default function LivingSignalField({
       scrollTarget = Math.min(1, Math.max(-1, delta / elapsed / 1.4));
       lastScrollY = window.scrollY;
       lastScrollAt = now;
+      updateScrollProgress();
+      if (now - lastZoneCheck > 120) {
+        lastZoneCheck = now;
+        syncZoneFromViewport();
+      }
+      if (reducedMotion && !frame) {
+        frame = window.requestAnimationFrame(paint);
+      }
     };
 
     const paint = (timestamp: number) => {
       frame = 0;
-      if (!visible) {
-        return;
-      }
+      if (!visible || !renderer || contextLost) return;
 
-      // The atmosphere does not need 60fps. A 30fps cap keeps it soft and
-      // protects the content/mascot animation budget on integrated GPUs.
-      if (!reducedMotion && timestamp - lastPaint < 32) {
+      if (!reducedMotion && timestamp - lastPaint < targetFrameInterval) {
         frame = window.requestAnimationFrame(paint);
         return;
       }
@@ -455,16 +246,27 @@ export default function LivingSignalField({
           (signal.velocity.x / Math.max(1, width) - velocityX) * 0.22;
         velocityY +=
           (signal.velocity.y / Math.max(1, height) - velocityY) * 0.22;
+        creatureIntentTarget = resolveCreatureIntent(signal.behavior);
       } else {
         velocityX *= 0.88;
         velocityY *= 0.88;
+        creatureIntentTarget = 0.12;
       }
 
-      pointerActivity += (0.08 - pointerActivity) * 0.045;
+      const zoneBlend = reducedMotion
+        ? 1
+        : Math.min(1, Math.max(0.02, deltaSeconds * 2.8));
+      zoneEnergy += (zoneEnergyTarget - zoneEnergy) * zoneBlend;
+      warmth += (warmthTarget - warmth) * zoneBlend;
+      creatureIntent +=
+        (creatureIntentTarget - creatureIntent) * Math.min(1, zoneBlend * 1.5);
+      const pointerRest = 0.035 + zoneEnergy * 0.025;
+      pointerActivity += (pointerRest - pointerActivity) * 0.045;
       scrollVelocity += (scrollTarget - scrollVelocity) * 0.12;
       scrollTarget *= 0.84;
       pulses = advanceSignalPulses(pulses, deltaSeconds);
 
+      const renderStarted = performance.now();
       renderer.render({
         width,
         height,
@@ -477,26 +279,63 @@ export default function LivingSignalField({
         velocityX: reducedMotion ? 0 : velocityX,
         velocityY: reducedMotion ? 0 : velocityY,
         scrollVelocity: reducedMotion ? 0 : scrollVelocity,
+        scrollProgress,
+        zoneEnergy,
+        warmth,
+        creatureIntent: reducedMotion ? 0 : creatureIntent,
         pulses: reducedMotion ? [] : pulses,
       });
+
+      if (!reducedMotion && !qualityReduced) {
+        const renderCost = performance.now() - renderStarted;
+        renderCostAverage += (renderCost - renderCostAverage) * 0.08;
+        renderSamples += 1;
+        if (renderSamples > 45 && renderCostAverage > 7.5) {
+          qualityReduced = true;
+          dprCap = 0.8;
+          targetFrameInterval = 42;
+          canvas.dataset.quality = "adaptive-low";
+          resize();
+        }
+      }
 
       if (!reducedMotion) frame = window.requestAnimationFrame(paint);
     };
 
     const handleResize = () => {
       resize();
-      if (reducedMotion) frame = window.requestAnimationFrame(paint);
+      if (reducedMotion && !frame) frame = window.requestAnimationFrame(paint);
     };
 
     const handleVisibility = () => {
       visible = document.visibilityState !== "hidden";
-      if (visible && !frame) {
+      if (visible && !frame && renderer && !contextLost) {
         previousFrame = performance.now();
         frame = window.requestAnimationFrame(paint);
       } else if (!visible && frame) {
         window.cancelAnimationFrame(frame);
         frame = 0;
       }
+    };
+
+    const handleContextLost = (event: Event) => {
+      if (renderer?.kind !== "webgl") return;
+      event.preventDefault();
+      contextLost = true;
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+      renderer = null;
+      canvas.dataset.renderer = "static";
+    };
+
+    const handleContextRestored = () => {
+      contextLost = false;
+      renderer = createLivingFieldRenderer(canvas);
+      canvas.dataset.renderer = renderer?.kind ?? "static";
+      if (!renderer) return;
+      resize();
+      previousFrame = performance.now();
+      if (visible && !frame) frame = window.requestAnimationFrame(paint);
     };
 
     resize();
@@ -507,9 +346,12 @@ export default function LivingSignalField({
     window.addEventListener("pointerdown", handlePointerDown, {
       passive: true,
     });
+    window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener(LIVING_CANVAS_PULSE_EVENT, handleCustomPulse);
     document.addEventListener("visibilitychange", handleVisibility);
+    canvas.addEventListener("webglcontextlost", handleContextLost);
+    canvas.addEventListener("webglcontextrestored", handleContextRestored);
     frame = window.requestAnimationFrame(paint);
 
     return () => {
@@ -517,10 +359,13 @@ export default function LivingSignalField({
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener(LIVING_CANVAS_PULSE_EVENT, handleCustomPulse);
       document.removeEventListener("visibilitychange", handleVisibility);
-      renderer.destroy();
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      canvas.removeEventListener("webglcontextrestored", handleContextRestored);
+      renderer?.destroy();
     };
   }, [reducedMotion]);
 
@@ -529,7 +374,9 @@ export default function LivingSignalField({
       ref={canvasRef}
       className={styles.field}
       aria-hidden="true"
+      data-quality="balanced"
       data-renderer="static"
+      data-zone="bridge"
     />
   );
 }

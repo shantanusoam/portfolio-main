@@ -50,6 +50,9 @@ export default function CredibilityPanel() {
       ref={sectionRef}
       className={styles.section}
       aria-labelledby="credibility-title"
+      data-signal-zone="rest"
+      data-signal-energy="0.12"
+      data-signal-tone="neutral"
     >
       <header className={styles.sectionHeading}>
         <p className={styles.eyebrow}>05 / Credibility</p>

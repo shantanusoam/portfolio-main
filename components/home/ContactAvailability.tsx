@@ -81,6 +81,9 @@ export default function ContactAvailability() {
       ref={sectionRef}
       className={styles.contactSection}
       id="availability"
+      data-signal-zone="rest"
+      data-signal-energy="0.1"
+      data-signal-tone="warm"
     >
       <div className={styles.contactVisual}>
         <Image

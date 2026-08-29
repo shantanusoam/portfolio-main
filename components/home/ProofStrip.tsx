@@ -61,7 +61,14 @@ export default function ProofStrip() {
   }, [prefersReducedMotion]);
 
   return (
-    <section ref={sectionRef} className={styles.proofSection} id="proof">
+    <section
+      ref={sectionRef}
+      className={styles.proofSection}
+      id="proof"
+      data-signal-zone="bridge"
+      data-signal-energy="0.44"
+      data-signal-tone="neutral"
+    >
       <div className={styles.proofIntro}>
         <p className={styles.eyebrow}>00 / At a glance</p>
         <h2>Proof before promises.</h2>
@@ -72,6 +79,8 @@ export default function ProofStrip() {
             className={styles.proofCard}
             href={metric.href}
             key={metric.label}
+            data-canvas-pulse="warm"
+            data-canvas-pulse-source="card"
           >
             <span className={styles.proofValue}>{metric.value}</span>
             <span className={styles.proofMeasure} aria-hidden="true" />

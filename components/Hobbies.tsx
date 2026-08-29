@@ -216,6 +216,9 @@ export default function Hobbies() {
       id="field-notes"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      data-signal-zone="rest"
+      data-signal-energy="0.2"
+      data-signal-tone="warm"
       className="relative mx-[10%] my-[3rem] min-h-max select-none py-[6rem] sm:mx-[15%]"
     >
       {trail}
