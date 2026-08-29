@@ -55,13 +55,14 @@ export interface TalkEntry {
   title: string;
   speaker: string;
   url: string;
-  youtubeId: string;
+  /** Omitted for kind: "Article" — those open the source link instead of embedding a video. */
+  youtubeId?: string;
   durationMinutes: number;
   displayDuration: string;
   topic: TalkTopic;
   difficulty: TalkDifficulty;
   evergreen: boolean;
-  kind: "Talk" | "Clip" | "Conversation";
+  kind: "Talk" | "Clip" | "Conversation" | "Article";
   why: string;
   leavesYouWith: string;
   takeaway: string;

@@ -2025,6 +2025,23 @@ export const talkEntries: TalkEntry[] = [
     takeaway:
       "Technology leadership needs explicit principles because optimization alone cannot decide what is right.",
   },
+  {
+    id: "planetary-nervous-system",
+    title: "Our Emerging Planetary Nervous System",
+    speaker: "Rimma Boshernitsan",
+    url: "https://www.noemamag.com/our-emerging-planetary-nervous-system/",
+    durationMinutes: 16,
+    displayDuration: "16 min read",
+    topic: "Systems",
+    difficulty: "Deep dive",
+    evergreen: true,
+    kind: "Article",
+    why: "A rare attempt to fuse AI, planetary-scale sensing, ecological intelligence, and governance into one coherent civilizational thesis instead of separate trend pieces.",
+    leavesYouWith:
+      "A working model of a ‘mature technosphere’ — sensors as nerve endings, ML as reflexes, human judgment as cortex — and why more compute is not the same as more wisdom.",
+    takeaway:
+      "The hardest filter on a spacefaring civilization may be coordination, not propulsion.",
+  },
 ];
 
 export const raqEntries: RaqEntry[] = [

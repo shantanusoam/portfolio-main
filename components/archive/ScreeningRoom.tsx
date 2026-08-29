@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Play, Shuffle, X } from "lucide-react";
+import { BookOpen, ExternalLink, Play, Shuffle, X } from "lucide-react";
 import { talkEntries } from "@/lib/archive/data";
 import type { TalkEntry, TalkTopic } from "@/lib/archive/types";
 import styles from "./archive.module.css";
@@ -76,9 +76,17 @@ export default function ScreeningRoom() {
     };
   }, [active]);
 
+  const openTalk = (talk: TalkEntry) => {
+    if (talk.kind === "Article") {
+      window.open(talk.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setActive(talk);
+  };
+
   const surprise = () => {
     if (visible.length === 0) return;
-    setActive(visible[Math.floor(Math.random() * visible.length)]);
+    openTalk(visible[Math.floor(Math.random() * visible.length)]);
   };
 
   const embedUrl = active
@@ -180,11 +188,17 @@ export default function ScreeningRoom() {
                   <p className={styles.takeaway}>“{talk.takeaway}”</p>
                   <button
                     className={styles.playButton}
-                    onClick={() => setActive(talk)}
+                    onClick={() => openTalk(talk)}
                     type="button"
-                    aria-label={`Watch ${talk.title}`}
+                    aria-label={`${
+                      talk.kind === "Article" ? "Read" : "Watch"
+                    } ${talk.title}`}
                   >
-                    <Play size={18} fill="currentColor" aria-hidden="true" />
+                    {talk.kind === "Article" ? (
+                      <BookOpen size={18} aria-hidden="true" />
+                    ) : (
+                      <Play size={18} fill="currentColor" aria-hidden="true" />
+                    )}
                   </button>
                 </div>
               </article>

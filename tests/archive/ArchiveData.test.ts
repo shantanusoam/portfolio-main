@@ -48,7 +48,11 @@ test("screening room covers short and long time budgets", () => {
   assert.ok(talkEntries.some((talk) => talk.durationMinutes <= 15));
   assert.ok(talkEntries.some((talk) => talk.durationMinutes > 60));
   for (const talk of talkEntries) {
-    assert.match(talk.youtubeId, /^[A-Za-z0-9_-]{11}$/);
+    if (talk.kind === "Article") {
+      assert.match(talk.url, /^https:\/\//);
+    } else {
+      assert.match(talk.youtubeId ?? "", /^[A-Za-z0-9_-]{11}$/);
+    }
   }
 });
 
