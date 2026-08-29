@@ -110,6 +110,9 @@ export default function ComboMeter() {
       style={{ opacity: sectionOpacity }}
       id="combo-meter"
       ref={sectionRef}
+      data-signal-zone="moment"
+      data-signal-energy="0.72"
+      data-signal-tone="warm"
       className="relative my-[1.5rem] min-h-max select-none py-[3rem] sm:mx-[15%] sm:py-[3.5rem]"
     >
       <Heading className="mx-[10%] sm:mx-[0%]">COMBO METER</Heading>

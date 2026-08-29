@@ -298,7 +298,13 @@ export default function LivingIndex() {
   const [inspected, setInspected] = useState<SpecimenKind | null>(null);
 
   return (
-    <section className={styles.section} id="living-index">
+    <section
+      className={styles.section}
+      id="living-index"
+      data-signal-zone="moment"
+      data-signal-energy="0.92"
+      data-signal-tone="cool"
+    >
       <header className={styles.heading}>
         <p className={styles.eyebrow}>00.7 / Living index</p>
         <div>
@@ -323,6 +329,7 @@ export default function LivingIndex() {
               onPointerLeave={resetCardPointer}
               data-mascot-interest="project"
               data-canvas-pulse={specimen.id === "octopod" ? "cool" : "warm"}
+              data-canvas-pulse-source="card"
             >
               <div className={styles.stage}>
                 <div className={styles.stageMeta}>

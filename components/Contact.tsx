@@ -37,6 +37,9 @@ export default function Contact() {
       ref={sectionRef}
       style={{ opacity: sectionOpacity }}
       id="contact"
+      data-signal-zone="rest"
+      data-signal-energy="0.08"
+      data-signal-tone="warm"
       className="relative mx-[10%] my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
       <Heading>PREFER TO TALK IT THROUGH?</Heading>

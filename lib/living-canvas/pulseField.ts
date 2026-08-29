@@ -2,6 +2,7 @@ export const MAX_SIGNAL_PULSES = 4;
 export const SIGNAL_PULSE_LIFETIME_SECONDS = 2.4;
 
 export type SignalPulseTone = "warm" | "cool";
+export type SignalPulseSource = "string" | "card" | "control" | "creature";
 
 export interface SignalPulse {
   /** Normalized viewport X, left to right. */
@@ -11,6 +12,7 @@ export interface SignalPulse {
   age: number;
   intensity: number;
   tone: SignalPulseTone;
+  source: SignalPulseSource;
 }
 
 export interface SignalPulseInput {
@@ -18,6 +20,7 @@ export interface SignalPulseInput {
   y: number;
   intensity?: number;
   tone?: SignalPulseTone;
+  source?: SignalPulseSource;
 }
 
 export function clampUnit(value: number): number {
@@ -32,6 +35,7 @@ export function createSignalPulse(input: SignalPulseInput): SignalPulse {
     age: 0,
     intensity: clampUnit(input.intensity ?? 0.7),
     tone: input.tone ?? "warm",
+    source: input.source ?? "control",
   };
 }
 
@@ -84,6 +88,35 @@ export function packSignalPulseUniforms(
     packed[offset + 2] = Math.max(0, pulse.age);
     packed[offset + 3] =
       clampUnit(pulse.intensity) * (pulse.tone === "cool" ? -1 : 1);
+  });
+
+  return packed;
+}
+
+const PULSE_SOURCE_UNIFORM: Record<SignalPulseSource, number> = {
+  string: 0.15,
+  card: 0.45,
+  control: 0.7,
+  creature: 1,
+};
+
+/**
+ * Packs one semantic kind per pulse. The shader uses the value to draw a
+ * plucked harmonic, card echo, compact control ring, or creature vortex
+ * without adding another animation system to the DOM.
+ */
+export function packSignalPulseKinds(
+  pulses: readonly SignalPulse[],
+  capacity = MAX_SIGNAL_PULSES,
+  target?: Float32Array,
+): Float32Array {
+  const safeCapacity = Math.max(0, Math.floor(capacity));
+  const packed =
+    target?.length === safeCapacity ? target : new Float32Array(safeCapacity);
+  packed.fill(0);
+
+  pulses.slice(-safeCapacity).forEach((pulse, index) => {
+    packed[index] = PULSE_SOURCE_UNIFORM[pulse.source];
   });
 
   return packed;

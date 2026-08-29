@@ -90,6 +90,9 @@ export default function PatternLibrary() {
       style={{ opacity: sectionOpacity }}
       id="pattern-library"
       ref={sectionRef}
+      data-signal-zone="bridge"
+      data-signal-energy="0.46"
+      data-signal-tone="warm"
       className="relative mx-[10%] my-[3rem] select-none py-[6rem] sm:mx-[15%]"
     >
       <Heading>PATTERN LIBRARY</Heading>

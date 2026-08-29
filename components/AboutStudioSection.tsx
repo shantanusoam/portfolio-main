@@ -86,7 +86,14 @@ export default function AboutStudioSection() {
   }, [prefersReducedMotion]);
 
   return (
-    <section ref={sectionRef} id="about" className={styles.section}>
+    <section
+      ref={sectionRef}
+      id="about"
+      className={styles.section}
+      data-signal-zone="rest"
+      data-signal-energy="0.22"
+      data-signal-tone="warm"
+    >
       <span className={styles.topLabel}>Terminal / Studio</span>
       <span className={styles.sideNote}>
         Handmade

@@ -114,6 +114,9 @@ export default function Hero({ masked }: HeroProps) {
     <div>
       <motion.section
         id="hero"
+        data-signal-zone="moment"
+        data-signal-energy="1"
+        data-signal-tone="neutral"
         style={{ opacity }}
         ref={sectionRef}
         onMouseMove={resetIdleTimer}
@@ -219,6 +222,7 @@ export default function Hero({ masked }: HeroProps) {
                   {...{ [MAGNETIC_ATTRIBUTE]: "" }}
                   data-mascot-obstacle="hard"
                   data-canvas-pulse="warm"
+                  data-canvas-pulse-source="control"
                   className="whitespace-nowrap text-graytransparent transition-colors duration-300 hover:text-primary"
                 >
                   [ {item.label} ]

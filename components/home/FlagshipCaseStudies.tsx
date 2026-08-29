@@ -84,7 +84,14 @@ export default function FlagshipCaseStudies() {
   }, [prefersReducedMotion]);
 
   return (
-    <section ref={sectionRef} className={styles.section} id="case-studies">
+    <section
+      ref={sectionRef}
+      className={styles.section}
+      id="case-studies"
+      data-signal-zone="bridge"
+      data-signal-energy="0.58"
+      data-signal-tone="warm"
+    >
       <header className={styles.sectionHeading}>
         <p className={styles.eyebrow}>01 / Flagship systems</p>
         <div>
@@ -106,6 +113,7 @@ export default function FlagshipCaseStudies() {
               key={study.id}
               data-mascot-interest="project"
               data-canvas-pulse="warm"
+              data-canvas-pulse-source="card"
             >
               <div className={styles.caseMain}>
                 <div className={styles.caseVisual}>

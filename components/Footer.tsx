@@ -53,6 +53,9 @@ export default function Footer() {
       initial="hidden"
       whileInView="show"
       id="footer"
+      data-signal-zone="rest"
+      data-signal-energy="0.07"
+      data-signal-tone="neutral"
       className="relative mt-[3rem] flex select-none flex-col items-center gap-6 py-8 text-graytransparent sm:mx-[15%]"
     >
       <motion.div

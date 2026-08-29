@@ -1,9 +1,12 @@
-import { clampUnit, type SignalPulseTone } from "./pulseField";
+import {
+  clampUnit,
+  type SignalPulseSource,
+  type SignalPulseTone,
+} from "./pulseField";
 
 export const LIVING_CANVAS_PULSE_EVENT = "portfolio:living-canvas-pulse";
 
-export type LivingCanvasPulseSource =
-  "string" | "card" | "control" | "creature";
+export type LivingCanvasPulseSource = SignalPulseSource;
 
 export interface LivingCanvasPulseDetail {
   x: number;
