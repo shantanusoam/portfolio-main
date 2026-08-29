@@ -1,6 +1,7 @@
 .dock {
   position: fixed;
-  right: 18px;
+  /* Leave the final corner to the private-arcade trigger. */
+  right: 80px;
   bottom: 18px;
   z-index: 1000;
   width: 44px;
