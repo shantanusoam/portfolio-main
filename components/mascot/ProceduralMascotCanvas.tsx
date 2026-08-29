@@ -184,7 +184,9 @@ export default function ProceduralMascotCanvas({
   }, [quality]);
 
   useEffect(() => {
-    engineRef.current?.setEnabled(enabled);
+    const engine = engineRef.current;
+    engine?.setEnabled(enabled);
+    if (enabled) engine?.trigger({ type: "wake" });
   }, [enabled]);
 
   useEffect(() => {

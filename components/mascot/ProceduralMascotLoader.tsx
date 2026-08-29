@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   MascotBehavior,
   MascotEcosystemStatus,
@@ -77,6 +77,8 @@ export default function ProceduralMascotLoader({
   const [ecosystemStatus, setEcosystemStatus] =
     useState<MascotEcosystemStatus | null>(null);
   const [viewMode, setViewMode] = useState<PortfolioViewMode>("explore");
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const controlsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!onHomepage) return undefined;
@@ -97,6 +99,26 @@ export default function ProceduralMascotLoader({
       coarse.removeEventListener("change", syncEligibility);
     };
   }, [onHomepage]);
+
+  useEffect(() => {
+    if (!controlsOpen) return undefined;
+
+    const closeOnOutsidePress = (event: PointerEvent) => {
+      if (!controlsRef.current?.contains(event.target as Node)) {
+        setControlsOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setControlsOpen(false);
+    };
+
+    window.addEventListener("pointerdown", closeOnOutsidePress);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      window.removeEventListener("pointerdown", closeOnOutsidePress);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [controlsOpen]);
 
   useEffect(() => {
     if (!onHomepage) return undefined;
@@ -154,6 +176,7 @@ export default function ProceduralMascotLoader({
 
   const toggleFeature = () => {
     const nextDisabled = !disabled;
+    if (nextDisabled) engine?.setFollowEnabled(false);
     setDisabled(nextDisabled);
     storeDisabled(nextDisabled);
     setFollowing(false);
@@ -191,6 +214,8 @@ export default function ProceduralMascotLoader({
         : behavior === "rest"
           ? "drifting"
           : "exploring";
+  const population = ecosystemStatus?.population ?? 1;
+  const activeFryCount = ecosystemStatus?.activeFryCount ?? 0;
 
   if (
     !onHomepage ||
@@ -209,10 +234,11 @@ export default function ProceduralMascotLoader({
         />
       ) : null}
 
-      {canvasReady && !disabled ? (
+      {canvasReady ? (
         <ProceduralMascotCanvas
           quality={quality}
           reducedMotion={prefersReducedMotion}
+          enabled={!disabled}
           autoEcology
           requireFishActivation
           onEngineReady={handleEngineReady}
@@ -222,74 +248,126 @@ export default function ProceduralMascotLoader({
         />
       ) : null}
 
-      <aside
+      <div
+        ref={controlsRef}
         className={styles.mascotDock}
-        aria-label="Interactive fish controls"
+        data-open={controlsOpen}
         data-canvas-pulse="cool"
         data-canvas-pulse-source="control"
       >
-        <div className={styles.mascotDockHeader}>
+        <button
+          type="button"
+          className={styles.mascotDockTrigger}
+          aria-label={`${controlsOpen ? "Close" : "Open"} fish controls. Fish is ${
+            disabled ? "off" : mood
+          }.`}
+          aria-expanded={controlsOpen}
+          aria-controls="fish-controls-panel"
+          onClick={() => setControlsOpen((open) => !open)}
+          title="Fish controls"
+        >
+          <svg
+            className={styles.mascotTriggerIcon}
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              className={styles.mascotTriggerTail}
+              d="M5.8 12 2.6 8.8v6.4L5.8 12Z"
+            />
+            <path d="M5.2 12c2.2-3.4 5.2-5 8.5-4.7 3 .3 5.4 2.1 7 4.7-1.6 2.6-4 4.4-7 4.7-3.3.3-6.3-1.3-8.5-4.7Z" />
+            <circle cx="16.1" cy="10.8" r=".8" />
+          </svg>
           <span
             className={styles.mascotStatusDot}
             data-active={!disabled}
             aria-hidden="true"
           />
-          <span>Signal habitat</span>
-        </div>
-        <div className={styles.mascotDockActions}>
-          <button
-            type="button"
-            className={styles.mascotModeToggle}
-            role="switch"
-            aria-checked={!disabled}
-            data-active={!disabled}
-            onClick={toggleFeature}
-            data-canvas-pulse="cool"
-            data-canvas-pulse-source="creature"
-          >
-            Fish {disabled ? "Off" : "On"}
-          </button>
-          {!disabled ? (
+          {activeFryCount > 0 ? (
+            <span className={styles.mascotPreyBadge} aria-hidden="true">
+              {activeFryCount}
+            </span>
+          ) : null}
+        </button>
+
+        <aside
+          id="fish-controls-panel"
+          className={styles.mascotDockPanel}
+          aria-label="Interactive fish controls"
+          aria-hidden={!controlsOpen}
+        >
+          <div className={styles.mascotDockHeader}>
+            <span
+              className={styles.mascotStatusDot}
+              data-active={!disabled}
+              aria-hidden="true"
+            />
+            <span>Signal habitat</span>
+            <span className={styles.mascotMood}>
+              {disabled ? "quiet" : mood}
+            </span>
+          </div>
+          <div className={styles.mascotDockActions}>
             <button
               type="button"
               className={styles.mascotModeToggle}
-              aria-pressed={following}
-              data-active={following}
-              onClick={toggleFollowing}
-              disabled={!engine}
+              role="switch"
+              aria-checked={!disabled}
+              data-active={!disabled}
+              onClick={toggleFeature}
+              tabIndex={controlsOpen ? 0 : -1}
               data-canvas-pulse="cool"
               data-canvas-pulse-source="creature"
             >
-              {following ? "Following" : "Exploring"}
+              Fish {disabled ? "Off" : "On"}
             </button>
-          ) : null}
-          {!disabled ? (
-            <button
-              type="button"
-              className={styles.mascotModeToggle}
-              onClick={releasePrey}
-              disabled={!engine || !ecosystemStatus?.canReleaseFry}
-              title="Release a small prey school into the signal habitat"
-              data-canvas-pulse="cool"
-              data-canvas-pulse-source="creature"
-            >
-              Add prey {ecosystemStatus?.activeFryCount ?? 0}/{MAX_ACTIVE_FRY}
-            </button>
-          ) : null}
-          {!disabled ? (
-            <MascotSoundControl engine={engine} showHint={false} />
-          ) : null}
-        </div>
-        <p className={styles.mascotDockHint} aria-live="polite">
-          {disabled
-            ? "The fish is hidden. Your choice is saved."
-            : following
-              ? "Following your pointer · click the fish or press Esc to rest"
-              : `${mood} across this page · ${ecosystemStatus?.population ?? 1} adult${
-                  ecosystemStatus?.population === 1 ? "" : "s"
-                } · strings and controls disturb the current`}
-        </p>
-      </aside>
+            {!disabled ? (
+              <button
+                type="button"
+                className={styles.mascotModeToggle}
+                aria-pressed={following}
+                data-active={following}
+                onClick={toggleFollowing}
+                disabled={!engine}
+                tabIndex={controlsOpen ? 0 : -1}
+                data-canvas-pulse="cool"
+                data-canvas-pulse-source="creature"
+              >
+                {following ? "Following" : "Wandering"}
+              </button>
+            ) : null}
+            {!disabled ? (
+              <button
+                type="button"
+                className={styles.mascotModeToggle}
+                onClick={releasePrey}
+                disabled={!engine || !ecosystemStatus?.canReleaseFry}
+                tabIndex={controlsOpen ? 0 : -1}
+                title="Release a small prey school into the signal habitat"
+                data-canvas-pulse="cool"
+                data-canvas-pulse-source="creature"
+              >
+                Prey {activeFryCount}/{MAX_ACTIVE_FRY}
+              </button>
+            ) : null}
+            {!disabled ? (
+              <MascotSoundControl
+                engine={engine}
+                showHint={false}
+                tabIndex={controlsOpen ? 0 : -1}
+              />
+            ) : null}
+          </div>
+          <p className={styles.mascotDockHint} aria-live="polite">
+            {disabled
+              ? "Hidden for this device. Your choice is saved."
+              : following
+                ? "Pointer follow is active. Select the fish or press Esc to release it."
+                : `${population} adult${population === 1 ? "" : "s"} · ${activeFryCount} prey · click the fish to follow`}
+          </p>
+        </aside>
+      </div>
     </>
   );
 }

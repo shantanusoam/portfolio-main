@@ -9,7 +9,7 @@ export const MOTION_RECIPES: Record<MascotBehavior, MotionRecipe> = {
   dormant: { frequency: 0.35, damping: 1.0, response: 0 },
   wake: { frequency: 0.95, damping: 0.96, response: 0.04 },
   follow: { frequency: 1.34, damping: 0.88, response: 0.02 },
-  wander: { frequency: 1.05, damping: 0.62, response: -0.12 },
+  wander: { frequency: 0.96, damping: 0.8, response: -0.04 },
   inspect: { frequency: 1.3, damping: 0.86, response: 0 },
   orbit: { frequency: 1.2, damping: 0.75, response: 0.05 },
   avoid: { frequency: 2.6, damping: 0.78, response: 0.15 },

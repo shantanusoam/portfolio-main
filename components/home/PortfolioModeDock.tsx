@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import type { PortfolioViewMode } from "@/lib/portfolio/viewMode";
 import styles from "./PortfolioModeDock.module.css";
 
@@ -30,36 +31,88 @@ export default function PortfolioModeDock({
   onChange,
 }: PortfolioModeDockProps) {
   const active = MODES.find((item) => item.id === mode) ?? MODES[0];
+  const [open, setOpen] = useState(false);
+  const dockRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const closeOnOutsidePress = (event: PointerEvent) => {
+      if (!dockRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("pointerdown", closeOnOutsidePress);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      window.removeEventListener("pointerdown", closeOnOutsidePress);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  const chooseMode = (next: PortfolioViewMode) => {
+    onChange(next);
+    setOpen(false);
+  };
 
   return (
-    <aside
+    <div
+      ref={dockRef}
       className={styles.dock}
-      aria-label="Portfolio experience mode"
+      data-open={open}
       data-mascot-obstacle="hard"
     >
-      <div className={styles.header}>
-        <span className={styles.signal} data-active={mode === "explore"} />
-        <span>View mode</span>
-      </div>
-      <div
-        className={styles.switcher}
-        role="group"
-        aria-label="Choose view mode"
+      <button
+        type="button"
+        className={styles.trigger}
+        aria-label={`${open ? "Close" : "Open"} view mode controls. ${active.label} mode is active.`}
+        aria-expanded={open}
+        aria-controls="portfolio-view-mode-panel"
+        onClick={() => setOpen((current) => !current)}
+        title={`View mode: ${active.label}`}
       >
-        {MODES.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            aria-pressed={mode === item.id}
-            onClick={() => onChange(item.id)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-      <p className={styles.detail} aria-live="polite">
-        {active.detail}
-      </p>
-    </aside>
+        <span className={styles.modeGlyph} data-mode={mode} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+        <span className={styles.signal} data-active={mode === "explore"} />
+      </button>
+
+      <aside
+        id="portfolio-view-mode-panel"
+        className={styles.panel}
+        aria-label="Portfolio experience mode"
+        aria-hidden={!open}
+      >
+        <div className={styles.header}>
+          <span className={styles.signal} data-active={mode === "explore"} />
+          <span>View mode</span>
+          <span className={styles.activeLabel}>{active.label}</span>
+        </div>
+        <div
+          className={styles.switcher}
+          role="group"
+          aria-label="Choose view mode"
+        >
+          {MODES.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={mode === item.id}
+              onClick={() => chooseMode(item.id)}
+              tabIndex={open ? 0 : -1}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <p className={styles.detail} aria-live="polite">
+          {active.detail}
+        </p>
+      </aside>
+    </div>
   );
 }

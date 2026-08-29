@@ -648,8 +648,12 @@ export class FishEcosystem {
     const adult = this.adults[index];
     const root = adult.runtime.pose.getRoot();
     const phase = this.simTime * adult.preferredSpeed + adult.phaseOffset;
-    const wanderRadius = 70 + adult.laneBias * 18;
-    const target: Point = {
+    const width = Math.max(1, this.bounds.maxX - this.bounds.minX);
+    const height = Math.max(1, this.bounds.maxY - this.bounds.minY);
+    const appetiteEnergy =
+      adult.digestionSeconds > 0 ? 0.68 : 0.82 + adult.hunger * 0.26;
+    const wanderRadius = (70 + adult.laneBias * 18) * appetiteEnergy;
+    const localTarget = {
       x:
         root.x +
         Math.cos(phase * 0.55 + adult.phaseOffset) * wanderRadius +
@@ -658,6 +662,33 @@ export class FishEcosystem {
         root.y +
         Math.sin(phase * 0.47 + adult.phaseOffset * 1.3) * wanderRadius * 0.72 +
         Math.cos(phase * 0.19) * 18,
+    };
+
+    // Local loops alone can make the fish orbit one patch of the viewport.
+    // A much slower world-space current carries it between reading regions;
+    // companions feel the current more lightly so the shoal stays loose.
+    const worldTarget = {
+      x:
+        this.bounds.minX +
+        width *
+          (0.5 +
+            Math.cos(phase * 0.13 + adult.phaseOffset) *
+              (this.reducedMotion ? 0.08 : 0.32)),
+      y:
+        this.bounds.minY +
+        height *
+          (0.48 +
+            Math.sin(phase * 0.11 + adult.phaseOffset * 0.7) *
+              (this.reducedMotion ? 0.06 : 0.25)),
+    };
+    const worldPull = this.reducedMotion
+      ? 0.04
+      : adult.role === "leader"
+        ? 0.2
+        : 0.11;
+    const target: Point = {
+      x: lerp(localTarget.x, worldTarget.x, worldPull),
+      y: lerp(localTarget.y, worldTarget.y, worldPull),
     };
 
     // Soft attraction to leader so the shoal stays related without lockstep.
