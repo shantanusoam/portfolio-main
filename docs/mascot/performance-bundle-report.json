@@ -1,9 +1,18 @@
 {
-  "generatedAt": "2026-08-07T06:13:35.760Z",
-  "mascotChunkFiles": [],
-  "mascotChunkTotalBytes": 0,
-  "mascotChunkTotalKb": 0,
+  "generatedAt": "2026-08-28T19:07:53.399Z",
+  "mascotChunkFiles": [
+    {
+      "file": ".next/static/chunks/363-0db18a1f0537d13b.js",
+      "bytes": 41744
+    },
+    {
+      "file": ".next/static/chunks/app/(archive)/blog/page-51da3c8bdb65dc9e.js",
+      "bytes": 22828
+    }
+  ],
+  "mascotChunkTotalBytes": 64572,
+  "mascotChunkTotalKb": 63.1,
   "heavyDependencyLeaks": [],
-  "attributionNote": "No client chunk matched the mascot content markers, most likely because production minification renamed internal class names (MascotEngine, MascotRuntime, etc.) — this is expected and does not indicate a bundling problem. Cross-check against `next build`'s own per-route size output instead (the /motion-lab route reports its own size separately from /, which is the actual evidence that mascot code is code-split).",
+  "attributionNote": null,
   "note": "Runtime frame-time budgets (simulation/render average, p95, worst) are not captured by this script — no browser automation is installed in this repo. Capture them manually via engine.getDebugSnapshot().performance in /motion-lab and record in docs/mascot/PERFORMANCE.md."
 }

@@ -55,6 +55,12 @@ test("overrides can only narrow, never force a layer a quality tier disallows", 
   assert.equal(layers.print, false);
 });
 
-test("DEFAULT_APPEARANCE_LAYERS starts with every layer on", () => {
-  assert.deepEqual(DEFAULT_APPEARANCE_LAYERS, ALL_ON);
+test("DEFAULT_APPEARANCE_LAYERS keeps structural layers on and decorative layers quiet", () => {
+  assert.deepEqual(DEFAULT_APPEARANCE_LAYERS, {
+    silhouette: true,
+    print: false,
+    rim: true,
+    dots: false,
+    face: true,
+  });
 });

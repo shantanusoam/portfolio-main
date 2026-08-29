@@ -1,6 +1,6 @@
 /*
-  Explicit layer stack (spec: avoid negative z-index):
-  background(0) < mascot visual layer(5) < main content(10+) < nav/modals(50+)
+  Explicit layer stack:
+  atmosphere(-10..-7) < mascot visual layer(5) < main content(10+) < nav/modals(50+)
   The canvas is decorative and never intercepts pointer events.
 */
 .canvas {

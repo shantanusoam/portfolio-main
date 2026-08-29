@@ -1,0 +1,39 @@
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: -7;
+  width: 100%;
+  height: 100%;
+  contain: strict;
+  opacity: 0.9;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+
+.field[data-renderer="static"] {
+  opacity: 0.42;
+  background:
+    radial-gradient(
+      circle at 78% 24%,
+      rgba(112, 211, 228, 0.08),
+      transparent 24rem
+    ),
+    radial-gradient(
+      circle at 20% 72%,
+      rgba(255, 93, 47, 0.055),
+      transparent 30rem
+    );
+}
+
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {
+  .field {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field {
+    opacity: 0.48;
+    transition: none;
+  }
+}

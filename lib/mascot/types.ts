@@ -225,6 +225,17 @@ export interface MascotStatus {
   performance: PerformanceState;
 }
 
+/**
+ * Allocation-light pose data for other visual systems that want to react to
+ * the creature without reaching into its runtime or copying the full spine.
+ */
+export interface MascotSignalSnapshot {
+  rootPosition: Point;
+  velocity: Point;
+  behavior: MascotBehavior;
+  timestamp: number;
+}
+
 export type EcosystemFissionPhase =
   "settle" | "round" | "seam" | "separate" | "recover";
 
@@ -310,6 +321,8 @@ export interface MascotEngine {
   setReducedMotion(reduced: boolean): void;
   trigger(action: MascotAction): void;
   getEcosystemStatus(): MascotEcosystemStatus;
+  /** Lightweight pose bridge used by the living canvas wake layer. */
+  getSignalSnapshot(): MascotSignalSnapshot;
   getDebugSnapshot(): MascotDebugSnapshot;
   destroy(): void;
   /** Dev/motion-lab only: live toggle for the spine/normals/obstacle debug overlay. */

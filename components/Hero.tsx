@@ -218,6 +218,7 @@ export default function Hero({ masked }: HeroProps) {
                   // link itself is the target — no overlay element to size.
                   {...{ [MAGNETIC_ATTRIBUTE]: "" }}
                   data-mascot-obstacle="hard"
+                  data-canvas-pulse="warm"
                   className="whitespace-nowrap text-graytransparent transition-colors duration-300 hover:text-primary"
                 >
                   [ {item.label} ]

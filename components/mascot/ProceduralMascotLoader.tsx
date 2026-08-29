@@ -28,6 +28,10 @@ const ProceduralMascotCanvas = dynamic(
   () => import("./ProceduralMascotCanvas"),
   { ssr: false, loading: () => null },
 );
+const LivingSignalField = dynamic(
+  () => import("@/components/living-canvas/LivingSignalField"),
+  { ssr: false, loading: () => null },
+);
 
 const DISABLE_STORAGE_KEY = "mascot:disabled";
 
@@ -52,9 +56,10 @@ export interface ProceduralMascotLoaderProps {
 }
 
 /**
- * Homepage-only production shell. The creature is not mounted for
- * touch-first/mobile viewports, and desktop visitors retain explicit control
- * over both the feature and pointer-following behavior.
+ * Homepage-only production shell. Explore mode composes the low-power signal
+ * habitat and its creature across the full viewport. Touch-first/mobile
+ * visitors skip both, and desktop visitors retain explicit control over the
+ * fish and pointer-following behavior.
  */
 export default function ProceduralMascotLoader({
   quality = "medium",
@@ -65,7 +70,6 @@ export default function ProceduralMascotLoader({
   const [preferencesReady, setPreferencesReady] = useState(false);
   const [desktopEligible, setDesktopEligible] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
-  const [heroVisible, setHeroVisible] = useState(true);
   const [disabled, setDisabled] = useState(false);
   const [following, setFollowing] = useState(false);
   const [engine, setEngine] = useState<MascotEngine | null>(null);
@@ -96,24 +100,6 @@ export default function ProceduralMascotLoader({
 
   useEffect(() => {
     if (!onHomepage) return undefined;
-    const hero = document.querySelector<HTMLElement>("#hero");
-    if (!hero || typeof IntersectionObserver === "undefined") {
-      setHeroVisible(true);
-      return undefined;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setHeroVisible(entry.isIntersecting && entry.intersectionRatio > 0.02);
-      },
-      { threshold: [0, 0.02, 0.12] },
-    );
-    observer.observe(hero);
-    return () => observer.disconnect();
-  }, [onHomepage]);
-
-  useEffect(() => {
-    if (!onHomepage) return undefined;
     setViewMode(readPortfolioViewMode());
 
     const handleModeChange = (event: Event) => {
@@ -127,7 +113,7 @@ export default function ProceduralMascotLoader({
   }, [onHomepage]);
 
   useEffect(() => {
-    if (!onHomepage || !desktopEligible || disabled || viewMode === "focus") {
+    if (!onHomepage || !desktopEligible || viewMode === "focus") {
       setCanvasReady(false);
       return undefined;
     }
@@ -147,7 +133,7 @@ export default function ProceduralMascotLoader({
       if (idleHandle !== undefined) win.cancelIdleCallback?.(idleHandle);
       if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
     };
-  }, [desktopEligible, disabled, onHomepage, viewMode]);
+  }, [desktopEligible, onHomepage, viewMode]);
 
   const handleEngineReady = useCallback((next: MascotEngine | null) => {
     setEngine(next);
@@ -216,12 +202,18 @@ export default function ProceduralMascotLoader({
 
   return (
     <>
+      {canvasReady ? (
+        <LivingSignalField
+          engine={disabled ? null : engine}
+          reducedMotion={prefersReducedMotion}
+        />
+      ) : null}
+
       {canvasReady && !disabled ? (
         <ProceduralMascotCanvas
           quality={quality}
-          enabled={heroVisible}
           reducedMotion={prefersReducedMotion}
-          arenaSelector="#hero"
+          autoEcology
           requireFishActivation
           onEngineReady={handleEngineReady}
           onFollowChange={handleCanvasFollowChange}
@@ -233,6 +225,7 @@ export default function ProceduralMascotLoader({
       <aside
         className={styles.mascotDock}
         aria-label="Interactive fish controls"
+        data-canvas-pulse="cool"
       >
         <div className={styles.mascotDockHeader}>
           <span
@@ -240,7 +233,7 @@ export default function ProceduralMascotLoader({
             data-active={!disabled}
             aria-hidden="true"
           />
-          <span>Interactive fish</span>
+          <span>Signal habitat</span>
         </div>
         <div className={styles.mascotDockActions}>
           <button
@@ -271,7 +264,7 @@ export default function ProceduralMascotLoader({
               className={styles.mascotModeToggle}
               onClick={releasePrey}
               disabled={!engine || !ecosystemStatus?.canReleaseFry}
-              title="Release a small prey school into the hero"
+              title="Release a small prey school into the signal habitat"
             >
               Add prey {ecosystemStatus?.activeFryCount ?? 0}/{MAX_ACTIVE_FRY}
             </button>
@@ -283,13 +276,11 @@ export default function ProceduralMascotLoader({
         <p className={styles.mascotDockHint} aria-live="polite">
           {disabled
             ? "The fish is hidden. Your choice is saved."
-            : !heroVisible
-              ? "The shoal pauses outside the hero and returns when you do."
-              : following
-                ? "Following your pointer · click the fish or press Esc to rest"
-                : `${mood} · ${ecosystemStatus?.population ?? 1} adult${
-                    ecosystemStatus?.population === 1 ? "" : "s"
-                  } · click the fish to follow`}
+            : following
+              ? "Following your pointer · click the fish or press Esc to rest"
+              : `${mood} across this page · ${ecosystemStatus?.population ?? 1} adult${
+                  ecosystemStatus?.population === 1 ? "" : "s"
+                } · strings and controls disturb the current`}
         </p>
       </aside>
     </>

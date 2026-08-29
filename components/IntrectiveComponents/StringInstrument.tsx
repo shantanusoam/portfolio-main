@@ -12,6 +12,7 @@ import {
   STRING_CONTACT_EVENT,
   type StringContactEventDetail,
 } from "@/lib/mascot/music/StringRegistry";
+import { dispatchLivingCanvasPulse } from "@/lib/living-canvas/events";
 
 function stringRole(index: number): "bass" | "mid" | "treble" {
   if (index <= 1) return "bass";
@@ -279,6 +280,25 @@ export default function StringInstrument() {
     setLastNote(note);
   }, []);
 
+  const emitStringSignal = useCallback(
+    (index: number, intensity: number, x: number) => {
+      const svg = pathRefs.current[index]?.ownerSVGElement;
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      dispatchLivingCanvasPulse({
+        clientX: rect.left + (x / VIEWBOX_WIDTH) * rect.width,
+        clientY:
+          rect.top +
+          ((FIRST_STRING_Y + index * STRING_GAP) / VIEWBOX_HEIGHT) *
+            rect.height,
+        intensity,
+        tone: index <= 1 ? "cool" : "warm",
+        source: "string",
+      });
+    },
+    [],
+  );
+
   function getPoint(event: React.PointerEvent<SVGSVGElement>) {
     const bounds = event.currentTarget.getBoundingClientRect();
     return {
@@ -320,6 +340,7 @@ export default function StringInstrument() {
     if (withSound) {
       playNote(index, force, x);
       string.glow = 1;
+      emitStringSignal(index, force, x);
     }
     startAnimation();
   }
@@ -337,6 +358,7 @@ export default function StringInstrument() {
     string.velocity = direction * Math.min(8 + force * 9, 17);
     playNote(index, force, x);
     string.glow = 1;
+    emitStringSignal(index, force, x);
     startAnimation();
   }
 
@@ -460,6 +482,7 @@ export default function StringInstrument() {
     string.bend = 14;
     string.velocity = 10;
     playNote(index, 0.65, VIEWBOX_WIDTH / 2);
+    emitStringSignal(index, 0.65, VIEWBOX_WIDTH / 2);
     setActiveString(index);
     setTimeout(() => setActiveString(undefined), 180);
     startAnimation();

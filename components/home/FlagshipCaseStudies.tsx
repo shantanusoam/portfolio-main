@@ -101,7 +101,12 @@ export default function FlagshipCaseStudies() {
         {flagshipCaseStudies.map((study, index) => {
           const view = views[study.id] ?? "product";
           return (
-            <article className={styles.caseCard} key={study.id}>
+            <article
+              className={styles.caseCard}
+              key={study.id}
+              data-mascot-interest="project"
+              data-canvas-pulse="warm"
+            >
               <div className={styles.caseMain}>
                 <div className={styles.caseVisual}>
                   <Image

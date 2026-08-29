@@ -2,6 +2,7 @@
 
 ## Active
 
+- [x] 2026-08-28: Add the Living Signal Field — site-roaming fish, shared WebGL wake, string/control pulses, Canvas 2D fallback, and Focus/reduced-motion gates
 - [x] 2026-08-11: 404 Brick Breaker — breakable 404 blocks, power-ups, win/lose overlays
 - [x] 2026-08-09: Disable mascot fish ↔ musical string contacts on mobile
 - [x] 2026-08-09: Fix Vercel pnpm frozen-lockfile failure — sync lockfile after adding tsx
