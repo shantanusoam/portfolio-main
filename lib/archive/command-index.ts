@@ -7,12 +7,7 @@ import {
 import { systemsRegistry } from "@/lib/portfolio/evidence";
 
 export type CommandEntryKind =
-  | "page"
-  | "article"
-  | "reference"
-  | "screening"
-  | "question"
-  | "system";
+  "page" | "article" | "reference" | "screening" | "question" | "system";
 
 export interface CommandEntry {
   id: string;
@@ -22,9 +17,53 @@ export interface CommandEntry {
   keywords: string;
   section: string;
   kind: CommandEntryKind;
+  action?: {
+    type: "open-soundroom";
+    view: "mini" | "room" | "local" | "queue" | "tune";
+  };
 }
 
 const pageEntries: CommandEntry[] = [
+  {
+    id: "soundroom-open",
+    name: "Soundroom",
+    subtitle: "Enter the hidden local listening room",
+    href: "/",
+    keywords: "music soundroom play something personal radio hidden player",
+    section: "Soundroom",
+    kind: "system",
+    action: { type: "open-soundroom", view: "room" },
+  },
+  {
+    id: "soundroom-local",
+    name: "Open local record crate",
+    subtitle: "Play files privately from this device",
+    href: "/",
+    keywords: "local library audio files mp3 m4a wav flac private",
+    section: "Soundroom",
+    kind: "system",
+    action: { type: "open-soundroom", view: "local" },
+  },
+  {
+    id: "soundroom-now-playing",
+    name: "What am I listening to?",
+    subtitle: "Reveal the mini player and current signal",
+    href: "/",
+    keywords: "now playing current song audio",
+    section: "Soundroom",
+    kind: "system",
+    action: { type: "open-soundroom", view: "mini" },
+  },
+  {
+    id: "soundroom-tune",
+    name: "Tune the Soundroom",
+    subtitle: "Strings, water, EQ and reactive intensity",
+    href: "/",
+    keywords: "visualizer strings water spectrum tune equalizer effects",
+    section: "Soundroom",
+    kind: "system",
+    action: { type: "open-soundroom", view: "tune" },
+  },
   {
     id: "page-home",
     name: "Portfolio home",
@@ -194,60 +233,50 @@ const pageEntries: CommandEntry[] = [
 export function createCommandIndex(): CommandEntry[] {
   return [
     ...pageEntries,
-    ...systemsRegistry.map(
-      (entry): CommandEntry => ({
-        id: `system-${entry.slug}`,
-        name: entry.name,
-        subtitle: `${entry.status} · ${entry.tech.join(" / ")}`,
-        href: `/systems/${entry.slug}`,
-        keywords: `${entry.description} ${entry.tech.join(" ")}`,
-        section: "Systems Lab",
-        kind: "system",
-      }),
-    ),
-    ...archiveArticles.map(
-      (article): CommandEntry => ({
-        id: `article-${article.slug}`,
-        name: article.title,
-        subtitle: `${article.format} · ${article.category} · ${article.readingMinutes} min`,
-        href: `/blog/${article.slug}`,
-        keywords: `${article.dek} ${article.category} ${article.format} ${article.accent}`,
-        section: "Dispatches",
-        kind: "article",
-      }),
-    ),
-    ...inspirationEntries.map(
-      (entry): CommandEntry => ({
-        id: `reference-${entry.id}`,
-        name: entry.name,
-        subtitle: `${entry.kind} · ${entry.tags.join(" / ")}`,
-        href: `/inspo#${entry.id}`,
-        keywords: `${entry.note} ${entry.kind} ${entry.tags.join(" ")}`,
-        section: "Reference wall",
-        kind: "reference",
-      }),
-    ),
-    ...talkEntries.map(
-      (talk): CommandEntry => ({
-        id: `screening-${talk.id}`,
-        name: talk.title,
-        subtitle: `${talk.speaker} · ${talk.displayDuration} · ${talk.topic}`,
-        href: `/worth-your-time#${talk.id}`,
-        keywords: `${talk.why} ${talk.takeaway} ${talk.speaker} ${talk.topic}`,
-        section: "Screening room",
-        kind: "screening",
-      }),
-    ),
-    ...raqEntries.map(
-      (entry): CommandEntry => ({
-        id: `question-${entry.id}`,
-        name: entry.question,
-        subtitle: `${entry.topic} · ${entry.askedAt}`,
-        href: `/raq#${entry.id}`,
-        keywords: `${entry.shortAnswer} ${entry.topic}`,
-        section: "Rare questions",
-        kind: "question",
-      }),
-    ),
+    ...systemsRegistry.map((entry): CommandEntry => ({
+      id: `system-${entry.slug}`,
+      name: entry.name,
+      subtitle: `${entry.status} · ${entry.tech.join(" / ")}`,
+      href: `/systems/${entry.slug}`,
+      keywords: `${entry.description} ${entry.tech.join(" ")}`,
+      section: "Systems Lab",
+      kind: "system",
+    })),
+    ...archiveArticles.map((article): CommandEntry => ({
+      id: `article-${article.slug}`,
+      name: article.title,
+      subtitle: `${article.format} · ${article.category} · ${article.readingMinutes} min`,
+      href: `/blog/${article.slug}`,
+      keywords: `${article.dek} ${article.category} ${article.format} ${article.accent}`,
+      section: "Dispatches",
+      kind: "article",
+    })),
+    ...inspirationEntries.map((entry): CommandEntry => ({
+      id: `reference-${entry.id}`,
+      name: entry.name,
+      subtitle: `${entry.kind} · ${entry.tags.join(" / ")}`,
+      href: `/inspo#${entry.id}`,
+      keywords: `${entry.note} ${entry.kind} ${entry.tags.join(" ")}`,
+      section: "Reference wall",
+      kind: "reference",
+    })),
+    ...talkEntries.map((talk): CommandEntry => ({
+      id: `screening-${talk.id}`,
+      name: talk.title,
+      subtitle: `${talk.speaker} · ${talk.displayDuration} · ${talk.topic}`,
+      href: `/worth-your-time#${talk.id}`,
+      keywords: `${talk.why} ${talk.takeaway} ${talk.speaker} ${talk.topic}`,
+      section: "Screening room",
+      kind: "screening",
+    })),
+    ...raqEntries.map((entry): CommandEntry => ({
+      id: `question-${entry.id}`,
+      name: entry.question,
+      subtitle: `${entry.topic} · ${entry.askedAt}`,
+      href: `/raq#${entry.id}`,
+      keywords: `${entry.shortAnswer} ${entry.topic}`,
+      section: "Rare questions",
+      kind: "question",
+    })),
   ];
 }

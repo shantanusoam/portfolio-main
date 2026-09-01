@@ -11,6 +11,7 @@ import { CommandPaletteProvider } from "@/components/command-palette/CommandPale
 import { createCommandIndex } from "@/lib/archive/command-index";
 import { getPublicOrigin } from "@/lib/oauth/config";
 import PortfolioAnalytics from "@/components/analytics/PortfolioAnalytics";
+import SoundroomNub from "@/components/soundroom/SoundroomNub";
 
 const inter = Inter({ subsets: ["latin"] });
 const commandEntries = createCommandIndex();
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <PageScrollProgress />
           <PortfolioAnalytics />
           <ProceduralMascotLoader />
+          <SoundroomNub />
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </CommandPaletteProvider>
       </body>

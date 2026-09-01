@@ -316,6 +316,17 @@ export interface MascotEngine {
   /** While true, the leader ignores user pointer follow (roe egg hover). */
   setPointerSuppressed(suppressed: boolean): void;
   setScrollVelocity(value: number): void;
+  /** Subtle, bounded influence from Soundroom. Hunting and pointer-follow still win. */
+  setAudioEnergy(
+    bass: number,
+    mid: number,
+    high: number,
+    overall: number,
+    intensity: number,
+    enabled: boolean,
+  ): void;
+  /** Gives an autonomous fish a brief point of curiosity when the record changes. */
+  setAudioTrackChangePoint(x: number, y: number): void;
   setQuality(quality: MascotQuality): void;
   setEnabled(enabled: boolean): void;
   setReducedMotion(reduced: boolean): void;

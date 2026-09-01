@@ -5,6 +5,13 @@ explicitly gated and deferred — see below).
 
 # Completed
 
+- Soundroom bridge: the independent local-audio engine publishes bounded
+  bass/mid/high/overall energy without sharing an `AudioContext` with the
+  mascot. `FishEcosystem` treats it as low-weight wander influence only;
+  hunting, reproduction, obstacle avoidance, and pointer-follow remain
+  authoritative. Reduced motion fully silences the bridge. Deterministic
+  coverage lives in `tests/mascot/FishEcosystem.test.ts`.
+
 - Phase 0: baseline audit (`BASELINE_AUDIT.md`).
 - Phase 1: core math — `NumericGuards`, `SeededRandom`, `FixedStepLoop`,
   `SecondOrderDynamics`, `PerformanceGovernor`. 35 tests.

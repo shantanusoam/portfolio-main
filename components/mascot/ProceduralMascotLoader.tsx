@@ -23,6 +23,10 @@ import {
 } from "@/lib/portfolio/viewMode";
 import MascotSoundControl from "./MascotSoundControl";
 import styles from "./Mascot.module.css";
+import {
+  subscribeSoundroomEnergy,
+  subscribeSoundroomTrackChange,
+} from "@/lib/audio/reactiveBridge";
 
 const ProceduralMascotCanvas = dynamic(
   () => import("./ProceduralMascotCanvas"),
@@ -99,6 +103,34 @@ export default function ProceduralMascotLoader({
       coarse.removeEventListener("change", syncEligibility);
     };
   }, [onHomepage]);
+
+  useEffect(() => {
+    if (!engine || prefersReducedMotion) return undefined;
+    const unsubscribeEnergy = subscribeSoundroomEnergy((signal) => {
+      engine.setAudioEnergy(
+        signal.bass,
+        signal.mid,
+        signal.high,
+        signal.overall,
+        signal.intensity,
+        signal.enabled && signal.playing,
+      );
+    });
+    const unsubscribeTrack = subscribeSoundroomTrackChange((track) => {
+      let hash = 0;
+      for (let index = 0; index < track.id.length; index += 1) {
+        hash = (hash * 31 + track.id.charCodeAt(index)) >>> 0;
+      }
+      const x = window.innerWidth * (0.58 + (hash % 23) / 100);
+      const y = window.innerHeight * (0.28 + ((hash >>> 5) % 28) / 100);
+      engine.setAudioTrackChangePoint(x, y);
+    });
+    return () => {
+      unsubscribeEnergy();
+      unsubscribeTrack();
+      engine.setAudioEnergy(0, 0, 0, 0, 0, false);
+    };
+  }, [engine, prefersReducedMotion]);
 
   useEffect(() => {
     if (!controlsOpen) return undefined;
