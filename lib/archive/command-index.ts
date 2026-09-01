@@ -109,9 +109,20 @@ const pageEntries: CommandEntry[] = [
   {
     id: "page-learning",
     name: "Learning Log",
-    subtitle: "Tracks, checkpoints, and procedural animation guides",
+    subtitle: "Tracks, checkpoints, and hands-on systems courses",
     href: "/learning",
-    keywords: "learning log tracks guides procedural animation course",
+    keywords:
+      "learning log tracks guides procedural animation web audio guitar course",
+    section: "Navigate",
+    kind: "page",
+  },
+  {
+    id: "page-learning-strings",
+    name: "Browser Guitar & Web Audio Course",
+    subtitle: "11 modules · 33 hands-on code steps",
+    href: "/learning/string-instrument",
+    keywords:
+      "learning course guitar strings music canvas web audio karplus strong effects drive delay reverb",
     section: "Navigate",
     kind: "page",
   },

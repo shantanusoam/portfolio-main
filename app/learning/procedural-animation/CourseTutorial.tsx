@@ -5,9 +5,51 @@ import { Check, Copy, ExternalLink } from "lucide-react";
 import {
   COURSE_REPOSITORY_URL,
   COURSE_SETUP,
-  type LessonTutorial,
+  type CourseSource,
+  type DebugHint,
+  type TutorialStep,
 } from "./courseTutorials";
 import styles from "./page.module.css";
+
+export interface CourseTutorialContent {
+  outcome: string;
+  steps: readonly TutorialStep[];
+  verify: readonly string[];
+  debug: readonly DebugHint[];
+  sources: readonly CourseSource[];
+}
+
+export interface CourseTutorialKit {
+  setup: {
+    title: string;
+    description: string;
+    commands: string;
+    files: readonly string[];
+  };
+  starterHref: string;
+  starterLabel: string;
+  completeHref: string;
+  completeLabel: string;
+  repositoryUrl: string;
+  repositoryPath: string;
+  repositoryNote: string;
+  sourceHeading: string;
+  sourceDescription: string;
+}
+
+const DEFAULT_KIT: CourseTutorialKit = {
+  setup: COURSE_SETUP,
+  starterHref: "/course-files/procedural-fish-starter.html",
+  starterLabel: "Download zero-setup starter",
+  completeHref: "/course-files/procedural-fish-complete.html",
+  completeLabel: "Open finished demo",
+  repositoryUrl: COURSE_REPOSITORY_URL,
+  repositoryPath: "public/course-files",
+  repositoryNote: "Runnable starter, complete demo and build-order reference.",
+  sourceHeading: "Compare your version with production boundaries.",
+  sourceDescription:
+    "These are the real portfolio files and engineering notes that this lesson was distilled from—not a separate toy architecture.",
+};
 
 function CopyButton({
   value,
@@ -44,12 +86,14 @@ export default function CourseTutorial({
   showSetup,
   completedStepKeys,
   onToggleStep,
+  kit = DEFAULT_KIT,
 }: {
   lessonId: string;
-  tutorial: LessonTutorial;
+  tutorial: CourseTutorialContent;
   showSetup: boolean;
   completedStepKeys: readonly string[];
   onToggleStep: (stepKey: string) => void;
+  kit?: CourseTutorialKit;
 }) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -79,42 +123,38 @@ export default function CourseTutorial({
         <details className={styles.setupPanel} open>
           <summary>
             <span>One-time setup</span>
-            <strong>{COURSE_SETUP.title}</strong>
+            <strong>{kit.setup.title}</strong>
           </summary>
           <div className={styles.setupBody}>
-            <p>{COURSE_SETUP.description}</p>
+            <p>{kit.setup.description}</p>
             <div className={styles.setupGrid}>
               <div className={styles.tutorialCode}>
                 <div>
                   <span>Terminal</span>
                   <CopyButton
-                    value={COURSE_SETUP.commands}
+                    value={kit.setup.commands}
                     copyKey="course-setup"
                     copiedKey={copiedKey}
                     onCopy={copy}
                   />
                 </div>
                 <pre>
-                  <code>{COURSE_SETUP.commands}</code>
+                  <code>{kit.setup.commands}</code>
                 </pre>
               </div>
               <div className={styles.fileMap}>
                 <span>Files you will own</span>
                 <ul>
-                  {COURSE_SETUP.files.map((file) => (
+                  {kit.setup.files.map((file) => (
                     <li key={file}>{file}</li>
                   ))}
                 </ul>
                 <div className={styles.courseKitLinks}>
-                  <a href="/course-files/procedural-fish-starter.html" download>
-                    Download zero-setup starter
+                  <a href={kit.starterHref} download>
+                    {kit.starterLabel}
                   </a>
-                  <a
-                    href="/course-files/procedural-fish-complete.html"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open finished demo{" "}
+                  <a href={kit.completeHref} target="_blank" rel="noreferrer">
+                    {kit.completeLabel}{" "}
                     <ExternalLink size={12} aria-hidden="true" />
                   </a>
                 </div>
@@ -206,11 +246,8 @@ export default function CourseTutorial({
       <section className={styles.productionSources}>
         <div>
           <span className={styles.sectionLabel}>From the shipped system</span>
-          <h4>Compare your version with production boundaries.</h4>
-          <p>
-            These are the real portfolio files and engineering notes that this
-            lesson was distilled from—not a separate toy architecture.
-          </p>
+          <h4>{kit.sourceHeading}</h4>
+          <p>{kit.sourceDescription}</p>
         </div>
         <div>
           {tutorial.sources.map((source) => (
@@ -227,13 +264,13 @@ export default function CourseTutorial({
           ))}
           <a
             className={styles.allCourseSource}
-            href={COURSE_REPOSITORY_URL}
+            href={kit.repositoryUrl}
             target="_blank"
             rel="noreferrer"
           >
             <span>Complete course kit</span>
-            <code>public/course-files</code>
-            <p>Runnable starter, complete demo and build-order reference.</p>
+            <code>{kit.repositoryPath}</code>
+            <p>{kit.repositoryNote}</p>
           </a>
         </div>
       </section>

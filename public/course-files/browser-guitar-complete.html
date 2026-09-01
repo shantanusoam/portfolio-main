@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src 'none'; connect-src 'none'"
+    />
+    <title>Browser Guitar — Complete Course Demo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        background: #0a0a09;
+        color: #f0e7dd;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 78% 4%, #6b341628, transparent 34%),
+          radial-gradient(circle at 10% 70%, #17303b1f, transparent 31%),
+          #0a0a09;
+      }
+
+      main {
+        width: min(100%, 1120px);
+        margin: 0 auto;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 32px;
+        align-items: end;
+        margin: 28px 0 22px;
+      }
+
+      .kicker,
+      legend,
+      .group > span {
+        color: #e59a56;
+        font-size: 10px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 13ch;
+        margin: 9px 0 0;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(42px, 8vw, 84px);
+        font-weight: 580;
+        line-height: 0.94;
+        letter-spacing: -0.06em;
+      }
+
+      header p {
+        margin: 0;
+        color: #baa998;
+        font-family: ui-serif, Georgia, serif;
+        font-size: 17px;
+        line-height: 1.65;
+      }
+
+      .instrument {
+        overflow: hidden;
+        border: 1px solid #e7a2652c;
+        border-radius: 20px;
+        background: #11100f;
+        box-shadow: 0 32px 100px #0008;
+      }
+
+      .toolbar,
+      .legend {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 15px;
+        border-bottom: 1px solid #e7a2651c;
+      }
+
+      .toolbar > div,
+      fieldset > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      button {
+        min-height: 32px;
+        padding: 6px 10px;
+        border: 1px solid #e7a26528;
+        border-radius: 999px;
+        color: #d8c4b0;
+        background: #ffffff07;
+        font: inherit;
+        font-size: 10px;
+        cursor: pointer;
+      }
+
+      button:hover,
+      button:focus-visible,
+      button[aria-pressed="true"] {
+        border-color: #f3a35d66;
+        color: #fff3e6;
+        background: #de742b16;
+        outline: none;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      canvas:focus-visible {
+        outline: 2px solid #ef9f5866;
+        outline-offset: 3px;
+      }
+
+      .sound::before {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin-right: 7px;
+        border-radius: 50%;
+        background: #c4ac925c;
+        content: "";
+      }
+
+      .sound[data-state="running"]::before {
+        background: #79d0aa;
+        box-shadow: 0 0 0 3px #5fcf9d1c;
+      }
+
+      .sound[data-state="muted"]::before {
+        background: #d4a36f;
+      }
+
+      .legend {
+        position: absolute;
+        z-index: 2;
+        right: 0;
+        left: 0;
+        border: 0;
+        color: #d6c2ad6b;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        pointer-events: none;
+      }
+
+      .legend strong {
+        color: #f3ad6d;
+        font-weight: 520;
+      }
+
+      .canvas-wrap {
+        position: relative;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: clamp(310px, 45vw, 470px);
+        touch-action: none;
+        cursor: crosshair;
+      }
+
+      .selectors,
+      .rack {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 10px;
+        padding: 0 14px 12px;
+      }
+
+      fieldset,
+      .group {
+        min-width: 0;
+        margin: 0;
+        padding: 12px;
+        border: 1px solid #e7a2651c;
+        border-radius: 11px;
+      }
+
+      legend {
+        padding: 0 5px;
+      }
+
+      .group {
+        display: grid;
+        gap: 8px;
+      }
+
+      label {
+        display: grid;
+        grid-template-columns: 70px minmax(60px, 1fr) 52px;
+        gap: 9px;
+        align-items: center;
+        color: #d5c1ad94;
+        font-size: 10px;
+      }
+
+      input {
+        min-width: 0;
+        width: 100%;
+        accent-color: #e6954c;
+      }
+
+      output {
+        color: #efbd8a;
+        text-align: right;
+      }
+
+      .notes {
+        padding: 14px 16px 18px;
+        border-top: 1px solid #e7a2651c;
+        color: #a99887;
+        font-family: ui-serif, Georgia, serif;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .notes strong {
+        color: #e8d2bc;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 760px) {
+        header,
+        .selectors,
+        .rack {
+          grid-template-columns: 1fr;
+        }
+
+        .toolbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <span class="kicker">Complete course demo · no dependencies</span>
+          <h1>Six strings. One audio graph.</h1>
+        </div>
+        <p>
+          Pull one string, sweep vertically to strum, or use keys 1–6. Shape the
+          physical pluck with drive, delay, feedback, reverb, and safe master
+          output.
+        </p>
+      </header>
+
+      <section class="instrument">
+        <div class="toolbar">
+          <div>
+            <button id="sound" class="sound" data-state="locked">
+              Enable sound
+            </button>
+            <button id="strum">Strum chord</button>
+            <button id="stop">Stop voices</button>
+          </div>
+          <span id="audio-status" class="kicker" aria-live="polite">
+            sound starts on first pluck
+          </span>
+        </div>
+
+        <div class="canvas-wrap">
+          <div class="legend" aria-hidden="true">
+            <span id="gesture"
+              >pull one string · sweep to strum · keys 1—6</span
+            >
+            <strong id="note">C major</strong>
+          </div>
+          <canvas
+            id="guitar"
+            width="1000"
+            height="400"
+            tabindex="0"
+            aria-label="Six-string effects guitar. Pull a string, sweep vertically to strum, or press keys 1 through 6."
+          ></canvas>
+          <span id="sr-status" class="sr-only" aria-live="polite"></span>
+        </div>
+
+        <div class="selectors">
+          <fieldset>
+            <legend>Chord</legend>
+            <div id="chords"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Effect preset</legend>
+            <div id="presets"></div>
+          </fieldset>
+        </div>
+
+        <div class="rack">
+          <div class="group" id="string-controls"><span>String</span></div>
+          <div class="group" id="effect-controls"><span>Effects</span></div>
+        </div>
+
+        <div class="notes">
+          <strong>Signal:</strong> Karplus–Strong buffer → tone filter →
+          envelope → stereo contact → drive → dry + delay + convolver →
+          compressor → master. AudioContext is created only from interaction;
+          voices, buffers, animation, and teardown are bounded.
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const canvas = document.querySelector("#guitar");
+      const drawContext = canvas.getContext("2d");
+      const soundButton = document.querySelector("#sound");
+      const strumButton = document.querySelector("#strum");
+      const stopButton = document.querySelector("#stop");
+      const audioStatus = document.querySelector("#audio-status");
+      const noteStatus = document.querySelector("#note");
+      const screenReaderStatus = document.querySelector("#sr-status");
+      const gestureStatus = document.querySelector("#gesture");
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+      const CHORDS = [
+        {
+          name: "C major",
+          short: "C",
+          strings: [
+            ["C3", 130.81],
+            ["G3", 196],
+            ["C4", 261.63],
+            ["E4", 329.63],
+            ["G4", 392],
+            ["C5", 523.25],
+          ],
+        },
+        {
+          name: "A minor",
+          short: "Am",
+          strings: [
+            ["A2", 110],
+            ["E3", 164.81],
+            ["A3", 220],
+            ["C4", 261.63],
+            ["E4", 329.63],
+            ["A4", 440],
+          ],
+        },
+        {
+          name: "F major",
+          short: "F",
+          strings: [
+            ["F2", 87.31],
+            ["C3", 130.81],
+            ["F3", 174.61],
+            ["A3", 220],
+            ["C4", 261.63],
+            ["F4", 349.23],
+          ],
+        },
+        {
+          name: "G major",
+          short: "G",
+          strings: [
+            ["G2", 98],
+            ["D3", 146.83],
+            ["G3", 196],
+            ["B3", 246.94],
+            ["D4", 293.66],
+            ["G4", 392],
+          ],
+        },
+      ];
+
+      const PRESETS = {
+        clean: {
+          tone: 0.66,
+          drive: 0.03,
+          delay: 0.12,
+          feedback: 0.12,
+          reverb: 0.08,
+          output: 0.54,
+        },
+        dream: {
+          tone: 0.54,
+          drive: 0.08,
+          delay: 0.38,
+          feedback: 0.52,
+          reverb: 0.48,
+          output: 0.47,
+        },
+        crunch: {
+          tone: 0.76,
+          drive: 0.72,
+          delay: 0.16,
+          feedback: 0.2,
+          reverb: 0.16,
+          output: 0.42,
+        },
+      };
+
+      const settings = {
+        tension: 0.56,
+        damping: 0.64,
+        chord: 0,
+        preset: "clean",
+        ...PRESETS.clean,
+      };
+
+      const strings = Array.from({ length: 6 }, () => ({
+        bend: 0,
+        velocity: 0,
+        anchorX: 0.5,
+        held: false,
+        energy: 0,
+      }));
+
+      let pointer = null;
+      let frameId = null;
+      let previousFrame = null;
+      let graph = null;
+      let graphPromise = null;
+      let muted = false;
+      const cache = new Map();
+      const activeSources = new Set();
+
+      function metrics() {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const gap = Math.min(44, (height - 82) / 5);
+        return { width, height, gap, firstY: (height - gap * 5) / 2 };
+      }
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        drawContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+        draw();
+      }
+
+      function draw() {
+        const { width, height, gap, firstY } = metrics();
+        drawContext.clearRect(0, 0, width, height);
+        const wash = drawContext.createLinearGradient(0, 0, width, height);
+        wash.addColorStop(0, "#6d34121b");
+        wash.addColorStop(1, "#17303b12");
+        drawContext.fillStyle = wash;
+        drawContext.fillRect(0, 0, width, height);
+
+        CHORDS.forEach((chord, index) => {
+          const left = (index / CHORDS.length) * width;
+          const zone = width / CHORDS.length;
+          if (index === settings.chord) {
+            drawContext.fillStyle = "#dd7c2e0c";
+            drawContext.fillRect(left, 0, zone, height);
+          }
+          if (index > 0) {
+            drawContext.strokeStyle = "#f5d9bd12";
+            drawContext.beginPath();
+            drawContext.moveTo(left, 22);
+            drawContext.lineTo(left, height - 20);
+            drawContext.stroke();
+          }
+          drawContext.fillStyle =
+            index === settings.chord ? "#f0ae70bc" : "#d8c1a947";
+          drawContext.font = "10px ui-monospace, monospace";
+          drawContext.textAlign = "center";
+          drawContext.fillText(chord.short, left + zone / 2, height - 14);
+        });
+
+        strings.forEach((string, index) => {
+          const y = firstY + index * gap;
+          const x = string.anchorX * width;
+          if (string.energy > 0.02) {
+            const aura = drawContext.createRadialGradient(
+              x,
+              y + string.bend,
+              0,
+              x,
+              y + string.bend,
+              52,
+            );
+            aura.addColorStop(0, `rgba(255, 151, 68, ${0.17 * string.energy})`);
+            aura.addColorStop(1, "rgba(255, 151, 68, 0)");
+            drawContext.fillStyle = aura;
+            drawContext.beginPath();
+            drawContext.arc(x, y + string.bend, 52, 0, Math.PI * 2);
+            drawContext.fill();
+          }
+          drawContext.lineWidth = 2.8 - index * 0.35;
+          drawContext.strokeStyle =
+            string.held || string.energy > 0.3
+              ? "#f5a35f"
+              : index < 2
+                ? "#e2c091d9"
+                : "#f0e3d4dc";
+          drawContext.shadowColor = `rgba(255, 143, 60, ${string.energy * 0.26})`;
+          drawContext.shadowBlur = string.energy * 12;
+          drawContext.beginPath();
+          drawContext.moveTo(18, y);
+          drawContext.quadraticCurveTo(x, y + string.bend, width - 18, y);
+          drawContext.stroke();
+          drawContext.shadowBlur = 0;
+        });
+      }
+
+      function requestFrame() {
+        if (frameId === null) frameId = requestAnimationFrame(frame);
+      }
+
+      function frame(time) {
+        const dt = Math.min((time - (previousFrame ?? time)) / 16.67, 2);
+        previousFrame = time;
+        let moving = false;
+        strings.forEach((string) => {
+          if (reduceMotion.matches) {
+            if (!string.held) {
+              string.bend = 0;
+              string.velocity = 0;
+            }
+            string.energy = 0;
+            return;
+          }
+          if (!string.held) {
+            const stiffness = 0.055 + settings.tension * 0.16;
+            const drag = 0.035 + settings.damping * 0.13;
+            const acceleration =
+              -stiffness * string.bend - drag * string.velocity;
+            string.velocity += acceleration * dt;
+            string.bend += string.velocity * dt;
+          }
+          string.energy *= Math.pow(0.9, dt);
+          moving ||=
+            string.held ||
+            Math.abs(string.bend) > 0.05 ||
+            Math.abs(string.velocity) > 0.05 ||
+            string.energy > 0.02;
+        });
+        draw();
+        if (moving) frameId = requestAnimationFrame(frame);
+        else {
+          frameId = null;
+          previousFrame = null;
+        }
+      }
+
+      function curve(amount) {
+        const result = new Float32Array(2048);
+        const k = Math.max(0, amount) * 45;
+        for (let i = 0; i < result.length; i += 1) {
+          const x = (i * 2) / (result.length - 1) - 1;
+          result[i] = ((1 + k) * x) / (1 + k * Math.abs(x));
+        }
+        return result;
+      }
+
+      function impulse(audio, seconds = 1.8) {
+        const length = Math.floor(audio.sampleRate * seconds);
+        const buffer = audio.createBuffer(2, length, audio.sampleRate);
+        for (let channel = 0; channel < 2; channel += 1) {
+          const data = buffer.getChannelData(channel);
+          for (let i = 0; i < length; i += 1) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.4);
+          }
+        }
+        return buffer;
+      }
+
+      function smooth(param, value, audio) {
+        param.cancelScheduledValues(audio.currentTime);
+        param.setTargetAtTime(value, audio.currentTime, 0.02);
+      }
+
+      function updateGraph() {
+        if (!graph) return;
+        graph.drive.curve = curve(settings.drive);
+        smooth(graph.dry.gain, 0.94 - settings.drive * 0.16, graph.audio);
+        smooth(
+          graph.delay.delayTime,
+          Math.min(0.72, settings.delay),
+          graph.audio,
+        );
+        smooth(
+          graph.feedback.gain,
+          Math.min(0.78, settings.feedback),
+          graph.audio,
+        );
+        smooth(
+          graph.delayWet.gain,
+          0.08 + settings.feedback * 0.42,
+          graph.audio,
+        );
+        smooth(graph.reverbWet.gain, settings.reverb * 0.58, graph.audio);
+        smooth(graph.master.gain, muted ? 0 : settings.output, graph.audio);
+      }
+
+      async function ensureAudio() {
+        if (graph) {
+          if (graph.audio.state === "suspended") await graph.audio.resume();
+          return graph;
+        }
+        if (graphPromise) return graphPromise;
+        const activation = createAudioGraph();
+        graphPromise = activation;
+        const nextGraph = await activation;
+        if (graphPromise === activation) graphPromise = null;
+        return nextGraph;
+      }
+
+      async function createAudioGraph() {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) {
+          audioStatus.textContent =
+            "Web Audio unavailable · visuals remain playable";
+          soundButton.disabled = true;
+          return null;
+        }
+        const audio = new AudioCtor({ latencyHint: "interactive" });
+        if (audio.state === "suspended") await audio.resume();
+        const input = audio.createGain();
+        const drive = audio.createWaveShaper();
+        const dry = audio.createGain();
+        const delay = audio.createDelay(1);
+        const feedback = audio.createGain();
+        const delayWet = audio.createGain();
+        const convolver = audio.createConvolver();
+        const reverbWet = audio.createGain();
+        const compressor = audio.createDynamicsCompressor();
+        const master = audio.createGain();
+        drive.oversample = "2x";
+        convolver.buffer = impulse(audio);
+        compressor.threshold.value = -20;
+        compressor.knee.value = 24;
+        compressor.ratio.value = 4;
+        compressor.attack.value = 0.005;
+        compressor.release.value = 0.25;
+        input.connect(drive);
+        drive.connect(dry).connect(compressor);
+        drive.connect(delay).connect(feedback).connect(delay);
+        delay.connect(delayWet).connect(compressor);
+        drive.connect(convolver).connect(reverbWet).connect(compressor);
+        compressor.connect(master).connect(audio.destination);
+        graph = {
+          audio,
+          input,
+          drive,
+          dry,
+          delay,
+          feedback,
+          delayWet,
+          convolver,
+          reverbWet,
+          compressor,
+          master,
+        };
+        updateGraph();
+        soundButton.dataset.state = "running";
+        soundButton.textContent = "Sound on";
+        audioStatus.textContent = "audio running · one shared context";
+        return graph;
+      }
+
+      function renderPluck(audio, frequency) {
+        const duration = 2.45;
+        const length = Math.floor(audio.sampleRate * duration);
+        const buffer = audio.createBuffer(1, length, audio.sampleRate);
+        const data = buffer.getChannelData(0);
+        const period = Math.max(2, Math.round(audio.sampleRate / frequency));
+        const decay = 0.998 - settings.damping * 0.0065;
+        for (let i = 0; i < period; i += 1) data[i] = Math.random() * 2 - 1;
+        for (let i = period; i < length; i += 1) {
+          const delayed = i - period;
+          data[i] = decay * 0.5 * (data[delayed] + data[delayed + 1]);
+        }
+        return buffer;
+      }
+
+      async function playString(
+        index,
+        intensity = 0.62,
+        normalizedX = 0.5,
+        offset = 0,
+      ) {
+        if (muted) return;
+        const currentGraph = await ensureAudio();
+        if (!currentGraph) return;
+        const [label, frequency] = CHORDS[settings.chord].strings[index];
+        const key = `${Math.round(frequency * 100)}:${settings.damping.toFixed(2)}`;
+        let buffer = cache.get(key);
+        if (!buffer) {
+          buffer = renderPluck(currentGraph.audio, frequency);
+          if (cache.size >= 32) cache.delete(cache.keys().next().value);
+          cache.set(key, buffer);
+        }
+        if (activeSources.size >= 12) {
+          try {
+            activeSources.values().next().value.stop();
+          } catch {}
+        }
+        const audio = currentGraph.audio;
+        const when = audio.currentTime + Math.max(0.008, offset);
+        const level = Math.min(1, Math.max(0.12, intensity));
+        const source = audio.createBufferSource();
+        const filter = audio.createBiquadFilter();
+        const envelope = audio.createGain();
+        const panner = audio.createStereoPanner();
+        source.buffer = buffer;
+        source.playbackRate.value = 1 + (Math.random() - 0.5) * 0.003;
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(
+          Math.min(
+            900 + settings.tone * 5200 + level * 1500,
+            audio.sampleRate * 0.42,
+          ),
+          when,
+        );
+        filter.frequency.setTargetAtTime(
+          760 + settings.tone * 980,
+          when + 0.025,
+          0.42,
+        );
+        filter.Q.value = 0.55;
+        envelope.gain.setValueAtTime(0.0001, when);
+        envelope.gain.exponentialRampToValueAtTime(0.22 * level, when + 0.004);
+        envelope.gain.exponentialRampToValueAtTime(0.0001, when + 2.35);
+        panner.pan.value = Math.min(
+          0.75,
+          Math.max(-0.75, normalizedX * 1.5 - 0.75),
+        );
+        source
+          .connect(filter)
+          .connect(envelope)
+          .connect(panner)
+          .connect(currentGraph.input);
+        activeSources.add(source);
+        source.start(when);
+        source.stop(when + buffer.duration);
+        source.addEventListener(
+          "ended",
+          () => {
+            activeSources.delete(source);
+            source.disconnect();
+            filter.disconnect();
+            envelope.disconnect();
+            panner.disconnect();
+          },
+          { once: true },
+        );
+        noteStatus.textContent = `${label} · ${CHORDS[settings.chord].short}`;
+        screenReaderStatus.textContent = `Played ${label} in ${CHORDS[settings.chord].name}`;
+      }
+
+      function excite(index, bend, x) {
+        const string = strings[index];
+        string.held = true;
+        string.anchorX = Math.min(0.92, Math.max(0.08, x));
+        string.bend = Math.min(38, Math.max(-38, bend));
+        string.velocity = 0;
+        requestFrame();
+        draw();
+      }
+
+      function release(index, force, x, withSound = true) {
+        const string = strings[index];
+        string.held = false;
+        string.energy = 1;
+        if (reduceMotion.matches) {
+          string.bend = 0;
+          string.velocity = 0;
+        } else {
+          string.velocity +=
+            Math.sign(string.bend || 1) * Math.min(9 + force * 12, 21);
+        }
+        if (withSound) void playString(index, force, x);
+        requestFrame();
+      }
+
+      function strumOne(index, direction, force, x) {
+        const string = strings[index];
+        string.held = false;
+        string.anchorX = Math.min(0.92, Math.max(0.08, x));
+        string.bend = reduceMotion.matches
+          ? 0
+          : direction * Math.min(11 + force * 10, 22);
+        string.velocity = reduceMotion.matches
+          ? 0
+          : direction * Math.min(9 + force * 10, 19);
+        string.energy = 1;
+        void playString(index, force, x);
+        requestFrame();
+      }
+
+      function point(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+          width: rect.width,
+          height: rect.height,
+        };
+      }
+
+      function nearest(y, height) {
+        const gap = Math.min(44, (height - 82) / 5);
+        return Math.max(
+          0,
+          Math.min(5, Math.round((y - (height - gap * 5) / 2) / gap)),
+        );
+      }
+
+      function restY(index, height) {
+        const gap = Math.min(44, (height - 82) / 5);
+        return (height - gap * 5) / 2 + index * gap;
+      }
+
+      canvas.addEventListener("pointerdown", (event) => {
+        const local = point(event);
+        const index = nearest(local.y, local.height);
+        canvas.setPointerCapture(event.pointerId);
+        pointer = {
+          id: event.pointerId,
+          index,
+          lastY: local.y,
+          lastTime: event.timeStamp,
+          startY: local.y,
+          mode: "pull",
+        };
+        gestureStatus.textContent = "release to pluck";
+        settings.chord = Math.max(
+          0,
+          Math.min(3, Math.floor((local.x / local.width) * 4)),
+        );
+        syncButtons();
+        excite(
+          index,
+          local.y - restY(index, local.height) || 5,
+          local.x / local.width,
+        );
+        void ensureAudio();
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (!pointer || pointer.id !== event.pointerId) return;
+        const local = point(event);
+        const elapsed = Math.max(event.timeStamp - pointer.lastTime, 1);
+        const speed = Math.abs(local.y - pointer.lastY) / elapsed;
+        const gap = Math.min(44, (local.height - 82) / 5);
+        if (
+          pointer.mode === "pull" &&
+          Math.abs(local.y - pointer.startY) > gap * 0.82 &&
+          speed > 0.38
+        ) {
+          release(pointer.index, 0.35, local.x / local.width, false);
+          pointer.mode = "strum";
+          gestureStatus.textContent = "keep sweeping";
+        }
+        if (pointer.mode === "pull") {
+          excite(
+            pointer.index,
+            local.y - restY(pointer.index, local.height),
+            local.x / local.width,
+          );
+        } else {
+          const next = nearest(local.y, local.height);
+          if (next !== pointer.index) {
+            const direction = next > pointer.index ? 1 : -1;
+            const force = Math.min(1, 0.42 + speed * 0.55);
+            for (
+              let i = pointer.index + direction;
+              direction > 0 ? i <= next : i >= next;
+              i += direction
+            ) {
+              strumOne(i, direction, force, local.x / local.width);
+            }
+            pointer.index = next;
+          }
+        }
+        pointer.lastY = local.y;
+        pointer.lastTime = event.timeStamp;
+      });
+
+      function finishPointer(event) {
+        if (!pointer || pointer.id !== event.pointerId) return;
+        const local = point(event);
+        if (pointer.mode === "pull") {
+          const bend = Math.abs(strings[pointer.index].bend);
+          release(
+            pointer.index,
+            Math.min(1, 0.35 + bend / 38),
+            local.x / local.width,
+            bend > 3,
+          );
+        }
+        pointer = null;
+        gestureStatus.textContent =
+          "pull one string · sweep to strum · keys 1—6";
+      }
+
+      canvas.addEventListener("pointerup", finishPointer);
+      canvas.addEventListener("pointercancel", finishPointer);
+      canvas.addEventListener("keydown", (event) => {
+        const index = Number(event.key) - 1;
+        if (index < 0 || index > 5 || event.repeat) return;
+        event.preventDefault();
+        strings[index].bend = reduceMotion.matches ? 0 : 14;
+        strings[index].velocity = reduceMotion.matches ? 0 : 10;
+        strings[index].energy = 1;
+        void playString(index, 0.65, 0.5);
+        requestFrame();
+      });
+
+      function strumChord() {
+        strings.forEach((string, index) => {
+          string.bend = reduceMotion.matches ? 0 : 15;
+          string.velocity = reduceMotion.matches ? 0 : 11;
+          string.energy = 1;
+          void playString(index, 0.68, 0.5, index * 0.026);
+        });
+        requestFrame();
+      }
+
+      function stopAll() {
+        activeSources.forEach((source) => {
+          try {
+            source.stop();
+          } catch {}
+        });
+        activeSources.clear();
+        strings.forEach((string) =>
+          Object.assign(string, {
+            bend: 0,
+            velocity: 0,
+            held: false,
+            energy: 0,
+          }),
+        );
+        draw();
+      }
+
+      soundButton.addEventListener("click", async () => {
+        if (!graph) {
+          await ensureAudio();
+          return;
+        }
+        muted = !muted;
+        updateGraph();
+        soundButton.dataset.state = muted ? "muted" : "running";
+        soundButton.textContent = muted ? "Sound off" : "Sound on";
+        audioStatus.textContent = muted
+          ? "audio muted · visuals remain active"
+          : "audio running · one shared context";
+      });
+
+      strumButton.addEventListener("click", strumChord);
+      stopButton.addEventListener("click", stopAll);
+
+      function syncButtons() {
+        document.querySelectorAll("[data-chord]").forEach((button) => {
+          button.setAttribute(
+            "aria-pressed",
+            String(Number(button.dataset.chord) === settings.chord),
+          );
+        });
+        document.querySelectorAll("[data-preset]").forEach((button) => {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.preset === settings.preset),
+          );
+        });
+        noteStatus.textContent = CHORDS[settings.chord].name;
+      }
+
+      CHORDS.forEach((chord, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.chord = String(index);
+        button.textContent = chord.short;
+        button.addEventListener("click", () => {
+          settings.chord = index;
+          syncButtons();
+          draw();
+        });
+        document.querySelector("#chords").append(button);
+      });
+
+      Object.entries(PRESETS).forEach(([name, values]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.preset = name;
+        button.textContent = name;
+        button.addEventListener("click", () => {
+          Object.assign(settings, values, { preset: name });
+          syncControls();
+          syncButtons();
+          updateGraph();
+        });
+        document.querySelector("#presets").append(button);
+      });
+
+      const CONTROLS = [
+        [
+          "tension",
+          "Tension",
+          0,
+          1,
+          0.01,
+          "string-controls",
+          (v) => `${Math.round(v * 100)}%`,
+        ],
+        [
+          "damping",
+          "Damping",
+          0,
+          1,
+          0.01,
+          "string-controls",
+          (v) => `${Math.round(v * 100)}%`,
+        ],
+        [
+          "tone",
+          "Tone",
+          0,
+          1,
+          0.01,
+          "string-controls",
+          (v) => `${Math.round(v * 100)}%`,
+        ],
+        [
+          "drive",
+          "Drive",
+          0,
+          1,
+          0.01,
+          "effect-controls",
+          (v) => `${Math.round(v * 100)}%`,
+        ],
+        [
+          "delay",
+          "Delay",
+          0.04,
+          0.72,
+          0.01,
+          "effect-controls",
+          (v) => `${Math.round(v * 1000)}ms`,
+        ],
+        [
+          "feedback",
+          "Feedback",
+          0,
+          0.78,
+          0.01,
+          "effect-controls",
+          (v) => `${Math.round(v * 100)}%`,
+        ],
+        [
+          "reverb",
+          "Reverb",
+          0,
+          0.72,
+          0.01,
+          "effect-controls",
+          (v) => `${Math.round(v * 100)}%`,
+        ],
+        [
+          "output",
+          "Output",
+          0,
+          0.72,
+          0.01,
+          "effect-controls",
+          (v) => `${Math.round(v * 100)}%`,
+        ],
+      ];
+
+      const controlElements = new Map();
+      CONTROLS.forEach(([key, labelText, min, max, step, parentId, format]) => {
+        const label = document.createElement("label");
+        const name = document.createElement("span");
+        const input = document.createElement("input");
+        const output = document.createElement("output");
+        name.textContent = labelText;
+        input.type = "range";
+        input.min = min;
+        input.max = max;
+        input.step = step;
+        input.value = settings[key];
+        input.setAttribute("aria-label", labelText);
+        output.textContent = format(settings[key]);
+        input.addEventListener("input", () => {
+          settings[key] = Number(input.value);
+          if (!["tension", "damping"].includes(key)) settings.preset = "custom";
+          output.textContent = format(settings[key]);
+          syncButtons();
+          updateGraph();
+          draw();
+        });
+        label.append(name, input, output);
+        document.querySelector(`#${parentId}`).append(label);
+        controlElements.set(key, { input, output, format });
+      });
+
+      function syncControls() {
+        controlElements.forEach((elements, key) => {
+          elements.input.value = settings[key];
+          elements.output.textContent = elements.format(settings[key]);
+        });
+      }
+
+      document.addEventListener("visibilitychange", async () => {
+        if (!graph) return;
+        if (document.hidden && graph.audio.state === "running")
+          await graph.audio.suspend();
+        else if (
+          !document.hidden &&
+          graph.audio.state === "suspended" &&
+          !muted
+        )
+          await graph.audio.resume();
+      });
+
+      addEventListener(
+        "pagehide",
+        () => {
+          if (frameId !== null) cancelAnimationFrame(frameId);
+          stopAll();
+          cache.clear();
+          if (graph && graph.audio.state !== "closed") void graph.audio.close();
+          graph = null;
+          graphPromise = null;
+        },
+        { once: true },
+      );
+
+      addEventListener("resize", resize);
+      syncControls();
+      syncButtons();
+      resize();
+    </script>
+  </body>
+</html>
