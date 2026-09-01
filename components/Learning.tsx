@@ -89,6 +89,16 @@ const GUIDE_PATHS = [
   },
   {
     index: "02",
+    meta: "Interactive audio course · 11 modules · 33 code steps",
+    title: "Build a browser guitar, from string to effects.",
+    description:
+      "Draw and pluck six strings, synthesize them with Web Audio, then add chords, drive, delay, reverb, presets, safe polyphony and production cleanup.",
+    href: "/learning/string-instrument",
+    action: "Start course",
+    featured: true,
+  },
+  {
+    index: "03",
     meta: "Agent systems · 13 min guide",
     title: "From one LLM loop to a reliable harness.",
     description:
@@ -98,7 +108,7 @@ const GUIDE_PATHS = [
     featured: false,
   },
   {
-    index: "03",
+    index: "04",
     meta: "Interface craft · 11 min guide",
     title: "Motion that explains instead of decorating.",
     description:

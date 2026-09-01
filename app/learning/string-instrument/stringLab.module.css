@@ -1,0 +1,366 @@
+.workbench {
+  max-width: 1040px;
+  margin: 0 auto 52px;
+  overflow: hidden;
+  border: 1px solid rgba(239, 178, 115, 0.17);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      rgba(255, 151, 66, 0.06),
+      transparent 34%
+    ),
+    rgba(12, 11, 10, 0.9);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.25);
+}
+
+.workbenchHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 15px;
+  border-bottom: 1px solid rgba(235, 191, 145, 0.1);
+}
+
+.workbenchHeader > div:first-child > span,
+.controlGroup > span,
+.controlCoach > div > span {
+  color: rgba(236, 171, 104, 0.72);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.workbenchHeader h3 {
+  margin: 4px 0 0;
+  color: #f3e9dc;
+  font-size: 14px;
+  font-weight: 560;
+}
+
+.primaryActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.primaryActions button,
+.chordAndPreset button {
+  display: inline-flex;
+  min-height: 31px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 1px solid rgba(236, 194, 151, 0.14);
+  border-radius: 999px;
+  color: rgba(235, 220, 202, 0.68);
+  background: rgba(255, 255, 255, 0.026);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.primaryActions button:hover,
+.primaryActions button:focus-visible,
+.primaryActions button[data-focus="true"],
+.chordAndPreset button:hover,
+.chordAndPreset button:focus-visible,
+.chordAndPreset button[aria-pressed="true"] {
+  border-color: rgba(248, 172, 95, 0.38);
+  color: #fff3e5;
+  background: rgba(232, 123, 36, 0.075);
+  outline: none;
+}
+
+.primaryActions button:focus-visible,
+.chordAndPreset button:focus-visible,
+.canvas:focus-visible,
+.rack input:focus-visible {
+  outline: 2px solid rgba(247, 164, 82, 0.3);
+  outline-offset: 3px;
+}
+
+.primaryActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(223, 204, 183, 0.35);
+}
+
+.liveDot[data-state="running"] {
+  background: #85d4b1;
+  box-shadow: 0 0 0 3px rgba(95, 207, 157, 0.1);
+}
+
+.liveDot[data-state="muted"] {
+  background: #d6a873;
+}
+
+.liveDot[data-state="unsupported"] {
+  background: #c17d69;
+}
+
+.canvasWrap {
+  position: relative;
+  min-height: 310px;
+  border-bottom: 1px solid rgba(235, 191, 145, 0.1);
+}
+
+.canvasLegend {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 17px;
+  left: 17px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: rgba(221, 203, 181, 0.4);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.canvasLegend strong {
+  color: rgba(255, 181, 108, 0.82);
+  font-weight: 530;
+}
+
+.canvasWrap[data-status="holding"] .canvasLegend,
+.canvasWrap[data-status="strumming"] .canvasLegend {
+  color: rgba(241, 220, 197, 0.72);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: clamp(310px, 38vw, 430px);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.chordAndPreset {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 10px;
+  padding: 13px 14px 0;
+}
+
+.chordAndPreset fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid rgba(233, 190, 145, 0.1);
+  border-radius: 11px;
+}
+
+.chordAndPreset fieldset[data-focus="true"] {
+  border-color: rgba(247, 165, 82, 0.28);
+  background: rgba(232, 123, 36, 0.04);
+}
+
+.chordAndPreset legend {
+  padding: 0 5px;
+  color: rgba(225, 200, 173, 0.52);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.chordAndPreset fieldset > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chordAndPreset button {
+  min-width: 40px;
+  justify-content: center;
+  text-transform: capitalize;
+}
+
+.customPreset {
+  align-self: center;
+  padding-inline: 7px;
+  color: rgba(242, 176, 110, 0.68);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rack {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 10px;
+  padding: 10px 14px 14px;
+}
+
+.controlGroup {
+  display: grid;
+  gap: 7px;
+  align-content: start;
+  padding: 12px;
+  border: 1px solid rgba(233, 190, 145, 0.09);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.controlGroup > span {
+  margin-bottom: 2px;
+}
+
+.controlGroup label {
+  display: grid;
+  grid-template-columns: 66px minmax(60px, 1fr) 48px;
+  gap: 9px;
+  align-items: center;
+  min-height: 35px;
+  padding: 5px 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: rgba(221, 207, 190, 0.54);
+  font-size: 10px;
+}
+
+.controlGroup label[data-focus="true"] {
+  border-color: rgba(247, 165, 82, 0.24);
+  color: rgba(248, 229, 207, 0.86);
+  background: rgba(232, 123, 36, 0.045);
+}
+
+.controlGroup input {
+  width: 100%;
+  min-width: 0;
+  accent-color: #e69a50;
+}
+
+.controlGroup output {
+  color: rgba(247, 199, 153, 0.78);
+  text-align: right;
+}
+
+.controlCoach {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.34fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 19px 20px 22px;
+  border-top: 1px solid rgba(235, 191, 145, 0.1);
+  background: rgba(225, 131, 48, 0.025);
+}
+
+.controlCoach > div > p {
+  max-width: 29ch;
+  margin: 8px 0 0;
+  color: rgba(219, 204, 187, 0.58);
+  font-family: var(--font-editorial, serif);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.controlCoach dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.controlCoach dl > div {
+  padding: 12px;
+  border: 1px solid rgba(235, 190, 144, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.013);
+}
+
+.controlCoach dt {
+  color: #f1dfcc;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.controlCoach dd {
+  margin: 7px 0 0;
+  color: rgba(220, 204, 186, 0.64);
+  font-family: var(--font-editorial, serif);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.controlCoach .tryThis {
+  color: rgba(239, 171, 105, 0.78);
+  font-family: var(--font-data, ui-monospace, monospace);
+  font-size: 10px;
+}
+
+.srStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 780px) {
+  .workbenchHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .primaryActions {
+    justify-content: flex-start;
+  }
+
+  .canvasWrap {
+    min-height: 270px;
+  }
+
+  .canvas {
+    height: 300px;
+  }
+
+  .chordAndPreset,
+  .rack,
+  .controlCoach {
+    grid-template-columns: 1fr;
+  }
+
+  .controlCoach dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .canvasLegend {
+    letter-spacing: 0.06em;
+  }
+
+  .canvasLegend span {
+    max-width: 22ch;
+  }
+
+  .controlCoach dl {
+    grid-template-columns: 1fr;
+  }
+
+  .controlGroup label {
+    grid-template-columns: 62px minmax(50px, 1fr) 45px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryActions button,
+  .chordAndPreset button {
+    transition: none;
+  }
+}

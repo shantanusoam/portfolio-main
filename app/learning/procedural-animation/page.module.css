@@ -11,6 +11,21 @@
   font-family: var(--font-data, ui-monospace, monospace);
 }
 
+.stringCoursePage {
+  background:
+    radial-gradient(
+      circle at 74% 7%,
+      rgba(226, 130, 45, 0.14),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 15% 48%,
+      rgba(130, 86, 48, 0.08),
+      transparent 28%
+    ),
+    linear-gradient(180deg, #110d09, #0d0d0c 42%, #090a0a);
+}
+
 .courseHeader {
   padding: clamp(24px, 5vw, 68px) clamp(20px, 6vw, 88px) clamp(48px, 7vw, 88px);
   border-bottom: 1px solid rgba(182, 216, 222, 0.09);

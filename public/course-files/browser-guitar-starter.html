@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src 'none'; connect-src 'none'"
+    />
+    <title>Browser Guitar — Course Starter</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        background: #0b0b0a;
+        color: #eee5da;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 76% 10%, #582c121f, transparent 34%),
+          #0b0b0a;
+      }
+
+      main {
+        width: min(100%, 1040px);
+      }
+
+      header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 18px;
+      }
+
+      small {
+        color: #e59d5e;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 8px 0 0;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(34px, 7vw, 72px);
+        line-height: 0.96;
+        letter-spacing: -0.055em;
+      }
+
+      header p {
+        max-width: 40ch;
+        margin: 0;
+        color: #b8a998;
+        line-height: 1.6;
+      }
+
+      .instrument {
+        overflow: hidden;
+        border: 1px solid #e8a76b2b;
+        border-radius: 18px;
+        background: #11100f;
+        box-shadow: 0 28px 90px #0007;
+      }
+
+      .legend {
+        display: flex;
+        justify-content: space-between;
+        padding: 13px 15px;
+        border-bottom: 1px solid #e8a76b1c;
+        color: #b9aa994f;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: clamp(300px, 48vw, 460px);
+        touch-action: none;
+        cursor: crosshair;
+      }
+
+      canvas:focus-visible {
+        outline: 2px solid #ee9f59;
+        outline-offset: -5px;
+      }
+
+      .tasks {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        border-top: 1px solid #e8a76b1c;
+        background: #e8a76b1c;
+      }
+
+      .tasks div {
+        padding: 15px;
+        background: #11100f;
+      }
+
+      .tasks strong {
+        display: block;
+        margin-bottom: 7px;
+        color: #f0d8c1;
+        font-size: 12px;
+      }
+
+      .tasks span {
+        color: #aa9b8b;
+        font-size: 11px;
+        line-height: 1.55;
+      }
+
+      @media (max-width: 720px) {
+        header {
+          align-items: start;
+          flex-direction: column;
+        }
+
+        .tasks {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <small>Course starter · geometry only</small>
+          <h1>Browser guitar.</h1>
+        </div>
+        <p>
+          Pull a string to prove hit testing and geometry. The course will add
+          release physics, Web Audio synthesis, chords, and effects.
+        </p>
+      </header>
+
+      <section class="instrument">
+        <div class="legend">
+          <span>hold + pull</span>
+          <span id="status" aria-live="polite">audio not built yet</span>
+        </div>
+        <canvas
+          id="guitar"
+          width="1000"
+          height="360"
+          tabindex="0"
+          aria-label="Six silent guitar strings. Drag a string to bend it."
+        ></canvas>
+        <div class="tasks">
+          <div>
+            <strong>01 · Motion</strong>
+            <span
+              >Add velocity, tension, damping, and an on-demand frame
+              loop.</span
+            >
+          </div>
+          <div>
+            <strong>02 · Sound</strong>
+            <span
+              >Render a Karplus–Strong buffer after a real visitor
+              gesture.</span
+            >
+          </div>
+          <div>
+            <strong>03 · Effects</strong>
+            <span
+              >Route drive, delay, and reverb into one protected master.</span
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const canvas = document.querySelector("#guitar");
+      const context = canvas.getContext("2d");
+      const status = document.querySelector("#status");
+      const strings = Array.from({ length: 6 }, () => ({
+        bend: 0,
+        anchorX: 0.5,
+        held: false,
+      }));
+      let active = null;
+
+      function metrics() {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const gap = Math.min(44, (height - 82) / 5);
+        return { width, height, gap, firstY: (height - gap * 5) / 2 };
+      }
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        draw();
+      }
+
+      function draw() {
+        const { width, height, gap, firstY } = metrics();
+        context.clearRect(0, 0, width, height);
+        const wash = context.createLinearGradient(0, 0, width, height);
+        wash.addColorStop(0, "#6d34121c");
+        wash.addColorStop(1, "#192a3414");
+        context.fillStyle = wash;
+        context.fillRect(0, 0, width, height);
+
+        strings.forEach((string, index) => {
+          const y = firstY + index * gap;
+          context.lineWidth = 2.8 - index * 0.35;
+          context.strokeStyle = string.held ? "#f5a763" : "#eadac8d9";
+          context.beginPath();
+          context.moveTo(18, y);
+          context.quadraticCurveTo(
+            string.anchorX * width,
+            y + string.bend,
+            width - 18,
+            y,
+          );
+          context.stroke();
+        });
+      }
+
+      function point(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+          width: rect.width,
+          height: rect.height,
+        };
+      }
+
+      function nearest(y) {
+        const { gap, firstY } = metrics();
+        return Math.max(0, Math.min(5, Math.round((y - firstY) / gap)));
+      }
+
+      canvas.addEventListener("pointerdown", (event) => {
+        const local = point(event);
+        const index = nearest(local.y);
+        const { gap, firstY } = metrics();
+        canvas.setPointerCapture(event.pointerId);
+        active = { pointerId: event.pointerId, index };
+        strings[index].held = true;
+        strings[index].anchorX = Math.min(
+          0.92,
+          Math.max(0.08, local.x / local.width),
+        );
+        strings[index].bend = Math.min(
+          38,
+          Math.max(-38, local.y - (firstY + index * gap) || 5),
+        );
+        status.textContent = `holding string ${index + 1}`;
+        draw();
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (!active || active.pointerId !== event.pointerId) return;
+        const local = point(event);
+        const { gap, firstY } = metrics();
+        const string = strings[active.index];
+        string.anchorX = Math.min(0.92, Math.max(0.08, local.x / local.width));
+        string.bend = Math.min(
+          38,
+          Math.max(-38, local.y - (firstY + active.index * gap)),
+        );
+        draw();
+      });
+
+      function finish(event) {
+        if (!active || active.pointerId !== event.pointerId) return;
+        const string = strings[active.index];
+        string.held = false;
+        string.bend = 0;
+        status.textContent = "geometry complete · sound is your next module";
+        active = null;
+        draw();
+      }
+
+      canvas.addEventListener("pointerup", finish);
+      canvas.addEventListener("pointercancel", finish);
+      window.addEventListener("resize", resize);
+      resize();
+    </script>
+  </body>
+</html>
