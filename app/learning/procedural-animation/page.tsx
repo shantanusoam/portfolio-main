@@ -4,7 +4,7 @@ import ProceduralAnimationCourse from "./ProceduralAnimationCourse";
 export const metadata: Metadata = {
   title: "Procedural Animation — Noob to Pro",
   description:
-    "An interactive, psychology-aware course in steering, chains, constraints, soft motion and shippable procedural characters.",
+    "A hands-on Canvas and TypeScript course with 30 code steps, live controls, runnable demos, debugging checks, steering, constraints, soft motion and production-safe procedural characters.",
 };
 
 export default function ProceduralAnimationPage() {

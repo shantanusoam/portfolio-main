@@ -79,10 +79,10 @@ const HARNESS_BREAKS: Array<{ break: string; fix: string }> = [
 const GUIDE_PATHS = [
   {
     index: "01",
-    meta: "Interactive course · 10 modules",
+    meta: "Interactive course · 10 modules · 30 code steps",
     title: "Procedural animation, from noob to pro.",
     description:
-      "Build steering, chains, constraints, soft bodies, behavior, perception, and production-safe motion one observable step at a time.",
+      "Build steering, chains, constraints, soft bodies and behavior with copyable TypeScript, control experiments, expected results, debugging help and a runnable course kit.",
     href: "/learning/procedural-animation",
     action: "Start course",
     featured: true,

@@ -2,7 +2,11 @@
   min-height: 100vh;
   color: #dcebed;
   background:
-    radial-gradient(circle at 72% 8%, rgba(55, 132, 149, 0.15), transparent 25%),
+    radial-gradient(
+      circle at 72% 8%,
+      rgba(55, 132, 149, 0.15),
+      transparent 25%
+    ),
     linear-gradient(180deg, #07111a, #081019 42%, #060d14);
   font-family: var(--font-data, ui-monospace, monospace);
 }
@@ -17,7 +21,7 @@
   gap: 8px;
   margin-bottom: clamp(48px, 8vw, 92px);
   color: rgba(164, 190, 196, 0.44);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .breadcrumbs a {
@@ -35,7 +39,7 @@
 .kicker {
   margin: 0 0 14px;
   color: #83ccd6;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -76,7 +80,7 @@
 .progressCard span,
 .progressCard small {
   color: rgba(168, 196, 202, 0.55);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .progressCard strong {
@@ -122,7 +126,7 @@
 .lessonRail > p {
   margin: 0 8px 12px;
   color: rgba(157, 188, 195, 0.48);
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -144,7 +148,7 @@
   color: rgba(184, 208, 213, 0.55);
   background: transparent;
   font: inherit;
-  font-size: 9px;
+  font-size: 12px;
   text-align: left;
   cursor: pointer;
 }
@@ -157,7 +161,7 @@
   border: 1px solid rgba(175, 211, 217, 0.11);
   border-radius: 50%;
   color: rgba(155, 188, 195, 0.55);
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .lessonRail button > span:last-child {
@@ -167,7 +171,7 @@
 
 .lessonRail button small {
   color: rgba(127, 174, 183, 0.45);
-  font-size: 6px;
+  font-size: 8px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -191,7 +195,7 @@
   display: block;
   margin: 22px 9px 0;
   color: #9edbe3;
-  font-size: 8px;
+  font-size: 10px;
   text-decoration: none;
 }
 
@@ -216,7 +220,7 @@
   border: 1px solid rgba(159, 202, 211, 0.11);
   border-radius: 999px;
   color: rgba(154, 190, 197, 0.58);
-  font-size: 7px;
+  font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -264,7 +268,7 @@
 .calloutGrid section > span,
 .quiz > span {
   color: #79c7d2;
-  font-size: 7px;
+  font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -272,7 +276,7 @@
 .playgroundHead h3 {
   margin: 2px 0 0;
   color: #dcecef;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 520;
 }
 
@@ -291,7 +295,7 @@
   color: rgba(198, 222, 226, 0.65);
   background: rgba(255, 255, 255, 0.025);
   font: inherit;
-  font-size: 7px;
+  font-size: 10px;
   cursor: pointer;
 }
 
@@ -332,7 +336,7 @@
   align-items: center;
   gap: 7px;
   color: rgba(159, 191, 197, 0.52);
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .playgroundControls input {
@@ -347,6 +351,19 @@
   text-align: right;
 }
 
+.playgroundControls label,
+.debugToggle {
+  padding: 8px 9px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+
+.playgroundControls label[data-focus="true"],
+.debugToggle[data-focus="true"] {
+  border-color: rgba(120, 203, 214, 0.19);
+  background: rgba(75, 159, 177, 0.055);
+}
+
 .debugToggle {
   justify-self: start;
 }
@@ -359,6 +376,564 @@
   background: rgba(160, 65, 39, 0.07);
   font-size: 8px;
   line-height: 1.5;
+}
+
+.controlCoach {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.34fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 18px 20px 21px;
+  border-top: 1px solid rgba(165, 207, 215, 0.09);
+  background: rgba(84, 168, 181, 0.025);
+}
+
+.controlCoach > div > span,
+.sectionLabel {
+  color: #80cfda;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.controlCoach > div > p {
+  max-width: 28ch;
+  margin: 8px 0 0;
+  color: rgba(180, 207, 212, 0.56);
+  font-family: var(--font-editorial, serif);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.controlCoach dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.controlCoach dl > div {
+  padding: 12px;
+  border: 1px solid rgba(161, 205, 214, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.controlCoach dt {
+  color: #e0f0f2;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.controlCoach dd {
+  margin: 7px 0 0;
+  color: rgba(183, 207, 212, 0.61);
+  font-family: var(--font-editorial, serif);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.controlCoach .controlTry {
+  color: rgba(130, 211, 225, 0.76);
+  font-family: var(--font-data, ui-monospace, monospace);
+  font-size: 10px;
+}
+
+.tutorial {
+  max-width: 1040px;
+  margin: 0 auto 68px;
+}
+
+.tutorialHeader {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.48fr) minmax(0, 1fr);
+  gap: clamp(22px, 4vw, 58px);
+  align-items: end;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(160, 205, 213, 0.11);
+}
+
+.tutorialHeader h3 {
+  max-width: 13ch;
+  margin: 8px 0 0;
+  color: #eff8f9;
+  font-family: var(--font-display, sans-serif);
+  font-size: clamp(28px, 3.2vw, 43px);
+  font-weight: 570;
+  line-height: 1.03;
+  letter-spacing: -0.04em;
+}
+
+.tutorialHeader > p {
+  max-width: 62ch;
+  margin: 0;
+  color: rgba(190, 212, 216, 0.72);
+  font-family: var(--font-editorial, serif);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.setupPanel {
+  margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(119, 202, 214, 0.17);
+  border-radius: 14px;
+  background: rgba(62, 144, 159, 0.04);
+}
+
+.setupPanel summary {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 15px 18px;
+  color: #dceff1;
+  cursor: pointer;
+}
+
+.setupPanel summary::marker {
+  color: #7fced8;
+}
+
+.setupPanel summary span {
+  color: #7fced8;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.setupPanel summary strong {
+  font-family: var(--font-editorial, serif);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.setupBody {
+  padding: 0 18px 18px;
+}
+
+.setupBody > p {
+  max-width: 76ch;
+  margin: 0 0 16px;
+  color: rgba(185, 210, 214, 0.66);
+  font-family: var(--font-editorial, serif);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.setupGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.22fr) minmax(220px, 0.78fr);
+  gap: 10px;
+}
+
+.tutorialCode {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(154, 200, 208, 0.12);
+  border-radius: 12px;
+  background: #030a10;
+}
+
+.tutorialCode > div {
+  display: flex;
+  min-height: 39px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 11px 8px 14px;
+  border-bottom: 1px solid rgba(154, 200, 208, 0.09);
+}
+
+.tutorialCode > div > span {
+  color: rgba(154, 191, 198, 0.65);
+  font-size: 10px;
+}
+
+.copyCodeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid rgba(126, 205, 217, 0.15);
+  border-radius: 7px;
+  color: #9ddce4;
+  background: rgba(103, 192, 206, 0.045);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.copyCodeButton:hover,
+.copyCodeButton:focus-visible {
+  border-color: rgba(126, 215, 228, 0.36);
+  color: #f0fcfd;
+  outline: 2px solid rgba(126, 215, 228, 0.16);
+  outline-offset: 2px;
+}
+
+.tutorialCode pre {
+  margin: 0;
+  overflow: auto;
+  padding: 17px 18px 19px;
+  color: #c8e5e9;
+  font-size: clamp(12px, 1.05vw, 13.5px);
+  line-height: 1.68;
+  tab-size: 2;
+}
+
+.fileMap {
+  padding: 17px;
+  border: 1px solid rgba(154, 200, 208, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.016);
+}
+
+.fileMap > span {
+  color: rgba(157, 195, 201, 0.65);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fileMap ul {
+  display: grid;
+  gap: 7px;
+  margin: 14px 0 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.fileMap li {
+  color: #d9eaec;
+  font-size: 12px;
+}
+
+.fileMap li::before {
+  margin-right: 8px;
+  color: #75c6d1;
+  content: "↳";
+}
+
+.courseKitLinks {
+  display: grid;
+  gap: 7px;
+}
+
+.courseKitLinks a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(126, 205, 217, 0.13);
+  border-radius: 8px;
+  color: #9edce4;
+  font-size: 10px;
+  text-decoration: none;
+}
+
+.courseKitLinks a:hover,
+.courseKitLinks a:focus-visible {
+  border-color: rgba(126, 215, 228, 0.35);
+  color: #effcfd;
+  outline: none;
+}
+
+.stepList {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: tutorial-step;
+}
+
+.tutorialStep {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.stepNumber {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(128, 207, 219, 0.19);
+  border-radius: 50%;
+  color: #89d2dc;
+  font-size: 10px;
+}
+
+.tutorialStep[data-complete="true"] .stepNumber {
+  border-color: rgba(105, 214, 182, 0.34);
+  color: #9fe0ca;
+  background: rgba(73, 175, 144, 0.08);
+}
+
+.stepContent {
+  min-width: 0;
+  padding: 21px;
+  border: 1px solid rgba(155, 199, 208, 0.11);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.013);
+}
+
+.tutorialStep[data-complete="true"] .stepContent {
+  border-color: rgba(105, 214, 182, 0.16);
+}
+
+.stepHeading span {
+  color: rgba(121, 199, 210, 0.67);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.stepHeading h4 {
+  margin: 7px 0 0;
+  color: #e8f4f5;
+  font-family: var(--font-editorial, serif);
+  font-size: 21px;
+  font-weight: 520;
+  line-height: 1.25;
+}
+
+.stepContent > p {
+  max-width: 74ch;
+  margin: 12px 0 17px;
+  color: rgba(190, 211, 215, 0.7);
+  font-family: var(--font-editorial, serif);
+  font-size: 14px;
+  line-height: 1.68;
+}
+
+.expectedResult {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr) auto;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-left: 2px solid rgba(103, 211, 179, 0.55);
+  background: rgba(65, 161, 133, 0.045);
+}
+
+.expectedResult span {
+  color: #8edac2;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.expectedResult p {
+  margin: 0;
+  color: rgba(194, 220, 212, 0.72);
+  font-family: var(--font-editorial, serif);
+  font-size: 13px;
+  line-height: 1.58;
+}
+
+.stepCompleteButton {
+  align-self: center;
+  min-height: 32px;
+  padding: 7px 10px;
+  border: 1px solid rgba(105, 214, 182, 0.19);
+  border-radius: 8px;
+  color: #9edbc7;
+  background: rgba(73, 175, 144, 0.045);
+  font: inherit;
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.stepCompleteButton:hover,
+.stepCompleteButton:focus-visible,
+.stepCompleteButton[aria-pressed="true"] {
+  border-color: rgba(105, 214, 182, 0.36);
+  color: #e3f7f0;
+  background: rgba(73, 175, 144, 0.1);
+  outline: none;
+}
+
+.stepCompleteButton:focus-visible {
+  outline: 2px solid rgba(105, 214, 182, 0.18);
+  outline-offset: 2px;
+}
+
+.validationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.verifyPanel,
+.debugPanel {
+  padding: 19px;
+  border: 1px solid rgba(154, 200, 208, 0.11);
+  border-radius: 14px;
+}
+
+.verifyPanel {
+  background: rgba(65, 161, 133, 0.035);
+}
+
+.debugPanel {
+  background: rgba(169, 91, 62, 0.035);
+}
+
+.verifyPanel ul,
+.debugPanel dl {
+  display: grid;
+  gap: 11px;
+  margin: 15px 0 0;
+  padding: 0;
+}
+
+.verifyPanel li {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr);
+  gap: 8px;
+  color: rgba(195, 218, 213, 0.72);
+  font-family: var(--font-editorial, serif);
+  font-size: 13px;
+  line-height: 1.55;
+  list-style: none;
+}
+
+.verifyPanel li svg {
+  margin-top: 3px;
+  color: #76cfb2;
+}
+
+.debugPanel dl > div + div {
+  padding-top: 11px;
+  border-top: 1px solid rgba(225, 146, 117, 0.1);
+}
+
+.debugPanel dt {
+  color: #e5b09d;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.debugPanel dd {
+  margin: 5px 0 0;
+  color: rgba(206, 218, 218, 0.65);
+  font-family: var(--font-editorial, serif);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.productionSources {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.55fr) minmax(0, 1.45fr);
+  gap: clamp(20px, 4vw, 54px);
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid rgba(155, 199, 208, 0.11);
+  border-radius: 14px;
+  background: rgba(69, 150, 163, 0.025);
+}
+
+.productionSources h4 {
+  margin: 9px 0 0;
+  color: #e5f2f3;
+  font-family: var(--font-editorial, serif);
+  font-size: 19px;
+  font-weight: 520;
+  line-height: 1.3;
+}
+
+.productionSources > div:first-child > p {
+  margin: 10px 0 0;
+  color: rgba(184, 208, 212, 0.59);
+  font-family: var(--font-editorial, serif);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.productionSources > div:last-child {
+  display: grid;
+  gap: 7px;
+}
+
+.productionSources a {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.55fr) minmax(0, 1fr);
+  gap: 5px 14px;
+  padding: 12px;
+  border: 1px solid rgba(154, 200, 208, 0.1);
+  border-radius: 10px;
+  color: #cfe7ea;
+  text-decoration: none;
+}
+
+.productionSources a:hover,
+.productionSources a:focus-visible {
+  border-color: rgba(126, 211, 224, 0.3);
+  outline: none;
+}
+
+.productionSources a > span {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.productionSources a code {
+  overflow: hidden;
+  color: #86cbd4;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productionSources a p {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  color: rgba(175, 202, 207, 0.56);
+  font-family: var(--font-editorial, serif);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.productionSources .allCourseSource {
+  border-color: rgba(106, 211, 181, 0.18);
+  background: rgba(65, 161, 133, 0.035);
+}
+
+.copyStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.conceptDivider {
+  margin: 0 0 34px;
+  padding: 22px 0;
+  border-top: 1px solid rgba(159, 202, 211, 0.11);
+  border-bottom: 1px solid rgba(159, 202, 211, 0.11);
+}
+
+.conceptDivider span {
+  color: #7fced8;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.conceptDivider p {
+  max-width: 64ch;
+  margin: 9px 0 0;
+  color: rgba(181, 207, 212, 0.63);
+  font-family: var(--font-editorial, serif);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .articleBody {
@@ -403,7 +978,7 @@
 .exercise p {
   margin: 9px 0 0;
   color: rgba(196, 217, 221, 0.7);
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -427,7 +1002,7 @@
   padding: 9px 12px;
   border-bottom: 1px solid rgba(155, 199, 208, 0.09);
   color: rgba(155, 190, 197, 0.52);
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .codeBlock button {
@@ -443,7 +1018,7 @@
   overflow: auto;
   padding: 16px;
   color: #c7e4e8;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.65;
 }
 
@@ -472,7 +1047,7 @@
   color: rgba(197, 217, 221, 0.64);
   background: rgba(255, 255, 255, 0.022);
   font: inherit;
-  font-size: 8px;
+  font-size: 11px;
   cursor: pointer;
 }
 
@@ -496,7 +1071,7 @@
 .quiz > p {
   margin: 12px 0 0;
   color: #e0aa97;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .quiz > p[data-correct="true"] {
@@ -527,7 +1102,7 @@
   color: rgba(198, 219, 223, 0.66);
   background: rgba(255, 255, 255, 0.02);
   font: inherit;
-  font-size: 8px;
+  font-size: 11px;
   cursor: pointer;
 }
 
@@ -592,20 +1167,29 @@
 }
 
 .sourceGrid strong {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 550;
 }
 
 .sourceGrid span {
   color: rgba(161, 190, 196, 0.56);
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1.45;
 }
 
 @media (max-width: 960px) {
   .heroGrid,
-  .sources {
+  .sources,
+  .productionSources {
     grid-template-columns: 1fr;
+  }
+
+  .controlCoach {
+    grid-template-columns: 1fr;
+  }
+
+  .controlCoach > div > p {
+    max-width: 60ch;
   }
 
   .courseLayout {
@@ -666,8 +1250,48 @@
 
   .playgroundControls,
   .calloutGrid,
-  .sourceGrid {
+  .sourceGrid,
+  .tutorialHeader,
+  .setupGrid,
+  .validationGrid,
+  .controlCoach dl {
     grid-template-columns: 1fr;
+  }
+
+  .tutorial {
+    margin-bottom: 52px;
+  }
+
+  .tutorialStep {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .stepNumber {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stepContent {
+    padding: 16px;
+  }
+
+  .expectedResult,
+  .productionSources a {
+    grid-template-columns: 1fr;
+  }
+
+  .productionSources a p {
+    grid-column: 1;
+  }
+
+  .productionSources a code {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .tutorialCode pre {
+    font-size: 11.5px;
   }
 
   .lessonFooter > div {
