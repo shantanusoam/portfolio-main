@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ControlLesson } from "./courseTutorials";
 import styles from "./page.module.css";
 
 export interface PlaygroundPreset {
@@ -16,6 +17,7 @@ export interface PlaygroundPreset {
 export interface ChainPlaygroundProps {
   preset: PlaygroundPreset;
   title: string;
+  controlLessons: readonly ControlLesson[];
 }
 
 interface Point {
@@ -34,7 +36,11 @@ const wrapAngle = (value: number) => {
   return angle;
 };
 
-export default function ChainPlayground({ preset, title }: ChainPlaygroundProps) {
+export default function ChainPlayground({
+  preset,
+  title,
+  controlLessons,
+}: ChainPlaygroundProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const frameRef = useRef(0);
   const requestFrameRef = useRef<(() => void) | null>(null);
@@ -67,7 +73,9 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
     if (!canvas) return undefined;
     const context = canvas.getContext("2d");
     if (!context) return undefined;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     if (reduceMotion) setRunning(false);
 
     let width = 1;
@@ -92,7 +100,11 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
         });
       }
       if (!pointerRef.current.initialized) {
-        pointerRef.current = { x: width * 0.72, y: height * 0.42, initialized: true };
+        pointerRef.current = {
+          x: width * 0.72,
+          y: height * 0.42,
+          initialized: true,
+        };
       }
     };
 
@@ -122,7 +134,9 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
         const point = points[index];
         let angle = Math.atan2(point.y - parent.y, point.x - parent.x);
         const limit = angleLimit * (0.7 + (index / points.length) * 0.55);
-        angle = previousAngle + clamp(wrapAngle(angle - previousAngle), -limit, limit);
+        angle =
+          previousAngle +
+          clamp(wrapAngle(angle - previousAngle), -limit, limit);
         point.x = parent.x + Math.cos(angle) * config.segment;
         point.y = parent.y + Math.sin(angle) * config.segment;
         point.angle = angle;
@@ -159,8 +173,16 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
           (0.7 + (1 - t) * 0.3);
         const nx = -Math.sin(angle);
         const ny = Math.cos(angle);
-        left.push({ x: points[index].x + nx * bodyWidth, y: points[index].y + ny * bodyWidth, angle });
-        right.push({ x: points[index].x - nx * bodyWidth, y: points[index].y - ny * bodyWidth, angle });
+        left.push({
+          x: points[index].x + nx * bodyWidth,
+          y: points[index].y + ny * bodyWidth,
+          angle,
+        });
+        right.push({
+          x: points[index].x - nx * bodyWidth,
+          y: points[index].y - ny * bodyWidth,
+          angle,
+        });
       }
 
       context.save();
@@ -169,17 +191,30 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
       context.lineWidth = 1.25;
       context.beginPath();
       context.moveTo(left[0].x, left[0].y);
-      for (let index = 1; index < left.length; index += 1) context.lineTo(left[index].x, left[index].y);
-      for (let index = right.length - 1; index >= 0; index -= 1) context.lineTo(right[index].x, right[index].y);
+      for (let index = 1; index < left.length; index += 1)
+        context.lineTo(left[index].x, left[index].y);
+      for (let index = right.length - 1; index >= 0; index -= 1)
+        context.lineTo(right[index].x, right[index].y);
       context.closePath();
       context.fill();
       context.stroke();
 
-      const finIndex = Math.min(points.length - 1, Math.floor(points.length * 0.28));
+      const finIndex = Math.min(
+        points.length - 1,
+        Math.floor(points.length * 0.28),
+      );
       const fin = points[finIndex];
       context.fillStyle = "#8fd3df";
       context.beginPath();
-      context.ellipse(fin.x, fin.y + config.width * 0.78, config.width * 0.48, config.width * 0.2, 0.7, 0, Math.PI * 2);
+      context.ellipse(
+        fin.x,
+        fin.y + config.width * 0.78,
+        config.width * 0.48,
+        config.width * 0.2,
+        0.7,
+        0,
+        Math.PI * 2,
+      );
       context.fill();
 
       const heading = Math.atan2(root.vy || -1, root.vx || 0);
@@ -187,8 +222,20 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
       const eyeY = root.y + Math.sin(heading) * 5;
       context.fillStyle = "#f7feff";
       context.beginPath();
-      context.arc(eyeX - Math.sin(heading) * config.width * 0.36, eyeY + Math.cos(heading) * config.width * 0.36, 2.7, 0, Math.PI * 2);
-      context.arc(eyeX + Math.sin(heading) * config.width * 0.36, eyeY - Math.cos(heading) * config.width * 0.36, 2.7, 0, Math.PI * 2);
+      context.arc(
+        eyeX - Math.sin(heading) * config.width * 0.36,
+        eyeY + Math.cos(heading) * config.width * 0.36,
+        2.7,
+        0,
+        Math.PI * 2,
+      );
+      context.arc(
+        eyeX + Math.sin(heading) * config.width * 0.36,
+        eyeY - Math.cos(heading) * config.width * 0.36,
+        2.7,
+        0,
+        Math.PI * 2,
+      );
       context.fill();
 
       if (config.debug) {
@@ -197,7 +244,8 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
         context.lineWidth = 1;
         context.beginPath();
         context.moveTo(points[0].x, points[0].y);
-        for (let index = 1; index < points.length; index += 1) context.lineTo(points[index].x, points[index].y);
+        for (let index = 1; index < points.length; index += 1)
+          context.lineTo(points[index].x, points[index].y);
         context.stroke();
         for (const point of points) {
           context.beginPath();
@@ -207,10 +255,18 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
       }
       context.restore();
 
-      context.strokeStyle = autoPilotRef.current ? "rgba(126, 211, 225, 0.3)" : "rgba(234, 190, 112, 0.42)";
+      context.strokeStyle = autoPilotRef.current
+        ? "rgba(126, 211, 225, 0.3)"
+        : "rgba(234, 190, 112, 0.42)";
       context.lineWidth = 1;
       context.beginPath();
-      context.arc(pointerRef.current.x, pointerRef.current.y, 8, 0, Math.PI * 2);
+      context.arc(
+        pointerRef.current.x,
+        pointerRef.current.y,
+        8,
+        0,
+        Math.PI * 2,
+      );
       context.stroke();
     };
 
@@ -225,9 +281,10 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
           ? {
               x: width * 0.5 + Math.cos(elapsed * 0.78) * width * 0.28,
               y: height * 0.49 + Math.sin(elapsed * 1.13) * height * 0.26,
-          }
+            }
           : pointerRef.current;
-        if (autoPilotRef.current) pointerRef.current = { ...target, initialized: true };
+        if (autoPilotRef.current)
+          pointerRef.current = { ...target, initialized: true };
         const stiffness = 15 + config.response * 36;
         root.vx += (target.x - root.x) * stiffness * dt;
         root.vy += (target.y - root.y) * stiffness * dt;
@@ -267,7 +324,10 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
     };
   }, [preset]);
 
-  const update = <K extends keyof PlaygroundPreset>(key: K, value: PlaygroundPreset[K]) => {
+  const update = <K extends keyof PlaygroundPreset>(
+    key: K,
+    value: PlaygroundPreset[K],
+  ) => {
     setSettings((current) => ({ ...current, [key]: value }));
     setBroken(false);
   };
@@ -291,16 +351,29 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
   };
 
   return (
-    <section className={styles.playground} aria-label={`${title} interactive motion lab`}>
+    <section
+      className={styles.playground}
+      aria-label={`${title} interactive motion lab`}
+    >
       <div className={styles.playgroundHead}>
         <div>
           <span>Live chain lab</span>
           <h3>{title}</h3>
         </div>
         <div className={styles.playgroundActions}>
-          <button type="button" onClick={() => setRunning((value) => !value)}>{running ? "Pause" : "Play"}</button>
-          <button type="button" onClick={() => setAutoPilot((value) => !value)}>{autoPilot ? "Take pointer control" : "Use autopilot"}</button>
-          <button type="button" data-danger={broken} onClick={broken ? repair : breakIt}>{broken ? "Repair" : "Break it"}</button>
+          <button type="button" onClick={() => setRunning((value) => !value)}>
+            {running ? "Pause" : "Play"}
+          </button>
+          <button type="button" onClick={() => setAutoPilot((value) => !value)}>
+            {autoPilot ? "Take pointer control" : "Use autopilot"}
+          </button>
+          <button
+            type="button"
+            data-danger={broken}
+            onClick={broken ? repair : breakIt}
+          >
+            {broken ? "Repair" : "Break it"}
+          </button>
         </div>
       </div>
       <canvas
@@ -318,15 +391,129 @@ export default function ChainPlayground({ preset, title }: ChainPlaygroundProps)
         aria-label="Animated fish driven by a constrained spine"
       />
       <div className={styles.playgroundControls}>
-        <label><span>Joints</span><input type="range" min="5" max="30" value={settings.joints} onChange={(event) => update("joints", Number(event.target.value))} /><output>{settings.joints}</output></label>
-        <label><span>Link length</span><input type="range" min="4" max="16" step="0.5" value={settings.segment} onChange={(event) => update("segment", Number(event.target.value))} /><output>{settings.segment}px</output></label>
-        <label><span>Turn limit</span><input type="range" min="3" max="60" value={settings.angle} onChange={(event) => update("angle", Number(event.target.value))} /><output>{settings.angle}°</output></label>
-        <label><span>Damping</span><input type="range" min="0.05" max="1.2" step="0.05" value={settings.damping} onChange={(event) => update("damping", Number(event.target.value))} /><output>{settings.damping.toFixed(2)}</output></label>
-        <label><span>Response</span><input type="range" min="0.05" max="1" step="0.05" value={settings.response} onChange={(event) => update("response", Number(event.target.value))} /><output>{settings.response.toFixed(2)}</output></label>
-        <label><span>Body width</span><input type="range" min="6" max="30" value={settings.width} onChange={(event) => update("width", Number(event.target.value))} /><output>{settings.width}px</output></label>
-        <button type="button" className={styles.debugToggle} data-active={settings.debug} onClick={() => update("debug", !settings.debug)}>Rig overlay</button>
+        <label
+          data-focus={controlLessons.some((item) => item.control === "joints")}
+        >
+          <span>Joints</span>
+          <input
+            aria-label="Spine joint count"
+            type="range"
+            min="5"
+            max="30"
+            value={settings.joints}
+            onChange={(event) => update("joints", Number(event.target.value))}
+          />
+          <output>{settings.joints}</output>
+        </label>
+        <label
+          data-focus={controlLessons.some((item) => item.control === "segment")}
+        >
+          <span>Link length</span>
+          <input
+            aria-label="Spine link length"
+            type="range"
+            min="4"
+            max="16"
+            step="0.5"
+            value={settings.segment}
+            onChange={(event) => update("segment", Number(event.target.value))}
+          />
+          <output>{settings.segment}px</output>
+        </label>
+        <label
+          data-focus={controlLessons.some((item) => item.control === "angle")}
+        >
+          <span>Turn limit</span>
+          <input
+            aria-label="Joint turn limit"
+            type="range"
+            min="3"
+            max="60"
+            value={settings.angle}
+            onChange={(event) => update("angle", Number(event.target.value))}
+          />
+          <output>{settings.angle}°</output>
+        </label>
+        <label
+          data-focus={controlLessons.some((item) => item.control === "damping")}
+        >
+          <span>Damping</span>
+          <input
+            aria-label="Motion damping"
+            type="range"
+            min="0.05"
+            max="1.2"
+            step="0.05"
+            value={settings.damping}
+            onChange={(event) => update("damping", Number(event.target.value))}
+          />
+          <output>{settings.damping.toFixed(2)}</output>
+        </label>
+        <label
+          data-focus={controlLessons.some(
+            (item) => item.control === "response",
+          )}
+        >
+          <span>Response</span>
+          <input
+            aria-label="Motion response"
+            type="range"
+            min="0.05"
+            max="1"
+            step="0.05"
+            value={settings.response}
+            onChange={(event) => update("response", Number(event.target.value))}
+          />
+          <output>{settings.response.toFixed(2)}</output>
+        </label>
+        <label
+          data-focus={controlLessons.some((item) => item.control === "width")}
+        >
+          <span>Body width</span>
+          <input
+            aria-label="Body width"
+            type="range"
+            min="6"
+            max="30"
+            value={settings.width}
+            onChange={(event) => update("width", Number(event.target.value))}
+          />
+          <output>{settings.width}px</output>
+        </label>
+        <button
+          type="button"
+          className={styles.debugToggle}
+          data-active={settings.debug}
+          data-focus={controlLessons.some((item) => item.control === "debug")}
+          aria-pressed={settings.debug}
+          onClick={() => update("debug", !settings.debug)}
+        >
+          Rig overlay
+        </button>
       </div>
-      {broken ? <p className={styles.breakNote}>You removed the guardrails: huge links, loose turns and almost no damping. Notice the folding and overshoot—then repair it.</p> : null}
+      <div className={styles.controlCoach}>
+        <div>
+          <span>Tune this module</span>
+          <p>
+            Change one variable at a time, predict the result, then test it.
+          </p>
+        </div>
+        <dl>
+          {controlLessons.map((item) => (
+            <div key={`${item.control}-${item.label}`}>
+              <dt>{item.label}</dt>
+              <dd>{item.effect}</dd>
+              <dd className={styles.controlTry}>Try: {item.tryThis}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      {broken ? (
+        <p className={styles.breakNote}>
+          You removed the guardrails: huge links, loose turns and almost no
+          damping. Notice the folding and overshoot—then repair it.
+        </p>
+      ) : null}
     </section>
   );
 }

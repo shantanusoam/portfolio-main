@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:"
+    />
+    <title>Complete Procedural Fish Course Demo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font:
+          13px/1.5 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+        background: #061019;
+        color: #ddecf0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        display: grid;
+        min-height: 100vh;
+        margin: 0;
+        place-items: center;
+        padding: 20px;
+        background:
+          radial-gradient(
+            circle at 72% 8%,
+            rgba(55, 132, 149, 0.16),
+            transparent 31%
+          ),
+          linear-gradient(180deg, #07111a, #050c12);
+      }
+
+      main {
+        width: min(1100px, 100%);
+        overflow: hidden;
+        border: 1px solid rgba(150, 207, 217, 0.19);
+        border-radius: 18px;
+        background: rgba(2, 10, 16, 0.84);
+        box-shadow: 0 26px 90px rgba(0, 0, 0, 0.28);
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 15px 17px;
+        border-bottom: 1px solid rgba(150, 207, 217, 0.11);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      header p {
+        margin: 4px 0 0;
+        color: rgba(199, 221, 225, 0.56);
+        font-size: 10px;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+
+      button {
+        min-height: 32px;
+        padding: 6px 10px;
+        border: 1px solid rgba(128, 205, 218, 0.2);
+        border-radius: 999px;
+        color: #cce9ed;
+        background: rgba(92, 177, 193, 0.055);
+        font: inherit;
+        font-size: 10px;
+        cursor: pointer;
+      }
+
+      button[aria-pressed="true"] {
+        border-color: rgba(125, 219, 200, 0.4);
+        color: #b8ead9;
+        background: rgba(75, 181, 151, 0.1);
+      }
+
+      button:focus-visible,
+      input:focus-visible {
+        outline: 2px solid #8dd9e3;
+        outline-offset: 3px;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: min(62vh, 580px);
+        touch-action: none;
+        cursor: crosshair;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px 16px;
+        padding: 15px 17px 17px;
+        border-top: 1px solid rgba(150, 207, 217, 0.1);
+      }
+
+      label {
+        display: grid;
+        grid-template-columns: 88px minmax(0, 1fr) 52px;
+        gap: 8px;
+        align-items: center;
+        color: rgba(197, 220, 224, 0.62);
+        font-size: 10px;
+      }
+
+      input {
+        min-width: 0;
+        width: 100%;
+        accent-color: #78cad5;
+      }
+      output {
+        color: #c6e8ec;
+        text-align: right;
+      }
+
+      .status {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 17px;
+        border-top: 1px solid rgba(150, 207, 217, 0.08);
+        color: rgba(194, 218, 222, 0.48);
+        font-size: 9px;
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding: 0;
+        }
+        main {
+          border-radius: 0;
+        }
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .actions {
+          justify-content: flex-start;
+        }
+        canvas {
+          height: 48vh;
+        }
+        .controls {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Complete course build · constrained procedural fish</h1>
+          <p>
+            Pointer or autopilot → root dynamics → spine constraints → body
+            contour
+          </p>
+        </div>
+        <div class="actions">
+          <button id="play" type="button">Pause</button>
+          <button id="autopilot" type="button" aria-pressed="true">
+            Autopilot
+          </button>
+          <button id="debug" type="button" aria-pressed="false">
+            Rig overlay
+          </button>
+          <button id="reset" type="button">Reset</button>
+        </div>
+      </header>
+
+      <canvas
+        aria-label="A complete interactive constrained procedural fish"
+      ></canvas>
+
+      <div class="controls">
+        <label
+          >Joints
+          <input data-key="joints" type="range" min="6" max="30" value="20" />
+          <output>20</output></label
+        >
+        <label
+          >Link length
+          <input
+            data-key="segment"
+            type="range"
+            min="4"
+            max="16"
+            step="0.5"
+            value="8"
+          />
+          <output>8px</output></label
+        >
+        <label
+          >Turn limit
+          <input data-key="angle" type="range" min="3" max="60" value="17" />
+          <output>17°</output></label
+        >
+        <label
+          >Damping
+          <input
+            data-key="damping"
+            type="range"
+            min="0.1"
+            max="1.2"
+            step="0.05"
+            value="0.8"
+          />
+          <output>0.80</output></label
+        >
+        <label
+          >Response
+          <input
+            data-key="response"
+            type="range"
+            min="0.05"
+            max="1"
+            step="0.05"
+            value="0.3"
+          />
+          <output>0.30</output></label
+        >
+        <label
+          >Body width
+          <input data-key="width" type="range" min="6" max="30" value="20" />
+          <output>20px</output></label
+        >
+      </div>
+
+      <div class="status">
+        <span id="mode">Mode: autopilot</span>
+        <span>Fixed step: 1/60s · max 3 catch-up steps · DPR capped at 2</span>
+      </div>
+    </main>
+
+    <script>
+      const canvas = document.querySelector("canvas");
+      const context = canvas.getContext("2d");
+      const playButton = document.querySelector("#play");
+      const autopilotButton = document.querySelector("#autopilot");
+      const debugButton = document.querySelector("#debug");
+      const resetButton = document.querySelector("#reset");
+      const modeLabel = document.querySelector("#mode");
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+      const defaults = {
+        joints: 20,
+        segment: 8,
+        angle: 17,
+        damping: 0.8,
+        response: 0.3,
+        width: 20,
+      };
+      const settings = { ...defaults };
+      const target = { x: 0, y: 0 };
+      const root = { x: 0, y: 0, vx: 0, vy: 0, heading: 0 };
+      const spine = [];
+
+      let width = 1;
+      let height = 1;
+      let elapsed = 0;
+      let accumulator = 0;
+      let previous = performance.now();
+      let running = !reduceMotion.matches;
+      let autopilot = true;
+      let debug = false;
+      let frameHandle = 0;
+
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+      function wrapAngle(value) {
+        let angle = value;
+        while (angle > Math.PI) angle -= Math.PI * 2;
+        while (angle < -Math.PI) angle += Math.PI * 2;
+        return angle;
+      }
+
+      function bodyWidth(t) {
+        const head =
+          0.52 + 0.48 * Math.sin(Math.min(1, t * 2.85) * Math.PI * 0.5);
+        const tail = Math.pow(1 - t, 1.45);
+        const shoulder = 1 + 0.18 * Math.exp(-Math.pow((t - 0.24) / 0.25, 2));
+        const nose = t < 0.07 ? Math.sin((t / 0.07) * Math.PI * 0.5) : 1;
+        return Math.max(0, head * tail * shoulder * nose) * settings.width;
+      }
+
+      function rebuildSpine() {
+        spine.length = 0;
+        for (let index = 0; index < settings.joints; index += 1) {
+          spine.push({
+            x: root.x - index * settings.segment,
+            y: root.y,
+            angle: Math.PI,
+          });
+        }
+      }
+
+      function reset() {
+        root.x = width * 0.38;
+        root.y = height * 0.5;
+        root.vx = 0;
+        root.vy = 0;
+        root.heading = 0;
+        target.x = width * 0.72;
+        target.y = height * 0.42;
+        elapsed = 0;
+        accumulator = 0;
+        previous = performance.now();
+        rebuildSpine();
+        draw();
+      }
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        width = Math.max(1, rect.width);
+        height = Math.max(1, rect.height);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        reset();
+      }
+
+      function updateTarget(dt) {
+        if (!autopilot) return;
+        elapsed += dt;
+        target.x = width * 0.5 + Math.cos(elapsed * 0.72) * width * 0.29;
+        target.y = height * 0.5 + Math.sin(elapsed * 1.08) * height * 0.27;
+      }
+
+      function updateRoot(dt) {
+        const stiffness = 12 + settings.response * 30;
+        const dampingForce = 3.4 + settings.damping * 8;
+        const ax = (target.x - root.x) * stiffness - root.vx * dampingForce;
+        const ay = (target.y - root.y) * stiffness - root.vy * dampingForce;
+
+        root.vx += ax * dt;
+        root.vy += ay * dt;
+
+        const speed = Math.hypot(root.vx, root.vy);
+        const maxSpeed = 300;
+        if (speed > maxSpeed) {
+          const scale = maxSpeed / speed;
+          root.vx *= scale;
+          root.vy *= scale;
+        }
+
+        root.x = clamp(root.x + root.vx * dt, 34, width - 34);
+        root.y = clamp(root.y + root.vy * dt, 34, height - 34);
+        if (speed > 1) root.heading = Math.atan2(root.vy, root.vx);
+      }
+
+      function solveSpine() {
+        if (spine.length !== settings.joints) rebuildSpine();
+        spine[0].x = root.x;
+        spine[0].y = root.y;
+        spine[0].angle = wrapAngle(root.heading + Math.PI);
+
+        let previousAngle = spine[0].angle;
+        const baseLimit = (settings.angle * Math.PI) / 180;
+
+        for (let index = 1; index < spine.length; index += 1) {
+          const parent = spine[index - 1];
+          const child = spine[index];
+          const candidate = Math.atan2(child.y - parent.y, child.x - parent.x);
+          const t = index / Math.max(1, spine.length - 1);
+          const eased = t * t * (3 - 2 * t);
+          const limit = baseLimit * (0.68 + eased * 0.58);
+          const delta = clamp(
+            wrapAngle(candidate - previousAngle),
+            -limit,
+            limit,
+          );
+          const angle = previousAngle + delta;
+
+          child.x = parent.x + Math.cos(angle) * settings.segment;
+          child.y = parent.y + Math.sin(angle) * settings.segment;
+          child.angle = angle;
+          previousAngle = angle;
+        }
+      }
+
+      function update(dt) {
+        updateTarget(dt);
+        updateRoot(dt);
+        solveSpine();
+      }
+
+      function draw() {
+        context.clearRect(0, 0, width, height);
+
+        const glow = context.createRadialGradient(
+          root.x,
+          root.y,
+          0,
+          root.x,
+          root.y,
+          Math.max(160, settings.width * 7),
+        );
+        glow.addColorStop(0, "rgba(76, 168, 184, 0.16)");
+        glow.addColorStop(1, "rgba(76, 168, 184, 0)");
+        context.fillStyle = glow;
+        context.fillRect(0, 0, width, height);
+
+        const left = [];
+        const right = [];
+        for (let index = 0; index < spine.length; index += 1) {
+          const before = spine[Math.max(0, index - 1)];
+          const after = spine[Math.min(spine.length - 1, index + 1)];
+          const angle = Math.atan2(after.y - before.y, after.x - before.x);
+          const normalX = -Math.sin(angle);
+          const normalY = Math.cos(angle);
+          const t = index / Math.max(1, spine.length - 1);
+          const radius = bodyWidth(t);
+          left.push({
+            x: spine[index].x + normalX * radius,
+            y: spine[index].y + normalY * radius,
+          });
+          right.push({
+            x: spine[index].x - normalX * radius,
+            y: spine[index].y - normalY * radius,
+          });
+        }
+
+        context.fillStyle = "#4389a7";
+        context.strokeStyle = "rgba(225, 248, 250, 0.78)";
+        context.lineWidth = 1.3;
+        context.beginPath();
+        context.moveTo(left[0].x, left[0].y);
+        for (let index = 1; index < left.length; index += 1)
+          context.lineTo(left[index].x, left[index].y);
+        for (let index = right.length - 1; index >= 0; index -= 1)
+          context.lineTo(right[index].x, right[index].y);
+        context.closePath();
+        context.fill();
+        context.stroke();
+
+        const eyeOffset = settings.width * 0.36;
+        const eyeForward = 5;
+        const heading = root.heading;
+        const normalX = -Math.sin(heading);
+        const normalY = Math.cos(heading);
+        const forwardX = Math.cos(heading) * eyeForward;
+        const forwardY = Math.sin(heading) * eyeForward;
+        context.fillStyle = "#f4feff";
+        for (const side of [-1, 1]) {
+          context.beginPath();
+          context.arc(
+            root.x + forwardX + normalX * eyeOffset * side,
+            root.y + forwardY + normalY * eyeOffset * side,
+            2.6,
+            0,
+            Math.PI * 2,
+          );
+          context.fill();
+        }
+
+        context.strokeStyle = autopilot
+          ? "rgba(126, 211, 225, 0.3)"
+          : "rgba(235, 190, 112, 0.58)";
+        context.beginPath();
+        context.arc(target.x, target.y, 9, 0, Math.PI * 2);
+        context.stroke();
+
+        if (debug) {
+          context.strokeStyle = "rgba(111, 238, 206, 0.76)";
+          context.fillStyle = "#8ee8d3";
+          context.beginPath();
+          context.moveTo(spine[0].x, spine[0].y);
+          for (let index = 1; index < spine.length; index += 1)
+            context.lineTo(spine[index].x, spine[index].y);
+          context.stroke();
+          for (const joint of spine) {
+            context.beginPath();
+            context.arc(joint.x, joint.y, 1.8, 0, Math.PI * 2);
+            context.fill();
+          }
+        }
+      }
+
+      function frame(now) {
+        const frameDt = Math.min(Math.max(0, (now - previous) / 1000), 0.05);
+        previous = now;
+        if (running) accumulator += frameDt;
+
+        let steps = 0;
+        while (running && accumulator >= 1 / 60 && steps < 3) {
+          update(1 / 60);
+          accumulator -= 1 / 60;
+          steps += 1;
+        }
+        if (steps === 3 && accumulator >= 1 / 60) accumulator = 0;
+
+        draw();
+        frameHandle = requestAnimationFrame(frame);
+      }
+
+      canvas.addEventListener("pointermove", (event) => {
+        const rect = canvas.getBoundingClientRect();
+        target.x = event.clientX - rect.left;
+        target.y = event.clientY - rect.top;
+        autopilot = false;
+        autopilotButton.textContent = "Pointer";
+        autopilotButton.setAttribute("aria-pressed", "false");
+        modeLabel.textContent = "Mode: pointer";
+      });
+
+      playButton.addEventListener("click", () => {
+        running = !running;
+        previous = performance.now();
+        accumulator = 0;
+        playButton.textContent = running ? "Pause" : "Play";
+      });
+
+      autopilotButton.addEventListener("click", () => {
+        autopilot = !autopilot;
+        autopilotButton.textContent = autopilot ? "Autopilot" : "Pointer";
+        autopilotButton.setAttribute("aria-pressed", String(autopilot));
+        modeLabel.textContent = `Mode: ${autopilot ? "autopilot" : "pointer"}`;
+      });
+
+      debugButton.addEventListener("click", () => {
+        debug = !debug;
+        debugButton.setAttribute("aria-pressed", String(debug));
+        draw();
+      });
+
+      resetButton.addEventListener("click", () => {
+        Object.assign(settings, defaults);
+        document.querySelectorAll("input[data-key]").forEach((input) => {
+          input.value = defaults[input.dataset.key];
+          input.dispatchEvent(new Event("input"));
+        });
+        reset();
+      });
+
+      document.querySelectorAll("input[data-key]").forEach((input) => {
+        input.addEventListener("input", () => {
+          const key = input.dataset.key;
+          settings[key] = Number(input.value);
+          const suffix =
+            key === "angle"
+              ? "°"
+              : ["segment", "width"].includes(key)
+                ? "px"
+                : "";
+          input.nextElementSibling.value = ["damping", "response"].includes(key)
+            ? settings[key].toFixed(2)
+            : `${settings[key]}${suffix}`;
+          if (key === "joints" || key === "segment") rebuildSpine();
+          draw();
+        });
+      });
+
+      reduceMotion.addEventListener("change", (event) => {
+        running = !event.matches;
+        playButton.textContent = running ? "Pause" : "Play";
+        previous = performance.now();
+        accumulator = 0;
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          previous = performance.now();
+          accumulator = 0;
+        }
+      });
+
+      addEventListener("resize", resize);
+      addEventListener("beforeunload", () => cancelAnimationFrame(frameHandle));
+      resize();
+      requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>
