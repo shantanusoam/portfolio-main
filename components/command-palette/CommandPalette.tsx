@@ -36,6 +36,7 @@ import type {
   CommandEntryKind,
 } from "@/lib/archive/command-index";
 import styles from "./commandPalette.module.css";
+import { SOUNDROOM_OPEN_EVENT } from "@/lib/audio/discovery";
 
 const sectionPriority: Record<string, number> = {
   Navigate: 90,
@@ -43,6 +44,7 @@ const sectionPriority: Record<string, number> = {
   "Systems Lab": 75,
   Dispatches: 70,
   "Reference wall": 60,
+  Soundroom: 65,
   "Screening room": 50,
   "Rare questions": 40,
 };
@@ -201,7 +203,17 @@ export function CommandPaletteProvider({
           priority: sectionPriority[entry.section] ?? 0,
         },
         icon: kindIcon[entry.kind],
-        perform: () => router.push(entry.href),
+        perform: () => {
+          if (entry.action?.type === "open-soundroom") {
+            window.dispatchEvent(
+              new CustomEvent(SOUNDROOM_OPEN_EVENT, {
+                detail: { view: entry.action.view },
+              }),
+            );
+            return;
+          }
+          router.push(entry.href);
+        },
       })),
     [entries, router],
   );

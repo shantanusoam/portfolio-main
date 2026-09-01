@@ -179,6 +179,19 @@ export class FishEcosystem {
   private divergenceSeconds = 0;
   private nextFryId = 1;
   private nextNaturalSchoolAt = 0;
+  private audioBassTarget = 0;
+  private audioMidTarget = 0;
+  private audioHighTarget = 0;
+  private audioOverallTarget = 0;
+  private audioOverall = 0;
+  private audioIntensity = 0;
+  private audioEnabled = false;
+  private audioLastBass = 0;
+  private audioTurnSeconds = 0;
+  private audioTurnCooldown = 0;
+  private audioTurnSign: 1 | -1 = 1;
+  private audioInvestigate: { x: number; y: number; seconds: number } | null =
+    null;
 
   constructor(options: FishEcosystemOptions) {
     this.rng = new SeededRandom(options.seed + 0x5f3759df);
@@ -289,6 +302,45 @@ export class FishEcosystem {
     for (const adult of this.adults) adult.runtime.setScrollVelocity(value);
   }
 
+  setAudioEnergy(
+    bass: number,
+    mid: number,
+    high: number,
+    overall: number,
+    intensity: number,
+    enabled: boolean,
+  ): void {
+    this.audioBassTarget = clamp(bass, 0, 1);
+    this.audioMidTarget = clamp(mid, 0, 1);
+    this.audioHighTarget = clamp(high, 0, 1);
+    this.audioOverallTarget = clamp(overall, 0, 1);
+    this.audioIntensity = clamp(intensity, 0, 1);
+    this.audioEnabled = enabled;
+  }
+
+  setAudioTrackChangePoint(x: number, y: number): void {
+    if (this.reducedMotion || !Number.isFinite(x) || !Number.isFinite(y))
+      return;
+    this.audioInvestigate = {
+      x: clamp(x, this.bounds.minX, this.bounds.maxX),
+      y: clamp(y, this.bounds.minY, this.bounds.maxY),
+      seconds: 1.2,
+    };
+  }
+
+  /** Allocation-free diagnostics for deterministic subsystem tests. */
+  getAudioInfluenceSnapshot(): {
+    activity: number;
+    turnSeconds: number;
+    investigating: boolean;
+  } {
+    return {
+      activity: this.audioOverall * this.audioIntensity,
+      turnSeconds: this.audioTurnSeconds,
+      investigating: Boolean(this.audioInvestigate),
+    };
+  }
+
   setBounds(bounds: WanderBounds): void {
     this.bounds = bounds;
     for (const adult of this.adults) adult.runtime.setBounds(bounds);
@@ -311,6 +363,10 @@ export class FishEcosystem {
 
   setReducedMotion(reduced: boolean): void {
     this.reducedMotion = reduced;
+    if (reduced) {
+      this.audioTurnSeconds = 0;
+      this.audioInvestigate = null;
+    }
     for (const adult of this.adults) adult.runtime.setReducedMotion(reduced);
   }
 
@@ -394,6 +450,7 @@ export class FishEcosystem {
     this.spawnCooldown = Math.max(0, this.spawnCooldown - dt);
     this.bloomSeconds = Math.max(0, this.bloomSeconds - dt);
     this.divergenceSeconds = Math.max(0, this.divergenceSeconds - dt);
+    this.updateAudioInfluence(dt);
 
     for (const adult of this.adults) this.updateAdultState(adult, dt);
 
@@ -449,6 +506,40 @@ export class FishEcosystem {
         y: clamp(root.y + velocity.y * 0.2, this.bounds.minY, this.bounds.maxY),
       };
     }
+  }
+
+  private updateAudioInfluence(dt: number): void {
+    const active = this.audioEnabled && !this.reducedMotion;
+    const target = active ? this.audioOverallTarget : 0;
+    const response = target > this.audioOverall ? 3.8 : 1.65;
+    this.audioOverall = lerp(
+      this.audioOverall,
+      target,
+      clamp(dt * response, 0, 1),
+    );
+    this.audioTurnSeconds = Math.max(0, this.audioTurnSeconds - dt);
+    this.audioTurnCooldown = Math.max(0, this.audioTurnCooldown - dt);
+    if (this.audioInvestigate) {
+      this.audioInvestigate.seconds -= dt;
+      if (this.audioInvestigate.seconds <= 0) this.audioInvestigate = null;
+    }
+
+    const bassDelta = this.audioBassTarget - this.audioLastBass;
+    if (
+      active &&
+      bassDelta > 0.13 &&
+      this.audioTurnCooldown <= 0 &&
+      this.audioIntensity > 0.08
+    ) {
+      this.audioTurnSeconds = 0.44;
+      this.audioTurnCooldown = 0.72;
+      this.audioTurnSign = this.audioTurnSign === 1 ? -1 : 1;
+    }
+    this.audioLastBass = lerp(
+      this.audioLastBass,
+      active ? this.audioBassTarget : 0,
+      clamp(dt * 10, 0, 1),
+    );
   }
 
   private releaseNaturalSchool(): void {
@@ -555,6 +646,18 @@ export class FishEcosystem {
         } else if (this.pointer.active) {
           adult.runtime.clearSteerTarget();
           adult.runtime.setPointer(this.pointer.x, this.pointer.y, true);
+        } else if (
+          this.audioInvestigate &&
+          this.audioEnabled &&
+          !this.reducedMotion
+        ) {
+          adult.runtime.clearSteerTarget();
+          adult.runtime.setPointer(this.pointer.x, this.pointer.y, false);
+          adult.runtime.setSteerTarget(
+            this.audioInvestigate.x,
+            this.audioInvestigate.y,
+            false,
+          );
         } else {
           adult.runtime.setPointer(this.pointer.x, this.pointer.y, false);
           const target = this.independentTarget(index);
@@ -647,12 +750,20 @@ export class FishEcosystem {
   private independentTarget(index: number): Point {
     const adult = this.adults[index];
     const root = adult.runtime.pose.getRoot();
-    const phase = this.simTime * adult.preferredSpeed + adult.phaseOffset;
+    const audioActivity =
+      this.audioEnabled && !this.reducedMotion
+        ? (this.audioOverall * 0.82 + this.audioMidTarget * 0.18) *
+          this.audioIntensity
+        : 0;
+    const phase =
+      this.simTime * adult.preferredSpeed * (1 + audioActivity * 0.18) +
+      adult.phaseOffset;
     const width = Math.max(1, this.bounds.maxX - this.bounds.minX);
     const height = Math.max(1, this.bounds.maxY - this.bounds.minY);
     const appetiteEnergy =
       adult.digestionSeconds > 0 ? 0.68 : 0.82 + adult.hunger * 0.26;
-    const wanderRadius = (70 + adult.laneBias * 18) * appetiteEnergy;
+    const wanderRadius =
+      (70 + adult.laneBias * 18) * appetiteEnergy * (1 + audioActivity * 0.2);
     const localTarget = {
       x:
         root.x +
@@ -690,6 +801,14 @@ export class FishEcosystem {
       x: lerp(localTarget.x, worldTarget.x, worldPull),
       y: lerp(localTarget.y, worldTarget.y, worldPull),
     };
+
+    if (this.audioTurnSeconds > 0 && audioActivity > 0) {
+      const turnLife = this.audioTurnSeconds / 0.44;
+      const heading = adult.runtime.pose.getHeading();
+      const turn = 34 * turnLife * audioActivity * this.audioTurnSign;
+      target.x += Math.cos(heading + Math.PI / 2) * turn;
+      target.y += Math.sin(heading + Math.PI / 2) * turn;
+    }
 
     // Soft attraction to leader so the shoal stays related without lockstep.
     const leader = this.adults.find((entry) => entry.role === "leader");
@@ -797,6 +916,11 @@ export class FishEcosystem {
     let desiredX = steered.desiredVx;
     let desiredY = steered.desiredVy;
     let maxSpeed = steered.maxSpeed;
+    const audioFryLift =
+      this.audioEnabled && !this.reducedMotion
+        ? this.audioHighTarget * this.audioIntensity * 0.055
+        : 0;
+    maxSpeed *= 1 + audioFryLift;
     if (steered.burst && fry.burstCooldown <= 0) {
       fry.burstCooldown = 0.55;
     }

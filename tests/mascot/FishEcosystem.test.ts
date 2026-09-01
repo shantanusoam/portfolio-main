@@ -214,6 +214,31 @@ test("quality, bounds and reduced motion propagate to every spawned sibling", ()
   });
 });
 
+test("Soundroom energy ramps activity and a bass transient creates a brief turn", () => {
+  const ecosystem = createEcosystem(909, 320, 280);
+  ecosystem.setAudioEnergy(0.92, 0.54, 0.24, 0.72, 0.35, true);
+
+  for (let step = 0; step < 24; step += 1) ecosystem.update(1 / 60);
+
+  const influence = ecosystem.getAudioInfluenceSnapshot();
+  assert.ok(influence.activity > 0.08);
+  assert.ok(influence.turnSeconds > 0);
+});
+
+test("reduced motion silences Soundroom influence and record-change curiosity", () => {
+  const ecosystem = createEcosystem(910, 320, 280);
+  ecosystem.setReducedMotion(true);
+  ecosystem.setAudioEnergy(1, 1, 1, 1, 1, true);
+  ecosystem.setAudioTrackChangePoint(620, 140);
+
+  for (let step = 0; step < 30; step += 1) ecosystem.update(1 / 60);
+
+  const influence = ecosystem.getAudioInfluenceSnapshot();
+  assert.equal(influence.activity, 0);
+  assert.equal(influence.turnSeconds, 0);
+  assert.equal(influence.investigating, false);
+});
+
 test("PoseController rebuildSpine preserves root and honors new joint count", () => {
   const pose = new PoseController(
     {

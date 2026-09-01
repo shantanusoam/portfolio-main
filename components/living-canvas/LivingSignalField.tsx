@@ -24,6 +24,7 @@ import {
   resolveSignalZoneProfile,
 } from "@/lib/living-canvas/zoneField";
 import styles from "./LivingSignalField.module.css";
+import { subscribeSoundroomEnergy } from "@/lib/audio/reactiveBridge";
 
 interface LivingSignalFieldProps {
   engine: MascotEngine | null;
@@ -97,6 +98,14 @@ export default function LivingSignalField({
     let zoneEnergyTarget = zoneEnergy;
     let warmth = DEFAULT_SIGNAL_ZONE_PROFILE.warmth;
     let warmthTarget = warmth;
+    let musicBassTarget = 0;
+    let musicMidTarget = 0;
+    let musicHighTarget = 0;
+    let musicOverallTarget = 0;
+    let musicIntensityTarget = 0;
+    let musicOverall = 0;
+    let musicWarmth = 0;
+    let previousMusicBass = 0;
     let pulses: SignalPulse[] = [];
     let frame = 0;
     let previousFrame = performance.now();
@@ -203,6 +212,34 @@ export default function LivingSignalField({
       );
     };
 
+    const unsubscribeSoundroom = subscribeSoundroomEnergy((signal) => {
+      if (reducedMotion || !signal.enabled || !signal.playing) {
+        musicBassTarget = 0;
+        musicMidTarget = 0;
+        musicHighTarget = 0;
+        musicOverallTarget = 0;
+        musicIntensityTarget = 0;
+        previousMusicBass = 0;
+        return;
+      }
+      const bassTransient = signal.bass - previousMusicBass;
+      musicBassTarget = signal.bass;
+      musicMidTarget = signal.mid;
+      musicHighTarget = signal.high;
+      musicOverallTarget = signal.overall;
+      musicIntensityTarget = signal.intensity;
+      if (bassTransient > 0.16 && signal.intensity > 0.08) {
+        addPulse(
+          creatureX,
+          creatureY,
+          Math.min(0.42, 0.12 + bassTransient * signal.intensity),
+          musicHighTarget > musicBassTarget ? "cool" : "warm",
+          "control",
+        );
+      }
+      previousMusicBass = signal.bass;
+    });
+
     const handleScroll = () => {
       const now = performance.now();
       const elapsed = Math.max(16, now - lastScrollAt);
@@ -258,6 +295,14 @@ export default function LivingSignalField({
         : Math.min(1, Math.max(0.02, deltaSeconds * 2.8));
       zoneEnergy += (zoneEnergyTarget - zoneEnergy) * zoneBlend;
       warmth += (warmthTarget - warmth) * zoneBlend;
+      musicOverall +=
+        (musicOverallTarget - musicOverall) *
+        Math.min(1, Math.max(0.025, deltaSeconds * 3.4));
+      const musicWarmthTarget =
+        (musicMidTarget * 0.65 - musicHighTarget * 0.26) * musicIntensityTarget;
+      musicWarmth +=
+        (musicWarmthTarget - musicWarmth) *
+        Math.min(1, Math.max(0.02, deltaSeconds * 2.2));
       creatureIntent +=
         (creatureIntentTarget - creatureIntent) * Math.min(1, zoneBlend * 1.5);
       const pointerRest = 0.035 + zoneEnergy * 0.025;
@@ -273,16 +318,26 @@ export default function LivingSignalField({
         time: reducedMotion ? 0 : timestamp / 1000,
         pointerX,
         pointerY,
-        pointerActivity: reducedMotion ? 0 : pointerActivity,
+        pointerActivity: reducedMotion
+          ? 0
+          : pointerActivity + musicHighTarget * musicIntensityTarget * 0.035,
         creatureX,
         creatureY,
         velocityX: reducedMotion ? 0 : velocityX,
         velocityY: reducedMotion ? 0 : velocityY,
         scrollVelocity: reducedMotion ? 0 : scrollVelocity,
         scrollProgress,
-        zoneEnergy,
-        warmth,
-        creatureIntent: reducedMotion ? 0 : creatureIntent,
+        zoneEnergy: Math.min(
+          1,
+          zoneEnergy + musicOverall * musicIntensityTarget * 0.1,
+        ),
+        warmth: Math.min(1, Math.max(0, warmth + musicWarmth * 0.08)),
+        creatureIntent: reducedMotion
+          ? 0
+          : Math.min(
+              1,
+              creatureIntent + musicOverall * musicIntensityTarget * 0.06,
+            ),
         pulses: reducedMotion ? [] : pulses,
       });
 
@@ -362,6 +417,7 @@ export default function LivingSignalField({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener(LIVING_CANVAS_PULSE_EVENT, handleCustomPulse);
+      unsubscribeSoundroom();
       document.removeEventListener("visibilitychange", handleVisibility);
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       canvas.removeEventListener("webglcontextrestored", handleContextRestored);

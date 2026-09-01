@@ -271,6 +271,21 @@ export class MascotEngine implements MascotEngineContract {
     this.ecosystem.setScrollVelocity(value);
   }
 
+  setAudioEnergy(
+    bass: number,
+    mid: number,
+    high: number,
+    overall: number,
+    intensity: number,
+    enabled: boolean,
+  ): void {
+    this.ecosystem.setAudioEnergy(bass, mid, high, overall, intensity, enabled);
+  }
+
+  setAudioTrackChangePoint(x: number, y: number): void {
+    this.ecosystem.setAudioTrackChangePoint(x, y);
+  }
+
   setQuality(quality: MascotQuality): void {
     this.ecosystem.setQuality(quality);
     this.governor.setQuality(quality);
