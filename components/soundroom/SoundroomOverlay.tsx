@@ -173,6 +173,7 @@ function Transport({
         className={styles.roomPlay}
         onClick={() => run(engine.togglePlayback())}
         aria-label={snapshot.isPlaying ? "Pause" : "Play"}
+        data-loading={snapshot.status === "loading"}
       >
         {snapshot.isPlaying ? (
           <Pause aria-hidden="true" />
@@ -710,7 +711,7 @@ export default function SoundroomOverlay({
         data-mascot-obstacle="hard"
         style={
           {
-            "--soundroom-accent": track?.accent ?? "#ff6946",
+            "--soundroom-accent": track?.accent ?? "#ff7448",
           } as CSSProperties
         }
       >
@@ -752,7 +753,7 @@ export default function SoundroomOverlay({
                 mode={snapshot.visualizerMode}
                 playing={snapshot.isPlaying}
                 reducedMotion={reducedMotion}
-                accent={track?.accent ?? "#ff6946"}
+                accent={track?.accent ?? "#ff7448"}
               />
               <div
                 className={styles.stageArtwork}

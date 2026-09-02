@@ -30,7 +30,7 @@ const sharedSnapshot: SoundroomReactiveSnapshot = {
   enabled: false,
   playing: false,
   trackId: null,
-  trackAccent: "#ff6946",
+  trackAccent: "#ff7448",
   timestamp: 0,
 };
 
@@ -52,7 +52,7 @@ export function publishSoundroomEnergy(
   sharedSnapshot.enabled = options.enabled;
   sharedSnapshot.playing = options.playing;
   sharedSnapshot.trackId = options.track?.id ?? null;
-  sharedSnapshot.trackAccent = options.track?.accent ?? "#ff6946";
+  sharedSnapshot.trackAccent = options.track?.accent ?? "#ff7448";
   sharedSnapshot.timestamp = energy.timestamp;
   subscribers.forEach((subscriber) => subscriber(sharedSnapshot));
 }

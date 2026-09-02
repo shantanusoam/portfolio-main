@@ -73,7 +73,7 @@ export default function SoundroomExperience({
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--soundroom-accent",
-      snapshot.currentTrack?.accent ?? "#ff6946",
+      snapshot.currentTrack?.accent ?? "#ff7448",
     );
     document.body.dataset.soundroomPlaying = String(snapshot.isPlaying);
     return () => {

@@ -20,7 +20,8 @@
   padding: 0;
   overflow: hidden;
   color: rgba(255, 255, 255, 0.72);
-  background: #131313;
+  background: rgba(19, 19, 19, 0.55);
+  backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-right: 0;
   border-radius: 16px 0 0 16px;
@@ -30,7 +31,8 @@
     width 180ms ease,
     opacity 180ms ease,
     border-color 180ms ease,
-    box-shadow 180ms ease;
+    box-shadow 180ms ease,
+    transform 100ms ease-out;
 }
 
 .listeningStone:hover,
@@ -39,13 +41,18 @@
   opacity: 0.92;
   border-color: color-mix(
     in srgb,
-    var(--soundroom-accent, #ff6946) 55%,
+    var(--soundroom-accent, #ff7448) 55%,
     white 12%
   );
   box-shadow: -8px 0 22px
-    color-mix(in srgb, var(--soundroom-accent, #ff6946) 18%, transparent);
-  outline: 2px solid var(--soundroom-accent, #ff6946);
+    color-mix(in srgb, var(--soundroom-accent, #ff7448) 18%, transparent);
+  outline: 2px solid var(--soundroom-accent, #ff7448);
   outline-offset: 3px;
+}
+
+.listeningStone:active {
+  transform: scale(0.92);
+  transition-duration: 90ms;
 }
 
 .stoneGroove,
@@ -69,20 +76,28 @@
   top: 25px;
   width: 3px;
   height: 3px;
-  background: var(--soundroom-accent, #ff6946);
+  background: var(--soundroom-accent, #ff7448);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--soundroom-accent, #ff6946);
+  box-shadow: 0 0 10px var(--soundroom-accent, #ff7448);
 }
 
 .compactPlayer,
 .miniPlayer {
+  /* Centered via left:0/right:0/margin-inline:auto, not transform:
+     translateX(-50%) — framer-motion's layoutId animation (see
+     SoundroomMiniPlayer.tsx) takes over this element's `transform` inline
+     to drive the FLIP transition, which silently strips any CSS
+     transform-based centering and left the pill pinned to the 50% mark
+     as a left edge instead of a center. */
   position: fixed;
-  left: 50%;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
   bottom: max(15px, env(safe-area-inset-bottom));
   z-index: 1400;
-  transform: translateX(-50%);
   color: #f7f4ed;
-  background: #11110f;
+  background: rgba(17, 17, 15, 0.66);
+  backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow:
     0 20px 55px rgba(0, 0, 0, 0.52),
@@ -99,11 +114,16 @@
   padding: 7px;
   border-radius: 15px;
   cursor: pointer;
+  transition: filter 100ms ease-out;
+}
+
+.compactPlayer:active {
+  filter: brightness(0.9);
 }
 
 .compactPlayer:focus-visible,
 .miniPlayer:focus-visible {
-  outline: 2px solid var(--soundroom-accent, #ff6946);
+  outline: 2px solid var(--soundroom-accent, #ff7448);
   outline-offset: 4px;
 }
 
@@ -111,7 +131,7 @@
   position: relative;
   width: 25px;
   height: 25px;
-  border: 1px solid var(--soundroom-accent, #ff6946);
+  border: 1px solid var(--soundroom-accent, #ff7448);
   border-radius: 50%;
   opacity: 0.86;
 }
@@ -128,7 +148,7 @@
 
 .compactDisc::after {
   inset: 8px;
-  background: var(--soundroom-accent, #ff6946);
+  background: var(--soundroom-accent, #ff7448);
   border: 0;
 }
 
@@ -171,13 +191,29 @@
 
 .miniPlayer {
   display: grid;
-  grid-template-columns: 46px minmax(120px, 1fr) auto 30px;
+  grid-template-columns: 46px minmax(90px, 160px) 1fr auto 1fr 30px;
   align-items: center;
   gap: 10px;
   width: min(480px, calc(100vw - 28px));
   min-height: 64px;
   padding: 8px 10px 8px 8px;
   border-radius: 18px;
+}
+
+.miniPlayer > .miniArtworkButton {
+  grid-column: 1;
+}
+
+.miniPlayer > .miniCopy {
+  grid-column: 2;
+}
+
+.miniPlayer > .miniTransport {
+  grid-column: 4;
+}
+
+.miniPlayer > .miniMute {
+  grid-column: 6;
 }
 
 .miniArtworkButton,
@@ -191,7 +227,7 @@
 }
 
 .artwork {
-  --soundroom-accent: #ff6946;
+  --soundroom-accent: #ff7448;
   position: relative;
   width: min(32vw, 280px);
   aspect-ratio: 1;
@@ -308,7 +344,7 @@
   width: 100%;
   height: 3px;
   margin: 0;
-  accent-color: var(--soundroom-accent, #ff6946);
+  accent-color: var(--soundroom-accent, #ff7448);
   cursor: pointer;
 }
 
@@ -379,6 +415,17 @@
   transform: translateY(-1px);
 }
 
+.miniTransport button:active,
+.miniMute:active,
+.roomTransport button:active,
+.transportLine > button:active,
+.volumeLine button:active,
+.nowFavorite:active,
+.headerSignals button:active {
+  transform: scale(0.86);
+  transition-duration: 90ms;
+}
+
 .miniTransport button:focus-visible,
 .miniMute:focus-visible,
 .miniArtworkButton:focus-visible,
@@ -386,7 +433,7 @@
 .quickMenu button:focus-visible,
 .soundroom button:focus-visible,
 .soundroom input:focus-visible {
-  outline: 2px solid var(--soundroom-accent, #ff6946);
+  outline: 2px solid var(--soundroom-accent, #ff7448);
   outline-offset: 2px;
 }
 
@@ -397,7 +444,8 @@
   display: grid;
   width: 220px;
   padding: 6px;
-  background: #11110f;
+  background: rgba(17, 17, 15, 0.78);
+  backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 12px;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
@@ -417,6 +465,10 @@
   font-size: 9px;
   text-align: left;
   cursor: pointer;
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    transform 90ms ease-out;
 }
 
 .quickMenu button:hover {
@@ -424,10 +476,15 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+.quickMenu button:active {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(0.98);
+}
+
 .quickMenu svg {
   width: 13px;
   height: 13px;
-  color: var(--soundroom-accent, #ff6946);
+  color: var(--soundroom-accent, #ff7448);
 }
 
 .roomBackdrop {
@@ -440,7 +497,7 @@
   background:
     radial-gradient(
       circle at 50% 32%,
-      color-mix(in srgb, var(--soundroom-accent, #ff6946) 8%, transparent),
+      color-mix(in srgb, var(--soundroom-accent, #ff7448) 8%, transparent),
       transparent 45%
     ),
     rgba(3, 3, 3, 0.9);
@@ -448,7 +505,7 @@
 }
 
 .soundroom {
-  --soundroom-accent: #ff6946;
+  --soundroom-accent: #ff7448;
   position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -836,6 +893,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    transform 90ms ease-out;
 }
 
 .roomTabs button:last-child {
@@ -846,6 +907,10 @@
   color: #f7f4ed;
   background: color-mix(in srgb, var(--soundroom-accent) 8%, transparent);
   box-shadow: inset 0 -1px 0 var(--soundroom-accent);
+}
+
+.roomTabs button:active {
+  transform: scale(0.97);
 }
 
 .roomTabs svg {
@@ -900,6 +965,11 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 90ms ease-out;
 }
 
 .mixRail button:hover,
@@ -910,6 +980,13 @@
   color: #fff;
   border-color: color-mix(in srgb, var(--soundroom-accent) 60%, transparent);
   background: color-mix(in srgb, var(--soundroom-accent) 8%, transparent);
+}
+
+.mixRail button:active,
+.optionGrid button:active,
+.localActions button:active,
+.largeSwitch:active {
+  transform: scale(0.96);
 }
 
 .trackList,
@@ -951,6 +1028,11 @@
   border: 0;
   text-align: left;
   cursor: pointer;
+  transition: opacity 90ms ease-out;
+}
+
+.trackPlayTarget:active {
+  opacity: 0.78;
 }
 
 .trackPlayTarget .artwork {
@@ -1014,12 +1096,21 @@
   border: 0;
   border-radius: 5px;
   cursor: pointer;
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    transform 90ms ease-out;
 }
 
 .trackRowActions button:hover,
 .queueActions button:hover {
   color: var(--soundroom-accent);
   background: rgba(255, 255, 255, 0.05);
+}
+
+.trackRowActions button:active,
+.queueActions button:active {
+  transform: scale(0.85);
 }
 
 .trackRowActions svg,
@@ -1127,6 +1218,11 @@
   border: 0;
   text-align: left;
   cursor: pointer;
+  transition: opacity 90ms ease-out;
+}
+
+.queueTrack:active {
+  opacity: 0.78;
 }
 
 .queueTrack > span:first-child {
@@ -1257,7 +1353,8 @@
   gap: 8px;
   padding: 7px 10px;
   color: rgba(255, 255, 255, 0.64);
-  background: #11110f;
+  background: rgba(17, 17, 15, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 4px;
   font-family: var(--font-data), monospace;
@@ -1269,9 +1366,14 @@
 .discoveryToast span {
   width: 5px;
   height: 5px;
-  background: var(--soundroom-accent, #ff6946);
+  background: var(--soundroom-accent, #ff7448);
   border-radius: 50%;
-  box-shadow: 0 0 9px var(--soundroom-accent, #ff6946);
+  box-shadow: 0 0 9px var(--soundroom-accent, #ff7448);
+}
+
+.miniTransport .primaryTransport[data-loading="true"],
+.roomTransport .roomPlay[data-loading="true"] {
+  animation: soundroomBreathe 1s ease-in-out infinite;
 }
 
 @keyframes soundroomDisc {
@@ -1366,6 +1468,18 @@
     border-radius: 15px;
   }
 
+  .miniPlayer > .miniArtworkButton {
+    grid-column: 1;
+  }
+
+  .miniPlayer > .miniCopy {
+    grid-column: 2;
+  }
+
+  .miniPlayer > .miniTransport {
+    grid-column: 3;
+  }
+
   .miniPlayer .artworkCompact {
     width: 40px;
   }
@@ -1440,6 +1554,8 @@
   .compactPlayer[data-playing="true"] .compactDisc,
   .compactPlayer[data-playing="true"] .compactSignal i,
   .headerSignals span[data-playing="true"]::before,
+  .miniTransport .primaryTransport[data-loading="true"],
+  .roomTransport .roomPlay[data-loading="true"],
   .discoveryToast {
     animation: none !important;
   }
@@ -1454,5 +1570,20 @@
   .volumeLine button,
   .nowFavorite {
     transition: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .listeningStone {
+    background: #131313;
+    backdrop-filter: none;
+  }
+
+  .compactPlayer,
+  .miniPlayer,
+  .quickMenu,
+  .discoveryToast {
+    background: #11110f;
+    backdrop-filter: none;
   }
 }

@@ -17,6 +17,10 @@ interface PortfolioManifest {
   }>;
 }
 
+// Toggle to bring the procedural loops back onto the shelf alongside
+// whatever's in the manifest.
+const INCLUDE_GENERATED_TRACKS = false;
+
 const GENERATED_TRACKS: readonly SoundroomTrack[] = [
   {
     id: "radio-signal-drift",
@@ -26,7 +30,7 @@ const GENERATED_TRACKS: readonly SoundroomTrack[] = [
     artist: "Browser oscillator",
     album: "Portfolio Radio",
     duration: 24,
-    accent: "#ff6946",
+    accent: "#ff7448",
     note: "An original procedural loop generated on your device.",
   },
   {
@@ -143,13 +147,15 @@ export class PortfolioRadioAdapter implements SourceAdapter {
             album: track.album,
             year: track.year,
             note: track.note,
-            accent: track.accent ?? "#ff6946",
+            accent: track.accent ?? "#ff7448",
           }));
       }
     } catch {
-      // The original procedural records still make the room usable offline.
+      // Manifest fetch failed — Portfolio Radio is just empty for this visit.
     }
-    return [...GENERATED_TRACKS, ...manifestTracks];
+    return INCLUDE_GENERATED_TRACKS
+      ? [...GENERATED_TRACKS, ...manifestTracks]
+      : manifestTracks;
   }
 
   async resolve(track: SoundroomTrack): Promise<ResolvedAudioSource> {

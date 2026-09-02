@@ -70,7 +70,7 @@ export default function TextCarousel({
           },
         }}
         className={cn(
-          "absolute select-none whitespace-nowrap text-center text-[clamp(3.2rem,15vw,4.5rem)] font-black tracking-tight md:text-[6.5rem]",
+          "absolute select-none whitespace-nowrap text-center text-[clamp(3.2rem,15vw,4.5rem)] font-black leading-[1.25] tracking-tight md:text-[6.5rem]",
           className,
         )}
       >

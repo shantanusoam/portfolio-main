@@ -164,7 +164,7 @@ export default function Hero({ masked }: HeroProps) {
           >
             <motion.div
               variants={contentVariants}
-              className="relative flex h-[clamp(3rem,7.5vh,5rem)] w-full items-center justify-center overflow-hidden"
+              className="relative flex h-[clamp(4.5rem,12vh,7.25rem)] w-full items-center justify-center overflow-hidden md:h-[8.75rem]"
               data-mascot-interest="hero"
             >
               <TextCarousel

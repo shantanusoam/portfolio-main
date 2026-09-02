@@ -1,7 +1,7 @@
 import type { ImportedLocalTrack, SoundroomTrack } from "./types";
 
 const AUDIO_EXTENSIONS = /\.(mp3|m4a|aac|wav|ogg|oga|flac|webm)$/i;
-const ACCENTS = ["#ff6946", "#74d7c4", "#d7a8ff", "#f2c86b", "#7eb6ff"];
+const ACCENTS = ["#ff7448", "#74d7c4", "#d7a8ff", "#f2c86b", "#7eb6ff"];
 
 function hashString(value: string): number {
   let hash = 2166136261;

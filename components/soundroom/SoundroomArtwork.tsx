@@ -12,7 +12,7 @@ export default function SoundroomArtwork({
 }) {
   const seed = track ? deterministicCoverSeed(track) : 9173;
   const artworkStyle = {
-    "--soundroom-accent": track?.accent ?? "#ff6946",
+    "--soundroom-accent": track?.accent ?? "#ff7448",
     "--cover-turn": `${(seed % 31) - 15}deg`,
     "--cover-shift": `${16 + (seed % 58)}%`,
   } as CSSProperties;

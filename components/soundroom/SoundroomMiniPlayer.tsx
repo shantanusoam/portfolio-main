@@ -196,6 +196,7 @@ export default function SoundroomMiniPlayer({
           className={styles.primaryTransport}
           onClick={() => run(engine.togglePlayback())}
           aria-label={snapshot.isPlaying ? "Pause" : "Play"}
+          data-loading={snapshot.status === "loading"}
         >
           {snapshot.isPlaying ? (
             <Pause aria-hidden="true" />

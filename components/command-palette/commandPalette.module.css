@@ -6,8 +6,8 @@
   padding: clamp(72px, 12vh, 130px) 18px 24px;
   align-items: flex-start;
   justify-content: center;
-  background: rgba(3, 3, 3, 0.34);
-  backdrop-filter: blur(3px) saturate(96%);
+  background: rgba(3, 3, 3, 0.52);
+  backdrop-filter: blur(14px) saturate(120%);
 }
 
 .animator {
@@ -72,8 +72,8 @@
 }
 
 .paletteHeader > div span {
-  color: rgba(238, 233, 223, 0.46);
-  font-size: 8px;
+  color: rgba(238, 233, 223, 0.6);
+  font-size: 9px;
   letter-spacing: 0.06em;
 }
 
@@ -82,8 +82,8 @@
   align-items: center;
   gap: 7px;
   margin-left: auto;
-  color: rgba(238, 233, 223, 0.46);
-  font-size: 8px;
+  color: rgba(238, 233, 223, 0.6);
+  font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -125,11 +125,11 @@
 .paletteFooter kbd,
 .trigger kbd,
 .resultShortcut kbd {
-  border: 1px solid rgba(238, 233, 223, 0.16);
-  color: rgba(238, 233, 223, 0.58);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(238, 233, 223, 0.22);
+  color: rgba(238, 233, 223, 0.74);
+  background: rgba(255, 255, 255, 0.05);
   font-family: var(--font-data), monospace;
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 500;
   text-transform: uppercase;
 }
@@ -151,9 +151,9 @@
   z-index: 2;
   padding: 13px 16px 7px;
   color: #ff5d2f;
-  background: rgba(16, 14, 13, 0.82);
+  background: rgba(16, 14, 13, 0.92);
   backdrop-filter: blur(18px);
-  font-size: 7px;
+  font-size: 9px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -212,16 +212,16 @@
 }
 
 .resultCopy strong {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 17px;
-  font-weight: 500;
+  font-family: var(--font-body), "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .resultCopy small {
   margin-top: 3px;
-  color: rgba(238, 233, 223, 0.42);
+  color: rgba(238, 233, 223, 0.58);
   font-family: var(--font-data), monospace;
-  font-size: 7px;
+  font-size: 9px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -252,15 +252,16 @@
 }
 
 .empty span {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 28px;
+  font-family: var(--font-body), "Inter", sans-serif;
+  font-size: 22px;
+  font-weight: 600;
 }
 
 .empty p {
   margin-top: 7px;
-  color: rgba(238, 233, 223, 0.42);
+  color: rgba(238, 233, 223, 0.56);
   font-family: var(--font-data), monospace;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -272,8 +273,8 @@
   min-height: 44px;
   padding: 8px 16px;
   border-top: 1px solid rgba(238, 233, 223, 0.12);
-  color: rgba(238, 233, 223, 0.4);
-  font-size: 7px;
+  color: rgba(238, 233, 223, 0.56);
+  font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -305,9 +306,9 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  color: rgba(238, 233, 223, 0.62);
+  color: rgba(238, 233, 223, 0.72);
   background: transparent;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transition:

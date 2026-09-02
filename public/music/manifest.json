@@ -1,3 +1,13 @@
 {
-  "tracks": []
+  "tracks": [
+    {
+      "id": "good-riddance-time-of-your-life",
+      "title": "Good Riddance (Time of Your Life)",
+      "artist": "Green Day",
+      "album": "Nimrod",
+      "year": 1997,
+      "src": "/music/mixtape/good-riddance-time-of-your-life.mp3",
+      "accent": "#e8b23d"
+    }
+  ]
 }
