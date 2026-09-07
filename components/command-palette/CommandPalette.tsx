@@ -9,6 +9,7 @@ import {
   KBarSearch,
   useKBar,
   useMatches,
+  VisualState,
   type Action,
   type ActionImpl,
 } from "kbar";
@@ -37,6 +38,7 @@ import type {
 } from "@/lib/archive/command-index";
 import styles from "./commandPalette.module.css";
 import { SOUNDROOM_OPEN_EVENT } from "@/lib/audio/discovery";
+import { dispatchLivingCanvasMode } from "@/lib/living-canvas/events";
 
 const sectionPriority: Record<string, number> = {
   Navigate: 90,
@@ -119,7 +121,7 @@ function CommandDialog({ count }: { count: number }) {
   return (
     <KBarPortal>
       <KBarPositioner className={styles.positioner}>
-        <KBarAnimator className={styles.animator}>
+        <KBarAnimator className={styles.animator} data-living-command-center>
           <header className={styles.paletteHeader}>
             <span className={styles.paletteMark}>SA</span>
             <div>
@@ -154,6 +156,20 @@ function CommandDialog({ count }: { count: number }) {
       </KBarPositioner>
     </KBarPortal>
   );
+}
+
+function CommandFieldBridge() {
+  const { visualState } = useKBar((state) => ({
+    visualState: state.visualState,
+  }));
+  const active =
+    visualState === VisualState.animatingIn ||
+    visualState === VisualState.showing;
+  useEffect(() => {
+    dispatchLivingCanvasMode({ mode: "command", active });
+    return () => dispatchLivingCanvasMode({ mode: "command", active: false });
+  }, [active]);
+  return null;
 }
 
 function CommandQueryOpener() {
@@ -227,6 +243,7 @@ export function CommandPaletteProvider({
       }}
     >
       {children}
+      <CommandFieldBridge />
       <Suspense fallback={null}>
         <CommandQueryOpener />
       </Suspense>

@@ -5,6 +5,28 @@ import {
 } from "./pulseField";
 
 export const LIVING_CANVAS_PULSE_EVENT = "portfolio:living-canvas-pulse";
+export const LIVING_CANVAS_MODE_EVENT = "portfolio:living-canvas-mode";
+
+export interface LivingCanvasModeDetail {
+  mode: "command" | "xray";
+  active: boolean;
+}
+
+const activeModes = { command: false, xray: false };
+
+export function readLivingCanvasModes() {
+  return { ...activeModes };
+}
+
+export function dispatchLivingCanvasMode(detail: LivingCanvasModeDetail): void {
+  if (typeof window === "undefined") return;
+  activeModes[detail.mode] = detail.active;
+  window.dispatchEvent(
+    new CustomEvent<LivingCanvasModeDetail>(LIVING_CANVAS_MODE_EVENT, {
+      detail,
+    }),
+  );
+}
 
 export type LivingCanvasPulseSource = SignalPulseSource;
 

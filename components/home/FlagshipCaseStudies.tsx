@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import { flagshipCaseStudies } from "@/lib/portfolio/evidence";
+import { dispatchLivingCanvasMode } from "@/lib/living-canvas/events";
 import styles from "./ProofFirstHome.module.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -15,6 +16,14 @@ export default function FlagshipCaseStudies() {
   const sectionRef = useRef<HTMLElement>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [views, setViews] = useState<Record<string, "product" | "system">>({});
+
+  useEffect(() => {
+    dispatchLivingCanvasMode({
+      mode: "xray",
+      active: Object.values(views).includes("system"),
+    });
+    return () => dispatchLivingCanvasMode({ mode: "xray", active: false });
+  }, [views]);
 
   useLayoutEffect(() => {
     if (!sectionRef.current || prefersReducedMotion) return;
@@ -111,12 +120,16 @@ export default function FlagshipCaseStudies() {
             <article
               className={styles.caseCard}
               key={study.id}
+              data-system-xray-active={view === "system"}
               data-mascot-interest="project"
               data-canvas-pulse="warm"
               data-canvas-pulse-source="card"
             >
               <div className={styles.caseMain}>
-                <div className={styles.caseVisual}>
+                <div
+                  className={styles.caseVisual}
+                  data-living-xray-node="input"
+                >
                   <Image
                     className={`${styles.caseImage} ${
                       view === "product" ? styles.caseImageActive : ""
@@ -161,8 +174,7 @@ export default function FlagshipCaseStudies() {
                     <button
                       aria-pressed={view === "system"}
                       onClick={() =>
-                        setViews((current) => ({
-                          ...current,
+                        setViews(() => ({
                           [study.id]: "system",
                         }))
                       }
@@ -173,7 +185,10 @@ export default function FlagshipCaseStudies() {
                   </div>
                 </div>
 
-                <div className={styles.caseCopy}>
+                <div
+                  className={styles.caseCopy}
+                  data-living-xray-node="process"
+                >
                   <p className={styles.caseCategory}>
                     {String(index + 1).padStart(2, "0")} / {study.category}
                   </p>
@@ -221,7 +236,7 @@ export default function FlagshipCaseStudies() {
                 </div>
               </div>
 
-              <div className={styles.trace}>
+              <div className={styles.trace} data-living-xray-node="result">
                 <div className={styles.traceHeader}>
                   <h4>Build Trace</h4>
                   <span>Problem → shipped result → lesson</span>

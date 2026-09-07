@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { MascotEngine } from "@/lib/mascot/types";
+import { subscribeSoundroomEnergy } from "@/lib/audio/reactiveBridge";
 import {
   LIVING_CANVAS_PULSE_EVENT,
+  LIVING_CANVAS_MODE_EVENT,
+  readLivingCanvasModes,
   type LivingCanvasPulseDetail,
+  type LivingCanvasModeDetail,
 } from "@/lib/living-canvas/events";
 import {
-  advanceSignalPulses,
   createSignalPulse,
-  pushSignalPulse,
+  MAX_SIGNAL_PULSES,
+  SIGNAL_PULSE_LIFETIME_SECONDS,
   type SignalPulse,
   type SignalPulseSource,
   type SignalPulseTone,
@@ -17,420 +21,527 @@ import {
 import {
   createLivingFieldRenderer,
   type LivingFieldRenderer,
+  type LivingFieldState,
+  type LivingFieldRect,
 } from "@/lib/living-canvas/fieldRenderer";
 import {
   DEFAULT_SIGNAL_ZONE_PROFILE,
   resolveCreatureIntent,
   resolveSignalZoneProfile,
 } from "@/lib/living-canvas/zoneField";
+import { readLivingDeviceTier } from "@/lib/living-canvas/deviceTier";
 import styles from "./LivingSignalField.module.css";
-import { subscribeSoundroomEnergy } from "@/lib/audio/reactiveBridge";
 
 interface LivingSignalFieldProps {
   engine: MascotEngine | null;
   reducedMotion?: boolean;
 }
 
-function resolvePulseTone(value: string | undefined): SignalPulseTone {
-  return value === "cool" ? "cool" : "warm";
-}
+const HIDDEN_FIELD_QUERY =
+  "(forced-colors: active), (max-width: 767px), (hover: none) and (pointer: coarse)";
+const clamp = (value: number, min = -1, max = 1) =>
+  Math.max(min, Math.min(max, value));
 
-function resolvePulseSource(value: string | undefined): SignalPulseSource {
-  if (
-    value === "string" ||
-    value === "card" ||
-    value === "control" ||
-    value === "creature"
-  ) {
-    return value;
-  }
-  return "control";
-}
-
-function findPulseTarget(path: EventTarget[]): HTMLElement | null {
-  return (
-    path.find(
-      (item): item is HTMLElement =>
-        item instanceof HTMLElement && item.hasAttribute("data-canvas-pulse"),
-    ) ?? null
+function pulseTarget(path: EventTarget[]) {
+  return path.find(
+    (item): item is HTMLElement =>
+      item instanceof HTMLElement && item.hasAttribute("data-canvas-pulse"),
   );
 }
 
-/**
- * Shared atmospheric compositor. The real DOM remains the interaction and
- * accessibility layer; this canvas only visualizes existing page signals.
- */
+/** Read-only semantic bridge. No GPU state can change the DOM or koi physics. */
 export default function LivingSignalField({
   engine,
   reducedMotion = false,
 }: LivingSignalFieldProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef(engine);
-
+  const [hidden, setHidden] = useState(false);
   useEffect(() => {
     engineRef.current = engine;
   }, [engine]);
+  useEffect(() => {
+    const query = matchMedia(HIDDEN_FIELD_QUERY);
+    const update = () => setHidden(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-
-    let renderer: LivingFieldRenderer | null =
-      createLivingFieldRenderer(canvas);
-    canvas.dataset.renderer = renderer?.kind ?? "static";
-    if (!renderer) return undefined;
-
+    const host = hostRef.current;
+    if (!host || hidden || matchMedia(HIDDEN_FIELD_QUERY).matches) return;
+    const abort = new AbortController();
+    const tier = readLivingDeviceTier(reducedMotion);
+    let renderer: LivingFieldRenderer | null = null;
+    let recovery = 0;
+    let frame = 0;
+    let visible = !document.hidden;
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let pointerX = 0.5;
-    let pointerY = 0.42;
-    let pointerActivity = reducedMotion ? 0 : 0.1;
-    let creatureX = 0.78;
-    let creatureY = 0.24;
-    let velocityX = 0;
-    let velocityY = 0;
-    let creatureIntent = 0.3;
-    let creatureIntentTarget = 0.3;
-    let scrollVelocity = 0;
-    let scrollTarget = 0;
-    let scrollProgress = 0;
-    let zoneEnergy = DEFAULT_SIGNAL_ZONE_PROFILE.energy;
-    let zoneEnergyTarget = zoneEnergy;
-    let warmth = DEFAULT_SIGNAL_ZONE_PROFILE.warmth;
-    let warmthTarget = warmth;
-    let musicBassTarget = 0;
-    let musicMidTarget = 0;
-    let musicHighTarget = 0;
-    let musicOverallTarget = 0;
-    let musicIntensityTarget = 0;
-    let musicOverall = 0;
-    let musicWarmth = 0;
-    let previousMusicBass = 0;
-    let pulses: SignalPulse[] = [];
-    let frame = 0;
-    let previousFrame = performance.now();
+    let dpr = 0;
+    let dprCap: number = tier.dprCap;
+    let interval = tier.frameIntervalMs;
     let lastPaint = 0;
+    let lastGeometry = 0;
+    let geometryDirty = true;
+    let visibleXray = false;
     let lastScrollY = window.scrollY;
     let lastScrollAt = performance.now();
-    let lastZoneCheck = 0;
-    let visible = document.visibilityState !== "hidden";
-    let contextLost = false;
-
-    const conservativeHardware =
-      navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4;
-    let dprCap = conservativeHardware ? 0.9 : 1.25;
-    let targetFrameInterval = conservativeHardware ? 40 : 32;
-    let renderCostAverage = 0;
+    let scrollTarget = 0;
+    let pointerAt = 0;
+    let pointerSeen = false;
+    let priorVelocityX = 0;
+    let priorVelocityY = 0;
+    let zoneTarget = DEFAULT_SIGNAL_ZONE_PROFILE.energy;
+    let warmthTarget = DEFAULT_SIGNAL_ZONE_PROFILE.warmth;
+    let zoneEnergy = zoneTarget;
+    let warmth = warmthTarget;
+    let commandFocus = 0;
+    let commandRelease = 0;
+    let xrayStrength = 0;
+    let renderCost = 0;
     let renderSamples = 0;
-    let qualityReduced = conservativeHardware;
-    canvas.dataset.quality = conservativeHardware ? "conservative" : "balanced";
-
-    const updateScrollProgress = () => {
-      const scrollRange = Math.max(
-        1,
-        document.documentElement.scrollHeight - window.innerHeight,
+    let musicTarget = 0;
+    let musicWarmthTarget = 0;
+    let music = 0;
+    let musicWarmth = 0;
+    let previousBass = 0;
+    let lastBassPulse = 0;
+    const modes = readLivingCanvasModes();
+    const pulses: SignalPulse[] = [];
+    const rects = (count: number) =>
+      Array.from(
+        { length: count },
+        (): LivingFieldRect => ({ left: 0, top: 0, right: 0, bottom: 0 }),
       );
-      scrollProgress = Math.min(1, Math.max(0, window.scrollY / scrollRange));
+    const heroRects = rects(4);
+    const nodes = rects(3);
+    const state: LivingFieldState = {
+      width,
+      height,
+      time: 0,
+      pointerX: 0.5,
+      pointerY: 0.42,
+      pointerActivity: 0,
+      pointerVelocityX: 0,
+      pointerVelocityY: 0,
+      creatureX: 0.78,
+      creatureY: 0.24,
+      velocityX: 0,
+      velocityY: 0,
+      scrollVelocity: 0,
+      scrollProgress: 0,
+      zoneEnergy,
+      warmth,
+      creatureIntent: 0.12,
+      creaturePresence: 0,
+      creatureTurn: 0,
+      commandFocus: 0,
+      commandRelease: 0,
+      commandCenterX: 0.5,
+      commandCenterY: 0.4,
+      xrayStrength: 0,
+      heroVisibility: 0,
+      heroOccluders: heroRects,
+      xrayNodes: nodes,
+      pulses,
     };
 
-    const syncZoneFromViewport = () => {
-      const centerElement = document.elementFromPoint(
-        width * 0.5,
-        height * 0.48,
-      );
-      const zone = centerElement?.closest<HTMLElement>("[data-signal-zone]");
+    function measure(rect: LivingFieldRect, element?: Element) {
+      rect.left = rect.top = rect.right = rect.bottom = 0;
+      if (!element) return;
+      const bounds = element.getBoundingClientRect();
+      if (
+        bounds.bottom <= 0 ||
+        bounds.top >= height ||
+        bounds.right <= 0 ||
+        bounds.left >= width
+      )
+        return;
+      rect.left = clamp(bounds.left / width, 0, 1);
+      rect.top = clamp(bounds.top / height, 0, 1);
+      rect.right = clamp(bounds.right / width, 0, 1);
+      rect.bottom = clamp(bounds.bottom / height, 0, 1);
+    }
+    function syncGeometry() {
+      geometryDirty = false;
+      const center = document.elementFromPoint(width * 0.5, height * 0.48);
+      const zone = center?.closest<HTMLElement>("[data-signal-zone]");
       const profile = resolveSignalZoneProfile(zone?.dataset);
-      zoneEnergyTarget = profile.energy;
+      zoneTarget = profile.energy;
       warmthTarget = profile.warmth;
-      canvas.dataset.zone = profile.kind;
-    };
-
-    const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+      host!.dataset.zone = profile.kind;
+      state.scrollProgress = clamp(
+        window.scrollY /
+          Math.max(1, document.documentElement.scrollHeight - height),
+        0,
+        1,
+      );
+      const hero = document.getElementById("hero")?.getBoundingClientRect();
+      state.heroVisibility = hero
+        ? clamp(Math.min(height, hero.bottom) / height, 0, 1)
+        : 0;
+      const occluders = document.querySelectorAll(
+        "[data-living-hero-occluder]",
+      );
+      for (let i = 0; i < heroRects.length; i++)
+        measure(heroRects[i], occluders[i]);
+      const active = document.querySelector('[data-system-xray-active="true"]');
+      const geometry = active?.querySelectorAll("[data-living-xray-node]");
+      visibleXray = false;
+      for (let i = 0; i < nodes.length; i++) {
+        measure(nodes[i], geometry?.[i]);
+        visibleXray ||=
+          nodes[i].right > nodes[i].left && nodes[i].bottom > nodes[i].top;
+      }
+      const palette = document
+        .querySelector("[data-living-command-center]")
+        ?.getBoundingClientRect();
+      if (palette) {
+        state.commandCenterX = clamp(
+          (palette.left + palette.width / 2) / width,
+          0,
+          1,
+        );
+        state.commandCenterY = clamp(
+          (palette.top + palette.height / 2) / height,
+          0,
+          1,
+        );
+      }
+    }
+    function schedule() {
+      if (!abort.signal.aborted && visible && renderer && !frame)
+        frame = requestAnimationFrame(paint);
+    }
+    function resize() {
+      width = Math.max(1, window.innerWidth);
+      height = Math.max(1, window.innerHeight);
+      dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+      state.width = width;
+      state.height = height;
       renderer?.resize(width, height, dpr);
-      updateScrollProgress();
-      syncZoneFromViewport();
-    };
-
-    const addPulse = (
+      geometryDirty = true;
+      schedule();
+    }
+    function addPulse(
       x: number,
       y: number,
       intensity: number,
       tone: SignalPulseTone,
       source: SignalPulseSource,
-    ) => {
-      if (reducedMotion) return;
-      pulses = pushSignalPulse(
-        pulses,
-        createSignalPulse({ x, y, intensity, tone, source }),
-      );
-    };
-
-    const handlePointerMove = (event: PointerEvent) => {
-      pointerX = event.clientX / Math.max(1, width);
-      pointerY = event.clientY / Math.max(1, height);
-      pointerActivity = 1;
-    };
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = findPulseTarget(event.composedPath());
-      if (!target) return;
+    ) {
+      if (reducedMotion || !visible) return;
+      if (pulses.length === MAX_SIGNAL_PULSES) pulses.shift();
+      pulses.push(createSignalPulse({ x, y, intensity, tone, source }));
+    }
+    function fromTarget(target: HTMLElement, x: number, y: number) {
+      const value = target.dataset.canvasPulseSource;
+      const source =
+        value === "string" || value === "card" || value === "creature"
+          ? value
+          : "control";
       addPulse(
-        event.clientX / Math.max(1, width),
-        event.clientY / Math.max(1, height),
-        0.64,
-        resolvePulseTone(target.dataset.canvasPulse),
-        resolvePulseSource(target.dataset.canvasPulseSource),
+        x / width,
+        y / height,
+        0.6,
+        target.dataset.canvasPulse === "cool" ? "cool" : "warm",
+        source,
       );
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
+    }
+    function onPointer(event: PointerEvent) {
+      const now = performance.now();
+      const x = event.clientX / width;
+      const y = event.clientY / height;
+      const dt = Math.max(0.016, (now - pointerAt) / 1000);
+      state.pointerVelocityX = pointerSeen
+        ? clamp((x - state.pointerX) / dt)
+        : 0;
+      state.pointerVelocityY = pointerSeen
+        ? clamp((y - state.pointerY) / dt)
+        : 0;
+      state.pointerX = x;
+      state.pointerY = y;
+      state.pointerActivity = 1;
+      pointerAt = now;
+      pointerSeen = true;
+    }
+    function onPointerDown(event: PointerEvent) {
+      const target = pulseTarget(event.composedPath());
+      if (target) fromTarget(target, event.clientX, event.clientY);
+    }
+    function onKey(event: KeyboardEvent) {
       if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return;
-      const target = findPulseTarget(event.composedPath());
+      const target = pulseTarget(event.composedPath());
       if (!target) return;
       const rect = target.getBoundingClientRect();
-      addPulse(
-        (rect.left + rect.width / 2) / Math.max(1, width),
-        (rect.top + rect.height / 2) / Math.max(1, height),
-        0.58,
-        resolvePulseTone(target.dataset.canvasPulse),
-        resolvePulseSource(target.dataset.canvasPulseSource),
+      fromTarget(
+        target,
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
       );
-    };
-
-    const handleCustomPulse = (event: Event) => {
+    }
+    function onPulse(event: Event) {
       const detail = (event as CustomEvent<LivingCanvasPulseDetail>).detail;
-      if (!detail) return;
-      addPulse(
-        detail.x,
-        detail.y,
-        detail.intensity,
-        detail.tone,
-        detail.source,
-      );
-    };
-
-    const unsubscribeSoundroom = subscribeSoundroomEnergy((signal) => {
-      if (reducedMotion || !signal.enabled || !signal.playing) {
-        musicBassTarget = 0;
-        musicMidTarget = 0;
-        musicHighTarget = 0;
-        musicOverallTarget = 0;
-        musicIntensityTarget = 0;
-        previousMusicBass = 0;
-        return;
-      }
-      const bassTransient = signal.bass - previousMusicBass;
-      musicBassTarget = signal.bass;
-      musicMidTarget = signal.mid;
-      musicHighTarget = signal.high;
-      musicOverallTarget = signal.overall;
-      musicIntensityTarget = signal.intensity;
-      if (bassTransient > 0.16 && signal.intensity > 0.08) {
+      if (detail)
         addPulse(
-          creatureX,
-          creatureY,
-          Math.min(0.42, 0.12 + bassTransient * signal.intensity),
-          musicHighTarget > musicBassTarget ? "cool" : "warm",
-          "control",
+          detail.x,
+          detail.y,
+          detail.intensity,
+          detail.tone,
+          detail.source,
         );
-      }
-      previousMusicBass = signal.bass;
-    });
-
-    const handleScroll = () => {
+    }
+    function onMode(event: Event) {
+      const detail = (event as CustomEvent<LivingCanvasModeDetail>).detail;
+      if (!detail || (detail.mode !== "command" && detail.mode !== "xray"))
+        return;
+      if (detail.mode === "command" && !detail.active && modes.command)
+        commandRelease = commandFocus;
+      modes[detail.mode] = detail.active;
+      geometryDirty = true;
+      schedule();
+    }
+    function onScroll() {
       const now = performance.now();
-      const elapsed = Math.max(16, now - lastScrollAt);
-      const delta = window.scrollY - lastScrollY;
-      scrollTarget = Math.min(1, Math.max(-1, delta / elapsed / 1.4));
+      scrollTarget = reducedMotion
+        ? 0
+        : clamp(
+            (window.scrollY - lastScrollY) /
+              Math.max(16, now - lastScrollAt) /
+              1.4,
+          );
       lastScrollY = window.scrollY;
       lastScrollAt = now;
-      updateScrollProgress();
-      if (now - lastZoneCheck > 120) {
-        lastZoneCheck = now;
-        syncZoneFromViewport();
-      }
-      if (reducedMotion && !frame) {
-        frame = window.requestAnimationFrame(paint);
-      }
-    };
-
-    const paint = (timestamp: number) => {
-      frame = 0;
-      if (!visible || !renderer || contextLost) return;
-
-      if (!reducedMotion && timestamp - lastPaint < targetFrameInterval) {
-        frame = window.requestAnimationFrame(paint);
-        return;
-      }
-
-      const deltaSeconds = Math.min(
-        0.05,
-        Math.max(0, (timestamp - previousFrame) / 1000),
-      );
-      previousFrame = timestamp;
-      lastPaint = timestamp;
-
-      const signal = engineRef.current?.getSignalSnapshot();
-      if (signal) {
-        const targetX = signal.rootPosition.x / Math.max(1, width);
-        const targetY = signal.rootPosition.y / Math.max(1, height);
-        creatureX += (targetX - creatureX) * 0.34;
-        creatureY += (targetY - creatureY) * 0.34;
-        velocityX +=
-          (signal.velocity.x / Math.max(1, width) - velocityX) * 0.22;
-        velocityY +=
-          (signal.velocity.y / Math.max(1, height) - velocityY) * 0.22;
-        creatureIntentTarget = resolveCreatureIntent(signal.behavior);
-      } else {
-        velocityX *= 0.88;
-        velocityY *= 0.88;
-        creatureIntentTarget = 0.12;
-      }
-
-      const zoneBlend = reducedMotion
-        ? 1
-        : Math.min(1, Math.max(0.02, deltaSeconds * 2.8));
-      zoneEnergy += (zoneEnergyTarget - zoneEnergy) * zoneBlend;
-      warmth += (warmthTarget - warmth) * zoneBlend;
-      musicOverall +=
-        (musicOverallTarget - musicOverall) *
-        Math.min(1, Math.max(0.025, deltaSeconds * 3.4));
-      const musicWarmthTarget =
-        (musicMidTarget * 0.65 - musicHighTarget * 0.26) * musicIntensityTarget;
-      musicWarmth +=
-        (musicWarmthTarget - musicWarmth) *
-        Math.min(1, Math.max(0.02, deltaSeconds * 2.2));
-      creatureIntent +=
-        (creatureIntentTarget - creatureIntent) * Math.min(1, zoneBlend * 1.5);
-      const pointerRest = 0.035 + zoneEnergy * 0.025;
-      pointerActivity += (pointerRest - pointerActivity) * 0.045;
-      scrollVelocity += (scrollTarget - scrollVelocity) * 0.12;
-      scrollTarget *= 0.84;
-      pulses = advanceSignalPulses(pulses, deltaSeconds);
-
-      const renderStarted = performance.now();
-      renderer.render({
-        width,
-        height,
-        time: reducedMotion ? 0 : timestamp / 1000,
-        pointerX,
-        pointerY,
-        pointerActivity: reducedMotion
-          ? 0
-          : pointerActivity + musicHighTarget * musicIntensityTarget * 0.035,
-        creatureX,
-        creatureY,
-        velocityX: reducedMotion ? 0 : velocityX,
-        velocityY: reducedMotion ? 0 : velocityY,
-        scrollVelocity: reducedMotion ? 0 : scrollVelocity,
-        scrollProgress,
-        zoneEnergy: Math.min(
-          1,
-          zoneEnergy + musicOverall * musicIntensityTarget * 0.1,
-        ),
-        warmth: Math.min(1, Math.max(0, warmth + musicWarmth * 0.08)),
-        creatureIntent: reducedMotion
-          ? 0
-          : Math.min(
-              1,
-              creatureIntent + musicOverall * musicIntensityTarget * 0.06,
-            ),
-        pulses: reducedMotion ? [] : pulses,
-      });
-
-      if (!reducedMotion && !qualityReduced) {
-        const renderCost = performance.now() - renderStarted;
-        renderCostAverage += (renderCost - renderCostAverage) * 0.08;
-        renderSamples += 1;
-        if (renderSamples > 45 && renderCostAverage > 7.5) {
-          qualityReduced = true;
-          dprCap = 0.8;
-          targetFrameInterval = 42;
-          canvas.dataset.quality = "adaptive-low";
-          resize();
-        }
-      }
-
-      if (!reducedMotion) frame = window.requestAnimationFrame(paint);
-    };
-
-    const handleResize = () => {
-      resize();
-      if (reducedMotion && !frame) frame = window.requestAnimationFrame(paint);
-    };
-
-    const handleVisibility = () => {
-      visible = document.visibilityState !== "hidden";
-      if (visible && !frame && renderer && !contextLost) {
-        previousFrame = performance.now();
-        frame = window.requestAnimationFrame(paint);
-      } else if (!visible && frame) {
-        window.cancelAnimationFrame(frame);
+      geometryDirty = true;
+      schedule();
+    }
+    function onVisibility() {
+      visible = !document.hidden;
+      if (!visible) {
+        cancelAnimationFrame(frame);
         frame = 0;
+      } else {
+        lastPaint = 0;
+        pointerSeen = false;
+        state.pointerVelocityX = state.pointerVelocityY = 0;
+        geometryDirty = true;
+        schedule();
       }
-    };
-
-    const handleContextLost = (event: Event) => {
+    }
+    function fail() {
+      if (abort.signal.aborted || !renderer) return;
+      const kind = renderer.kind;
+      cancelAnimationFrame(frame);
+      frame = 0;
+      renderer.destroy();
+      renderer = null;
+      host!.dataset.renderer = "static";
+      if (kind === "canvas2d") return;
+      recovery = kind === "webgpu" ? 1 : 2;
+      void initialize();
+    }
+    function onContextLost(event: Event) {
       if (renderer?.kind !== "webgl") return;
       event.preventDefault();
-      contextLost = true;
-      if (frame) window.cancelAnimationFrame(frame);
+      fail();
+    }
+    function paint(timestamp: number) {
       frame = 0;
-      renderer = null;
-      canvas.dataset.renderer = "static";
-    };
-
-    const handleContextRestored = () => {
-      contextLost = false;
-      renderer = createLivingFieldRenderer(canvas);
-      canvas.dataset.renderer = renderer?.kind ?? "static";
-      if (!renderer) return;
+      if (!visible || !renderer || abort.signal.aborted) return;
+      if (
+        !reducedMotion &&
+        lastPaint &&
+        timestamp - lastPaint < interval - 0.5
+      ) {
+        schedule();
+        return;
+      }
+      const dt = lastPaint
+        ? Math.min(0.05, (timestamp - lastPaint) / 1000)
+        : 1 / 30;
+      lastPaint = timestamp;
+      if (dpr !== Math.min(window.devicePixelRatio || 1, dprCap)) resize();
+      if (geometryDirty && (reducedMotion || timestamp - lastGeometry > 110)) {
+        syncGeometry();
+        lastGeometry = timestamp;
+      }
+      const blend = reducedMotion ? 1 : 1 - Math.exp(-dt * 3.4);
+      const signal = engineRef.current?.getSignalSnapshot();
+      if (signal && !reducedMotion && state.heroVisibility! > 0) {
+        state.creatureX +=
+          (signal.rootPosition.x / width - state.creatureX) *
+          Math.min(1, blend * 1.5);
+        state.creatureY +=
+          (signal.rootPosition.y / height - state.creatureY) *
+          Math.min(1, blend * 1.5);
+        state.velocityX +=
+          (signal.velocity.x / width - state.velocityX) * blend;
+        state.velocityY +=
+          (signal.velocity.y / height - state.velocityY) * blend;
+        const speed = Math.hypot(state.velocityX, state.velocityY);
+        const priorSpeed = Math.hypot(priorVelocityX, priorVelocityY);
+        state.creatureTurn =
+          speed > 0.015 && priorSpeed > 0.015
+            ? clamp(
+                (priorVelocityX * state.velocityY -
+                  priorVelocityY * state.velocityX) /
+                  (speed * priorSpeed),
+              )
+            : 0;
+        priorVelocityX = state.velocityX;
+        priorVelocityY = state.velocityY;
+        state.creatureIntent +=
+          (resolveCreatureIntent(signal.behavior) - state.creatureIntent) *
+          blend;
+        state.creaturePresence = 1;
+      } else {
+        state.velocityX *= Math.exp(-dt * 5);
+        state.velocityY *= Math.exp(-dt * 5);
+        state.creaturePresence = 0;
+        state.creatureTurn = 0;
+        state.creatureIntent += (0.12 - state.creatureIntent) * blend;
+      }
+      zoneEnergy += (zoneTarget - zoneEnergy) * blend;
+      warmth += (warmthTarget - warmth) * blend;
+      music += (musicTarget - music) * blend;
+      musicWarmth += (musicWarmthTarget - musicWarmth) * blend;
+      commandFocus +=
+        ((modes.command ? 1 : 0) - commandFocus) * (1 - Math.exp(-dt * 6.4));
+      commandRelease *= Math.exp(-dt * 5);
+      xrayStrength +=
+        ((modes.xray && visibleXray ? 1 : 0) - xrayStrength) *
+        (1 - Math.exp(-dt * 5.2));
+      state.time = reducedMotion ? 0 : timestamp / 1000;
+      state.pointerActivity *= Math.exp(-dt * 3);
+      state.pointerVelocityX! *= Math.exp(-dt * 6);
+      state.pointerVelocityY! *= Math.exp(-dt * 6);
+      state.scrollVelocity += (scrollTarget - state.scrollVelocity) * blend;
+      scrollTarget *= Math.exp(-dt * 6);
+      state.zoneEnergy =
+        Math.min(1, zoneEnergy + music * 0.08) * (1 - xrayStrength * 0.35);
+      state.warmth = clamp(warmth + musicWarmth * 0.08);
+      state.commandFocus = reducedMotion ? 0 : commandFocus;
+      state.commandRelease = reducedMotion ? 0 : commandRelease;
+      state.xrayStrength = reducedMotion ? 0 : xrayStrength;
+      let retained = 0;
+      for (let i = 0; i < pulses.length; i++) {
+        const pulse = pulses[i];
+        pulse.age += dt;
+        if (pulse.age < SIGNAL_PULSE_LIFETIME_SECONDS)
+          pulses[retained++] = pulse;
+      }
+      pulses.length = retained;
+      const started = performance.now();
+      try {
+        renderer.render(state);
+      } catch {
+        fail();
+        return;
+      }
+      renderCost += (performance.now() - started - renderCost) * 0.08;
+      if (++renderSamples === 60 && renderCost > 7.5) {
+        dprCap = 0.8;
+        interval = 1000 / 24;
+        resize();
+        host!.dataset.quality = "adaptive-low";
+      }
+      if (!reducedMotion) schedule();
+    }
+    async function initialize() {
+      renderer = await createLivingFieldRenderer(host!, {
+        attemptWebGpu: tier.attemptWebGpu && recovery === 0,
+        highQuality: tier.highQuality,
+        skipWebGl: recovery >= 2,
+        signal: abort.signal,
+        onRuntimeFailure: fail,
+      });
+      if (abort.signal.aborted) {
+        renderer?.destroy();
+        renderer = null;
+        return;
+      }
+      host!.dataset.renderer = renderer?.kind ?? "static";
+      host!.dataset.quality = tier.tier;
+      lastPaint = 0;
       resize();
-      previousFrame = performance.now();
-      if (visible && !frame) frame = window.requestAnimationFrame(paint);
-    };
+    }
 
-    resize();
-    window.addEventListener("resize", handleResize, { passive: true });
-    window.addEventListener("pointermove", handlePointerMove, {
-      passive: true,
+    const unsubscribeSoundroom = reducedMotion
+      ? () => {}
+      : subscribeSoundroomEnergy((signal) => {
+          if (!signal.enabled || !signal.playing) {
+            musicTarget = musicWarmthTarget = previousBass = 0;
+            return;
+          }
+          musicTarget = signal.overall * signal.intensity;
+          musicWarmthTarget =
+            (signal.mid * 0.65 - signal.high * 0.26) * signal.intensity;
+          const now = performance.now();
+          const transient = signal.bass - previousBass;
+          if (
+            transient > 0.16 &&
+            signal.intensity > 0.08 &&
+            now - lastBassPulse > 400
+          ) {
+            addPulse(
+              state.creatureX,
+              state.creatureY,
+              Math.min(0.42, 0.12 + transient * signal.intensity),
+              signal.high > signal.bass ? "cool" : "warm",
+              "control",
+            );
+            lastBassPulse = now;
+          }
+          previousBass = signal.bass;
+        });
+    const observer = new ResizeObserver(() => {
+      geometryDirty = true;
+      schedule();
     });
-    window.addEventListener("pointerdown", handlePointerDown, {
-      passive: true,
+    observer.observe(document.body);
+    document.fonts.ready.then(() => {
+      if (!abort.signal.aborted) {
+        geometryDirty = true;
+        schedule();
+      }
     });
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener(LIVING_CANVAS_PULSE_EVENT, handleCustomPulse);
-    document.addEventListener("visibilitychange", handleVisibility);
-    canvas.addEventListener("webglcontextlost", handleContextLost);
-    canvas.addEventListener("webglcontextrestored", handleContextRestored);
-    frame = window.requestAnimationFrame(paint);
-
+    window.addEventListener("resize", resize, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener(LIVING_CANVAS_MODE_EVENT, onMode);
+    document.addEventListener("visibilitychange", onVisibility);
+    host.addEventListener("webglcontextlost", onContextLost, true);
+    if (!reducedMotion) {
+      window.addEventListener("pointermove", onPointer, { passive: true });
+      window.addEventListener("pointerdown", onPointerDown, { passive: true });
+      window.addEventListener("keydown", onKey);
+      window.addEventListener(LIVING_CANVAS_PULSE_EVENT, onPulse);
+    }
+    void initialize();
     return () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener(LIVING_CANVAS_PULSE_EVENT, handleCustomPulse);
+      abort.abort();
+      cancelAnimationFrame(frame);
+      observer.disconnect();
       unsubscribeSoundroom();
-      document.removeEventListener("visibilitychange", handleVisibility);
-      canvas.removeEventListener("webglcontextlost", handleContextLost);
-      canvas.removeEventListener("webglcontextrestored", handleContextRestored);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pointermove", onPointer);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener(LIVING_CANVAS_PULSE_EVENT, onPulse);
+      window.removeEventListener(LIVING_CANVAS_MODE_EVENT, onMode);
+      document.removeEventListener("visibilitychange", onVisibility);
+      host.removeEventListener("webglcontextlost", onContextLost, true);
       renderer?.destroy();
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, hidden]);
 
   return (
-    <canvas
-      ref={canvasRef}
+    <div
+      ref={hostRef}
       className={styles.field}
       aria-hidden="true"
-      data-quality="balanced"
       data-renderer="static"
       data-zone="bridge"
     />

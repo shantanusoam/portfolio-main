@@ -144,6 +144,7 @@ export default function Hero({ masked }: HeroProps) {
             aria-hidden="true"
             className="via-white/20 pointer-events-none absolute inset-x-[8%] top-[18%] h-px bg-gradient-to-r from-transparent to-transparent"
             data-mascot-perch="rail"
+            data-living-hero-occluder
           />
           <div
             aria-hidden="true"
@@ -186,6 +187,7 @@ export default function Hero({ masked }: HeroProps) {
                 isIdle && "animate-breathe",
               )}
               data-mascot-interest="hero"
+              data-living-hero-occluder
             >
               Shantanu Soam
             </motion.h1>
@@ -211,6 +213,7 @@ export default function Hero({ masked }: HeroProps) {
 
             <motion.nav
               variants={contentVariants}
+              data-living-hero-occluder
               className="mt-[clamp(0.1rem,0.5vh,0.4rem)] grid grid-cols-2 items-center justify-center gap-x-4 gap-y-2 font-mono text-[clamp(0.58rem,1vw,0.78rem)] uppercase tracking-widest sm:flex sm:flex-wrap sm:gap-x-[clamp(1rem,4vw,3rem)]"
             >
               {START_MENU.map((item) => (

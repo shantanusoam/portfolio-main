@@ -45,7 +45,7 @@ function randomReadings() {
     sensorChannels.map((channel) => [
       channel.id,
       randomInRange(channel.min, channel.max, channel.decimals),
-    ])
+    ]),
   );
 }
 
@@ -58,8 +58,8 @@ function midpointReadings() {
   return Object.fromEntries(
     sensorChannels.map((channel) => [
       channel.id,
-      Number((((channel.min + channel.max) / 2)).toFixed(channel.decimals)),
-    ])
+      Number(((channel.min + channel.max) / 2).toFixed(channel.decimals)),
+    ]),
   );
 }
 
@@ -112,7 +112,8 @@ function SensorCard({
 
 function Telemetry() {
   const prefersReducedMotion = usePrefersReducedMotion();
-  const [readings, setReadings] = useState<Record<string, number>>(midpointReadings);
+  const [readings, setReadings] =
+    useState<Record<string, number>>(midpointReadings);
 
   // Client-only: the first real (random) reading, right after mount.
   useEffect(() => {
@@ -122,7 +123,7 @@ function Telemetry() {
   useRandomInterval(
     () => setReadings(randomReadings()),
     prefersReducedMotion ? null : 900,
-    prefersReducedMotion ? null : 2400
+    prefersReducedMotion ? null : 2400,
   );
 
   return (
@@ -135,7 +136,11 @@ function Telemetry() {
           onPing={() =>
             setReadings((prev) => ({
               ...prev,
-              [channel.id]: randomInRange(channel.min, channel.max, channel.decimals),
+              [channel.id]: randomInRange(
+                channel.min,
+                channel.max,
+                channel.decimals,
+              ),
             }))
           }
         />
@@ -160,8 +165,8 @@ export default function MakerLab() {
     >
       <Heading>MAKER LAB</Heading>
       <p className="mt-4 text-center text-xs text-graytransparent sm:text-left sm:text-sm">
-        Sensor telemetry, edge AI, robotics, and motion experiments. The
-        readout below is a simulated feed, not a live device — yet.
+        Sensor telemetry, edge AI, robotics, and motion experiments. The readout
+        below is a simulated feed, not a live device — yet.
       </p>
 
       <div className="relative mt-16">
@@ -170,6 +175,25 @@ export default function MakerLab() {
       </div>
 
       <div className="mt-16 flex flex-col gap-6">
+        <article className="gradientborder flex flex-col gap-3 border bg-black p-6">
+          <p className="font-mono text-xs uppercase tracking-widest text-primary">
+            Live experiment / GPU Anatomy
+          </p>
+          <h3 className="font-display text-2xl text-white">
+            Look beneath the current.
+          </h3>
+          <p className="max-w-2xl text-sm leading-relaxed text-graytransparent">
+            Inspect the actual velocity, pressure, signal and wake buffers
+            behind this portfolio. Change one bounded parameter and see what the
+            system remembers.
+          </p>
+          <Link
+            href="/gpu"
+            className="mt-2 text-sm text-primary underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            Open the signal microscope ↗
+          </Link>
+        </article>
         {experiments.map((experiment) => (
           <div
             key={experiment.id}
@@ -199,7 +223,10 @@ export default function MakerLab() {
                 target={experiment.link.startsWith("/") ? undefined : "_blank"}
                 className="mt-2 text-xs uppercase tracking-widest text-primary hover:underline"
               >
-                {experiment.link.startsWith("/") ? "Read the full write-up" : "View scene"} ↗
+                {experiment.link.startsWith("/")
+                  ? "Read the full write-up"
+                  : "View scene"}{" "}
+                ↗
               </Link>
             )}
           </div>

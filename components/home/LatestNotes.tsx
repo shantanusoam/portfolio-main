@@ -54,8 +54,8 @@ export default function LatestNotes() {
       ref={sectionRef}
       className={styles.section}
       id="latest-notes"
-      data-signal-zone="bridge"
-      data-signal-energy="0.4"
+      data-signal-zone="rest"
+      data-signal-energy="0.14"
       data-signal-tone="warm"
     >
       <header className={styles.sectionHeading}>
