@@ -492,6 +492,7 @@ export default function StringInstrument() {
     <div
       className={styles.instrument}
       role="group"
+      data-living-hero-occluder
       aria-label="Playable six-string instrument. Pull a string slowly, sweep vertically to strum, or press keys 1 through 6."
       tabIndex={0}
       onKeyDown={handleKeyDown}

@@ -1,0 +1,237 @@
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 5rem 6vw 3rem;
+  color: #eeece7;
+}
+.back,
+.footer a {
+  color: #9ea9ab;
+  font-size: 0.82rem;
+  text-underline-offset: 5px;
+}
+.back:hover,
+.footer a:hover {
+  color: #b9e4e6;
+  text-decoration: underline;
+}
+.heading {
+  max-width: 780px;
+  margin: 4rem 0 2.5rem;
+}
+.eyebrow,
+.notes span,
+.footer {
+  font-family: monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+}
+.eyebrow {
+  color: #95c6cb;
+  text-transform: uppercase;
+}
+.heading h1 {
+  margin: 1rem 0 1.5rem;
+  font-size: clamp(2.8rem, 6vw, 5.6rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.heading > p:last-child {
+  max-width: 650px;
+  color: #abb0ae;
+  line-height: 1.8;
+}
+.instrument {
+  border: 1px solid #303637;
+  background: #0b0d0e;
+  padding: clamp(1rem, 2vw, 1.7rem);
+}
+.toolbar,
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.toolbar button,
+.modes button {
+  min-height: 44px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #414a4b;
+  background: transparent;
+  color: #e5e5df;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.toolbar button:first-child {
+  background: #dce8e5;
+  color: #142023;
+  border-color: #dce8e5;
+}
+.toolbar button:hover,
+.modes button:hover {
+  border-color: #b5d6d4;
+}
+.toolbar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.status {
+  color: #a6aeaf;
+  font-family: monospace;
+  font-size: 0.7rem;
+  line-height: 1.7;
+  margin: 1rem 0;
+}
+.stage {
+  position: relative;
+  height: clamp(260px, 47vw, 560px);
+  overflow: hidden;
+  background: #050708;
+  border: 1px solid #253034;
+}
+.surface {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.boundary {
+  position: absolute;
+  top: 28%;
+  left: 46%;
+  width: 12%;
+  height: 42%;
+  border: 1px solid #70848540;
+  background: #151b1b12;
+  pointer-events: none;
+}
+.boundary span {
+  position: absolute;
+  bottom: 0.4rem;
+  left: 0.4rem;
+  font: 0.58rem monospace;
+  color: #8b9b9c;
+}
+.stageLabel {
+  position: absolute;
+  left: 1rem;
+  bottom: 0.8rem;
+  right: 1rem;
+  color: #8b999b;
+  font: 0.65rem/1.6 monospace;
+  pointer-events: none;
+}
+.modes {
+  margin-top: 1.2rem;
+}
+.modes button[aria-pressed="true"] {
+  border-color: #91c9ce;
+  color: #b4e6e9;
+  background: #162528;
+}
+.explanation {
+  min-height: 8rem;
+  max-width: 760px;
+  padding: 1.4rem 0;
+}
+.explanation h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.5rem;
+}
+.explanation p,
+.notes p {
+  font-size: 0.88rem;
+  color: #a6aeaf;
+  line-height: 1.85;
+}
+.sliders {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  padding-top: 1.4rem;
+  border: 0;
+  border-top: 1px solid #303637;
+}
+.sliders legend {
+  padding: 0 0.7rem 0 0;
+  color: #98b0b3;
+  font: 0.65rem monospace;
+}
+.sliders label {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.sliders label > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+.sliders output {
+  color: #94c9cd;
+  font-family: monospace;
+}
+.sliders input {
+  width: 100%;
+  min-height: 24px;
+  accent-color: #a3d9dc;
+  cursor: pointer;
+}
+.sliders:disabled {
+  opacity: 0.45;
+}
+.notes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+  margin-top: 3.5rem;
+}
+.notes span {
+  color: #91bbc0;
+}
+.notes h2 {
+  font-size: 1.25rem;
+  margin: 0.7rem 0;
+}
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #303637;
+  color: #9da5a5;
+}
+.page :is(button, a, input):focus-visible {
+  outline: 2px solid #bbe9e8;
+  outline-offset: 4px;
+}
+@media (max-width: 680px) {
+  .page {
+    padding: 3rem 5vw;
+  }
+  .heading {
+    margin-top: 3rem;
+  }
+  .sliders {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .notes {
+    grid-template-columns: 1fr;
+  }
+}
+@media (forced-colors: active) {
+  .surface,
+  .boundary {
+    display: none;
+  }
+  .instrument,
+  .stage {
+    border-color: CanvasText;
+  }
+  .page :is(button, a, input):focus-visible {
+    outline-color: Highlight;
+  }
+}

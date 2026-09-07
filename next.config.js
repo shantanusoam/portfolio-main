@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    rules: {
+      "*.wgsl": {
+        loaders: ["@vgpu/wgsl/loader-webpack"],
+        as: "*.js",
+      },
+    },
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -8,16 +16,21 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   webpack: (config, { isServer }) => {
+    config.module.rules.push({
+      test: /\.wgsl$/i,
+      use: ["@vgpu/wgsl/loader-webpack"],
+    });
+
     // Add file-loader for .wav files
     config.module.rules.push({
       test: /\.(ogg|mp3|wav|mpe?g)$/i,
       use: [
         {
-          loader: 'file-loader',
+          loader: "file-loader",
           options: {
-            publicPath: '/_next/static/sounds/', // Specify the public path where the files will be served from
-            outputPath: 'static/sounds/', // Specify the output path in the build directory
-            name: '[name].[ext]', // Preserve the original file name and extension
+            publicPath: "/_next/static/sounds/", // Specify the public path where the files will be served from
+            outputPath: "static/sounds/", // Specify the output path in the build directory
+            name: "[name].[ext]", // Preserve the original file name and extension
           },
         },
       ],

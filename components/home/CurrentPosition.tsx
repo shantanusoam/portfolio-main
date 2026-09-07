@@ -44,7 +44,7 @@ export default function CurrentPosition() {
       className={styles.currentBand}
       aria-label="Current focus"
       data-signal-zone="bridge"
-      data-signal-energy="0.34"
+      data-signal-energy="0.18"
       data-signal-tone="cool"
     >
       <p className={`${styles.eyebrow} ${styles.currentEyebrow}`}>

@@ -9,6 +9,7 @@ import {
   KBarSearch,
   useKBar,
   useMatches,
+  VisualState,
   type Action,
   type ActionImpl,
 } from "kbar";
@@ -37,6 +38,7 @@ import type {
 } from "@/lib/archive/command-index";
 import styles from "./commandPalette.module.css";
 import { SOUNDROOM_OPEN_EVENT } from "@/lib/audio/discovery";
+import { dispatchLivingCanvasMode } from "@/lib/living-canvas/events";
 
 const sectionPriority: Record<string, number> = {
   Navigate: 90,
@@ -120,40 +122,56 @@ function CommandDialog({ count }: { count: number }) {
     <KBarPortal>
       <KBarPositioner className={styles.positioner}>
         <KBarAnimator className={styles.animator}>
-          <header className={styles.paletteHeader}>
-            <span className={styles.paletteMark}>SA</span>
-            <div>
-              <strong>Signal finder</strong>
-              <span>Search the whole body of work</span>
+          <div data-living-command-center>
+            <header className={styles.paletteHeader}>
+              <span className={styles.paletteMark}>SA</span>
+              <div>
+                <strong>Signal finder</strong>
+                <span>Search the whole body of work</span>
+              </div>
+              <span className={styles.liveSignal}>{count} paths live</span>
+            </header>
+            <div className={styles.searchRow}>
+              <Search size={18} aria-hidden="true" />
+              <KBarSearch
+                className={styles.searchInput}
+                defaultPlaceholder="Type a command, title, topic, or question…"
+                aria-label="Search the portfolio and Signal Archive"
+              />
+              <kbd>Esc</kbd>
             </div>
-            <span className={styles.liveSignal}>{count} paths live</span>
-          </header>
-          <div className={styles.searchRow}>
-            <Search size={18} aria-hidden="true" />
-            <KBarSearch
-              className={styles.searchInput}
-              defaultPlaceholder="Type a command, title, topic, or question…"
-              aria-label="Search the portfolio and Signal Archive"
-            />
-            <kbd>Esc</kbd>
+            <CommandResults />
+            <footer className={styles.paletteFooter}>
+              <span>
+                <kbd>↑</kbd>
+                <kbd>↓</kbd> move
+              </span>
+              <span>
+                <kbd>↵</kbd> open
+              </span>
+              <span className={styles.footerSignal}>
+                <span /> Built for curious detours
+              </span>
+            </footer>
           </div>
-          <CommandResults />
-          <footer className={styles.paletteFooter}>
-            <span>
-              <kbd>↑</kbd>
-              <kbd>↓</kbd> move
-            </span>
-            <span>
-              <kbd>↵</kbd> open
-            </span>
-            <span className={styles.footerSignal}>
-              <span /> Built for curious detours
-            </span>
-          </footer>
         </KBarAnimator>
       </KBarPositioner>
     </KBarPortal>
   );
+}
+
+function CommandFieldBridge() {
+  const { visualState } = useKBar((state) => ({
+    visualState: state.visualState,
+  }));
+  const active =
+    visualState === VisualState.animatingIn ||
+    visualState === VisualState.showing;
+  useEffect(() => {
+    dispatchLivingCanvasMode({ mode: "command", active });
+    return () => dispatchLivingCanvasMode({ mode: "command", active: false });
+  }, [active]);
+  return null;
 }
 
 function CommandQueryOpener() {
@@ -227,6 +245,7 @@ export function CommandPaletteProvider({
       }}
     >
       {children}
+      <CommandFieldBridge />
       <Suspense fallback={null}>
         <CommandQueryOpener />
       </Suspense>

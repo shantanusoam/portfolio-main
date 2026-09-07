@@ -66,7 +66,7 @@ export default function ProofStrip() {
       className={styles.proofSection}
       id="proof"
       data-signal-zone="bridge"
-      data-signal-energy="0.44"
+      data-signal-energy="0.18"
       data-signal-tone="neutral"
     >
       <div className={styles.proofIntro}>

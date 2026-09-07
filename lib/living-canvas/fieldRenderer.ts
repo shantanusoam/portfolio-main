@@ -8,6 +8,14 @@ import {
   LIVING_FIELD_FRAGMENT_SHADER,
   LIVING_FIELD_VERTEX_SHADER,
 } from "./shaders";
+import type { LivingAnatomySettings } from "./anatomy";
+
+export interface LivingFieldRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
 
 export interface LivingFieldState {
   width: number;
@@ -16,6 +24,8 @@ export interface LivingFieldState {
   pointerX: number;
   pointerY: number;
   pointerActivity: number;
+  pointerVelocityX?: number;
+  pointerVelocityY?: number;
   creatureX: number;
   creatureY: number;
   velocityX: number;
@@ -25,6 +35,17 @@ export interface LivingFieldState {
   zoneEnergy: number;
   warmth: number;
   creatureIntent: number;
+  creaturePresence?: number;
+  creatureTurn?: number;
+  commandFocus?: number;
+  commandRelease?: number;
+  commandCenterX?: number;
+  commandCenterY?: number;
+  xrayStrength?: number;
+  heroVisibility?: number;
+  heroOccluders?: readonly LivingFieldRect[];
+  xrayNodes?: readonly LivingFieldRect[];
+  anatomy?: LivingAnatomySettings;
   pulses: readonly SignalPulse[];
 }
 
@@ -32,7 +53,7 @@ export interface LivingFieldRenderer {
   resize(width: number, height: number, dpr: number): void;
   render(state: LivingFieldState): void;
   destroy(): void;
-  kind: "webgl" | "canvas2d";
+  kind: "webgpu" | "webgl" | "canvas2d";
 }
 
 function compileShader(
@@ -280,7 +301,9 @@ function createCanvas2DRenderer(
         const echoes = pulse.source === "card" ? 2 : 1;
 
         context.save();
-        context.strokeStyle = `rgba(${color}, ${life * pulse.intensity * 0.17})`;
+        context.strokeStyle = `rgba(${color}, ${
+          life * pulse.intensity * 0.17
+        })`;
         context.lineWidth = pulse.source === "control" ? 1.2 : 1.5;
         for (let echo = 0; echo < echoes; echo++) {
           context.beginPath();
@@ -309,8 +332,62 @@ function createCanvas2DRenderer(
   };
 }
 
-export function createLivingFieldRenderer(
-  canvas: HTMLCanvasElement,
-): LivingFieldRenderer | null {
-  return createWebGlRenderer(canvas) ?? createCanvas2DRenderer(canvas);
+export interface LivingRendererOptions {
+  attemptWebGpu?: boolean;
+  highQuality?: boolean;
+  skipWebGl?: boolean;
+  signal?: AbortSignal;
+  onRuntimeFailure?: () => void;
+}
+
+/** Every backend gets its own canvas: a claimed GPU context cannot become 2D. */
+export async function createLivingFieldRenderer(
+  host: HTMLElement,
+  options: LivingRendererOptions = {},
+): Promise<LivingFieldRenderer | null> {
+  const factories: Array<
+    (
+      canvas: HTMLCanvasElement,
+    ) => Promise<LivingFieldRenderer | null> | LivingFieldRenderer | null
+  > = [];
+  if (options.attemptWebGpu)
+    factories.push(async (canvas) => {
+      const { createVgpuRenderer } = await import("./gpu/renderer");
+      return createVgpuRenderer(canvas, options);
+    });
+  if (!options.skipWebGl) factories.push(createWebGlRenderer);
+  factories.push(createCanvas2DRenderer);
+  for (const factory of factories) {
+    if (options.signal?.aborted) return null;
+    const canvas = host.ownerDocument.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.style.cssText =
+      "width:100%;height:100%;display:block;pointer-events:none";
+    let renderer: LivingFieldRenderer | null = null;
+    try {
+      renderer = await factory(canvas);
+    } catch {
+      /* Try next backend on a fresh canvas. */
+    }
+    if (!renderer) continue;
+    if (options.signal?.aborted) {
+      renderer.destroy();
+      return null;
+    }
+    host.replaceChildren(canvas);
+    const inner = renderer;
+    let destroyed = false;
+    return {
+      kind: inner.kind,
+      resize: (width, height, dpr) => inner.resize(width, height, dpr),
+      render: (state) => inner.render(state),
+      destroy() {
+        if (destroyed) return;
+        destroyed = true;
+        inner.destroy();
+        canvas.remove();
+      },
+    };
+  }
+  return null;
 }

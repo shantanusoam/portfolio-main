@@ -7,7 +7,12 @@ import {
 import { systemsRegistry } from "@/lib/portfolio/evidence";
 
 export type CommandEntryKind =
-  "page" | "article" | "reference" | "screening" | "question" | "system";
+  | "page"
+  | "article"
+  | "reference"
+  | "screening"
+  | "question"
+  | "system";
 
 export interface CommandEntry {
   id: string;
@@ -24,6 +29,17 @@ export interface CommandEntry {
 }
 
 const pageEntries: CommandEntry[] = [
+  {
+    id: "system-enter-gpu",
+    name: "Enter GPU",
+    subtitle:
+      "GPU Anatomy · inspect the current, pressure, wake and light passes",
+    href: "/gpu",
+    keywords:
+      "gpu webgpu vgpu anatomy microscope living ocean fluid shaders source maker lab",
+    section: "Systems Lab",
+    kind: "system",
+  },
   {
     id: "soundroom-open",
     name: "Soundroom",
@@ -233,50 +249,60 @@ const pageEntries: CommandEntry[] = [
 export function createCommandIndex(): CommandEntry[] {
   return [
     ...pageEntries,
-    ...systemsRegistry.map((entry): CommandEntry => ({
-      id: `system-${entry.slug}`,
-      name: entry.name,
-      subtitle: `${entry.status} · ${entry.tech.join(" / ")}`,
-      href: `/systems/${entry.slug}`,
-      keywords: `${entry.description} ${entry.tech.join(" ")}`,
-      section: "Systems Lab",
-      kind: "system",
-    })),
-    ...archiveArticles.map((article): CommandEntry => ({
-      id: `article-${article.slug}`,
-      name: article.title,
-      subtitle: `${article.format} · ${article.category} · ${article.readingMinutes} min`,
-      href: `/blog/${article.slug}`,
-      keywords: `${article.dek} ${article.category} ${article.format} ${article.accent}`,
-      section: "Dispatches",
-      kind: "article",
-    })),
-    ...inspirationEntries.map((entry): CommandEntry => ({
-      id: `reference-${entry.id}`,
-      name: entry.name,
-      subtitle: `${entry.kind} · ${entry.tags.join(" / ")}`,
-      href: `/inspo#${entry.id}`,
-      keywords: `${entry.note} ${entry.kind} ${entry.tags.join(" ")}`,
-      section: "Reference wall",
-      kind: "reference",
-    })),
-    ...talkEntries.map((talk): CommandEntry => ({
-      id: `screening-${talk.id}`,
-      name: talk.title,
-      subtitle: `${talk.speaker} · ${talk.displayDuration} · ${talk.topic}`,
-      href: `/worth-your-time#${talk.id}`,
-      keywords: `${talk.why} ${talk.takeaway} ${talk.speaker} ${talk.topic}`,
-      section: "Screening room",
-      kind: "screening",
-    })),
-    ...raqEntries.map((entry): CommandEntry => ({
-      id: `question-${entry.id}`,
-      name: entry.question,
-      subtitle: `${entry.topic} · ${entry.askedAt}`,
-      href: `/raq#${entry.id}`,
-      keywords: `${entry.shortAnswer} ${entry.topic}`,
-      section: "Rare questions",
-      kind: "question",
-    })),
+    ...systemsRegistry.map(
+      (entry): CommandEntry => ({
+        id: `system-${entry.slug}`,
+        name: entry.name,
+        subtitle: `${entry.status} · ${entry.tech.join(" / ")}`,
+        href: `/systems/${entry.slug}`,
+        keywords: `${entry.description} ${entry.tech.join(" ")}`,
+        section: "Systems Lab",
+        kind: "system",
+      }),
+    ),
+    ...archiveArticles.map(
+      (article): CommandEntry => ({
+        id: `article-${article.slug}`,
+        name: article.title,
+        subtitle: `${article.format} · ${article.category} · ${article.readingMinutes} min`,
+        href: `/blog/${article.slug}`,
+        keywords: `${article.dek} ${article.category} ${article.format} ${article.accent}`,
+        section: "Dispatches",
+        kind: "article",
+      }),
+    ),
+    ...inspirationEntries.map(
+      (entry): CommandEntry => ({
+        id: `reference-${entry.id}`,
+        name: entry.name,
+        subtitle: `${entry.kind} · ${entry.tags.join(" / ")}`,
+        href: `/inspo#${entry.id}`,
+        keywords: `${entry.note} ${entry.kind} ${entry.tags.join(" ")}`,
+        section: "Reference wall",
+        kind: "reference",
+      }),
+    ),
+    ...talkEntries.map(
+      (talk): CommandEntry => ({
+        id: `screening-${talk.id}`,
+        name: talk.title,
+        subtitle: `${talk.speaker} · ${talk.displayDuration} · ${talk.topic}`,
+        href: `/worth-your-time#${talk.id}`,
+        keywords: `${talk.why} ${talk.takeaway} ${talk.speaker} ${talk.topic}`,
+        section: "Screening room",
+        kind: "screening",
+      }),
+    ),
+    ...raqEntries.map(
+      (entry): CommandEntry => ({
+        id: `question-${entry.id}`,
+        name: entry.question,
+        subtitle: `${entry.topic} · ${entry.askedAt}`,
+        href: `/raq#${entry.id}`,
+        keywords: `${entry.shortAnswer} ${entry.topic}`,
+        section: "Rare questions",
+        kind: "question",
+      }),
+    ),
   ];
 }

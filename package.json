@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:tunnel": "ssh -F /dev/null -N -L 5433:10.47.0.5:5432 root@168.144.92.215",
+    "db:tunnel": "node scripts/db-tunnel.mjs",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed:archive": "tsx scripts/seed-archive.ts",
     "test:game": "tsx --test components/easter-egg/game/logic.test.ts",
@@ -16,6 +16,7 @@
     "test:mascot:watch": "tsx --test --watch $(find tests/mascot -name '*.test.ts')",
     "test:procedural-character": "node --import tsx --test $(find tests/procedural-character -name '*.test.ts')",
     "test:living-canvas": "node --import tsx --test tests/living-canvas/*.test.ts",
+    "verify:living-ocean": "node scripts/verify-living-ocean.mjs",
     "verify:mascot": "node scripts/mascot/verify.mjs",
     "verify:mascot-upgrade": "node scripts/mascot/verify-upgrade.mjs",
     "perf:mascot": "node scripts/mascot/perf-budget.mjs"
@@ -37,7 +38,7 @@
     "eslint-config-next": "15.5.21",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-tailwindcss": "^3.13.0",
+    "eslint-plugin-tailwindcss": "3.13.0",
     "framer-motion": "^10.13.0",
     "gsap": "^3.15.0",
     "kbar": "^1.0.0",
@@ -55,10 +56,12 @@
     "tailwindcss": "3.3.3",
     "typescript": "5.1.6",
     "use-sound": "^4.0.1",
+    "vgpu": "0.3.1",
     "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/pg": "^8.21.0",
+    "@webgpu/types": "^0.1.72",
     "drizzle-kit": "^0.31.10",
     "file-loader": "^6.2.0",
     "prettier": "^3.1.0",
