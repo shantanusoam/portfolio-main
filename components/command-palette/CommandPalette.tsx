@@ -121,37 +121,39 @@ function CommandDialog({ count }: { count: number }) {
   return (
     <KBarPortal>
       <KBarPositioner className={styles.positioner}>
-        <KBarAnimator className={styles.animator} data-living-command-center>
-          <header className={styles.paletteHeader}>
-            <span className={styles.paletteMark}>SA</span>
-            <div>
-              <strong>Signal finder</strong>
-              <span>Search the whole body of work</span>
+        <KBarAnimator className={styles.animator}>
+          <div data-living-command-center>
+            <header className={styles.paletteHeader}>
+              <span className={styles.paletteMark}>SA</span>
+              <div>
+                <strong>Signal finder</strong>
+                <span>Search the whole body of work</span>
+              </div>
+              <span className={styles.liveSignal}>{count} paths live</span>
+            </header>
+            <div className={styles.searchRow}>
+              <Search size={18} aria-hidden="true" />
+              <KBarSearch
+                className={styles.searchInput}
+                defaultPlaceholder="Type a command, title, topic, or question…"
+                aria-label="Search the portfolio and Signal Archive"
+              />
+              <kbd>Esc</kbd>
             </div>
-            <span className={styles.liveSignal}>{count} paths live</span>
-          </header>
-          <div className={styles.searchRow}>
-            <Search size={18} aria-hidden="true" />
-            <KBarSearch
-              className={styles.searchInput}
-              defaultPlaceholder="Type a command, title, topic, or question…"
-              aria-label="Search the portfolio and Signal Archive"
-            />
-            <kbd>Esc</kbd>
+            <CommandResults />
+            <footer className={styles.paletteFooter}>
+              <span>
+                <kbd>↑</kbd>
+                <kbd>↓</kbd> move
+              </span>
+              <span>
+                <kbd>↵</kbd> open
+              </span>
+              <span className={styles.footerSignal}>
+                <span /> Built for curious detours
+              </span>
+            </footer>
           </div>
-          <CommandResults />
-          <footer className={styles.paletteFooter}>
-            <span>
-              <kbd>↑</kbd>
-              <kbd>↓</kbd> move
-            </span>
-            <span>
-              <kbd>↵</kbd> open
-            </span>
-            <span className={styles.footerSignal}>
-              <span /> Built for curious detours
-            </span>
-          </footer>
         </KBarAnimator>
       </KBarPositioner>
     </KBarPortal>
