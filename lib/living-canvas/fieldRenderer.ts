@@ -10,6 +10,13 @@ import {
 } from "./shaders";
 import type { LivingAnatomySettings } from "./anatomy";
 
+export interface LivingFieldRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 export interface LivingFieldState {
   width: number;
   height: number;
@@ -40,13 +47,6 @@ export interface LivingFieldState {
   xrayNodes?: readonly LivingFieldRect[];
   anatomy?: LivingAnatomySettings;
   pulses: readonly SignalPulse[];
-}
-
-export interface LivingFieldRect {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
 }
 
 export interface LivingFieldRenderer {

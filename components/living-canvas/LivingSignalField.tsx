@@ -340,7 +340,7 @@ export default function LivingSignalField({
       host!.dataset.renderer = "static";
       if (kind === "canvas2d") return;
       recovery = kind === "webgpu" ? 1 : 2;
-      void initialize();
+      initialize();
     }
     function onContextLost(event: Event) {
       if (renderer?.kind !== "webgl") return;
@@ -518,7 +518,7 @@ export default function LivingSignalField({
       window.addEventListener("keydown", onKey);
       window.addEventListener(LIVING_CANVAS_PULSE_EVENT, onPulse);
     }
-    void initialize();
+    initialize();
     return () => {
       abort.abort();
       cancelAnimationFrame(frame);

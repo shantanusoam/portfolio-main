@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import shader from "@/lib/living-canvas/gpu/signal-current.wgsl";
 import { createFieldUniforms } from "@/lib/living-canvas/gpu/uniforms";
 
@@ -91,7 +92,7 @@ export default function GpuSmoke() {
           pointerEvents: "none",
         }}
       />
-      <a href="/">Return to the portfolio</a>
+      <Link href="/">Return to the portfolio</Link>
     </main>
   );
 }
