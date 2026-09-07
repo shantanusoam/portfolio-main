@@ -177,7 +177,9 @@ separate profiled experiment, not another layer over the editorial homepage.
 ## Reproducible dependency install
 
 The npm lockfile is regenerated to match the existing Next 15 manifest and
-the pinned vGPU dependency. The Tailwind ESLint plugin is pinned to the
+the pinned vGPU dependency. Vercel explicitly runs `npm ci` and `npm run build`
+so the repository's historical pnpm lockfile cannot select a different
+installation path. The Tailwind ESLint plugin is pinned to the
 existing compatible 3.13 version. The old hardcoded DB-tunnel command is
 replaced by `scripts/db-tunnel.mjs`; it requires
 `DB_TUNNEL_SSH_HOST`, `DB_TUNNEL_SSH_USER` and `DB_TUNNEL_TARGET_HOST`,
