@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import {
   Gamepad2,
   Heart,
@@ -281,6 +282,10 @@ export default function SecretArcade() {
     window.setTimeout(() => setUnlockFlash(""), 1800);
   }, []);
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("arcade") === "cluck") openArcade("cartridge");
+  }, [openArcade]);
+
   const closeArcade = useCallback(() => {
     setOpen(false);
     keysRef.current.clear();
@@ -377,15 +382,15 @@ export default function SecretArcade() {
 
         const model = gameRef.current;
         if (model && model.status === "running") {
-          const debugWeapon = DEBUG_WEAPON_KEYS[event.code];
+          const debugWeapon = process.env.NODE_ENV === "development" ? DEBUG_WEAPON_KEYS[event.code] : undefined;
           if (debugWeapon) {
             spawnWeaponPickup(model, model.player.x, model.player.y - 90, debugWeapon);
-          } else if (event.code === "KeyM") {
+          } else if (process.env.NODE_ENV === "development" && event.code === "KeyM") {
             spawnPowerUp(model, model.player.x, model.player.y - 90);
-          } else if (event.code === "KeyN") {
+          } else if (process.env.NODE_ENV === "development" && event.code === "KeyN") {
             model.enemies = [];
             model.waveCooldown = Math.min(model.waveCooldown, 0.05);
-          } else if (event.code === "KeyB") {
+          } else if (process.env.NODE_ENV === "development" && event.code === "KeyB") {
             const sector = getSectorForWave(model.wave || 1);
             model.wave = sector.id * WAVES_PER_SECTOR - 1;
             model.enemies = [];
@@ -474,7 +479,7 @@ export default function SecretArcade() {
     };
   }, [hud.status, open, syncHud]);
 
-  const updatePointer = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
+  const updatePointer = useCallback((event: PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     const model = gameRef.current;
     if (!canvas || !model) return;
@@ -484,7 +489,7 @@ export default function SecretArcade() {
   }, []);
 
   const handlePointerDown = useCallback(
-    (event: React.PointerEvent<HTMLCanvasElement>) => {
+    (event: PointerEvent<HTMLCanvasElement>) => {
       const model = gameRef.current;
       if (!model) return;
       model.pointer.active = true;
@@ -500,7 +505,7 @@ export default function SecretArcade() {
     [startGame, syncHud, updatePointer],
   );
 
-  const handlePointerUp = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
+  const handlePointerUp = useCallback((event: PointerEvent<HTMLCanvasElement>) => {
     const model = gameRef.current;
     if (model) model.pointer.active = false;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -752,6 +757,7 @@ export default function SecretArcade() {
                     </div>
                   )}
                   <div className={styles.actionRow}>
+                    {hud.status === "ready" && <Link href="/arcade/space-impact" className={styles.ghostButton}>Play Lost Signal →</Link>}
                     <button
                       className={styles.primaryButton}
                       type="button"

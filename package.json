@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -19,7 +19,8 @@
     "verify:living-ocean": "node scripts/verify-living-ocean.mjs",
     "verify:mascot": "node scripts/mascot/verify.mjs",
     "verify:mascot-upgrade": "node scripts/mascot/verify-upgrade.mjs",
-    "perf:mascot": "node scripts/mascot/perf-budget.mjs"
+    "perf:mascot": "node scripts/mascot/perf-budget.mjs",
+    "test:space-impact": "node --import tsx --test tests/space-impact/*.test.ts"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.8",

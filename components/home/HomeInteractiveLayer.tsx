@@ -28,7 +28,7 @@ export default function HomeInteractiveLayer() {
   const [mode, setMode] = useState<PortfolioViewMode | null>(null);
 
   useEffect(() => {
-    const storedMode = readPortfolioViewMode();
+    const storedMode = new URLSearchParams(window.location.search).get("arcade") === "cluck" ? "explore" : readPortfolioViewMode();
     setMode(storedMode);
     applyPortfolioViewMode(storedMode);
 

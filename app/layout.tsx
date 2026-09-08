@@ -2,16 +2,11 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
-import PageScrollProgress from "@/components/ui/PageScrollProgress";
 import { dataFont, displayFont, editorialFont } from "@/lib/fonts";
-import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
-import PageAtmosphere from "@/components/ui/PageAtmosphere";
-import ProceduralMascotLoader from "@/components/mascot/ProceduralMascotLoader";
-import { CommandPaletteProvider } from "@/components/command-palette/CommandPalette";
 import { createCommandIndex } from "@/lib/archive/command-index";
 import { getPublicOrigin } from "@/lib/oauth/config";
+import PortfolioRuntime from "@/components/providers/PortfolioRuntime";
 import PortfolioAnalytics from "@/components/analytics/PortfolioAnalytics";
-import SoundroomNub from "@/components/soundroom/SoundroomNub";
 
 const inter = Inter({ subsets: ["latin"] });
 const commandEntries = createCommandIndex();
@@ -72,14 +67,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${inter.className} ${displayFont.variable} ${dataFont.variable} ${editorialFont.variable}`}
       >
-        <CommandPaletteProvider entries={commandEntries}>
-          <PageAtmosphere />
-          <PageScrollProgress />
-          <PortfolioAnalytics />
-          <ProceduralMascotLoader />
-          <SoundroomNub />
-          <SmoothScrollProvider>{children}</SmoothScrollProvider>
-        </CommandPaletteProvider>
+        <PortfolioAnalytics />
+        <PortfolioRuntime entries={commandEntries}>{children}</PortfolioRuntime>
       </body>
     </html>
   );

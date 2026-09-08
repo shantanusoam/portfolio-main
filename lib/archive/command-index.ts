@@ -30,6 +30,15 @@ export interface CommandEntry {
 
 const pageEntries: CommandEntry[] = [
   {
+    id: "arcade-lost-signal",
+    name: "Play Lost Signal",
+    subtitle: "Space Impact · five sectors and eight hidden signals",
+    href: "/arcade/space-impact",
+    keywords: "space impact arcade game lost signal mobile ship shooter",
+    section: "Systems Lab",
+    kind: "system",
+  },
+  {
     id: "system-enter-gpu",
     name: "Enter GPU",
     subtitle:
