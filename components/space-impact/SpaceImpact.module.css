@@ -1,0 +1,1392 @@
+.game {
+  --bg: #080e13;
+  --panel: #101a20;
+  --line: #27363b;
+  --text: #e5eee4;
+  --quiet: #93a7a9;
+  --signal: #abe4cc;
+  --orange: #e1ae78;
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-data), monospace;
+  padding: 0 max(24px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  color-scheme: dark;
+  isolation: isolate;
+}
+.game[data-skin="lcd"] {
+  --bg: #17271e;
+  --panel: #263b2a;
+  --line: #526641;
+  --text: #d2e6a1;
+  --quiet: #a3b781;
+  --signal: #c8dc8e;
+  --orange: #bccb8c;
+}
+.game * {
+  box-sizing: border-box;
+}
+.game button,
+.game a,
+.game input,
+.game select {
+  -webkit-tap-highlight-color: transparent;
+}
+.game button {
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+.game button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.game button:focus-visible,
+.game a:focus-visible,
+.game input:focus-visible,
+.game select:focus-visible,
+.touchpad:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+.header {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--quiet);
+  text-decoration: none;
+  min-height: 48px;
+  font-size: 14px;
+}
+.back:hover {
+  color: var(--text);
+}
+.wordmark {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.wordmark span {
+  color: var(--signal);
+  margin: 0 12px;
+}
+.headerActions {
+  display: flex;
+}
+.headerActions button,
+.telemetry button,
+.dialogHeader button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--quiet);
+}
+.headerActions button:hover,
+.telemetry button:hover,
+.dialogHeader button:hover {
+  color: var(--text);
+  background: #ffffff07;
+}
+.cabinet {
+  width: 100%;
+  max-width: 1180px;
+  margin: auto;
+}
+.instrumentBar {
+  height: 66px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+  gap: 12px;
+  background: var(--panel);
+}
+.sectorLabel {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+.sectorLabel > span {
+  color: var(--signal);
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  flex-shrink: 0;
+}
+.sectorLabel strong {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--quiet);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.telemetry {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.score {
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.score small {
+  color: var(--quiet);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.hull {
+  display: flex;
+  gap: 5px;
+  color: var(--orange);
+}
+.viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: #091118;
+}
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  image-rendering: pixelated;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background: #081118cf;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.overlay[data-state="ready"] {
+  background: linear-gradient(
+    90deg,
+    #070f19ee 0%,
+    #070f19a3 34%,
+    #070f1911 70%,
+    transparent
+  );
+  justify-content: flex-start;
+  padding: 5% 7%;
+}
+.titleScreen {
+  position: relative;
+}
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--signal);
+  font-weight: 400;
+}
+.titleScreen h1 {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-weight: 400;
+  font-size: clamp(54px, 7.5vw, 104px);
+  letter-spacing: 0.035em;
+  line-height: 0.99;
+  margin: 22px 0;
+}
+.titleScreen h1 span {
+  color: var(--signal);
+}
+.titleScreen h1 i {
+  color: var(--signal);
+  font-size: 0.6em;
+  font-style: normal;
+  margin-left: 5px;
+}
+.titleScreen p {
+  color: #b7c7c7;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0 0 24px;
+}
+.titleActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.primary,
+.secondary,
+.resume {
+  min-height: 48px;
+  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.primary {
+  color: #12261e !important;
+  background: var(--signal);
+  border-color: var(--signal);
+  font-weight: 600 !important;
+}
+.primary:hover {
+  filter: brightness(1.12);
+}
+.secondary {
+  color: var(--text);
+  background: var(--panel);
+}
+.secondary:hover {
+  border-color: var(--signal);
+}
+.resume {
+  border-color: transparent;
+  padding: 12px 2px;
+  color: var(--quiet) !important;
+  background: transparent;
+}
+.resume:hover {
+  color: var(--text) !important;
+}
+.titleHint {
+  display: block;
+  color: var(--quiet);
+  font-size: 12px;
+  margin-top: 18px;
+}
+.cornerTL,
+.cornerBR {
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  pointer-events: none;
+  border-color: var(--signal);
+  opacity: 0.7;
+}
+.cornerTL {
+  top: 0;
+  left: 0;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+.cornerBR {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+.lowerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 43px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  padding: 10px 18px;
+  font-size: 12px;
+  color: var(--quiet);
+  gap: 12px;
+  background: var(--panel);
+}
+.lowerBar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.connectionLight {
+  width: 5px;
+  height: 5px;
+  background: var(--quiet);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.connectionLight[data-active="true"] {
+  background: var(--signal);
+  box-shadow: 0 0 6px #abe4cc55;
+}
+.version {
+  letter-spacing: 0.07em;
+}
+.dock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 18px;
+  padding: 0 10px;
+}
+.dock button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  background: transparent;
+  color: var(--quiet);
+  min-height: 48px;
+  font-size: 14px;
+}
+.dock button:hover {
+  color: var(--signal);
+}
+.dock small {
+  color: var(--signal);
+  font-size: 12px;
+}
+.footer {
+  width: 100%;
+  max-width: 1180px;
+  display: flex;
+  justify-content: space-between;
+  margin: 28px auto 0;
+  color: var(--quiet);
+  font-size: 12px;
+  line-height: 1.6;
+  gap: 12px;
+}
+.statusPanel {
+  width: min(660px, 100%);
+  text-align: center;
+  margin: auto;
+}
+.statusPanel h2,
+.consolePanel h2 {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 400;
+  line-height: 1.15;
+  margin: 15px 0;
+  letter-spacing: 0.015em;
+}
+.statusPanel p,
+.consolePanel p {
+  max-width: 530px;
+  color: var(--quiet);
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0 auto 24px;
+}
+.actionRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.resultStats {
+  display: flex;
+  justify-content: center;
+  gap: 42px;
+  margin: 24px 0;
+}
+.resultStats span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--quiet);
+  font-size: 12px;
+}
+.resultStats strong {
+  color: var(--text);
+  font-size: 25px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.assistLabel {
+  display: block;
+  font-size: 12px;
+  color: var(--quiet);
+  margin-top: 18px;
+}
+.countdown {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #08111888;
+  color: var(--signal);
+}
+.countdown > span {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+}
+.countdown strong {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: 72px;
+  font-weight: 400;
+}
+.transmission {
+  position: absolute;
+  bottom: 15px;
+  left: 18px;
+  max-width: min(410px, 85%);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border-left: 2px solid var(--signal);
+  background: #081118c7;
+  pointer-events: none;
+}
+.transmission svg {
+  color: var(--signal);
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.transmission strong {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--text);
+  display: block;
+}
+.transmission span {
+  display: block;
+  color: var(--quiet);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.contextHint {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  max-width: 70%;
+  background: #081118ce;
+  color: var(--signal);
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  pointer-events: none;
+}
+.bossHud {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  width: 36%;
+  pointer-events: none;
+}
+.bossHud > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  text-shadow: 0 1px 4px #000;
+  margin-bottom: 7px;
+}
+.bossHud small {
+  color: var(--quiet);
+  font-size: 12px;
+}
+.bossHud > div {
+  height: 4px;
+  background: #ffffff15;
+}
+.bossHud i {
+  display: block;
+  height: 100%;
+  background: var(--orange);
+}
+.controlDeck {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin: 18px 0 0;
+}
+.touchpad {
+  display: none;
+  touch-action: none;
+  user-select: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  min-height: 130px;
+}
+.specialControls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.pulseButton {
+  position: relative;
+  min-height: 56px;
+  min-width: 184px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 11px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.pulseButton:disabled {
+  opacity: 0.72 !important;
+}
+.pulseButton > span {
+  font-size: 13px;
+  text-align: left;
+}
+.pulseButton small {
+  display: block;
+  color: var(--quiet);
+  font-size: 12px;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.pulseButton i {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--signal);
+}
+.pulseButton[data-ready="true"] {
+  border-color: var(--signal);
+  color: var(--signal);
+  background: #abe4cc0d;
+}
+.smallControls {
+  display: flex;
+  gap: 4px;
+}
+.smallControls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  background: transparent;
+  min-height: 48px;
+  padding: 8px 11px;
+  font-size: 12px;
+  color: var(--quiet);
+}
+.smallControls button[aria-pressed="true"] {
+  background: #abe4cc13;
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.keyboardHelp {
+  color: var(--quiet);
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 12px;
+}
+.keyboardHelp kbd {
+  color: var(--text);
+  font: inherit;
+}
+.consolePanel {
+  max-width: 500px;
+  margin: auto;
+  width: 100%;
+  text-align: center;
+}
+.consolePanel > svg {
+  color: var(--signal);
+}
+.consolePanel h2 {
+  font-size: 30px;
+}
+.receiver {
+  max-width: 310px;
+  margin: 20px auto;
+}
+.code {
+  display: block;
+  padding: 16px;
+  margin-bottom: 12px;
+  min-height: 63px;
+  text-align: center;
+  border: 1px solid var(--line);
+  color: var(--signal);
+  letter-spacing: 0.22em;
+  font-size: 24px;
+  background: #03090944;
+}
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.keypad button {
+  min-height: 48px;
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: var(--panel);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 17px;
+}
+.keypad button:hover {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.keypad[data-relay="true"] {
+  grid-template-columns: repeat(5, 1fr);
+}
+.receiver p {
+  font-size: 14px;
+  color: var(--signal);
+  line-height: 1.6;
+  margin-top: 16px;
+}
+.textButton {
+  min-height: 48px;
+  font-size: 14px;
+  color: var(--quiet) !important;
+  text-decoration: underline;
+  background: transparent;
+  border: 0;
+}
+.dialog {
+  padding: 0;
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: auto;
+  box-shadow: 0 25px 100px #0009;
+}
+.dialog::backdrop {
+  background: #02090de0;
+  backdrop-filter: blur(8px);
+}
+.dialogContent {
+  padding: 22px 30px 32px;
+}
+.dialogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.dialogContent h2 {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0 0 26px;
+}
+.settings {
+  display: flex;
+  flex-direction: column;
+}
+.range,
+.select,
+.toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 22px;
+  border-top: 1px solid var(--line);
+  padding: 16px 0;
+  min-height: 68px;
+  font-size: 14px;
+}
+.range span {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.range input {
+  width: 46%;
+  accent-color: var(--signal);
+  min-height: 48px;
+}
+.select select {
+  background: var(--panel);
+  color: var(--text);
+  padding: 10px;
+  max-width: 62%;
+  border: 1px solid var(--line);
+  min-height: 48px;
+  font: inherit;
+}
+.toggle > span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.toggle strong {
+  font-weight: 500;
+}
+.toggle small {
+  color: var(--quiet);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.toggle input {
+  accent-color: var(--signal);
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin: 12px;
+}
+.journal > p,
+.receiverCopy {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--quiet);
+  margin-bottom: 24px;
+}
+.journal article {
+  padding: 20px 0;
+  display: flex;
+  gap: 18px;
+  border-top: 1px solid var(--line);
+}
+.journalNumber {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--quiet);
+  font-size: 13px;
+  border: 1px solid var(--line);
+}
+.journal article[data-found="true"] .journalNumber {
+  color: var(--signal);
+  border-color: var(--signal);
+}
+.journal h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 1px 0 6px;
+}
+.journal p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--quiet);
+  margin: 0;
+}
+.hintButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  font-size: 13px;
+  text-align: left;
+  padding: 10px 0;
+  line-height: 1.6;
+  border: 0;
+  background: transparent;
+  color: var(--signal) !important;
+}
+.hintButton svg {
+  flex-shrink: 0;
+}
+.flightPaths {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.modeCard,
+.sectorCard {
+  min-height: 82px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  gap: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.modeCard > span,
+.sectorCard > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 8px;
+}
+.modeCard strong,
+.sectorCard strong {
+  font-size: 15px;
+  font-weight: 500;
+}
+.modeCard small,
+.sectorCard small {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--quiet);
+}
+.modeCard:hover,
+.sectorCard:not(:disabled):hover {
+  border-color: var(--signal);
+}
+.flightPaths h3 {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--quiet);
+  margin: 20px 0 5px;
+}
+.sectorIndex {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: 30px;
+  color: var(--signal);
+}
+.notice {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 30px);
+  padding: 12px 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 3;
+}
+.notice button {
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+  min-height: 48px;
+}
+.boot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--signal);
+  font-size: 14px;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 1000px) and (max-height: 850px) {
+  .header {
+    height: 65px;
+  }
+  .cabinet {
+    max-width: min(1180px, calc((100svh - 235px) * 16 / 9));
+  }
+  .titleScreen h1 {
+    font-size: clamp(50px, 9vh, 90px);
+    margin: 16px 0;
+  }
+  .titleScreen p {
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .instrumentBar {
+    height: 54px;
+  }
+  .footer {
+    margin-top: 16px;
+  }
+}
+@media (pointer: coarse) {
+  .touchpad {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: var(--quiet);
+  }
+  .touchpad span {
+    font-size: 12px;
+    letter-spacing: 0.07em;
+  }
+  .touchpad small {
+    font-size: 12px;
+    color: var(--quiet);
+  }
+  .controlDeck[data-active="true"] .touchpad {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+  .specialControls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pulseButton {
+    min-height: 70px;
+  }
+  .keyboardHelp {
+    display: none;
+  }
+  .game[data-left-handed="true"] .controlDeck {
+    flex-direction: row-reverse;
+  }
+}
+@media (max-width: 760px) {
+  .game {
+    padding: 0 max(12px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+  }
+  .header {
+    height: 72px;
+    gap: 6px;
+  }
+  .wordmark {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .wordmark span {
+    margin: 0 7px;
+  }
+  .back span {
+    display: none;
+  }
+  .back {
+    width: 48px;
+    justify-content: center;
+  }
+  .headerActions button {
+    width: 48px;
+    min-height: 48px;
+  }
+  .headerActions button[aria-label="Fullscreen"] {
+    display: none;
+  }
+  .instrumentBar {
+    height: 61px;
+    padding: 0 12px;
+  }
+  .sectorLabel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .sectorLabel > span {
+    font-size: 12px;
+  }
+  .sectorLabel strong {
+    max-width: 180px;
+    font-size: 12px;
+  }
+  .telemetry {
+    gap: 12px;
+  }
+  .score {
+    font-size: 15px;
+  }
+  .score small {
+    display: none;
+  }
+  .hull {
+    gap: 3px;
+  }
+  .hull svg {
+    width: 12px;
+  }
+  .version {
+    display: none !important;
+  }
+  .titleScreen h1 {
+    font-size: clamp(38px, 9vw, 68px);
+    margin: 12px 0;
+    line-height: 0.99;
+  }
+  .titleScreen p {
+    display: none;
+  }
+  .titleScreen > .eyebrow {
+    display: none;
+  }
+  .overlay[data-state="ready"] {
+    padding: 16px 6%;
+  }
+  .titleActions {
+    gap: 8px;
+  }
+  .titleHint {
+    display: none;
+  }
+  .primary,
+  .secondary {
+    font-size: 13px;
+    padding: 10px 14px;
+    gap: 8px;
+  }
+  .resume {
+    font-size: 12px;
+    padding: 8px 0;
+  }
+  .lowerBar {
+    font-size: 12px;
+    padding: 9px 12px;
+    gap: 8px;
+  }
+  .dock {
+    gap: 14px;
+    justify-content: space-between;
+    padding: 0 5px;
+  }
+  .dock button {
+    font-size: 12px;
+    gap: 7px;
+    flex-direction: column;
+    padding: 5px 0;
+  }
+  .dock small {
+    display: none;
+  }
+  .controlDeck {
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .touchpad {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 148px;
+    color: var(--quiet);
+  }
+  .touchpad span {
+    font-size: 12px;
+  }
+  .touchpad small {
+    display: none;
+  }
+  .specialControls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .pulseButton {
+    min-width: 160px;
+    min-height: 84px;
+    gap: 8px;
+  }
+  .pulseButton span {
+    font-size: 12px;
+  }
+  .smallControls {
+    gap: 6px;
+  }
+  .smallControls button {
+    padding: 8px;
+    gap: 5px;
+    min-height: 54px;
+  }
+  .keyboardHelp {
+    display: none;
+  }
+  .game[data-left-handed="true"] .controlDeck {
+    flex-direction: row-reverse;
+  }
+  .footer {
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 24px;
+    text-align: center;
+  }
+  .overlay {
+    padding: 18px;
+  }
+  .statusPanel h2 {
+    font-size: 25px;
+    margin: 8px 0;
+  }
+  .statusPanel p {
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .statusPanel > .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+  .resultStats {
+    gap: 25px;
+    margin: 16px 0;
+  }
+  .resultStats strong {
+    font-size: 20px;
+  }
+  .actionRow {
+    gap: 8px;
+  }
+  .bossHud {
+    top: 10px;
+    right: 10px;
+    width: 43%;
+  }
+  .bossHud > span {
+    font-size: 12px;
+  }
+  .bossHud small {
+    display: none;
+  }
+  .transmission {
+    bottom: 8px;
+    left: 8px;
+    padding: 6px 8px;
+    max-width: 83%;
+  }
+  .transmission span {
+    display: none;
+  }
+  .transmission strong {
+    font-size: 12px;
+  }
+  .contextHint {
+    top: 8px;
+    left: 8px;
+    font-size: 12px;
+    padding: 6px;
+  }
+  .dialogContent {
+    padding: 14px 20px 24px;
+  }
+  .dialogContent h2 {
+    font-size: 31px;
+  }
+  .dialog {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 32px);
+  }
+  .dialogHeader .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .consolePanel h2 {
+    font-size: 24px;
+  }
+  .consolePanel p {
+    font-size: 13px;
+  }
+}
+@media (max-width: 480px) {
+  .cabinet {
+    margin: auto;
+  }
+  .titleScreen h1 {
+    font-size: 40px;
+    margin: 0 0 10px;
+  }
+  .titleActions {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .resume {
+    flex-direction: column;
+    gap: 2px;
+    min-width: 79px;
+    line-height: 1.2;
+    font-size: 12px;
+  }
+  .resume svg {
+    display: none;
+  }
+  .sectorLabel strong {
+    max-width: 143px;
+  }
+  .instrumentBar {
+    padding: 0 9px;
+  }
+  .telemetry {
+    gap: 8px;
+  }
+  .telemetry button {
+    width: 48px;
+  }
+  .game[data-state="paused"] .viewport,
+  .game[data-state="cleared"] .viewport,
+  .game[data-state="dead"] .viewport,
+  .game[data-state="victory"] .viewport,
+  .game[data-state="console"] .viewport {
+    aspect-ratio: auto;
+    height: min(510px, calc(100svh - 275px));
+    min-height: 290px;
+  }
+  .game[data-state="paused"] .canvas,
+  .game[data-state="cleared"] .canvas,
+  .game[data-state="dead"] .canvas,
+  .game[data-state="victory"] .canvas,
+  .game[data-state="console"] .canvas {
+    position: absolute;
+    top: 50%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    transform: translateY(-50%);
+  }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .game {
+    min-height: 100dvh;
+    padding: 0 max(12px, env(safe-area-inset-right)) 6px
+      max(12px, env(safe-area-inset-left));
+  }
+  .header {
+    height: 48px;
+  }
+  .cabinet {
+    max-width: calc((100dvh - 128px) * 16 / 9);
+    margin: 0 auto;
+    position: relative;
+  }
+  .instrumentBar {
+    height: 48px;
+    padding: 0 9px;
+  }
+  .sectorLabel {
+    flex-direction: row;
+    gap: 12px;
+  }
+  .sectorLabel strong {
+    display: none;
+  }
+  .telemetry button {
+    height: 48px;
+    min-height: 48px;
+  }
+  .lowerBar {
+    min-height: 24px;
+    padding: 4px 9px;
+  }
+  .footer {
+    display: none;
+  }
+  .dock {
+    margin-top: 2px;
+    gap: 12px;
+  }
+  .dock button {
+    min-height: 48px;
+    font-size: 12px;
+    flex-direction: row;
+  }
+  .titleScreen h1 {
+    font-size: 42px;
+    margin: 0 0 8px;
+  }
+  .titleScreen p,
+  .titleScreen > .eyebrow,
+  .titleHint {
+    display: none;
+  }
+  .overlay[data-state="ready"] {
+    padding: 12px 5%;
+  }
+  .controlDeck {
+    position: fixed;
+    bottom: 20px;
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    pointer-events: none;
+    justify-content: space-between;
+    margin: 0;
+  }
+  .touchpad {
+    display: none;
+  }
+  .specialControls {
+    pointer-events: auto;
+    margin-left: auto;
+    opacity: 0.88;
+    width: 112px;
+  }
+  .game[data-left-handed="true"] .specialControls {
+    margin-left: 0;
+    margin-right: auto;
+  }
+  .pulseButton {
+    min-width: 0;
+    min-height: 55px;
+  }
+  .pulseButton > svg {
+    width: 15px;
+  }
+  .pulseButton span {
+    font-size: 12px;
+  }
+  .smallControls {
+    flex-direction: column;
+  }
+  .smallControls button {
+    min-height: 48px;
+  }
+  .keyboardHelp {
+    display: none;
+  }
+  .statusPanel h2 {
+    font-size: 28px;
+    margin: 6px 0;
+  }
+  .statusPanel p {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .resultStats {
+    margin: 12px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game *,
+  .game *::before,
+  .game *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .game:not([data-state="running"]):not([data-state="countdown"]) .cabinet {
+    max-width: calc((100dvh - 180px) * 16 / 9);
+  }
+}
