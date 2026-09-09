@@ -1,0 +1,567 @@
+/* Lost Signal: Pocket Edition — handset frame and HUD chrome.
+   The battlefield is canvas; every DOM surface is styled as part of the
+   same receiver: hard pixel steps, no anti-aliased decoration, one accent. */
+
+.root {
+  --tone-ink: #152316;
+  --tone-shadow: #42573d;
+  --tone-faded: #778e56;
+  --tone-backlight: #a5bc76;
+  --chrome: #1d2b20;
+  --chrome-edge: #0d150f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 100dvh;
+  padding: 18px 12px 10px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #24321f 0%, #101a12 58%, #0a110c 100%);
+  color: var(--tone-backlight);
+  font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.handset {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 980px);
+  height: min(100dvh - 70px, 760px);
+  padding: 10px;
+  border: 2px solid var(--chrome-edge);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #26361f 0%, var(--chrome) 30%, #16211a 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(220, 240, 190, 0.14),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.55),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px 8px;
+}
+
+.brand {
+  font-size: 13px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: var(--tone-faded);
+}
+
+.brand small {
+  margin-left: 8px;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--tone-shadow);
+}
+
+.topActions {
+  display: flex;
+  gap: 6px;
+}
+
+.chip {
+  box-sizing: border-box;
+  min-height: 48px;
+  min-width: 48px;
+  border: 1px solid var(--tone-shadow);
+  background: transparent;
+  color: var(--tone-faded);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chip:hover {
+  color: var(--tone-backlight);
+  border-color: var(--tone-faded);
+}
+
+/* HUD: a separate crisp DOM strip styled as part of the display. */
+.hud {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 26px;
+  padding: 4px 10px;
+  border: 1px solid var(--chrome-edge);
+  border-radius: 6px 6px 0 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(21, 35, 22, 0.22) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #22301d, #1a2718);
+  color: var(--tone-backlight);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+}
+
+.hudPlaceholder {
+  color: var(--tone-shadow);
+  font-size: 10px;
+}
+
+.hearts {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.heart {
+  image-rendering: pixelated;
+  display: block;
+}
+
+.hudScore {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.hudSector {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--tone-faded);
+  font-size: 11px;
+}
+
+.meter {
+  display: inline-flex;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.meter i {
+  width: 4px;
+  border-radius: 0;
+}
+
+.meter i:nth-child(1) { height: 5px; }
+.meter i:nth-child(2) { height: 8px; }
+.meter i:nth-child(3) { height: 11px; }
+.meter i:nth-child(4) { height: 14px; }
+.meter i:nth-child(5) { height: 17px; }
+
+.meterOn {
+  background: var(--tone-backlight);
+}
+
+.meterOff {
+  background: #2a3a26;
+}
+
+/* Stage: the lit glass inset. The canvas is fitted by the renderer.
+   The area around the world is the thumb surface: subtle etched dots,
+   and every pixel of it steers via relative drag. */
+.stage {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--chrome-edge);
+  border-radius: 0 0 8px 8px;
+  background:
+    radial-gradient(rgba(119, 142, 86, 0.14) 1px, transparent 1.3px) 0 0 / 9px 9px,
+    #131c12;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.world {
+  image-rendering: pixelated;
+  display: block;
+  border-radius: 6px;
+}
+
+.countdown,
+.transmission,
+.hint {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  text-align: center;
+  letter-spacing: 3px;
+  text-shadow: 0 0 6px rgba(165, 188, 118, 0.35);
+}
+
+.countdown {
+  top: 38%;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--tone-backlight);
+}
+
+.transmission {
+  top: 12px;
+  max-width: 86%;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--tone-backlight);
+  background: rgba(13, 21, 15, 0.82);
+  border: 1px solid var(--tone-shadow);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+
+.hint {
+  bottom: 12px;
+  font-size: 11px;
+  color: var(--tone-faded);
+  background: rgba(13, 21, 15, 0.72);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.stage::before {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 34%;
+  height: 40%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(rgba(165, 188, 118, 0.9) 2px, transparent 2.6px),
+    radial-gradient(rgba(119, 142, 86, 0.55) 1.5px, transparent 2px),
+    radial-gradient(rgba(119, 142, 86, 0.4) 1.5px, transparent 2px),
+    radial-gradient(rgba(119, 142, 86, 0.4) 1.5px, transparent 2px);
+  background-size: 64px 64px, 41px 41px, 53px 53px, 34px 34px;
+  background-position: 7px 11px, 19px 27px, 43px 5px, 31px 44px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+
+.voidPanel {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 190px;
+  display: none;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #55684c;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.floorWarning {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  background: #10190f;
+  color: var(--tone-backlight);
+  font-size: 13px;
+  padding: 24px 24px 96px;
+}
+
+/* Controls: two thumb zones, ≥48px targets, collapsible chrome. */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 4px 2px;
+}
+
+.actionPrimary,
+.actionSecondary {
+  font: inherit;
+  letter-spacing: 2px;
+  border-radius: 10px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.actionPrimary {
+  box-sizing: border-box;
+  min-width: 96px;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 2px solid var(--chrome-edge);
+  background: linear-gradient(180deg, #2c3f22, #1c2b1a);
+  color: var(--tone-backlight);
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow:
+    inset 0 2px 0 rgba(220, 240, 190, 0.16),
+    0 4px 0 var(--chrome-edge);
+}
+
+.actionPrimary:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 0 rgba(220, 240, 190, 0.1), 0 2px 0 var(--chrome-edge);
+}
+
+.actionSecondary {
+  box-sizing: border-box;
+  min-width: 84px;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid var(--tone-shadow);
+  background: transparent;
+  color: var(--tone-faded);
+  font-size: 11px;
+}
+
+/* Overlays: pocket receiver menus. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+  background:
+    repeating-linear-gradient(0deg, rgba(21, 35, 22, 0.16) 0 2px, transparent 2px 4px),
+    rgba(10, 17, 11, 0.93);
+  border-radius: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(30px, 7vw, 54px);
+  letter-spacing: clamp(4px, 1.4vw, 12px);
+  color: var(--tone-backlight);
+  text-shadow:
+    0 0 14px rgba(165, 188, 118, 0.3),
+    3px 3px 0 var(--tone-ink);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--tone-faded);
+}
+
+.overlayTitle {
+  margin: 0;
+  font-size: clamp(20px, 4.5vw, 32px);
+  letter-spacing: 6px;
+  color: var(--tone-backlight);
+}
+
+.menuButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: min(320px, 80%);
+}
+
+.menuPrimary,
+.menuButton {
+  font: inherit;
+  letter-spacing: 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 13px 18px;
+  min-height: 48px;
+}
+
+.menuPrimary {
+  border: 2px solid var(--tone-backlight);
+  background: var(--tone-backlight);
+  color: var(--tone-ink);
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 0 18px rgba(165, 188, 118, 0.25);
+}
+
+.menuButton {
+  box-sizing: border-box;
+  min-height: 48px;
+  border: 1px solid var(--tone-shadow);
+  background: #1b2a1c;
+  color: var(--tone-faded);
+  font-size: 12px;
+}
+
+.menuButton:hover,
+.menuPrimary:hover {
+  filter: brightness(1.1);
+}
+
+.footnote {
+  margin: 10px 0 26px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--tone-faded);
+  background: rgba(13, 21, 15, 0.7);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  width: min(640px, 100%);
+  text-align: left;
+}
+
+.settingsGrid fieldset {
+  border: 1px solid var(--tone-shadow);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settingsGrid legend {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--tone-faded);
+  padding: 0 6px;
+}
+
+.settingsGrid label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--tone-backlight);
+  min-height: 24px;
+}
+
+.settingsGrid input[type="range"] {
+  flex: 1;
+  accent-color: var(--tone-backlight);
+}
+
+.settingsGrid input[type="radio"],
+.settingsGrid input[type="checkbox"] {
+  accent-color: var(--tone-backlight);
+  width: 15px;
+  height: 15px;
+}
+
+.helpList {
+  max-width: 460px;
+  margin: 0;
+  padding-left: 18px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--tone-faded);
+}
+
+.helpList strong {
+  color: var(--tone-backlight);
+}
+
+.storageWarning {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--tone-faded);
+}
+
+.colophon {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #3c4f38;
+}
+
+/* Short-landscape phones: chrome collapses before the battlefield. */
+@media (max-height: 480px) {
+  .root {
+    padding: 6px 8px 4px;
+  }
+  .handset {
+    height: calc(100dvh - 30px);
+    padding: 6px;
+  }
+  .brand small,
+  .colophon {
+    display: none;
+  }
+  .hud {
+    min-height: 22px;
+  }
+  .chip {
+    padding: 5px 8px;
+  }
+  .controls {
+    position: absolute;
+    right: 10px;
+    bottom: 12px;
+    flex-direction: column;
+    z-index: 4;
+    padding: 0;
+  }
+  .actionPrimary,
+  .actionSecondary {
+    min-height: 52px;
+    min-width: 84px;
+    padding: 10px 14px;
+    opacity: 0.92;
+  }
+  /* World docks left; the right column is reserved for controls. */
+  .stage {
+    justify-content: flex-start;
+    padding: 0 148px 0 10px;
+    border-radius: 6px;
+  }
+}
+
+.leftHanded .controls {
+  flex-direction: row-reverse;
+}
+
+@media (max-height: 480px) {
+  .leftHanded .controls {
+    right: auto;
+    left: 10px;
+  }
+}
+
+/* Portrait phones style the thumb void as receiver readouts. */
+@media (orientation: portrait) and (max-width: 700px) {
+  .voidPanel {
+    display: flex;
+  }
+}
+
+/* Narrow phones: decorative chrome collapses first, the world widens. */
+@media (orientation: portrait) and (max-width: 480px) {
+  .root {
+    padding: 8px 4px 6px;
+    gap: 6px;
+  }
+  .handset {
+    padding: 6px;
+    border-radius: 12px;
+  }
+  .brand small {
+    display: none;
+  }
+  .colophon {
+    display: none;
+  }
+}

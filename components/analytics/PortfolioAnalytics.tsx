@@ -12,6 +12,9 @@ export default function PortfolioAnalytics() {
     trackPortfolioPageView(pathname);
   }, [pathname]);
 
+  // The insights bundle only exists on Vercel; skip the guaranteed dev 404.
+  if (process.env.NODE_ENV !== "production") return null;
+
   return (
     <Script
       id="portfolio-analytics"

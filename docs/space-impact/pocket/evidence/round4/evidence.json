@@ -1,0 +1,163 @@
+{
+  "url": "http://localhost:3210/arcade/space-impact/pocket",
+  "metricDefinitions": {
+    "fps": "mean presented-draw rate over the last 240 submitted draws (1000 / mean draw interval)",
+    "avgMs": "median presented draw interval, ms",
+    "p95Ms": "95th percentile presented draw interval, ms — pacing proxy, not display-arrival proof",
+    "cpuRenderP95Ms": "p95 main-thread cost of render() per submitted draw, ms (excludes compositor/GPU)",
+    "draws": "total presented draws since adapter creation (monotonic counter)",
+    "fit": "applied display-fit result: integer device-px per art px, or nearest fit with CSS world width",
+    "headlessRafBaseline": "rAF cadence of this headless Chromium+SwiftShader environment on about:blank at the same viewport — the environment ceiling, not a game property"
+  },
+  "samples": [
+    {
+      "label": "desktop-1280-combat",
+      "fps": 54.6,
+      "avgMs": 16.8,
+      "p95Ms": 19.7,
+      "cpuRenderP95Ms": 0.6,
+      "draws": 852,
+      "fit": {
+        "mode": "nearest",
+        "cssW": 956,
+        "devicePxPerArtPx": 0,
+        "floorFailed": false
+      }
+    },
+    {
+      "label": "portrait-360-combat",
+      "fps": 56.3,
+      "avgMs": 16.7,
+      "p95Ms": 17.2,
+      "cpuRenderP95Ms": 0.6,
+      "draws": 1700,
+      "fit": {
+        "mode": "nearest",
+        "cssW": 336,
+        "devicePxPerArtPx": 0,
+        "floorFailed": false
+      }
+    },
+    {
+      "label": "landscape-640-combat",
+      "fps": 36.7,
+      "avgMs": 21.6,
+      "p95Ms": 27.4,
+      "cpuRenderP95Ms": 0.6,
+      "draws": 1873,
+      "fit": {
+        "mode": "nearest",
+        "cssW": 442.67,
+        "devicePxPerArtPx": 0,
+        "floorFailed": false
+      }
+    },
+    {
+      "label": "floor-warning-260",
+      "fps": 59,
+      "avgMs": 16.7,
+      "p95Ms": 23.2,
+      "cpuRenderP95Ms": 0.6,
+      "draws": 2092,
+      "fit": {
+        "mode": "nearest",
+        "cssW": 120,
+        "devicePxPerArtPx": 0,
+        "floorFailed": true
+      }
+    },
+    {
+      "label": "floor-480",
+      "fps": 60,
+      "avgMs": 16.7,
+      "p95Ms": 16.8,
+      "cpuRenderP95Ms": 0.6,
+      "draws": 2342,
+      "fit": {
+        "mode": "nearest",
+        "cssW": 290,
+        "devicePxPerArtPx": 0,
+        "floorFailed": false
+      }
+    },
+    {
+      "label": "desktop-1280-sustained-60s",
+      "fps": 49.8,
+      "avgMs": 19.9,
+      "p95Ms": 21.7,
+      "cpuRenderP95Ms": 0.6,
+      "draws": 7133,
+      "fit": {
+        "mode": "nearest",
+        "cssW": 956,
+        "devicePxPerArtPx": 0,
+        "floorFailed": false
+      }
+    }
+  ],
+  "baselines": [
+    {
+      "label": "desktop-1280-blank",
+      "fps": 48,
+      "p95Ms": 33.4
+    },
+    {
+      "label": "portrait-360-blank",
+      "fps": 59,
+      "p95Ms": 16.7
+    },
+    {
+      "label": "landscape-640-blank",
+      "fps": 45,
+      "p95Ms": 33.4
+    },
+    {
+      "label": "floor-480-blank",
+      "fps": 58,
+      "p95Ms": 16.7
+    }
+  ],
+  "console": [
+    {
+      "kind": "console-info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    }
+  ],
+  "failedRequests": [],
+  "notes": [
+    "Landscape presented p95 exceeds its blank baseline primarily in frame-interval jitter; CPU render p95 stays <=0.7 ms while the SwiftShader software rasterizer composites a ~1162x654 backing buffer at deviceScaleFactor 2.625. Sustained-60 on real 60 Hz hardware remains a release-gate measurement on device, not provable in this capture environment.",
+    "The 60 s sustained sample stands in for the plan's 10-15 min device pacing requirement; the full requirement is deferred to the release device sessions."
+  ],
+  "shots": [
+    "01-title-desktop",
+    "02-combat-desktop",
+    "03-combat-clean",
+    "03-combat-worn",
+    "10-adverse-worn",
+    "04-combat-portrait-360",
+    "05-combat-landscape-640",
+    "06-floor-warning-260",
+    "06-floor-warning-480",
+    "07-watcher-awakened"
+  ],
+  "clips": [
+    "clip-corridor-crossing.gif",
+    "clip-bank-gesture.gif",
+    "clip-watcher-awakening.gif",
+    "clip-destruction.gif"
+  ],
+  "bossState": {
+    "awakened": true,
+    "transition": 0,
+    "hp": 752,
+    "parts": [
+      0,
+      65
+    ]
+  },
+  "consoleSummary": {
+    "total": 1,
+    "errors": [],
+    "warnings": []
+  }
+}
