@@ -7,8 +7,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { GameAudio } from "@/lib/space-impact/audio";
-import { WEAPONS } from "@/lib/space-impact/config";
+import { GameAudio, type AudioStatus } from "@/lib/space-impact/audio";
 import { SECTORS } from "@/lib/space-impact/content/sectors";
 import { nextSector } from "@/lib/space-impact/director";
 import { InputController } from "@/lib/space-impact/input";
@@ -61,16 +60,19 @@ function Hearts({
   hull: number;
   maxHull: number;
 }) {
-  const [sources, setSources] = useState<{ full: string; empty: string } | null>(
-    null,
-  );
+  const [sources, setSources] = useState<{
+    full: string;
+    empty: string;
+  } | null>(null);
   useEffect(() => {
-    const atlas = getAtlas(save.settings.palette);
+    const atlas = getAtlas(
+      save.settings.preset === "crt" ? "phosphor" : save.settings.palette,
+    );
     setSources({
       full: atlas.heartFull.canvas.toDataURL(),
       empty: atlas.heartEmpty.canvas.toDataURL(),
     });
-  }, [save.settings.palette]);
+  }, [save.settings.palette, save.settings.preset]);
   if (!sources) return null;
   return (
     <span className={styles.hearts} aria-label={`Hull ${hull} of ${maxHull}`}>
@@ -100,6 +102,8 @@ export default function PocketEdition() {
   const rendererRef = useRef<PocketRenderer | null>(null);
   const runtimeRef = useRef<ReturnType<typeof createRuntime> | null>(null);
   const holdRef = useRef(false);
+  const audioGesture = useRef(0);
+  const transmissionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [save, setSaveState] = useState<PocketSave>(emptyPocketSave);
   const [, setRevision] = useState(0);
@@ -108,6 +112,7 @@ export default function PocketEdition() {
   // Let the breakup frames + sparks play before the game-over curtain lands.
   const [deathReveal, setDeathReveal] = useState(false);
   const [fps, setFps] = useState(0);
+  const [audioStatus, setAudioStatus] = useState<AudioStatus>("locked");
   const [storageWarning, setStorageWarning] = useState(false);
   const [transmission, setTransmission] = useState<string | null>(null);
 
@@ -121,6 +126,34 @@ export default function PocketEdition() {
     rendererRef.current?.setPreset(settings.preset, settings.palette);
   }, []);
 
+  const activateAudio = useCallback((feedback = false) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    // Keep activation synchronous with the click/pointer event.
+    const gesture = audioGesture.current;
+    audio.unlock().then((running) => {
+      if (
+        running &&
+        feedback &&
+        audioRef.current === audio &&
+        gesture === audioGesture.current &&
+        !document.hidden
+      )
+        audio.play("pickup");
+    });
+  }, []);
+  const toggleSound = () => {
+    const settings = saveRef.current.settings;
+    if (settings.muted || audioRef.current?.status !== "running") {
+      applySettings({ ...settings, muted: false });
+      activateAudio(true);
+    } else applySettings({ ...settings, muted: true });
+  };
+  const announce = useCallback((message: string | null) => {
+    if (transmissionTimer.current) clearTimeout(transmissionTimer.current);
+    setTransmission(message);
+    transmissionTimer.current = setTimeout(() => setTransmission(null), 4200);
+  }, []);
   useEffect(() => {
     const saved = readPocketSave();
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
@@ -138,7 +171,7 @@ export default function PocketEdition() {
     inputRef.current = new InputController(
       () => gameRef.current?.player ?? { x: 86, y: 135 },
     );
-    audioRef.current = new GameAudio(saved.settings);
+    audioRef.current = new GameAudio(saved.settings, setAudioStatus);
     const canvas = canvasRef.current;
     if (!canvas) return;
     const renderer = createPocketRenderer(canvas);
@@ -166,8 +199,11 @@ export default function PocketEdition() {
       );
       const blocked = fit.floorFailed || fit.cssWidth < READABILITY_FLOOR - 0.5;
       setFloorWarning(blocked);
-      if (blocked && gameRef.current && gameRef.current.status === "running")
+      if (blocked && gameRef.current && gameRef.current.status === "running") {
         pauseGame(gameRef.current);
+        audioGesture.current++;
+        audioRef.current?.suspendPlayback();
+      }
       inputRef.current?.clear();
       runtimeRef.current?.reset();
       renderer.resetHistory();
@@ -190,13 +226,22 @@ export default function PocketEdition() {
         const input = controls.sample();
         (model as Game & { lastInput?: unknown }).lastInput = input;
         updateGame(model, input);
+        // Stop music before terminal effects so their fanfare can finish.
+        audioRef.current?.setActive(
+          model.status === "running",
+          Boolean(model.boss?.awakened),
+        );
         const events = model.events.splice(0);
         const sounds = events
           .filter((event) => event.kind === "sound")
-          .sort((a, b) => Number(a.sound === "shot") - Number(b.sound === "shot"));
+          .sort(
+            (a, b) => Number(a.sound === "shot") - Number(b.sound === "shot"),
+          );
         sounds
           .slice(0, 6)
-          .forEach((event) => event.sound && audioRef.current?.play(event.sound));
+          .forEach(
+            (event) => event.sound && audioRef.current?.play(event.sound),
+          );
         if (events.some((event) => event.kind !== "sound")) {
           saveRef.current = persistPocketGame(saveRef.current, model);
           setStorageWarning(!writePocketSave(saveRef.current));
@@ -204,8 +249,7 @@ export default function PocketEdition() {
         if (previousStatus !== model.status) {
           if (model.status === "running" && announcedSector !== model.sector) {
             announcedSector = model.sector;
-            setTransmission(SECTORS[model.sector]?.transmission ?? null);
-            window.setTimeout(() => setTransmission(null), 4200);
+            announce(SECTORS[model.sector]?.transmission ?? null);
           }
           controls.clear();
           previousStatus = model.status;
@@ -229,10 +273,6 @@ export default function PocketEdition() {
           saveRef.current.settings.palette,
           now,
         );
-        audioRef.current?.setActive(
-          model.status === "running",
-          Boolean(model.boss && model.boss.awakened),
-        );
         const perf = renderer.perf();
         (window as unknown as { __pocketPerf?: unknown }).__pocketPerf = perf;
         (window as unknown as { __pocketGame?: unknown }).__pocketGame = model;
@@ -242,8 +282,11 @@ export default function PocketEdition() {
         if (stage && world) {
           const stageTop = stage.getBoundingClientRect().top;
           const worldBottom = world.getBoundingClientRect().bottom;
-          const panel = stage.querySelector<HTMLElement>("." + styles.voidPanel);
-          if (panel) panel.style.top = `${Math.round(worldBottom - stageTop + 14)}px`;
+          const panel = stage.querySelector<HTMLElement>(
+            "." + styles.voidPanel,
+          );
+          if (panel)
+            panel.style.top = `${Math.round(worldBottom - stageTop + 14)}px`;
         }
         if (now - lastHud >= 500) {
           lastHud = now;
@@ -255,10 +298,27 @@ export default function PocketEdition() {
     runtime.start();
 
     const keyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
       if (
-        event.key === "ArrowUp" ||
-        event.key === "ArrowDown" ||
-        event.key === "Space"
+        target?.closest("input, select, textarea") ||
+        (target?.closest("button, a") &&
+          ["Space", "Enter"].includes(event.code))
+      )
+        return;
+      const model = gameRef.current;
+      if (event.code === "Escape" && model?.status === "running") {
+        pauseGame(model);
+        audioGesture.current++;
+        audioRef.current?.suspendPlayback();
+        inputRef.current?.clear();
+        refresh();
+        return;
+      }
+      if (model?.status !== "running") return;
+      if (
+        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(
+          event.code,
+        )
       )
         event.preventDefault();
       inputRef.current?.keyDown(event.code);
@@ -267,11 +327,12 @@ export default function PocketEdition() {
     };
     const keyUp = (event: KeyboardEvent) => inputRef.current?.keyUp(event.code);
     const interrupt = () => {
+      audioGesture.current++;
       const model = gameRef.current;
       if (model && model.status === "running") pauseGame(model);
       inputRef.current?.clear();
       holdRef.current = false;
-      audioRef.current?.setActive(false);
+      audioRef.current?.suspendPlayback();
       runtimeRef.current?.reset();
       refresh();
     };
@@ -284,6 +345,7 @@ export default function PocketEdition() {
     window.addEventListener("blur", interrupt);
     document.addEventListener("visibilitychange", visibility);
     return () => {
+      if (transmissionTimer.current) clearTimeout(transmissionTimer.current);
       observer.disconnect();
       window.removeEventListener("orientationchange", resize);
       runtime.dispose();
@@ -295,42 +357,45 @@ export default function PocketEdition() {
       document.removeEventListener("visibilitychange", visibility);
       inputRef.current?.clear();
     };
-  }, [refresh]);
+  }, [refresh, announce]);
 
   const game = gameRef.current;
 
   const startRun = useCallback(
     (mode: Mode) => {
+      activateAudio(true);
       const model = createGame(profileOf(saveRef.current), mode, 0, 331042);
       gameRef.current = model;
       inputRef.current?.clear();
       holdRef.current = false;
       startGame(model);
       runtimeRef.current?.reset();
-      setTransmission(SECTORS[model.sector]?.transmission ?? null);
-      window.setTimeout(() => setTransmission(null), 4200);
+      announce(SECTORS[model.sector]?.transmission ?? null);
       refresh();
     },
-    [refresh],
+    [refresh, activateAudio, announce],
   );
 
   const continueRun = useCallback(() => {
+    activateAudio();
     const model = gameRef.current;
     if (!model) return;
     resumeGame(model);
     inputRef.current?.clear();
     runtimeRef.current?.reset();
     refresh();
-  }, [refresh]);
+  }, [refresh, activateAudio]);
 
   const down = (event: ReactPointerEvent<HTMLElement>) => {
     const canvas = canvasRef.current;
     const model = gameRef.current;
-    if (!canvas || !model || model.status !== "running" || panel !== "none") return;
+    if (!canvas || !model || model.status !== "running" || panel !== "none")
+      return;
     inputRef.current?.pointerDown(event.pointerId, {
       x: event.clientX,
       y: event.clientY,
     });
+    if (audioRef.current?.status !== "running") activateAudio();
     event.currentTarget.setPointerCapture(event.pointerId);
   };
   const move = (event: ReactPointerEvent<HTMLElement>) => {
@@ -363,11 +428,24 @@ export default function PocketEdition() {
     return () => window.clearTimeout(timer);
   }, [status]);
   const hudVisible = status !== "ready";
+  const soundLabel = save.settings.muted
+    ? "SOUND OFF"
+    : audioStatus === "running"
+      ? save.settings.music === 0 && save.settings.effects === 0
+        ? "VOLUME 0"
+        : "SOUND ON"
+      : audioStatus === "unavailable"
+        ? "RETRY SOUND"
+        : "ENABLE SOUND";
 
   return (
     <section
       ref={rootRef}
-      className={`${styles.root} ${save.settings.leftHanded ? styles.leftHanded : ""}`}
+      className={`${styles.root} ${
+        save.settings.leftHanded ? styles.leftHanded : ""
+      }`}
+      data-screen={save.settings.preset}
+      data-comfort={save.settings.highContrast || save.settings.lowEffects}
       aria-label="Lost Signal Pocket Edition"
     >
       <div className={styles.handset}>
@@ -379,21 +457,41 @@ export default function PocketEdition() {
             <button
               type="button"
               className={styles.chip}
+              onClick={toggleSound}
+              aria-label={
+                save.settings.muted
+                  ? "Enable sound"
+                  : audioStatus === "running"
+                    ? "Mute sound"
+                    : "Activate sound"
+              }
+              aria-pressed={!save.settings.muted && audioStatus === "running"}
+            >
+              {soundLabel}
+            </button>
+            <button
+              type="button"
+              className={styles.chip}
+              aria-label="Vintage CRT display"
+              aria-pressed={save.settings.preset === "crt"}
               onClick={() =>
                 applySettings({
                   ...save.settings,
-                  muted: !save.settings.muted,
+                  preset: save.settings.preset === "crt" ? "pocket" : "crt",
                 })
               }
-              aria-pressed={save.settings.muted}
             >
-              {save.settings.muted ? "SOUND OFF" : "SOUND ON"}
+              {save.settings.preset === "crt" ? "CRT" : "LCD"}
             </button>
             <button
               type="button"
               className={styles.chip}
               onClick={() => {
-                if (game && status === "running") pauseGame(game);
+                if (game && status === "running") {
+                  pauseGame(game);
+                  audioGesture.current++;
+                  audioRef.current?.suspendPlayback();
+                }
                 setPanel(panel === "settings" ? "none" : "settings");
               }}
             >
@@ -404,21 +502,34 @@ export default function PocketEdition() {
 
         <div className={styles.hud} aria-hidden={false}>
           {game && hudVisible ? (
-            <Hearts save={save} hull={game.player.hull} maxHull={game.player.maxHull} />
+            <Hearts
+              save={save}
+              hull={game.player.hull}
+              maxHull={game.player.maxHull}
+            />
           ) : (
             <span className={styles.hudPlaceholder}>HULL</span>
           )}
           <span className={styles.hudScore}>
-            {game && hudVisible ? String(game.score).padStart(6, "0") : "000000"}
+            {game && hudVisible
+              ? String(game.score).padStart(6, "0")
+              : "000000"}
           </span>
           <span className={styles.hudSector}>
-            {sector && hudVisible ? `${(game?.sector ?? 0) + 1}·${sector.name.toUpperCase()}` : "STANDBY"}
+            {sector && hudVisible
+              ? `${(game?.sector ?? 0) + 1}·${sector.name.toUpperCase()}`
+              : "STANDBY"}
           </span>
-          <span className={styles.meter} title={`Presentation ${Math.round(fps)} fps`}>
+          <span
+            className={styles.meter}
+            title={`Presentation ${Math.round(fps)} fps`}
+          >
             {Array.from({ length: 5 }, (_, index) => (
               <i
                 key={index}
-                className={fps >= (index + 1) * 12 ? styles.meterOn : styles.meterOff}
+                className={
+                  fps >= (index + 1) * 12 ? styles.meterOn : styles.meterOff
+                }
               />
             ))}
           </span>
@@ -432,7 +543,13 @@ export default function PocketEdition() {
           onPointerUp={up}
           onPointerCancel={up}
         >
-          <canvas ref={canvasRef} className={styles.world} />
+          <div className={styles.screenGlass}>
+            <canvas
+              ref={canvasRef}
+              className={styles.world}
+              aria-label="Space Impact flight area"
+            />
+          </div>
           {status === "countdown" && (
             <div className={styles.countdown} role="status">
               {game && game.countdown > 0.6 ? "READY" : "GO"}
@@ -454,7 +571,9 @@ export default function PocketEdition() {
             <span>
               BEST{" "}
               {String(
-                save.best[`campaign${save.settings.assist ? ":assist" : ":standard"}`] ?? 0,
+                save.best[
+                  `campaign${save.settings.assist ? ":assist" : ":standard"}`
+                ] ?? 0,
               ).padStart(6, "0")}
             </span>
             <span>CHECKPOINT S{(save.checkpoint?.sector ?? 0) + 1}</span>
@@ -474,6 +593,15 @@ export default function PocketEdition() {
               holdRef.current = false;
               inputRef.current?.interact();
             }}
+            onPointerCancel={() => {
+              holdRef.current = false;
+            }}
+            onLostPointerCapture={() => {
+              holdRef.current = false;
+            }}
+            onClick={(event) => {
+              if (event.detail === 0) inputRef.current?.interact();
+            }}
           >
             HOLD·TALK
           </button>
@@ -484,31 +612,54 @@ export default function PocketEdition() {
               event.preventDefault();
               inputRef.current?.pulse();
             }}
+            onClick={(event) => {
+              if (event.detail === 0) inputRef.current?.pulse();
+            }}
           >
             PULSE
           </button>
         </div>
 
-        {!floorWarning && status === "ready" && (
+        {!floorWarning && panel === "none" && status === "ready" && (
           <div className={styles.overlay}>
             <h1 className={styles.title}>LOST SIGNAL</h1>
-            <p className={styles.subtitle}>Pocket Edition · a transmission worth following</p>
+            <p className={styles.subtitle}>
+              Pocket Edition · a transmission worth following
+            </p>
             <div className={styles.menuButtons}>
-              <button type="button" className={styles.menuPrimary} onClick={() => startRun("campaign")}>
+              <button
+                type="button"
+                className={styles.menuPrimary}
+                autoFocus
+                onClick={() => startRun("campaign")}
+              >
                 ▶ START TRANSMISSION
               </button>
-              <button type="button" className={styles.menuButton} onClick={() => startRun("practice")}>
+              <button
+                type="button"
+                className={styles.menuButton}
+                onClick={() => startRun("practice")}
+              >
                 PRACTICE FLIGHT
               </button>
-              <button type="button" className={styles.menuButton} onClick={() => setPanel("settings")}>
+              <button
+                type="button"
+                className={styles.menuButton}
+                onClick={() => setPanel("settings")}
+              >
                 SCREEN &amp; SOUND
               </button>
-              <button type="button" className={styles.menuButton} onClick={() => setPanel("help")}>
+              <button
+                type="button"
+                className={styles.menuButton}
+                onClick={() => setPanel("help")}
+              >
                 HOW TO FLY
               </button>
             </div>
             <p className={styles.footnote}>
-              Drag anywhere to steer · fire is automatic · PULSE clears the storm
+              Drag anywhere to steer · fire is automatic · PULSE clears the
+              storm
             </p>
           </div>
         )}
@@ -517,13 +668,25 @@ export default function PocketEdition() {
           <div className={styles.overlay}>
             <h2 className={styles.overlayTitle}>PAUSED</h2>
             <div className={styles.menuButtons}>
-              <button type="button" className={styles.menuPrimary} onClick={continueRun}>
+              <button
+                type="button"
+                className={styles.menuPrimary}
+                onClick={continueRun}
+              >
                 ▶ RESUME
               </button>
-              <button type="button" className={styles.menuButton} onClick={() => setPanel("settings")}>
+              <button
+                type="button"
+                className={styles.menuButton}
+                onClick={() => setPanel("settings")}
+              >
                 SCREEN &amp; SOUND
               </button>
-              <button type="button" className={styles.menuButton} onClick={() => startRun("campaign")}>
+              <button
+                type="button"
+                className={styles.menuButton}
+                onClick={() => startRun("campaign")}
+              >
                 RESTART SECTOR
               </button>
             </div>
@@ -534,7 +697,8 @@ export default function PocketEdition() {
           <div className={styles.overlay}>
             <h2 className={styles.overlayTitle}>SECTOR CLEAR</h2>
             <p className={styles.subtitle}>
-              {sector?.bossName ?? "The Watcher"} went quiet. Score {game?.score ?? 0}.
+              {sector?.bossName ?? "The Watcher"} went quiet. Score{" "}
+              {game?.score ?? 0}.
             </p>
             <div className={styles.menuButtons}>
               <button
@@ -555,13 +719,22 @@ export default function PocketEdition() {
           <div className={styles.overlay}>
             <h2 className={styles.overlayTitle}>SIGNAL LOST</h2>
             <p className={styles.subtitle}>
-              Score {game?.score ?? 0} · checkpoint at sector {(save.checkpoint?.sector ?? 0) + 1}
+              Score {game?.score ?? 0} · checkpoint at sector{" "}
+              {(save.checkpoint?.sector ?? 0) + 1}
             </p>
             <div className={styles.menuButtons}>
-              <button type="button" className={styles.menuPrimary} onClick={() => startRun("campaign")}>
+              <button
+                type="button"
+                className={styles.menuPrimary}
+                onClick={() => startRun("campaign")}
+              >
                 ▶ RETRY
               </button>
-              <button type="button" className={styles.menuButton} onClick={() => setPanel("settings")}>
+              <button
+                type="button"
+                className={styles.menuButton}
+                onClick={() => setPanel("settings")}
+              >
                 ASSIST OPTIONS
               </button>
             </div>
@@ -571,9 +744,15 @@ export default function PocketEdition() {
         {!floorWarning && status === "victory" && (
           <div className={styles.overlay}>
             <h2 className={styles.overlayTitle}>THE REAL SIGNAL</h2>
-            <p className={styles.subtitle}>The storm ends. Someone is answering. Score {game?.score ?? 0}.</p>
+            <p className={styles.subtitle}>
+              The storm ends. Someone is answering. Score {game?.score ?? 0}.
+            </p>
             <div className={styles.menuButtons}>
-              <button type="button" className={styles.menuPrimary} onClick={() => startRun("campaign")}>
+              <button
+                type="button"
+                className={styles.menuPrimary}
+                onClick={() => startRun("campaign")}
+              >
                 ▶ FLY AGAIN
               </button>
             </div>
@@ -583,9 +762,15 @@ export default function PocketEdition() {
         {!floorWarning && status === "console" && (
           <div className={styles.overlay}>
             <h2 className={styles.overlayTitle}>RELAY CONSOLE</h2>
-            <p className={styles.subtitle}>The broken beacon hums an old frequency.</p>
+            <p className={styles.subtitle}>
+              The broken beacon hums an old frequency.
+            </p>
             <div className={styles.menuButtons}>
-              <button type="button" className={styles.menuPrimary} onClick={continueRun}>
+              <button
+                type="button"
+                className={styles.menuPrimary}
+                onClick={continueRun}
+              >
                 ▶ RETURN TO FLIGHT
               </button>
             </div>
@@ -593,32 +778,50 @@ export default function PocketEdition() {
         )}
 
         {!floorWarning && panel === "settings" && (
-          <div className={styles.overlay}>
+          <div
+            className={`${styles.overlay} ${styles.settingsOverlay}`}
+            role="dialog"
+            aria-label="Screen and sound"
+          >
             <h2 className={styles.overlayTitle}>SCREEN &amp; SOUND</h2>
             <div className={styles.settingsGrid}>
               <fieldset>
                 <legend>Screen preset</legend>
-                {(["clean", "pocket", "worn"] as const).map((preset) => (
+                {(["crt", "clean", "pocket", "worn"] as const).map((preset) => (
                   <label key={preset}>
                     <input
                       type="radio"
                       name="preset"
                       checked={save.settings.preset === preset}
-                      onChange={() => applySettings({ ...save.settings, preset })}
+                      onChange={() =>
+                        applySettings({ ...save.settings, preset })
+                      }
                     />
-                    {preset === "clean" ? "Clean LCD" : preset === "pocket" ? "Pocket LCD" : "Worn Screen"}
+                    {preset === "crt"
+                      ? "Vintage CRT · green phosphor"
+                      : preset === "clean"
+                        ? "Clean LCD"
+                        : preset === "pocket"
+                          ? "Pocket LCD"
+                          : "Worn Screen"}
                   </label>
                 ))}
               </fieldset>
               <fieldset>
-                <legend>Panel tint</legend>
+                <legend>LCD tint</legend>
+                <p className={styles.settingNote}>
+                  CRT uses green phosphor. These tints apply to the LCD presets.
+                </p>
                 {(["olive", "mint"] as const).map((palette) => (
                   <label key={palette}>
                     <input
                       type="radio"
                       name="palette"
+                      disabled={save.settings.preset === "crt"}
                       checked={save.settings.palette === palette}
-                      onChange={() => applySettings({ ...save.settings, palette })}
+                      onChange={() =>
+                        applySettings({ ...save.settings, palette })
+                      }
                     />
                     {palette === "olive" ? "Olive backlit" : "Mint archival"}
                   </label>
@@ -631,7 +834,10 @@ export default function PocketEdition() {
                     type="checkbox"
                     checked={save.settings.reducedMotion}
                     onChange={(event) =>
-                      applySettings({ ...save.settings, reducedMotion: event.target.checked })
+                      applySettings({
+                        ...save.settings,
+                        reducedMotion: event.target.checked,
+                      })
                     }
                   />
                   Reduced motion
@@ -641,7 +847,10 @@ export default function PocketEdition() {
                     type="checkbox"
                     checked={save.settings.lowFlashes}
                     onChange={(event) =>
-                      applySettings({ ...save.settings, lowFlashes: event.target.checked })
+                      applySettings({
+                        ...save.settings,
+                        lowFlashes: event.target.checked,
+                      })
                     }
                   />
                   Low flashes
@@ -651,7 +860,10 @@ export default function PocketEdition() {
                     type="checkbox"
                     checked={save.settings.highContrast}
                     onChange={(event) =>
-                      applySettings({ ...save.settings, highContrast: event.target.checked })
+                      applySettings({
+                        ...save.settings,
+                        highContrast: event.target.checked,
+                      })
                     }
                   />
                   High contrast
@@ -661,7 +873,10 @@ export default function PocketEdition() {
                     type="checkbox"
                     checked={save.settings.assist}
                     onChange={(event) => {
-                      applySettings({ ...save.settings, assist: event.target.checked });
+                      applySettings({
+                        ...save.settings,
+                        assist: event.target.checked,
+                      });
                       const model = gameRef.current;
                       if (model) model.assist = event.target.checked;
                     }}
@@ -671,6 +886,40 @@ export default function PocketEdition() {
               </fieldset>
               <fieldset>
                 <legend>Sound</legend>
+                <p className={styles.settingNote} role="status">
+                  {save.settings.muted
+                    ? "Muted. Enable sound to hear music and effects."
+                    : audioStatus === "running"
+                      ? "Audio active. Adjust music and effects below."
+                      : audioStatus === "unavailable"
+                        ? "Audio could not start. Tap Test sound to retry."
+                        : "Tap Test sound or Start to activate audio."}
+                </p>
+                <button
+                  type="button"
+                  className={styles.menuButton}
+                  onClick={() => {
+                    applySettings({
+                      ...saveRef.current.settings,
+                      muted: false,
+                    });
+                    activateAudio(true);
+                  }}
+                >
+                  TEST SOUND
+                </button>
+                <button
+                  type="button"
+                  className={styles.menuButton}
+                  onClick={toggleSound}
+                >
+                  {soundLabel}
+                </button>
+                {save.settings.effects === 0 && (
+                  <p className={styles.settingNote}>
+                    Effects are at zero; raise the slider to hear the test.
+                  </p>
+                )}
                 <label>
                   Music
                   <input
@@ -680,7 +929,10 @@ export default function PocketEdition() {
                     step={0.05}
                     value={save.settings.music}
                     onChange={(event) =>
-                      applySettings({ ...save.settings, music: Number(event.target.value) })
+                      applySettings({
+                        ...save.settings,
+                        music: Number(event.target.value),
+                      })
                     }
                   />
                 </label>
@@ -693,7 +945,10 @@ export default function PocketEdition() {
                     step={0.05}
                     value={save.settings.effects}
                     onChange={(event) =>
-                      applySettings({ ...save.settings, effects: Number(event.target.value) })
+                      applySettings({
+                        ...save.settings,
+                        effects: Number(event.target.value),
+                      })
                     }
                   />
                 </label>
@@ -718,14 +973,36 @@ export default function PocketEdition() {
           <div className={styles.overlay}>
             <h2 className={styles.overlayTitle}>HOW TO FLY</h2>
             <ul className={styles.helpList}>
-              <li>Drag anywhere on the screen — the ship follows your thumb, never your tap point.</li>
-              <li>Cannons fire on their own. <strong>HOLD·TALK</strong> silences them when the probe asks.</li>
-              <li><strong>PULSE</strong> clears nearby shots once the meter is charged. Graze danger to charge faster.</li>
-              <li>A blinking window in a wreck is worth investigating. Fly close and interact.</li>
-              <li>Everything works muted. Lights and motion carry the warnings.</li>
+              <li>
+                Drag anywhere on the screen — the ship follows your thumb, never
+                your tap point.
+              </li>
+              <li>
+                Keyboard: arrows or WASD to steer, Space to pulse, E to
+                interact, Esc to pause.
+              </li>
+              <li>
+                Cannons fire on their own. <strong>HOLD·TALK</strong> silences
+                them when the probe asks.
+              </li>
+              <li>
+                <strong>PULSE</strong> clears nearby shots once the meter is
+                charged. Graze danger to charge faster.
+              </li>
+              <li>
+                A blinking window in a wreck is worth investigating. Fly close
+                and interact.
+              </li>
+              <li>
+                Everything works muted. Lights and motion carry the warnings.
+              </li>
             </ul>
             <div className={styles.menuButtons}>
-              <button type="button" className={styles.menuPrimary} onClick={() => setPanel("none")}>
+              <button
+                type="button"
+                className={styles.menuPrimary}
+                onClick={() => setPanel("none")}
+              >
                 CLOSE
               </button>
             </div>
@@ -734,13 +1011,13 @@ export default function PocketEdition() {
 
         {storageWarning && (
           <p className={styles.storageWarning} role="status">
-            Save storage is unavailable this session — progress lives in memory only.
+            Save storage is unavailable this session — progress lives in memory
+            only.
           </p>
         )}
       </div>
       <p className={styles.colophon}>
-        {WEAPONS.pulse.name} · pocket receiver build · render{" "}
-        {Math.round(fps)} fps
+        DRAG / WASD TO FLY · SPACE TO PULSE · ESC TO PAUSE
       </p>
     </section>
   );

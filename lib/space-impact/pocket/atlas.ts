@@ -36,14 +36,22 @@ import {
   watcherCannon,
   type Raster,
 } from "./atlas-frames";
-import { MINT_PALETTE, POCKET_PALETTE, TONE_RGB, type Tone } from "./palette";
+import {
+  MINT_PALETTE,
+  PHOSPHOR_PALETTE,
+  POCKET_PALETTE,
+  toneRGB,
+  type ToneSet,
+  type Tone,
+} from "./palette";
 
 export type PaletteName = "olive" | "mint";
-type ToneSet = Record<1 | 2 | 3 | 4, string>;
+export type AtlasPaletteName = PaletteName | "phosphor";
 
-const TONES: Record<PaletteName, ToneSet> = {
+const TONES: Record<AtlasPaletteName, ToneSet> = {
   olive: { ...POCKET_PALETTE },
   mint: { ...MINT_PALETTE },
+  phosphor: { ...PHOSPHOR_PALETTE },
 };
 
 export interface AtlasFrame {
@@ -96,17 +104,28 @@ export interface AtlasEntry {
   note: string;
 }
 
-function bake(r: Raster, tones: ToneSet, anchor?: { x: number; y: number }): AtlasFrame {
+function bake(
+  r: Raster,
+  tones: ToneSet,
+  anchor?: { x: number; y: number },
+): AtlasFrame {
   const canvas = document.createElement("canvas");
   canvas.width = r.w;
   canvas.height = r.h;
   const ctx = canvas.getContext("2d");
   if (ctx) {
     const image = ctx.createImageData(r.w, r.h);
+    const colors = [
+      null,
+      toneRGB(tones[1]),
+      toneRGB(tones[2]),
+      toneRGB(tones[3]),
+      toneRGB(tones[4]),
+    ];
     for (let i = 0; i < r.w * r.h; i++) {
       const tone = r.data[i] as Tone;
       if (!tone) continue;
-      const [red, green, blue] = TONE_RGB[tone];
+      const [red, green, blue] = colors[tone]!;
       image.data[i * 4] = red;
       image.data[i * 4 + 1] = green;
       image.data[i * 4 + 2] = blue;
@@ -144,10 +163,11 @@ function bake(r: Raster, tones: ToneSet, anchor?: { x: number; y: number }): Atl
   };
 }
 
-let atlas: Atlas | null = null;
+const atlases = new Map<AtlasPaletteName, Atlas>();
 
-export function getAtlas(name: PaletteName = "olive"): Atlas {
-  if (atlas && atlas.palette === TONES[name]) return atlas;
+export function getAtlas(name: AtlasPaletteName = "olive"): Atlas {
+  const cached = atlases.get(name);
+  if (cached) return cached;
   const t = TONES[name];
   const SHIP_ANCHOR = { x: 20, y: 7 };
   const CANNON_ANCHOR = { x: 27, y: 5 };
@@ -155,11 +175,23 @@ export function getAtlas(name: PaletteName = "olive"): Atlas {
     frames: Raster[],
     anchor?: { x: number; y: number },
   ): AtlasFrame[] => frames.map((f) => bake(f, t, anchor));
-  atlas = {
-    shipIdle: bakeAll([0, 1, 2, 3].map((f) => shipFlame(shipBody("level"), f)), SHIP_ANCHOR),
-    shipUp: bakeAll([0, 1, 2, 3].map((f) => shipFlame(shipBody("up"), f)), SHIP_ANCHOR),
-    shipDown: bakeAll([0, 1, 2, 3].map((f) => shipFlame(shipBody("down"), f)), SHIP_ANCHOR),
-    shipBreakup: bakeAll([0, 1, 2, 3, 4, 5, 6, 7].map(shipBreakup), SHIP_ANCHOR),
+  const atlas: Atlas = {
+    shipIdle: bakeAll(
+      [0, 1, 2, 3].map((f) => shipFlame(shipBody("level"), f)),
+      SHIP_ANCHOR,
+    ),
+    shipUp: bakeAll(
+      [0, 1, 2, 3].map((f) => shipFlame(shipBody("up"), f)),
+      SHIP_ANCHOR,
+    ),
+    shipDown: bakeAll(
+      [0, 1, 2, 3].map((f) => shipFlame(shipBody("down"), f)),
+      SHIP_ANCHOR,
+    ),
+    shipBreakup: bakeAll(
+      [0, 1, 2, 3, 4, 5, 6, 7].map(shipBreakup),
+      SHIP_ANCHOR,
+    ),
     scout: bakeAll([SCOUT_A, SCOUT_B]),
     sentry: bakeAll([SENTRY_BASE, SENTRY_FIRE]),
     diver: bakeAll([DIVER_A, DIVER_B]),
@@ -186,6 +218,7 @@ export function getAtlas(name: PaletteName = "olive"): Atlas {
     heartEmpty: bake(HEART_EMPTY, t),
     palette: t,
   };
+  atlases.set(name, atlas);
   return atlas;
 }
 
@@ -235,4 +268,3 @@ export function atlasManifest(name: PaletteName = "olive"): AtlasEntry[] {
     entry("heart-empty", a.heartEmpty, 0, "HUD lost pip"),
   ];
 }
-
