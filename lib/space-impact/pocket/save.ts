@@ -70,10 +70,28 @@ function bool(value: unknown, fallback = false): boolean {
 function checkpoint(value: unknown): Checkpoint | null {
   if (!value || typeof value !== "object") return null;
   const raw = value as Record<string, unknown>;
-  const finite = (n: unknown, fallback: number, min: number, max: number) => typeof n === "number" && Number.isFinite(n) ? Math.min(max, Math.max(min, Math.floor(n))) : fallback;
-  if (typeof raw.sector !== "number" || !Number.isFinite(raw.sector) || raw.sector < 0 || raw.sector > 4) return null;
-  const weapon = isWeapon(raw.weapon) ? raw.weapon : "pulse"; const level = finite(raw.level, 1, 1, 3);
-  return { sector: Math.floor(raw.sector), weapon, level, score: finite(raw.score, 0, 0, 1e9), seed: finite(raw.seed, 331042, 1, 0xffffffff), assist: bool(raw.assist), arsenal: restoreArsenal(raw.arsenal, weapon, level) };
+  const finite = (n: unknown, fallback: number, min: number, max: number) =>
+    typeof n === "number" && Number.isFinite(n)
+      ? Math.min(max, Math.max(min, Math.floor(n)))
+      : fallback;
+  if (
+    typeof raw.sector !== "number" ||
+    !Number.isFinite(raw.sector) ||
+    raw.sector < 0 ||
+    raw.sector > 4
+  )
+    return null;
+  const weapon = isWeapon(raw.weapon) ? raw.weapon : "pulse";
+  const level = finite(raw.level, 1, 1, 3);
+  return {
+    sector: Math.floor(raw.sector),
+    weapon,
+    level,
+    score: finite(raw.score, 0, 0, 1e9),
+    seed: finite(raw.seed, 331042, 1, 0xffffffff),
+    assist: bool(raw.assist),
+    arsenal: restoreArsenal(raw.arsenal, weapon, level),
+  };
 }
 
 export function parsePocketSave(raw: string | null): PocketSave {
@@ -146,8 +164,15 @@ export function persistPocketGame(save: PocketSave, game: Game): PocketSave {
     settings: { ...save.settings },
     best: { ...save.best },
   };
-  if (game.mode === "campaign" && game.checkpoint) next.checkpoint = { ...game.checkpoint, arsenal: game.checkpoint.arsenal ? { ...game.checkpoint.arsenal } : undefined };
-  if (game.mode === "campaign" && game.status === "victory") next.checkpoint = null;
+  if (game.mode === "campaign" && game.checkpoint)
+    next.checkpoint = {
+      ...game.checkpoint,
+      arsenal: game.checkpoint.arsenal
+        ? { ...game.checkpoint.arsenal }
+        : undefined,
+    };
+  if (game.mode === "campaign" && game.status === "victory")
+    next.checkpoint = null;
   const key = game.mode + (game.assist ? ":assist" : ":standard");
   if (game.score > (next.best[key] ?? 0)) next.best[key] = game.score;
   return next;

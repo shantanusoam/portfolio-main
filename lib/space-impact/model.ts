@@ -48,7 +48,11 @@ export function createGame(
       level: checkpoint?.level ?? 1,
       fire: 0,
       charge: 30,
-      arsenal: restoreArsenal(checkpoint?.arsenal, checkpoint?.weapon, checkpoint?.level),
+      arsenal: restoreArsenal(
+        checkpoint?.arsenal,
+        checkpoint?.weapon,
+        checkpoint?.level,
+      ),
       shield: 0,
       overdrive: 0,
       drones: 0,

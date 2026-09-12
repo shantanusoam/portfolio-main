@@ -53,12 +53,28 @@ function updatePlayer(game: Game, input: Input): void {
   p.y = clamp(p.y, 18, HEIGHT - 18);
   p.invincible = Math.max(0, p.invincible - STEP);
   p.fire = Math.max(0, p.fire - STEP);
-  p.shield = Math.max(0, p.shield - STEP); p.overdrive = Math.max(0, p.overdrive - STEP);
-  p.drones = Math.max(0, p.drones - STEP); p.droneFire = Math.max(0, p.droneFire - STEP);
+  p.shield = Math.max(0, p.shield - STEP);
+  p.overdrive = Math.max(0, p.overdrive - STEP);
+  p.drones = Math.max(0, p.drones - STEP);
+  p.droneFire = Math.max(0, p.droneFire - STEP);
   if (input.cycleWeapon) cycleWeapon(game);
   if (input.pulse) activatePulse(game);
-  if (p.drones > 0 && p.droneFire === 0 && !input.ceaseFire && game.room?.kind !== "observatory") {
-    for (const offset of [-16, 16]) bullet(game, p.x + 2, clamp(p.y + offset, 8, HEIGHT - 8), 365, 0, false, 7);
+  if (
+    p.drones > 0 &&
+    p.droneFire === 0 &&
+    !input.ceaseFire &&
+    game.room?.kind !== "observatory"
+  ) {
+    for (const offset of [-16, 16])
+      bullet(
+        game,
+        p.x + 2,
+        clamp(p.y + offset, 8, HEIGHT - 8),
+        365,
+        0,
+        false,
+        7,
+      );
     p.droneFire = 0.32;
   }
   if (!input.ceaseFire && game.room?.kind !== "observatory") fire(game);
@@ -66,15 +82,25 @@ function updatePlayer(game: Game, input: Input): void {
 function moveBullets(game: Game): void {
   for (const b of game.bullets) {
     if (b.seeker && !b.enemy && !b.dead) {
-      const candidates = game.enemies.filter((enemy) => !enemy.dead && enemy.x > b.x - 12 && enemy.x < WIDTH);
+      const candidates = game.enemies.filter(
+        (enemy) => !enemy.dead && enemy.x > b.x - 12 && enemy.x < WIDTH,
+      );
       const boss = game.boss;
-      const target = candidates.reduce<{ x: number; y: number } | null>((best, enemy) => !best || distance(b, enemy) < distance(b, best) ? enemy : best,
-        boss?.awakened && !game.bossDefeated && boss.x > b.x ? boss : null);
+      const target = candidates.reduce<{ x: number; y: number } | null>(
+        (best, enemy) =>
+          !best || distance(b, enemy) < distance(b, best) ? enemy : best,
+        boss?.awakened && !game.bossDefeated && boss.x > b.x ? boss : null,
+      );
       if (target) {
-        const current = Math.atan2(b.vy, b.vx); const desired = Math.atan2(target.y - b.y, target.x - b.x);
-        const diff = Math.atan2(Math.sin(desired - current), Math.cos(desired - current));
+        const current = Math.atan2(b.vy, b.vx);
+        const desired = Math.atan2(target.y - b.y, target.x - b.x);
+        const diff = Math.atan2(
+          Math.sin(desired - current),
+          Math.cos(desired - current),
+        );
         const turn = current + clamp(diff, -2.8 * STEP, 2.8 * STEP);
-        b.vx = Math.cos(turn) * 250; b.vy = Math.sin(turn) * 250;
+        b.vx = Math.cos(turn) * 250;
+        b.vy = Math.sin(turn) * 250;
       }
     }
     b.previousX = b.x;
@@ -286,7 +312,10 @@ export function updateGame(game: Game, input: Input, dt = STEP): void {
   game.ghostPlayback = Math.max(0, game.ghostPlayback - STEP);
   game.comboTime = Math.max(0, game.comboTime - STEP);
   if (game.comboTime === 0) game.combo = 0;
-  if (game.combatNotice) { game.combatNotice.life -= STEP; if (game.combatNotice.life <= 0) game.combatNotice = null; }
+  if (game.combatNotice) {
+    game.combatNotice.life -= STEP;
+    if (game.combatNotice.life <= 0) game.combatNotice = null;
+  }
   if (game.message) {
     game.message.life -= STEP;
     if (game.message.life <= 0) game.message = null;

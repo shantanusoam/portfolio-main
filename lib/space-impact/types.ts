@@ -46,7 +46,11 @@ export type Sound =
   | "pulse"
   | "warning"
   | "secret"
-  | "clear" | "seeker" | "shield" | "overdrive" | "combo";
+  | "clear"
+  | "seeker"
+  | "shield"
+  | "overdrive"
+  | "combo";
 export interface Point {
   x: number;
   y: number;
@@ -154,7 +158,15 @@ export interface Terrain extends Point {
 }
 export interface Pickup extends Point {
   id: number;
-  kind: Weapon | "repair" | "charge" | "feather" | "salvage" | "shield" | "overdrive" | "drone";
+  kind:
+    | Weapon
+    | "repair"
+    | "charge"
+    | "feather"
+    | "salvage"
+    | "shield"
+    | "overdrive"
+    | "drone";
   age: number;
   dead: boolean;
 }
@@ -224,7 +236,12 @@ export interface Game {
   comboTime: number;
   player: Player;
   enemies: Enemy[];
-  squads: { id: number; remaining: number; escaped: boolean; reward: Pickup["kind"] }[];
+  squads: {
+    id: number;
+    remaining: number;
+    escaped: boolean;
+    reward: Pickup["kind"];
+  }[];
   formationsCleared: number;
   combatNotice: Message | null;
   bullets: Bullet[];
@@ -262,7 +279,14 @@ export interface Encounter {
   formation?: Formation;
   drop?: Pickup["kind"];
   at: number;
-  kind: EnemyKind | "corridor" | "current" | "weapon" | "repair" | "feather" | "supply";
+  kind:
+    | EnemyKind
+    | "corridor"
+    | "current"
+    | "weapon"
+    | "repair"
+    | "feather"
+    | "supply";
   lane: number;
   count?: number;
 }

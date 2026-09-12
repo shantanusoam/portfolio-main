@@ -137,14 +137,36 @@ const BASE_SECTORS: Sector[] = [
 
 const FORMATIONS: Formation[] = ["chevron", "wall", "weave", "pincer"];
 const REWARDS: Pickup["kind"][] = ["shield", "charge", "overdrive", "drone"];
-const supply = (at: number, drop: Pickup["kind"], lane = 0.5): Encounter => ({ at, kind: "supply", lane, drop });
+const supply = (at: number, drop: Pickup["kind"], lane = 0.5): Encounter => ({
+  at,
+  kind: "supply",
+  lane,
+  drop,
+});
 export const SECTORS: Sector[] = BASE_SECTORS.map((sector, index) => {
   let squad = 0;
-  const encounters = sector.encounters.filter((wave) => wave.kind !== "weapon").map((wave): Encounter => {
-    if (["corridor", "current", "repair", "feather"].includes(wave.kind)) return wave;
-    const n = squad++;
-    return { ...wave, count: Math.min(6, (wave.count ?? 1) + (index > 0 ? 1 : 0)), formation: FORMATIONS[n % 4], drop: REWARDS[n % 4] };
-  });
-  encounters.push(supply(2, index === 0 ? "split" : "seeker"), supply(8.5, "shield"), supply(12, "rail"), supply(21, "overdrive"), supply(26, "seeker"), supply(36, "drone"), supply(47, "pulse"), supply(sector.duration - 9, "charge"));
-  return { ...sector, encounters: encounters.sort((a,b) => a.at-b.at) };
+  const encounters = sector.encounters
+    .filter((wave) => wave.kind !== "weapon")
+    .map((wave): Encounter => {
+      if (["corridor", "current", "repair", "feather"].includes(wave.kind))
+        return wave;
+      const n = squad++;
+      return {
+        ...wave,
+        count: Math.min(6, (wave.count ?? 1) + (index > 0 ? 1 : 0)),
+        formation: FORMATIONS[n % 4],
+        drop: REWARDS[n % 4],
+      };
+    });
+  encounters.push(
+    supply(2, index === 0 ? "split" : "seeker"),
+    supply(8.5, "shield"),
+    supply(12, "rail"),
+    supply(21, "overdrive"),
+    supply(26, "seeker"),
+    supply(36, "drone"),
+    supply(47, "pulse"),
+    supply(sector.duration - 9, "charge"),
+  );
+  return { ...sector, encounters: encounters.sort((a, b) => a.at - b.at) };
 });

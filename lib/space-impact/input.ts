@@ -77,7 +77,9 @@ export class InputController {
     this.interactQueued = true;
   }
 
-  cycleWeapon(): void { this.cycleQueued = true; }
+  cycleWeapon(): void {
+    this.cycleQueued = true;
+  }
 
   clear(): void {
     this.keys.clear();

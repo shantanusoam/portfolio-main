@@ -1,3 +1,4 @@
+import { attackAngles } from "./enemies";
 import { clamp, HEIGHT, WEAPONS, WIDTH } from "./config";
 import { bossVulnerable } from "./content/bosses";
 import { SECTORS } from "./content/sectors";
@@ -556,7 +557,25 @@ export function renderGame(
       ctx.fillRect(x - 1, y + 3, 2, 2);
     } else ctx.fillRect(x - 2, y - 2, 4, 4);
   }
-  for (const enemy of game.enemies) if (!enemy.dead) drawEnemy(ctx, enemy, p);
+  for (const enemy of game.enemies) {
+    if (enemy.dead) continue;
+    if (enemy.telegraph > 0) {
+      ctx.strokeStyle = p.danger;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 6]);
+      for (const angle of attackAngles(enemy)) {
+        ctx.beginPath();
+        ctx.moveTo(enemy.x - 8, enemy.y);
+        ctx.lineTo(
+          enemy.x - 8 + Math.cos(angle) * 190,
+          enemy.y + Math.sin(angle) * 190,
+        );
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+    drawEnemy(ctx, enemy, p);
+  }
   if (game.boss) drawBoss(ctx, game.boss, game, p);
   for (const b of game.bullets) {
     if (b.dead) continue;

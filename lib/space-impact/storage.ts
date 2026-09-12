@@ -19,8 +19,7 @@ const object = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
-const weapon = (value: unknown): Weapon =>
-  isWeapon(value) ? value : "pulse";
+const weapon = (value: unknown): Weapon => (isWeapon(value) ? value : "pulse");
 export function emptyProfile(): Profile {
   return {
     version: 1,
@@ -95,7 +94,11 @@ export function parseProfile(raw: string | null): Profile {
         score: number(cp.score, 0, 1e9),
         seed: Math.max(1, Math.floor(number(cp.seed, 331042, 0xffffffff))),
         assist: cp.assist === true,
-        arsenal: restoreArsenal(cp.arsenal, weapon(cp.weapon), Math.max(1, Math.floor(number(cp.level, 1, 3)))),
+        arsenal: restoreArsenal(
+          cp.arsenal,
+          weapon(cp.weapon),
+          Math.max(1, Math.floor(number(cp.level, 1, 3))),
+        ),
       };
     }
     const ghost = object(value.ghost);
@@ -173,7 +176,10 @@ export function checkpointFor(game: Game, sector: number): Checkpoint {
     score: game.score,
     seed: game.seed,
     assist: game.assist,
-    arsenal: { ...game.player.arsenal, [game.player.weapon]: game.player.level },
+    arsenal: {
+      ...game.player.arsenal,
+      [game.player.weapon]: game.player.level,
+    },
   };
 }
 export function updateSettings(

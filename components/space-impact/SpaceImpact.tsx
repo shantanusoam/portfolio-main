@@ -168,6 +168,17 @@ export default function SpaceImpact() {
         const controls = inputRef.current;
         if (!model || !controls) return;
         updateGame(model, controls.sample());
+        audioRef.current?.setScene({
+          sector: model.sector,
+          combo: model.combo,
+          enemies: model.enemies.length,
+          overdrive: model.player.overdrive > 0,
+          quiet: Boolean(model.room),
+        });
+        audioRef.current?.setActive(
+          model.status === "running",
+          Boolean(model.boss?.awakened),
+        );
         const events = model.events.splice(0);
         // Important sounds first; excess repetitive events are discarded, never queued across a pause.
         const sounds = events
@@ -199,10 +210,7 @@ export default function SpaceImpact() {
           renderGame(context, model, settings, backdropRef.current);
           lastDrawRef.current = now;
         }
-        audioRef.current?.setActive(
-          model.status === "running",
-          Boolean(model.boss),
-        );
+
         if (now - lastHud >= 90) {
           lastHud = now;
           refresh();
