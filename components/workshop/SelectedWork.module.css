@@ -1,0 +1,208 @@
+/* Scene 1 — Selected work. Hairline-separated rows, alternating visual
+   sides; diagrams drift on hover like a page being weighed in the hand. */
+
+.section {
+  /* The first scene enters tighter than the rest — at 1440×900 the
+     "01 Selected work" header must already be peeking into the fold. */
+  padding-block: clamp(48px, 5vw, 72px) 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: clamp(20px, 3vw, 44px);
+  row-gap: 26px;
+  align-items: center;
+  padding-block: clamp(44px, 6vw, 76px);
+  border-top: 1px solid var(--ws-line);
+}
+
+.visual {
+  grid-column: 1 / 6;
+}
+
+.copy {
+  grid-column: 6 / 13;
+}
+
+.rowReversed .visual {
+  grid-column: 8 / 13;
+  grid-row: 1;
+}
+
+.rowReversed .copy {
+  grid-column: 1 / 8;
+  grid-row: 1;
+}
+
+.diagramFrame {
+  border: 1px solid var(--ws-line);
+  border-radius: 2px;
+  overflow: hidden;
+  transition:
+    transform var(--ws-fast) var(--ws-ease-out),
+    border-color var(--ws-fast) var(--ws-ease-out),
+    box-shadow var(--ws-fast) var(--ws-ease-out);
+}
+
+.row:hover .diagramFrame {
+  transform: translateY(-4px);
+  border-color: var(--ws-line-strong);
+  box-shadow: 0 18px 40px -28px rgba(23, 60, 50, 0.45);
+}
+
+.title {
+  font-family: var(--ws-font-serif);
+  font-weight: 400;
+  font-size: clamp(1.55rem, 2.6vw, 2.35rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin-top: 14px;
+  max-width: 26ch;
+}
+
+.summary {
+  margin-top: 14px;
+  max-width: 56ch;
+  line-height: 1.65;
+  color: var(--ws-ink-soft);
+}
+
+.facts {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+.fact dt {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ws-clay);
+  margin-bottom: 10px;
+}
+
+.fact ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fact li {
+  position: relative;
+  padding-left: 18px;
+  line-height: 1.55;
+  font-size: 0.9375rem;
+  color: var(--ws-ink-soft);
+}
+
+/* The sun-notch again, as a list bullet. */
+.fact li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 9px;
+  height: 5px;
+  border-radius: 5px 5px 0 0;
+  background: var(--ws-sun);
+}
+
+.evidence {
+  margin-top: 12px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  color: var(--ws-ink-faint);
+}
+
+.caseLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 30px;
+  font-family: var(--ws-font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ws-clay);
+  text-decoration: none;
+  border-bottom: 1px solid var(--ws-line-strong);
+  padding-bottom: 4px;
+  transition:
+    border-color var(--ws-fast) var(--ws-ease-out),
+    color var(--ws-fast) var(--ws-ease-out);
+}
+
+.caseLink span {
+  transition: transform var(--ws-fast) var(--ws-ease-out);
+}
+
+.caseLink:hover {
+  color: var(--ws-ink);
+  border-color: var(--ws-ink);
+}
+
+.caseLink:hover span {
+  transform: translate(3px, -2px);
+}
+
+@media (max-width: 900px) {
+  /* Every row stacks full-width — the desktop column placement of BOTH
+     variants must reset against the collapsed template, or the flagship
+     copy is crushed into a ~220px measure beside a dead gutter. */
+  .row,
+  .rowReversed .visual,
+  .rowReversed .copy,
+  .visual,
+  .copy {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  /* Grid tracks size to an item's min-content width: without min-width: 0
+     the 470px diagram below would widen its track (and every sibling in the
+     row) past the viewport, clipping the copy mid-word. */
+  .visual,
+  .copy {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Evidence reads first on mobile: copy, then the diagram beneath. */
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .visual {
+    order: 2;
+  }
+
+  .copy {
+    order: 1;
+  }
+
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  /* Diagram labels are the point — below ~470px they stop being legible, so
+     the plate pans instead of shrinking (an annotated print, not texture).
+     The frame — not the grid track — owns the overflow. */
+  .diagramFrame {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .diagramFrame svg {
+    min-width: 470px;
+  }
+}

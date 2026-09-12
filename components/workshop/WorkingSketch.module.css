@@ -1,0 +1,447 @@
+/* Scene 2 — Lab. A bench (the interactive tree) and a ledger (the diagram
+   derived from the same state). Panel styling is hairline + paper-deep;
+   selection is clay; nothing glows. */
+
+.section {
+  position: relative;
+  padding-block: var(--ws-scene) 0;
+}
+
+.intro {
+  max-width: 58ch;
+  line-height: 1.7;
+  color: var(--ws-ink-soft);
+  margin-bottom: clamp(36px, 5vw, 56px);
+}
+
+/* Field label hung in the right margin — the bench is signed like the hero's
+   latitude note, so the scene head is not a one-sided beat. */
+/* Margin field label — writing-mode: vertical-rl (no rotate/translate math;
+   the rotated box sheared the string off the document edge), top cleared
+   below the fixed nav via max(). */
+.marginNote {
+  position: absolute;
+  right: calc(var(--ws-margin) / 3.2);
+  top: max(45%, 168px);
+  writing-mode: vertical-rl;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+/* Screen-reader confirmation channel for successful moves. */
+.liveRegion {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ————— resting state: static explanation + invitation ————— */
+
+.resting {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+  border: 1px solid var(--ws-line);
+  border-radius: 2px;
+  background-color: var(--ws-paper-deep);
+  padding: clamp(24px, 4vw, 48px);
+}
+
+.restingStory {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.restingCopy {
+  line-height: 1.7;
+  color: var(--ws-ink-soft);
+  max-width: 44ch;
+}
+
+.restingCopy strong {
+  color: var(--ws-ink);
+  font-weight: 600;
+}
+
+.restingDiagram {
+  border-left: 1px solid var(--ws-line);
+  padding-left: clamp(24px, 4vw, 56px);
+}
+
+.beforeAfter {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.baArrow {
+  color: var(--ws-clay);
+  font-size: 1.3rem;
+}
+
+.chain {
+  margin-top: 8px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.9;
+  color: var(--ws-ink);
+  white-space: nowrap;
+}
+
+.moved {
+  color: var(--ws-clay);
+}
+
+/* ————— active state: bench + ledger ————— */
+
+.bench {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+
+.treePanel,
+.ledger {
+  border: 1px solid var(--ws-line);
+  border-radius: 2px;
+  background-color: var(--ws-paper-deep);
+  padding: clamp(18px, 2.6vw, 30px);
+}
+
+.ledger {
+  background-color: var(--ws-paper);
+}
+
+.panelHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.keyHint {
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  color: var(--ws-ink-faint);
+}
+
+.tree {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 44px;
+  padding: 10px 14px;
+  background: var(--ws-paper);
+  border: 1px solid var(--ws-line);
+  border-radius: 2px;
+  font-family: var(--ws-font-sans);
+  font-size: 0.9rem;
+  color: var(--ws-ink-soft);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--ws-fast) var(--ws-ease-out),
+    color var(--ws-fast) var(--ws-ease-out),
+    background var(--ws-fast) var(--ws-ease-out);
+}
+
+.taskGroup .taskLabel {
+  font-weight: 600;
+  color: var(--ws-ink);
+}
+
+.task:hover {
+  border-color: var(--ws-line-strong);
+  color: var(--ws-ink);
+}
+
+.taskSelected {
+  border-color: var(--ws-clay);
+  color: var(--ws-ink);
+  background: rgba(161, 79, 53, 0.06);
+}
+
+/* A committed move settles audibly-visibly: one sun-tinted breath, 240ms,
+   so the change is felt even before the ledger updates are read. */
+@keyframes ws-settle {
+  0% {
+    transform: translateX(-3px);
+    background: rgba(217, 170, 69, 0.22);
+  }
+  100% {
+    transform: none;
+    background: var(--ws-paper);
+  }
+}
+
+.taskMoved {
+  animation: ws-settle 240ms var(--ws-ease-out);
+}
+
+.taskLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.taskSelected .taskLabel::before {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border-radius: 5px 5px 0 0;
+  background: var(--ws-clay);
+}
+
+.taskParent {
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+  flex-shrink: 0;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 13px;
+  background: none;
+  border: 1px solid var(--ws-line-strong);
+  border-radius: 2px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.8125rem;
+  color: var(--ws-ink);
+  cursor: pointer;
+  transition:
+    background var(--ws-fast) var(--ws-ease-out),
+    border-color var(--ws-fast) var(--ws-ease-out);
+}
+
+.controls button span {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+.controls button:hover:not(:disabled) {
+  background: rgba(23, 60, 50, 0.06);
+  border-color: var(--ws-ink);
+}
+
+.controls button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.controlGap {
+  flex-grow: 1;
+}
+
+.blocked {
+  min-height: 1.5em;
+  margin-top: 14px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+  color: var(--ws-clay);
+}
+
+/* ————— the ledger ————— */
+
+.ledgerMeta {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.ledgerMeta + .moveJson {
+  margin-top: 0;
+}
+
+.chainDiagram {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-bottom: 22px;
+}
+
+.chainNodeWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.chainLink {
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  color: var(--ws-ink-faint);
+  padding-left: 20px;
+  line-height: 1.4;
+}
+
+.chainNode {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  border: 1px solid var(--ws-line-strong);
+  border-radius: 2px;
+  background: var(--ws-paper);
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  color: var(--ws-ink);
+}
+
+.chainNode em {
+  font-style: normal;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+.chainNodeSelected {
+  border-color: var(--ws-clay);
+  box-shadow: inset 3px 0 0 var(--ws-clay);
+}
+
+.moveJson {
+  margin-top: 10px;
+  padding: 14px 16px;
+  background: var(--ws-ink);
+  color: rgba(243, 238, 220, 0.88);
+  border-radius: 2px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+
+.invariant {
+  margin-top: 18px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--ws-ink-soft);
+  border-top: 1px solid var(--ws-line);
+  padding-top: 14px;
+}
+
+.invariant strong {
+  color: var(--ws-clay);
+  font-weight: 600;
+}
+
+.ledger .quietLink {
+  margin-top: 18px;
+  background: none;
+  cursor: pointer;
+}
+
+/* ————— other rooms ————— */
+
+.otherRooms {
+  margin-top: clamp(40px, 6vw, 64px);
+  border-top: 1px solid var(--ws-line);
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.roomLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 36px;
+  font-size: 0.95rem;
+}
+
+.serial {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+@media (max-width: 900px) {
+  .resting {
+    grid-template-columns: 1fr;
+  }
+
+  .restingDiagram {
+    border-left: 0;
+    border-top: 1px solid var(--ws-line);
+    padding-left: 0;
+    padding-top: 24px;
+  }
+
+  /* Before/after read vertically on small screens — the nowrap mono tree
+     lines must never be squeezed into clipped 1fr columns. */
+  .beforeAfter {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .baArrow {
+    transform: rotate(90deg);
+    justify-self: start;
+    font-size: 1.1rem;
+  }
+
+  .bench {
+    grid-template-columns: 1fr;
+  }
+
+  /* Parent labels must never crush the task title on a 360px bench. */
+  .task {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .marginNote {
+    display: none;
+  }
+}
+
+/* The serial machine glyph rides the text baseline. */
+.serialGlyph {
+  display: inline-block;
+  vertical-align: -1px;
+  margin-right: 6px;
+  opacity: 0.75;
+}

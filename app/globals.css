@@ -370,3 +370,149 @@ html.lenis {
 .animate-light-leak {
   animation: light-leak-drift 28s ease-in-out infinite;
 }
+
+/* ============================================================
+   Tomorrow's Workshop — homepage design tokens (scoped)
+   Contract: docs/workshop/ART_DIRECTION.md. Do not use --ws-*
+   tokens outside the workshop homepage.
+   ============================================================ */
+.workshop-page {
+  /* palette */
+  --ws-paper: #f3eedc;
+  --ws-paper-deep: #ece5cc;
+  --ws-ink: #173c32;
+  --ws-ink-soft: rgba(23, 60, 50, 0.74);
+  --ws-ink-faint: rgba(23, 60, 50, 0.55);
+  --ws-leaf: #587457;
+  --ws-clay: #a14f35;
+  --ws-sun: #d9aa45;
+  --ws-sky: #d5e4dc;
+  --ws-line: rgba(23, 60, 50, 0.14);
+  --ws-line-strong: rgba(23, 60, 50, 0.32);
+
+  /* type */
+  --ws-font-serif: var(--font-editorial), Georgia, "Times New Roman", serif;
+  --ws-font-sans: var(--font-body);
+  --ws-font-mono: var(--font-data), ui-monospace, monospace;
+
+  /* rhythm */
+  --ws-margin: clamp(20px, 5vw, 72px);
+  --ws-max: 1440px;
+  --ws-scene: clamp(96px, 12vw, 176px);
+
+  /* motion */
+  --ws-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ws-ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ws-fast: 180ms;
+  --ws-med: 320ms;
+  --ws-slow: 700ms;
+
+  background: var(--ws-paper);
+  color: var(--ws-ink);
+  font-family: var(--ws-font-sans);
+  min-height: 100vh;
+}
+
+/* Morning light owns the overscroll glow on this page only. */
+html:has(.workshop-page) {
+  background: var(--ws-paper);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.workshop-page) {
+    /* Lenis is scoped off this route; anchor hops can feel natural again. */
+    scroll-behavior: smooth;
+  }
+}
+
+/* Restore the native scrollbar the dark archive hides. */
+html:has(.workshop-page)::-webkit-scrollbar {
+  display: block;
+  width: 11px;
+}
+html:has(.workshop-page)::-webkit-scrollbar-track {
+  background: var(--ws-paper);
+}
+html:has(.workshop-page)::-webkit-scrollbar-thumb {
+  background: rgba(23, 60, 50, 0.28);
+  border: 3px solid var(--ws-paper);
+  border-radius: 6px;
+}
+
+/* Selected text: sun, not signal-orange. */
+.workshop-page ::selection {
+  background: var(--ws-sun);
+  color: var(--ws-ink);
+}
+
+/* Designed focus, not defaulted focus. */
+.workshop-page :focus-visible {
+  outline: 2px solid var(--ws-clay);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Shared reveal grammar — mounted by <Reveal />, settles once and stays. */
+.ws-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity var(--ws-slow) var(--ws-ease-out),
+    transform var(--ws-slow) var(--ws-ease-out);
+  transition-delay: var(--ws-reveal-delay, 0ms);
+}
+.ws-reveal[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Workshop-wide neutralization, not just the reveals: every transition
+     and keyframe the scenes ship (settle breath, breeze drift, arrow slides,
+     marquee) collapses to an instant state change. Movement dies; the
+     information survives. */
+  .workshop-page *,
+  .workshop-page *::before,
+  .workshop-page *::after {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  .ws-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Zero-height hash-destination aliases (pre-redesign links). */
+.ws-anchor-alias {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  scroll-margin-top: 96px;
+}
+
+/* Skip link — appears for keyboard users only. */
+.ws-skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  padding: 10px 16px;
+  background: var(--ws-ink, #173c32);
+  color: var(--ws-paper, #f3eedc);
+  font-family: var(--ws-font-mono, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 2px;
+  transform: translateY(-200%);
+  transition: transform 150ms ease-out;
+}
+
+.ws-skip-link:focus-visible {
+  transform: none;
+}

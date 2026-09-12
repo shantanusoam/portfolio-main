@@ -1,0 +1,224 @@
+.nav {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 60;
+  transition:
+    background var(--ws-med) var(--ws-ease-out),
+    box-shadow var(--ws-med) var(--ws-ease-out);
+}
+
+.navScrolled {
+  /* Fully opaque paper — no glassmorphism (ART_DIRECTION.md §9 bans it),
+     no per-frame backdrop-filter cost, and body text never reads through. */
+  background: var(--ws-paper);
+  box-shadow: 0 1px 0 var(--ws-line);
+}
+
+/* Scroll sentinel for the scrolled state: observed by IntersectionObserver,
+   so anchor jumps, print and history restores behave like real scrolls. */
+.sentinel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.inner {
+  max-width: var(--ws-max);
+  margin-inline: auto;
+  padding: 14px var(--ws-margin);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.wordmark {
+  font-family: var(--ws-font-serif);
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ws-ink);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notch {
+  width: 13px;
+  height: 7px;
+  border-radius: 7px 7px 0 0;
+  background: var(--ws-sun);
+  transition: background var(--ws-fast) var(--ws-ease-out);
+}
+
+.wordmark:hover .notch {
+  background: var(--ws-clay);
+}
+
+.links {
+  display: flex;
+  gap: clamp(18px, 2.6vw, 34px);
+}
+
+.link {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ws-ink-soft);
+  text-decoration: none;
+  padding: 10px 0;
+  position: relative;
+  transition: color var(--ws-fast) var(--ws-ease-out);
+}
+
+/* The underline arrives deliberately — grown from the left, with the label
+   shifting a hair toward the reader. */
+.link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  width: 100%;
+  height: 1px;
+  background: var(--ws-clay);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--ws-med) var(--ws-ease-out);
+}
+
+.link:hover {
+  color: var(--ws-ink);
+}
+
+.link:hover::after {
+  transform: scaleX(1);
+}
+
+.utility {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.menuButton {
+  display: none;
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ws-ink);
+  background: none;
+  border: 1px solid var(--ws-line-strong);
+  border-radius: 2px;
+  padding: 10px 14px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+/* ————— mobile menu: a quiet paper sheet, serif and unhurried ————— */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--ws-paper);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--ws-margin);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--ws-med) var(--ws-ease-out),
+    visibility 0s linear var(--ws-med);
+}
+
+.menuOpen {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.menuList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menuLink,
+.menuCv {
+  font-family: var(--ws-font-serif);
+  font-size: clamp(2.2rem, 9vw, 3.4rem);
+  line-height: 1.15;
+  color: var(--ws-ink);
+  text-decoration: none;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 6px 0;
+  transform: translateY(14px);
+  opacity: 0;
+  transition:
+    transform var(--ws-slow) var(--ws-ease-out),
+    opacity var(--ws-slow) var(--ws-ease-out);
+}
+
+.menuOpen .menuLink,
+.menuOpen .menuCv {
+  transform: none;
+  opacity: 1;
+}
+
+.menuLink:hover {
+  color: var(--ws-clay);
+}
+
+.menuIndex {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  color: var(--ws-ink-faint);
+}
+
+.menuCv {
+  font-size: 1.4rem;
+  color: var(--ws-clay);
+}
+
+.menuMeta {
+  margin-top: 40px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+@media (max-width: 760px) {
+  .links {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .utility {
+    gap: 14px;
+  }
+}
+
+@media (min-width: 761px) {
+  .menu,
+  .menuOpen {
+    display: none;
+  }
+}

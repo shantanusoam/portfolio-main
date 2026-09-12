@@ -1,0 +1,158 @@
+/* Scene 5 — Contact. The quiet finale: oversized statement, one huge email
+   route, plain metadata. The footer keeps the honesty contract of the page. */
+
+.section {
+  position: relative;
+  padding-block: var(--ws-scene) 0;
+}
+
+/* Closing field label — the workshop signs off in its own hand, and the
+   scene's right margin carries a beat instead of bare paper.
+   writing-mode: vertical-rl (no rotate/translate math — the rotated box's
+   origin math sheared the string off the document edge); top uses max() so
+   the label starts below the fixed nav even on short viewports. */
+.marginNote {
+  position: absolute;
+  right: calc(var(--ws-margin) / 3.2);
+  top: max(45%, 168px);
+  writing-mode: vertical-rl;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+@media (max-width: 900px) {
+  .marginNote {
+    display: none;
+  }
+}
+
+/* A last painterly echo before the sign-off: the master's jaali-shadow
+   floor as a wide, quiet band. Captioned as a detail of the illustration —
+   the honesty contract holds for crops too. */
+.jaaliBand {
+  margin-bottom: clamp(36px, 5vw, 56px);
+}
+
+.jaaliBandFrame {
+  position: relative;
+  height: clamp(90px, 16vw, 170px);
+  border: 1px solid var(--ws-line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.jaaliBandCaption {
+  margin-top: 8px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+.statement {
+  font-family: var(--ws-font-serif);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 3.4vw, 2.8rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--ws-ink);
+  max-width: 34ch;
+  margin-bottom: clamp(40px, 6vw, 64px);
+  text-wrap: balance;
+}
+
+.statement em {
+  font-style: italic;
+  color: var(--ws-clay);
+}
+
+.email {
+  display: inline-flex;
+  flex-wrap: wrap; /* the arrow may drop below on very narrow phones */
+  align-items: center;
+  gap: 18px;
+  font-family: var(--ws-font-serif);
+  font-style: italic;
+  font-size: clamp(1.3rem, 3.6vw, 2.6rem);
+  color: var(--ws-ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ws-line-strong);
+  padding-bottom: 8px;
+  /* The 29-character @-run must be allowed to break at 320px — the brief's
+     own narrowest wrap-test width — or the address amputates past the
+     hidden-overflow root. */
+  overflow-wrap: anywhere;
+  transition:
+    color var(--ws-med) var(--ws-ease-out),
+    border-color var(--ws-med) var(--ws-ease-out);
+}
+
+@media (max-width: 360px) {
+  .email {
+    font-size: 1.125rem;
+  }
+}
+
+.email:hover {
+  color: var(--ws-clay);
+  border-color: var(--ws-clay);
+}
+
+.emailArrow {
+  font-style: normal;
+  transition: transform var(--ws-med) var(--ws-ease-out);
+}
+
+.email:hover .emailArrow {
+  transform: translateX(8px);
+}
+
+.footerRow {
+  margin-top: clamp(40px, 6vw, 72px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 40px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.socials {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.availability {
+  max-width: 46ch;
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.9;
+  color: var(--ws-ink-faint);
+}
+
+.footer {
+  margin-top: clamp(72px, 10vw, 140px);
+  border-top: 1px solid var(--ws-line);
+  padding-block: 26px 34px;
+}
+
+.footerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+.footerMeta span[aria-hidden="true"] {
+  color: var(--ws-sun);
+}

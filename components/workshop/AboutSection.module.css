@@ -1,0 +1,145 @@
+/* Scene 4 — About. Approach prose left; the employment record as a quiet
+   right-hand index, like the margin column of a field notebook. */
+
+.section {
+  padding-block: var(--ws-scene) 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+
+.approach {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.approachLead {
+  font-family: var(--ws-font-serif);
+  font-style: italic;
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+  line-height: 1.35;
+  color: var(--ws-ink);
+  max-width: 30ch;
+}
+
+.approach p:not(.approachLead) {
+  max-width: 54ch;
+  line-height: 1.7;
+  color: var(--ws-ink-soft);
+}
+
+.availability {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.9;
+  color: var(--ws-ink-faint);
+  border-top: 1px solid var(--ws-line);
+  padding-top: 14px;
+}
+
+/* ————— the record ————— */
+
+.record .monoMeta {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.jobs {
+  list-style: none;
+}
+
+.job {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 18px;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--ws-line);
+  text-decoration: none;
+  transition: padding-left var(--ws-med) var(--ws-ease-out);
+}
+
+.job:hover {
+  padding-left: 8px;
+}
+
+.jobPeriod {
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+  padding-top: 4px;
+  white-space: nowrap;
+}
+
+.jobMain {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.jobMain strong {
+  font-family: var(--ws-font-serif);
+  font-weight: 500;
+  font-size: 1.15rem;
+  color: var(--ws-ink);
+}
+
+.jobMain em {
+  font-style: normal;
+  font-size: 0.8125rem;
+  color: var(--ws-clay);
+}
+
+.jobProof {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ws-ink-faint);
+}
+
+.recordNote {
+  margin-top: 16px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  line-height: 1.8;
+  color: var(--ws-ink-faint);
+}
+
+/* A painterly echo mid-page: a captioned detail crop of the courtyard
+   master, anchored to the "objects taken apart" paragraph. Captioned as a
+   detail of the illustration — the honesty contract holds. */
+.still {
+  margin-block: 30px 6px;
+}
+
+.stillFrame {
+  position: relative;
+  aspect-ratio: 5 / 3;
+  border: 1px solid var(--ws-line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stillCaption {
+  margin-top: 8px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

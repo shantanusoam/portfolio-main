@@ -1,0 +1,246 @@
+/* Shared visual grammar for the workshop homepage.
+   Contract: docs/workshop/ART_DIRECTION.md — hairlines over boxes, mono
+   field labels, one easing family, sun-notch as the recurring mark. */
+
+.container {
+  max-width: var(--ws-max);
+  margin-inline: auto;
+  padding-inline: var(--ws-margin);
+}
+
+/* ————— scene header ————— */
+
+.sceneHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: clamp(40px, 6vw, 72px);
+}
+
+.sceneIndex {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+/* The sun-notch: the doorway silhouette, repeated quietly everywhere. */
+.notch {
+  display: inline-block;
+  width: 15px;
+  height: 8px;
+  border-radius: 8px 8px 0 0;
+  background: var(--ws-sun);
+  flex-shrink: 0;
+}
+
+/* The jaali wash: the lattice as a whisper on quiet panels — the texture
+   contract from ART_DIRECTION.md §3, so the workshop never fully dissolves
+   into typography. */
+/* The page-wide quiet-panel texture — the jaali lattice at a whisper. Keep
+   stroke-opacity in sync with frameStyle in work-diagrams.tsx (same tile,
+   same value): round 2 ruled 0.045 imperceptible at rest. */
+.panelJaali {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath d='M0 26L26 0M0 0l26 26' stroke='%23173C32' stroke-opacity='0.08' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 26px 26px;
+}
+
+.sceneIndex::after {
+  content: "";
+  width: clamp(48px, 8vw, 120px);
+  height: 1px;
+  background: var(--ws-line);
+}
+
+.sceneTitle {
+  font-family: var(--ws-font-serif);
+  font-weight: 400;
+  font-size: clamp(2.1rem, 4.6vw, 3.9rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  max-width: 21ch;
+  text-wrap: balance;
+}
+
+.sceneTitle em {
+  font-style: italic;
+  color: var(--ws-clay);
+}
+
+/* Variation A: the clause stays hopeful but speaks in ink — used sparingly
+   (scenes 03, 04) so the clay italic remains an emphasis, not a formula. */
+.sceneTitleInk em {
+  color: var(--ws-ink);
+}
+
+/* Variation B: the opening starts deeper in the grid — one or two columns —
+   so consecutive scenes never share an identical x-position on desktop. */
+@media (min-width: 901px) {
+  .sceneShift1 {
+    margin-left: 8.333%;
+  }
+
+  .sceneShift2 {
+    margin-left: 16.667%;
+  }
+}
+
+/* ————— actions ————— */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 22px;
+  background: var(--ws-ink);
+  color: var(--ws-paper);
+  font-family: var(--ws-font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    background var(--ws-fast) var(--ws-ease-out),
+    transform var(--ws-fast) var(--ws-ease-out);
+}
+
+/* Hover: the jaali lattice surfaces — the workshop's texture, not a glow. */
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: conic-gradient(
+    from 45deg,
+    transparent 0 6px,
+    rgba(243, 238, 220, 0.14) 6px 7px,
+    transparent 7px 14px
+  );
+  background-size: 14px 14px;
+  opacity: 0;
+  transition: opacity var(--ws-med) var(--ws-ease-out);
+}
+
+.btn:hover {
+  background: #1f4c3f;
+}
+
+.btn:hover::after {
+  opacity: 1;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btnArrow {
+  transition: transform var(--ws-fast) var(--ws-ease-out);
+}
+
+.btn:hover .btnArrow {
+  transform: translateX(4px);
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid var(--ws-line-strong);
+  color: var(--ws-ink);
+  font-family: var(--ws-font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 2px;
+  transition:
+    border-color var(--ws-fast) var(--ws-ease-out),
+    background var(--ws-fast) var(--ws-ease-out);
+}
+
+.btnGhost:hover {
+  border-color: var(--ws-ink);
+  background: rgba(23, 60, 50, 0.05);
+}
+
+/* Quiet utility (CV): a text link, not a button. */
+.quietLink {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ws-ink-soft);
+  border-bottom: 1px solid var(--ws-line);
+  padding-bottom: 3px;
+  transition:
+    color var(--ws-fast) var(--ws-ease-out),
+    border-color var(--ws-fast) var(--ws-ease-out);
+}
+
+.quietLink:hover {
+  color: var(--ws-clay);
+  border-color: var(--ws-clay);
+}
+
+/* ————— inline link: underline grows from the left ————— */
+
+.uLink {
+  position: relative;
+  color: var(--ws-clay);
+  text-decoration: none;
+}
+
+.uLink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: var(--ws-clay);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--ws-med) var(--ws-ease-out);
+}
+
+.uLink:hover::after,
+.uLink:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ————— field notes / metadata ————— */
+
+.monoMeta {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+.hairline {
+  border: 0;
+  height: 1px;
+  background: var(--ws-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn::after,
+  .btnArrow,
+  .uLink::after {
+    transition: none;
+  }
+}

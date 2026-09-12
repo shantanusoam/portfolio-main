@@ -1,35 +1,27 @@
-import type { Metadata } from "next";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import AboutStudioSection from "@/components/AboutStudioSection";
-import Experience from "@/components/Experience";
-import Projects from "@/components/Projects";
-import PatternLibrary from "@/components/PatternLibrary";
-import PretextCopyLab from "@/components/PretextCopyLab";
-import ComboMeter from "@/components/ComboMeter";
-import MakerLab from "@/components/MakerLab";
-import Hobbies from "@/components/Hobbies";
-import Contact from "@/components/Contact";
-import Footer from "@/components/Footer";
-import ProofStrip from "@/components/home/ProofStrip";
-import CurrentPosition from "@/components/home/CurrentPosition";
-import FlagshipCaseStudies from "@/components/home/FlagshipCaseStudies";
-import SystemsLabPreview from "@/components/home/SystemsLabPreview";
-import LatestNotes from "@/components/home/LatestNotes";
-import CredibilityPanel from "@/components/home/CredibilityPanel";
-import ContactAvailability from "@/components/home/ContactAvailability";
-import HomeInteractiveLayer from "@/components/home/HomeInteractiveLayer";
-import HomeSideChrome from "@/components/home/HomeSideChrome";
-import HomeSignalDivider from "@/components/home/HomeSignalDivider";
-import BuildInfoFooter from "@/components/home/BuildInfoFooter";
-import LivingIndex from "@/components/home/LivingIndex";
-import ProofJourneyMotion from "@/components/home/ProofJourneyMotion";
+import type { Metadata, Viewport } from "next";
+import AboutSection from "@/components/workshop/AboutSection";
+import FieldNotes from "@/components/workshop/FieldNotes";
+import SelectedWork from "@/components/workshop/SelectedWork";
+import WorkshopContact from "@/components/workshop/WorkshopContact";
+import WorkshopHero from "@/components/workshop/WorkshopHero";
+import WorkshopNav from "@/components/workshop/WorkshopNav";
+import WorkingSketch from "@/components/workshop/WorkingSketch";
 
+/**
+ * Tomorrow's Workshop — the six-scene homepage (brief §4).
+ * Native scrolling, stable identity, one contained illustration, one
+ * working sketch. Old hash destinations are preserved as zero-height
+ * aliases so pre-redesign links keep working.
+ */
 export const metadata: Metadata = {
-  title: "Shantanu Soam — Creative Systems Engineer",
+  title: "Shantanu Soam — Useful software. A future worth building.",
   description:
-    "A playful portfolio of product engineering, interactive systems, measurable outcomes, writing, and original experiments.",
+    "Full-stack engineer and creative technologist building business software, interactive tools and playful experiments. Selected work, a working sketch, field notes and a direct route to contact.",
   alternates: { canonical: "/" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#F3EEDC",
 };
 
 const jsonLd = {
@@ -40,7 +32,9 @@ const jsonLd = {
       "@id": "https://shantanusoam.vercel.app/#person",
       name: "Shantanu Soam",
       url: "https://shantanusoam.vercel.app",
-      jobTitle: "Creative Systems Engineer",
+      jobTitle: "Full-stack Engineer & Creative Technologist",
+      description:
+        "Builds business software, interactive tools and playful experiments; keeps useful systems running and legible.",
       sameAs: [
         "https://github.com/shantanusoam",
         "https://www.linkedin.com/in/shantanu007/",
@@ -50,73 +44,66 @@ const jsonLd = {
         "React",
         "TypeScript",
         "Interactive systems",
+        "Procedural animation",
         "AI agents",
-        "Canvas animation",
       ],
     },
     {
       "@type": "ProfilePage",
-      name: "Shantanu Soam — Creative Systems Engineer",
+      name: "Shantanu Soam — Useful software. A future worth building.",
       url: "https://shantanusoam.vercel.app",
       mainEntity: { "@id": "https://shantanusoam.vercel.app/#person" },
     },
   ],
 };
 
+/** Zero-height alias for a pre-redesign hash link (brief §13). */
+function AnchorAlias({ id }: { id: string }) {
+  return <span id={id} aria-hidden="true" className="ws-anchor-alias" />;
+}
+
 export default function Home() {
   return (
-    <>
+    <div className="workshop-page">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeInteractiveLayer />
-      <ProofJourneyMotion />
-      <Navbar />
-      <HomeSideChrome />
+      {/* Without JS, the reveal grammar must never hide content. */}
+      <noscript>
+        <style>{`.ws-reveal{opacity:1 !important;transform:none !important}`}</style>
+      </noscript>
+      <a href="#work" className="ws-skip-link">
+        Skip to the work
+      </a>
+      <WorkshopNav />
+      <main>
+        <WorkshopHero />
 
-      <main className="text-clip">
-        <div className="container">
-          <Hero masked={false} />
-        </div>
+        {/* old destinations → new scenes */}
+        <AnchorAlias id="hero" />
+        <AnchorAlias id="proof" />
+        <AnchorAlias id="mission-select" />
+        <AnchorAlias id="case-studies" />
+        <SelectedWork />
 
-        <ProofStrip />
+        <AnchorAlias id="maker-lab" />
+        <AnchorAlias id="living-index" />
+        <AnchorAlias id="signal-room" />
+        <WorkingSketch />
 
-        <CurrentPosition />
-        <LivingIndex />
-        <FlagshipCaseStudies />
+        <AnchorAlias id="field-notes" />
+        <AnchorAlias id="latest-notes" />
+        <FieldNotes />
 
-        <div className="container">
-          <AboutStudioSection />
-          <Experience />
-          <Projects />
-        </div>
+        <AnchorAlias id="about" />
+        <AnchorAlias id="trail-map" />
+        <AnchorAlias id="pattern-library" />
+        <AboutSection />
 
-        <div className="container">
-          <PatternLibrary />
-          <PretextCopyLab />
-          <ComboMeter />
-          <MakerLab />
-        </div>
-
-        <SystemsLabPreview />
-
-        <div className="container">
-          <Hobbies />
-        </div>
-
-        <LatestNotes />
-        <CredibilityPanel />
-        <HomeSignalDivider />
-        <ContactAvailability />
-
-        <div className="container">
-          <Contact />
-          <Footer />
-        </div>
-
-        <BuildInfoFooter />
+        <AnchorAlias id="contact" />
+        <WorkshopContact />
       </main>
-    </>
+    </div>
   );
 }

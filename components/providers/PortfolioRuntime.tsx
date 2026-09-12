@@ -20,13 +20,22 @@ export default function PortfolioRuntime({
 }) {
   const pathname = usePathname();
   if (pathname.startsWith("/arcade/")) return <>{children}</>;
+
+  // Tomorrow's Workshop homepage runs its own quiet visual system: native
+  // scrolling (no Lenis), no ambient canvas, no mascot, no cursor takeover —
+  // per the redesign brief §7/§13. Everything remains on other routes.
+  const isWorkshopHome = pathname === "/";
   return (
     <CommandPaletteProvider entries={entries}>
-      <PageAtmosphere />
-      <PageScrollProgress />
-      <ProceduralMascotLoader />
-      <SoundroomNub />
-      <SmoothScrollProvider>{children}</SmoothScrollProvider>
+      {isWorkshopHome ? null : <PageAtmosphere />}
+      {isWorkshopHome ? null : <PageScrollProgress />}
+      {isWorkshopHome ? null : <ProceduralMascotLoader />}
+      {isWorkshopHome ? null : <SoundroomNub />}
+      {isWorkshopHome ? (
+        children
+      ) : (
+        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+      )}
     </CommandPaletteProvider>
   );
 }

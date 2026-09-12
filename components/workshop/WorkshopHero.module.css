@@ -1,0 +1,233 @@
+/* Scene 0 — Introduction. Composition is deliberately asymmetric: the
+   statement owns columns 1–8, the courtyard starts inside column 7 and is
+   pushed down so its baseline breaks the copy column's grid line. */
+
+.hero {
+  position: relative;
+  padding-top: clamp(112px, 16vh, 160px);
+  padding-bottom: clamp(32px, 4vh, 56px);
+}
+
+.grid {
+  max-width: var(--ws-max);
+  margin-inline: auto;
+  padding-inline: var(--ws-margin);
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: clamp(20px, 3vw, 44px);
+  align-items: start;
+}
+
+.copy {
+  grid-column: 1 / 8;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(20px, 3vh, 30px);
+  padding-top: clamp(8px, 4vh, 56px);
+}
+
+.eyebrow {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+.eyebrow span {
+  color: var(--ws-sun);
+}
+
+.headline {
+  font-family: var(--ws-font-serif);
+  font-weight: 400;
+  font-size: clamp(2.7rem, 6vw, 5.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.018em;
+  color: var(--ws-ink);
+  max-width: 14ch;
+  text-wrap: balance;
+}
+
+/* The hopeful clause speaks in italics — meaning, not decoration. Set on
+   its own line so no lone clay character can strand at a line's end. */
+.hope {
+  display: block;
+  font-style: italic;
+  color: var(--ws-clay);
+}
+
+.lede {
+  max-width: 46ch;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--ws-ink-soft);
+}
+
+.status {
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+  border-top: 1px solid var(--ws-line);
+  padding-top: 14px;
+}
+
+/* ————— the illustration ————— */
+
+.art {
+  grid-column: 7 / 13;
+  grid-row: 1; /* explicit: the copy column overlaps by one on purpose */
+  margin: 0;
+  position: relative;
+  margin-top: clamp(24px, 6vh, 64px);
+}
+
+.artFrame {
+  position: relative;
+  border: 1px solid var(--ws-line);
+  border-radius: 2px;
+  overflow: hidden;
+  /* The approved master's native 11:6 — presented uncropped, like a print. */
+  aspect-ratio: 11 / 6;
+  background: var(--ws-paper-deep);
+}
+
+.loop {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 58% 50%; /* keep the worktable in view on narrow crops */
+}
+
+/* Crop marks: the frame is presented like an approved print. */
+.cropTL,
+.cropBR {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.cropTL {
+  top: 8px;
+  left: 8px;
+  border-top: 1px solid var(--ws-line-strong);
+  border-left: 1px solid var(--ws-line-strong);
+}
+
+.cropBR {
+  bottom: 8px;
+  right: 8px;
+  border-bottom: 1px solid var(--ws-line-strong);
+  border-right: 1px solid var(--ws-line-strong);
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 10px;
+  font-family: var(--ws-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+.caption em {
+  font-style: normal;
+  color: var(--ws-clay);
+}
+
+.pause {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--ws-ink-soft);
+  background: none;
+  border: 1px solid var(--ws-line);
+  border-radius: 2px;
+  padding: 8px 12px;
+  min-height: 36px;
+  cursor: pointer;
+  transition:
+    border-color var(--ws-fast) var(--ws-ease-out),
+    color var(--ws-fast) var(--ws-ease-out);
+}
+
+.pause:hover {
+  border-color: var(--ws-ink);
+  color: var(--ws-ink);
+}
+
+.pauseDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ws-sun);
+}
+
+.pause[aria-pressed="true"] .pauseDot {
+  background: var(--ws-leaf);
+}
+
+/* Vertical margin annotation — a field label, read by turning the page. */
+/* Vertical latitude field note. writing-mode: vertical-rl instead of
+   rotate()+translate — the rotated box's origin math sheared the string off
+   the document top; vertical flow keeps it inside. top uses max() so the
+   label clears the fixed nav even on short viewports. */
+.vertNote {
+  position: absolute;
+  right: calc(var(--ws-margin) / 3.2);
+  top: max(46%, 168px);
+  writing-mode: vertical-rl;
+  font-family: var(--ws-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ws-ink-faint);
+}
+
+/* ————— mobile composition (brief §4): statement first, art as horizon ————— */
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+    row-gap: 36px;
+  }
+
+  .copy {
+    grid-column: auto;
+    grid-row: auto;
+    padding-top: 0;
+  }
+
+  .headline {
+    max-width: none;
+  }
+
+  .art {
+    grid-column: auto;
+    grid-row: auto;
+    margin-top: 0;
+  }
+
+  .artFrame {
+    /* The brief's mobile slot: 180–220 CSS px of courtyard. */
+    aspect-ratio: auto;
+    height: clamp(180px, 56vw, 220px);
+  }
+
+  .vertNote {
+    display: none;
+  }
+}
