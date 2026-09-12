@@ -1,4 +1,4 @@
-import type { Encounter, Sector } from "../types";
+import type { Encounter, Formation, Pickup, Sector } from "../types";
 
 const e = (
   at: number,
@@ -6,7 +6,7 @@ const e = (
   lane: number,
   count = 1,
 ): Encounter => ({ at, kind, lane, count });
-export const SECTORS: Sector[] = [
+const BASE_SECTORS: Sector[] = [
   {
     id: "silent-orbit",
     name: "Silent Orbit",
@@ -17,11 +17,11 @@ export const SECTORS: Sector[] = [
     duration: 78,
     transmission: "RECEIVER 01 / Follow the light. Do not trust the silence.",
     encounters: [
-      e(4, "scout", 0.35, 3),
-      e(12, "sentry", 0.4, 2),
-      e(20, "weapon", 0.55),
-      e(25, "scout", 0.65, 4),
-      e(33, "diver", 0.25, 2),
+      e(1.5, "scout", 0.5, 4),
+      e(8, "sentry", 0.5, 4),
+      e(16, "prism", 0.5, 4),
+      e(25, "diver", 0.5, 4),
+      e(33, "armored", 0.5, 3),
       e(43, "sentry", 0.65, 3),
       e(51, "corridor", 0.52),
       e(57, "scout", 0.5, 3),
@@ -134,3 +134,17 @@ export const SECTORS: Sector[] = [
     features: [],
   },
 ];
+
+const FORMATIONS: Formation[] = ["chevron", "wall", "weave", "pincer"];
+const REWARDS: Pickup["kind"][] = ["shield", "charge", "overdrive", "drone"];
+const supply = (at: number, drop: Pickup["kind"], lane = 0.5): Encounter => ({ at, kind: "supply", lane, drop });
+export const SECTORS: Sector[] = BASE_SECTORS.map((sector, index) => {
+  let squad = 0;
+  const encounters = sector.encounters.filter((wave) => wave.kind !== "weapon").map((wave): Encounter => {
+    if (["corridor", "current", "repair", "feather"].includes(wave.kind)) return wave;
+    const n = squad++;
+    return { ...wave, count: Math.min(6, (wave.count ?? 1) + (index > 0 ? 1 : 0)), formation: FORMATIONS[n % 4], drop: REWARDS[n % 4] };
+  });
+  encounters.push(supply(2, index === 0 ? "split" : "seeker"), supply(8.5, "shield"), supply(12, "rail"), supply(21, "overdrive"), supply(26, "seeker"), supply(36, "drone"), supply(47, "pulse"), supply(sector.duration - 9, "charge"));
+  return { ...sector, encounters: encounters.sort((a,b) => a.at-b.at) };
+});
