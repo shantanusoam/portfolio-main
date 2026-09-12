@@ -30,7 +30,20 @@ export const MINT_PALETTE = {
   4: "#c2dcb0",
 } as const;
 
-export type PresetName = "clean" | "pocket" | "worn";
+/** Emissive phosphor: bright collision silhouettes on a dark tube. */
+export const PHOSPHOR_PALETTE = {
+  1: "#c6ffc0",
+  2: "#70c97a",
+  3: "#275b3e",
+  4: "#07180f",
+} as const;
+export type ToneSet = Record<1 | 2 | 3 | 4, string>;
+export function toneRGB(hex: string): [number, number, number] {
+  return [1, 3, 5].map((offset) =>
+    parseInt(hex.slice(offset, offset + 2), 16),
+  ) as [number, number, number];
+}
+export type PresetName = "clean" | "pocket" | "worn" | "crt";
 
 export interface PresetConfig {
   /** LCD persistence time constant in ms; 0 disables history. */
@@ -50,7 +63,7 @@ export interface PresetConfig {
 export const PRESETS: Record<PresetName, PresetConfig> = {
   clean: {
     persistenceMs: 0,
-    cell: 0.05,
+    cell: 0.015,
     backlight: 0.35,
     reflection: 0,
     wear: 0,
@@ -58,15 +71,23 @@ export const PRESETS: Record<PresetName, PresetConfig> = {
   },
   pocket: {
     persistenceMs: 55,
-    cell: 0.14,
+    cell: 0.045,
     backlight: 0.6,
     reflection: 0.05,
     wear: 0,
     clearance: 1,
   },
+  crt: {
+    persistenceMs: 35,
+    cell: 0.1,
+    backlight: 0.2,
+    reflection: 0.025,
+    wear: 0,
+    clearance: 1,
+  },
   worn: {
     persistenceMs: 75,
-    cell: 0.16,
+    cell: 0.08,
     backlight: 0.7,
     reflection: 0.07,
     wear: 0.5,

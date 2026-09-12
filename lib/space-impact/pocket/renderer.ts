@@ -15,10 +15,8 @@ import type { Game, Input, Settings } from "../types";
 import {
   ART_HEIGHT,
   ART_WIDTH,
-  MINT_PALETTE,
-  POCKET_PALETTE,
   PRESETS,
-  TONE_RGB,
+  toneRGB,
   type PresetName,
   type Tone,
 } from "./palette";
@@ -43,7 +41,11 @@ export interface PocketPerf {
 }
 
 export interface PocketRenderer {
-  resize(availableWidth: number, availableHeight: number, dpr: number): FitResult;
+  resize(
+    availableWidth: number,
+    availableHeight: number,
+    dpr: number,
+  ): FitResult;
   render(
     game: Game,
     input: Input,
@@ -63,7 +65,7 @@ const RING = 240;
 export function createPocketRenderer(
   display: HTMLCanvasElement,
 ): PocketRenderer {
-  const atlas: Atlas = getAtlas("olive");
+  let atlas: Atlas = getAtlas("olive");
   const displayCtx = display.getContext("2d")!;
 
   const art = document.createElement("canvas");
@@ -104,6 +106,8 @@ export function createPocketRenderer(
   const burnCtx = burnCanvas.getContext("2d")!;
   const burnImage = burnCtx.createImageData(burn.cols, burn.rows);
 
+  const phosphorGlow = makeSurface();
+  const glowCtx = phosphorGlow.getContext("2d")!;
   const backlight = makeSurface();
   const cellMask = makeSurface();
   const wear = makeSurface();
@@ -122,8 +126,9 @@ export function createPocketRenderer(
   }
 
   function rebuildStaticLayers(): void {
-    const tone4 = TONE_RGB[4];
-    const tone2 = TONE_RGB[2];
+    atlas = getAtlas(preset === "crt" ? "phosphor" : paletteName);
+    const tone4 = toneRGB(atlas.palette[4]);
+    const tone2 = toneRGB(atlas.palette[2]);
     const config = PRESETS[preset];
     // Static low-frequency backlight: lit center, subtly darker edges.
     const bctx = backlight.getContext("2d")!;
@@ -143,7 +148,12 @@ export function createPocketRenderer(
       ART_WIDTH * 0.62,
     );
     const lift = Math.round((tone4[0] + 55) * config.backlight);
-    gradient.addColorStop(0, `rgba(${lift},${lift + 22},${lift - 30},0.34)`);
+    gradient.addColorStop(
+      0,
+      preset === "crt"
+        ? "rgba(35,90,48,0.25)"
+        : `rgba(${lift},${lift + 22},${lift - 30},0.34)`,
+    );
     gradient.addColorStop(1, "rgba(0,0,0,0)");
     gctx.fillStyle = gradient;
     gctx.fillRect(0, 0, ART_WIDTH, ART_HEIGHT);
@@ -168,12 +178,13 @@ export function createPocketRenderer(
     cellMask.height = fit.backingHeight;
     const cctx = cellMask.getContext("2d")!;
     cctx.clearRect(0, 0, cellMask.width, cellMask.height);
-    const ink = `rgba(${TONE_RGB[1].join(",")},1)`;
+    const ink = preset === "crt" ? "#020a06" : toneAt(1);
     const stepX = fit.backingWidth / ART_WIDTH;
     const stepY = fit.backingHeight / ART_HEIGHT;
     cctx.fillStyle = ink;
     cctx.globalAlpha = config.cell;
-    for (let cx = 0; cx < ART_WIDTH; cx++) {
+    const columns = preset === "crt" ? 0 : ART_WIDTH;
+    for (let cx = 0; cx < columns; cx++) {
       const left = Math.round(cx * stepX);
       const right = Math.round((cx + 1) * stepX);
       if (right - left >= 2) cctx.fillRect(right - 1, 0, 1, cellMask.height);
@@ -211,8 +222,7 @@ export function createPocketRenderer(
   }
 
   function toneAt(tone: Tone): string {
-    const set = paletteName === "mint" ? MINT_PALETTE : POCKET_PALETTE;
-    return set[tone as 1 | 2 | 3 | 4];
+    return atlas.palette[tone as 1 | 2 | 3 | 4];
   }
 
   function blitFrame(
@@ -263,17 +273,17 @@ export function createPocketRenderer(
   function drawScenery(game: Game, settings: Settings): void {
     const drift = settings.reducedMotion ? 0 : game.tick / 60;
     // Sparse drifting specks, far plane — dim, never competing with hazards.
-    ctx.fillStyle = toneAt(4);
+    ctx.fillStyle = toneAt(preset === "crt" ? 2 : 1);
     ctx.globalAlpha = 0.3;
     for (let i = 0; i < 16; i++) {
       const seed = Math.sin(i * 12.9898) * 43758.5453;
       const y = Math.floor((seed - Math.floor(seed)) * (ART_HEIGHT - 24)) + 6;
       const x =
-        ((((i * 149) % (ART_WIDTH + 12)) - drift * (2 + (i % 3))) %
-          (ART_WIDTH + 12) +
+        ((((((i * 149) % (ART_WIDTH + 12)) - drift * (2 + (i % 3))) %
+          (ART_WIDTH + 12)) +
           ART_WIDTH +
           12) %
-          (ART_WIDTH + 12) -
+          (ART_WIDTH + 12)) -
         6;
       ctx.fillRect(Math.round(x), y, 1, 1);
     }
@@ -286,7 +296,8 @@ export function createPocketRenderer(
       const amp = far ? 9 : 5;
       const speed = far ? 6 : 11;
       const density = far ? 0.05 : 0.085;
-      ctx.fillStyle = toneAt(far ? 3 : 2);
+      ctx.fillStyle = toneAt(preset === "crt" ? 3 : far ? 3 : 2);
+      ctx.globalAlpha = preset === "crt" && far ? 0.5 : 1;
       for (let x = 0; x < ART_WIDTH; x++) {
         const t = (x + drift * speed) * density;
         const hump =
@@ -296,7 +307,8 @@ export function createPocketRenderer(
         const h = Math.max(1, Math.round(baseY + hump * amp));
         ctx.fillRect(x, h, 1, ART_HEIGHT - h);
       }
-      ctx.fillStyle = toneAt(1);
+      ctx.fillStyle = toneAt(preset === "crt" ? 2 : 1);
+      ctx.globalAlpha = preset === "crt" ? 0.55 : 1;
       for (let x = 0; x < ART_WIDTH; x++) {
         const t = (x + drift * speed) * density;
         const hump =
@@ -304,11 +316,13 @@ export function createPocketRenderer(
           Math.sin(t * 2.17 + 1.3) * 0.3 +
           Math.sin(t * 4.31 + 2.1) * 0.2;
         const h = Math.max(1, Math.round(baseY + hump * amp));
-        if ((x + Math.round(drift * speed)) % 2 === 0) ctx.fillRect(x, h - 1, 1, 1);
+        if ((x + Math.round(drift * speed)) % 2 === 0)
+          ctx.fillRect(x, h - 1, 1, 1);
       }
       if (game.sector % 2 === 1) {
         // Hanging silhouettes from the top on odd sectors.
-        ctx.fillStyle = toneAt(far ? 3 : 2);
+        ctx.fillStyle = toneAt(preset === "crt" ? 3 : far ? 3 : 2);
+        ctx.globalAlpha = preset === "crt" && far ? 0.5 : 1;
         for (let x = 0; x < ART_WIDTH; x++) {
           const t = (x + drift * speed * 1.3) * (density * 0.8);
           const dip = Math.sin(t + 0.7) * 0.5 + Math.sin(t * 2.71) * 0.5;
@@ -317,11 +331,14 @@ export function createPocketRenderer(
         }
       }
     }
+    ctx.globalAlpha = 1;
     // Cosmetic particles ride history, never the protected layer.
     if (!settings.lowEffects)
       for (const particle of game.particles) {
         ctx.globalAlpha = particle.life / particle.maxLife;
-        ctx.fillStyle = toneAt(particle.size > 2 ? 4 : 3);
+        ctx.fillStyle = toneAt(
+          particle.size > 2 ? (preset === "crt" ? 1 : 4) : 3,
+        );
         ctx.fillRect(
           Math.floor(particle.x / 2),
           Math.floor(particle.y / 2),
@@ -334,7 +351,7 @@ export function createPocketRenderer(
       ctx.fillStyle = toneAt(4);
       for (let i = 0; i < 6; i++)
         ctx.fillRect(
-          ((i * 39 + Math.floor(game.tick / 12) * 13) % ART_WIDTH) | 0,
+          (i * 39 + Math.floor(game.tick / 12) * 13) % ART_WIDTH | 0,
           i * 22,
           40,
           1,
@@ -350,7 +367,11 @@ export function createPocketRenderer(
       for (let x = -32; x <= 32; x++) {
         const d = Math.hypot(x, y * 1.05);
         if (d > 32) continue;
-        px2(x + cx, y + cy, d > 30 ? 1 : d > 24 ? ((x + y) % 4 ? 2 : 1) : (x + y) % 3 ? 3 : 4);
+        px2(
+          x + cx,
+          y + cy,
+          d > 30 ? 1 : d > 24 ? ((x + y) % 4 ? 2 : 1) : (x + y) % 3 ? 3 : 4,
+        );
       }
     for (let y = -32; y <= 32; y++)
       for (let x = -32; x <= 32; x++)
@@ -382,11 +403,11 @@ export function createPocketRenderer(
           continue;
         }
         // Freshly excited cells shimmer; refractory ones smolder.
-        const [r, g, b] = level === 1 ? TONE_RGB[3] : TONE_RGB[2];
+        const [r, g, b] = toneRGB(atlas.palette[level === 1 ? 3 : 2]);
         data[o] = r;
         data[o + 1] = g;
         data[o + 2] = b;
-        data[o + 3] = level === 1 ? 26 : 13;
+        data[o + 3] = level === 1 ? 7 : 4;
       }
       rotCtx.putImageData(rotImage, 0, 0);
       rotDirty = false;
@@ -402,11 +423,11 @@ export function createPocketRenderer(
         bd[o + 3] = 0;
         continue;
       }
-      const [r, g, b] = TONE_RGB[1];
+      const [r, g, b] = toneRGB(atlas.palette[1]);
       bd[o] = r;
       bd[o + 1] = g;
       bd[o + 2] = b;
-      bd[o + 3] = Math.round(Math.min(1, level) * 38);
+      bd[o + 3] = Math.round(Math.min(1, level) * 8);
     }
     burnCtx.putImageData(burnImage, 0, 0);
     ctx.drawImage(burnCanvas, 0, 0, burn.cols * 2, burn.rows * 2);
@@ -513,7 +534,7 @@ export function createPocketRenderer(
           clearance: border,
         });
       } else if (feature.kind === "planet") {
-        ctx.fillStyle = toneAt(4);
+        ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
         for (let dy = -3; dy <= 3; dy++)
           for (let dx = -3; dx <= 3; dx++)
             if (dx * dx + dy * dy <= 9) ctx.fillRect(x + dx, y + dy, 1, 1);
@@ -521,7 +542,7 @@ export function createPocketRenderer(
       } else if (feature.kind === "portal") {
         ring(x, y, 11, 3, 2);
         ring(x, y, 8, 2, 2);
-        ctx.fillStyle = toneAt(4);
+        ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
         ctx.fillRect(x - 1, y - 4, 2, 8);
       } else if (feature.kind === "ghost") {
         blitFrame(atlas.shipIdle[0], x, y, { alpha: 0.4, clearance: 0 });
@@ -533,7 +554,7 @@ export function createPocketRenderer(
         ctx.fillRect(x - 4, y - 4, 8, 8);
         ctx.fillStyle = toneAt(2);
         ctx.fillRect(x - 3, y - 3, 6, 6);
-        ctx.fillStyle = toneAt(4);
+        ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
         ctx.fillRect(x - 1, y - 1, 2, 2);
         ctx.fillStyle = toneAt(3);
         ctx.fillRect(x - 1, y - 8 + lower, 2, 4);
@@ -585,7 +606,7 @@ export function createPocketRenderer(
               : atlas.scout[cycle(14)];
       blitFrame(frame, x, y, { clearance: border });
       if (enemy.hp < enemy.maxHp) {
-        ctx.fillStyle = toneAt(4);
+        ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
         ctx.fillRect(x - 1, y - Math.floor(frame.canvas.height / 2) - 2, 2, 1);
       }
     }
@@ -607,12 +628,11 @@ export function createPocketRenderer(
         ctx.fillRect(x + 32, y + sway - 1, 6, 3);
         ctx.globalAlpha = 1;
       }
-      const body =
-        !boss.awakened
-          ? atlas.watcherDormant
-          : boss.transition > 0
-            ? atlas.watcherCracking
-            : atlas.watcherOpen;
+      const body = !boss.awakened
+        ? atlas.watcherDormant
+        : boss.transition > 0
+          ? atlas.watcherCracking
+          : atlas.watcherOpen;
       blitFrame(body, x, y, { clearance: border });
       for (const part of boss.parts) {
         const cxp = x - 7;
@@ -643,15 +663,21 @@ export function createPocketRenderer(
         ctx.globalAlpha = 0.9;
         for (let dx = 0; dx < x - 16; dx += 4) ctx.fillRect(dx, ty, 2, 1);
         ctx.globalAlpha = 1;
-        ring(x - 3, y, 9 + boss.telegraph * 5, 4, 2);
+        ring(x - 3, y, 9 + boss.telegraph * 5, preset === "crt" ? 1 : 4, 2);
       }
       if (boss.awakened && boss.transition <= 0) {
         // The living eye: microsaccade jitter, reflexive blink, slow breath.
-        if (!eyeBlink(game.tick)) {
-          const breath = Math.round(Math.sin(game.tick / 40) + 1);
-          const ex = x - 8 + saccade.offsetX;
-          const ey = y - 1 + saccade.offsetY;
-          ctx.fillStyle = toneAt(4);
+        if (
+          settings.lowFlashes ||
+          settings.reducedMotion ||
+          !eyeBlink(game.tick)
+        ) {
+          const breath = settings.reducedMotion
+            ? 1
+            : Math.round(Math.sin(game.tick / 40) + 1);
+          const ex = x - 8 + (settings.reducedMotion ? 0 : saccade.offsetX);
+          const ey = y - 1 + (settings.reducedMotion ? 0 : saccade.offsetY);
+          ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
           ctx.fillRect(ex, ey, 3 + breath, 3);
           ctx.fillStyle = toneAt(3);
           ctx.fillRect(ex + 3 + breath, ey + 1, 1, 1);
@@ -674,7 +700,7 @@ export function createPocketRenderer(
       } else if (b.rail) {
         ctx.fillStyle = toneAt(3);
         ctx.fillRect(x - 11, y - 1, 11, 3);
-        ctx.fillStyle = toneAt(4);
+        ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
         ctx.fillRect(x - 2, y - 1, 3, 3);
       } else if (b.vx < -20 || b.vy !== 0) {
         blitFrame(atlas.splitShot, x, y, { clearance: 0 });
@@ -699,20 +725,31 @@ export function createPocketRenderer(
             ? atlas.shipDown
             : atlas.shipIdle;
       const frame = set[Math.floor(game.tick / 6) % set.length];
-      const blink = player.invincible > 0 && game.tick % 12 < 5;
+      const blink =
+        !settings.lowFlashes &&
+        !settings.highContrast &&
+        player.invincible > 0 &&
+        game.tick % 12 < 5;
       blitFrame(frame, Math.round(half(player.x)), Math.round(half(player.y)), {
         alpha: blink ? 0.65 : 1,
         clearance: border,
       });
       if (highContrast) {
-        ctx.fillStyle = toneAt(4);
-        ctx.fillRect(Math.round(half(player.x)), Math.round(half(player.y)), 2, 2);
+        ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
+        ctx.fillRect(
+          Math.round(half(player.x)),
+          Math.round(half(player.y)),
+          2,
+          2,
+        );
       }
       if (game.companion) {
         ctx.fillStyle = toneAt(3);
         ctx.fillRect(
           Math.round(half(player.x)) - 14,
-          Math.round(half(player.y)) - 9 + Math.round(Math.sin(game.tick / 20) * 2),
+          Math.round(half(player.y)) -
+            9 +
+            Math.round(Math.sin(game.tick / 20) * 2),
           3,
           3,
         );
@@ -723,7 +760,9 @@ export function createPocketRenderer(
       // Staged fragmentation from the chunk-preserving atlas: intact + shock,
       // chunks rotating apart, scatter, debris + sparks.
       const f = Math.min(7, Math.floor(deathFrame / 5));
-      blitFrame(atlas.shipBreakup[f], deathPos.x, deathPos.y, { clearance: border });
+      blitFrame(atlas.shipBreakup[f], deathPos.x, deathPos.y, {
+        clearance: border,
+      });
     }
 
     // Ghost replay: deliberate, ring-distinguished from persistence.
@@ -733,19 +772,30 @@ export function createPocketRenderer(
         Math.floor((12 - game.ghostPlayback) * 5),
       );
       const point = game.ghost.points[index];
-      blitFrame(atlas.shipIdle[0], Math.round(half(point.x)), Math.round(half(point.y)), {
-        alpha: 0.42,
-        clearance: 0,
-      });
+      blitFrame(
+        atlas.shipIdle[0],
+        Math.round(half(point.x)),
+        Math.round(half(point.y)),
+        {
+          alpha: 0.42,
+          clearance: 0,
+        },
+      );
     }
 
     // Phase Pulse: stepped concentric break in the ink.
     if (game.pulseTime > 0) {
       const radius = Math.max(2, Math.round((1 - game.pulseTime / 0.6) * 120));
-      ring(Math.round(half(player.x)), Math.round(half(player.y)), radius, 4, 3);
+      ring(
+        Math.round(half(player.x)),
+        Math.round(half(player.y)),
+        radius,
+        preset === "crt" ? 1 : 4,
+        3,
+      );
       if (!settings.lowFlashes) {
         ctx.globalAlpha = Math.min(0.5, game.pulseTime / 6);
-        ctx.fillStyle = toneAt(4);
+        ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
         ctx.fillRect(-8, -8, ART_WIDTH + 16, ART_HEIGHT + 16);
         ctx.globalAlpha = 1;
       }
@@ -804,7 +854,10 @@ export function createPocketRenderer(
     if (game.status !== previousStatus) {
       if (previousStatus !== "dead" && game.status === "dead") {
         deathFrame = 0;
-        deathPos = { x: Math.round(game.player.x / 2), y: Math.round(game.player.y / 2) };
+        deathPos = {
+          x: Math.round(game.player.x / 2),
+          y: Math.round(game.player.y / 2),
+        };
       }
       if (game.status === "running" || game.status === "ready") deathFrame = -1;
       previousStatus = game.status;
@@ -819,7 +872,12 @@ export function createPocketRenderer(
     if (game.tick !== lastPsycheTick) {
       const steps = Math.min(8, game.tick - lastPsycheTick);
       lastPsycheTick = game.tick;
-      if (!settings.reducedMotion) {
+      if (
+        !settings.reducedMotion &&
+        !settings.lowEffects &&
+        !settings.highContrast &&
+        preset === "worn"
+      ) {
         for (let i = 0; i < steps; i++) {
           const local = game.tick - i;
           if (local % 48 === 0 && !settings.lowEffects) {
@@ -851,8 +909,13 @@ export function createPocketRenderer(
 
     const config = PRESETS[preset];
     lastPresent = now;
-    let decayed = 1;
-    if (config.persistenceMs > 0 && elapsedPresent < 250)
+    let decayed = 0;
+    if (
+      !settings.highContrast &&
+      !settings.lowEffects &&
+      config.persistenceMs > 0 &&
+      elapsedPresent < 250
+    )
       decayed = Math.exp(-elapsedPresent / config.persistenceMs);
     else if (config.persistenceMs === 0) decayed = 0;
 
@@ -868,7 +931,13 @@ export function createPocketRenderer(
     }
     ctx = next.getContext("2d")!;
     drawScenery(game, settings);
-    if (!settings.reducedMotion) drawPsyche();
+    if (
+      !settings.reducedMotion &&
+      !settings.lowEffects &&
+      !settings.highContrast &&
+      preset === "worn"
+    )
+      drawPsyche();
     historyIndex = 1 - historyIndex;
 
     // 2. Compose the art surface.
@@ -876,32 +945,74 @@ export function createPocketRenderer(
     ctx.clearRect(0, 0, ART_WIDTH, ART_HEIGHT);
     ctx.drawImage(backlight, 0, 0);
     // Saccadic masking: blank backlight beat on room transitions.
-    if (!saccadicMask(transitionAge)) {
+    if (
+      settings.lowFlashes ||
+      settings.reducedMotion ||
+      !saccadicMask(transitionAge)
+    ) {
       ctx.drawImage(history[historyIndex], 0, 0);
       drawCritical(game, input, settings);
     }
 
     // 3. Present: nearest upscale, then static surface treatments.
     if (fit) {
-      if (display.width !== fit.backingWidth || display.height !== fit.backingHeight) {
+      if (
+        display.width !== fit.backingWidth ||
+        display.height !== fit.backingHeight
+      ) {
         display.width = fit.backingWidth;
         display.height = fit.backingHeight;
-        display.style.width = `${fit.cssWidth}px`;
-        display.style.height = `${fit.cssHeight}px`;
       }
+      display.style.width = `${fit.cssWidth}px`;
+      display.style.height = `${fit.cssHeight}px`;
       displayCtx.imageSmoothingEnabled = false;
       displayCtx.drawImage(art, 0, 0, fit.backingWidth, fit.backingHeight);
-      displayCtx.drawImage(cellMask, 0, 0);
-      if (PRESETS[preset].reflection > 0 && !settings.highContrast) {
+      if (preset === "crt" && !settings.highContrast && !settings.lowEffects) {
+        // Blur a tiny emission surface, then add light around the sharp pixels.
+        // No readback, bullet history, or full-resolution filter pass.
+        glowCtx.clearRect(0, 0, ART_WIDTH, ART_HEIGHT);
+        glowCtx.filter = "blur(1.2px)";
+        glowCtx.drawImage(art, 0, 0);
+        glowCtx.filter = "none";
+        displayCtx.save();
+        displayCtx.globalCompositeOperation = "lighter";
+        displayCtx.globalAlpha = 0.32;
+        displayCtx.imageSmoothingEnabled = true;
+        displayCtx.drawImage(
+          phosphorGlow,
+          0,
+          0,
+          fit.backingWidth,
+          fit.backingHeight,
+        );
+        displayCtx.restore();
+      }
+      if (!settings.highContrast && !settings.lowEffects)
+        displayCtx.drawImage(cellMask, 0, 0);
+      if (
+        PRESETS[preset].reflection > 0 &&
+        !settings.highContrast &&
+        !settings.lowEffects
+      ) {
         displayCtx.globalAlpha = PRESETS[preset].reflection;
-        const streak = displayCtx.createLinearGradient(0, 0, display.width, display.height);
+        const streak = displayCtx.createLinearGradient(
+          0,
+          0,
+          display.width,
+          display.height,
+        );
         streak.addColorStop(0, "rgba(255,255,255,0.5)");
         streak.addColorStop(0.12, "rgba(255,255,255,0)");
         displayCtx.fillStyle = streak;
         displayCtx.fillRect(0, 0, display.width, display.height * 0.7);
         displayCtx.globalAlpha = 1;
       }
-      if (PRESETS[preset].wear > 0) displayCtx.drawImage(wear, 0, 0);
+      if (
+        PRESETS[preset].wear > 0 &&
+        !settings.highContrast &&
+        !settings.lowEffects
+      )
+        displayCtx.drawImage(wear, 0, 0);
     }
 
     lastDraw = now;

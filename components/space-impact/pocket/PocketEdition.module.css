@@ -1,11 +1,11 @@
 /* Lost Signal: Pocket Edition — handset frame and HUD chrome.
    The battlefield is canvas; every DOM surface is styled as part of the
-   same receiver: hard pixel steps, no anti-aliased decoration, one accent. */
+   same receiver: crisp pixel cores inside softly lit vintage glass. */
 
 .root {
   --tone-ink: #152316;
   --tone-shadow: #42573d;
-  --tone-faded: #778e56;
+  --tone-faded: #a1b98c;
   --tone-backlight: #a5bc76;
   --chrome: #1d2b20;
   --chrome-edge: #0d150f;
@@ -15,13 +15,19 @@
   gap: 10px;
   min-height: 100dvh;
   padding: 18px 12px 10px;
-  background:
-    radial-gradient(120% 90% at 50% 0%, #24321f 0%, #101a12 58%, #0a110c 100%);
+  box-sizing: border-box;
+  background: radial-gradient(
+    120% 90% at 50% 0%,
+    #24321f 0%,
+    #101a12 58%,
+    #0a110c 100%
+  );
   color: var(--tone-backlight);
-  font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
+  font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo,
+    monospace;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: none;
+  touch-action: manipulation;
 }
 
 .handset {
@@ -33,7 +39,12 @@
   padding: 10px;
   border: 2px solid var(--chrome-edge);
   border-radius: 18px;
-  background: linear-gradient(180deg, #26361f 0%, var(--chrome) 30%, #16211a 100%);
+  background: linear-gradient(
+    180deg,
+    #26361f 0%,
+    var(--chrome) 30%,
+    #16211a 100%
+  );
   box-shadow:
     inset 0 2px 0 rgba(220, 240, 190, 0.14),
     inset 0 -3px 0 rgba(0, 0, 0, 0.55),
@@ -59,7 +70,7 @@
   margin-left: 8px;
   font-size: 9px;
   letter-spacing: 3px;
-  color: var(--tone-shadow);
+  color: var(--tone-faded);
 }
 
 .topActions {
@@ -75,9 +86,9 @@
   background: transparent;
   color: var(--tone-faded);
   font: inherit;
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  padding: 5px 12px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -96,8 +107,11 @@
   padding: 4px 10px;
   border: 1px solid var(--chrome-edge);
   border-radius: 6px 6px 0 0;
-  background:
-    repeating-linear-gradient(0deg, rgba(21, 35, 22, 0.22) 0 1px, transparent 1px 3px),
+  background: repeating-linear-gradient(
+      0deg,
+      rgba(21, 35, 22, 0.22) 0 1px,
+      transparent 1px 3px
+    ),
     linear-gradient(180deg, #22301d, #1a2718);
   color: var(--tone-backlight);
   font-size: 12px;
@@ -144,11 +158,21 @@
   border-radius: 0;
 }
 
-.meter i:nth-child(1) { height: 5px; }
-.meter i:nth-child(2) { height: 8px; }
-.meter i:nth-child(3) { height: 11px; }
-.meter i:nth-child(4) { height: 14px; }
-.meter i:nth-child(5) { height: 17px; }
+.meter i:nth-child(1) {
+  height: 5px;
+}
+.meter i:nth-child(2) {
+  height: 8px;
+}
+.meter i:nth-child(3) {
+  height: 11px;
+}
+.meter i:nth-child(4) {
+  height: 14px;
+}
+.meter i:nth-child(5) {
+  height: 17px;
+}
 
 .meterOn {
   background: var(--tone-backlight);
@@ -165,13 +189,16 @@
   position: relative;
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
+  min-height: 0;
+  touch-action: none;
   overflow: hidden;
   border: 1px solid var(--chrome-edge);
   border-radius: 0 0 8px 8px;
   background:
-    radial-gradient(rgba(119, 142, 86, 0.14) 1px, transparent 1.3px) 0 0 / 9px 9px,
+    radial-gradient(rgba(119, 142, 86, 0.14) 1px, transparent 1.3px) 0 0 / 9px
+      9px,
     #131c12;
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.6),
@@ -181,7 +208,7 @@
 .world {
   image-rendering: pixelated;
   display: block;
-  border-radius: 6px;
+  border-radius: 10px;
 }
 
 .countdown,
@@ -222,25 +249,6 @@
   background: rgba(13, 21, 15, 0.72);
   padding: 4px 10px;
   border-radius: 4px;
-}
-
-.stage::before {
-  content: "";
-  position: absolute;
-  left: 12%;
-  right: 12%;
-  top: 34%;
-  height: 40%;
-  pointer-events: none;
-  background-image:
-    radial-gradient(rgba(165, 188, 118, 0.9) 2px, transparent 2.6px),
-    radial-gradient(rgba(119, 142, 86, 0.55) 1.5px, transparent 2px),
-    radial-gradient(rgba(119, 142, 86, 0.4) 1.5px, transparent 2px),
-    radial-gradient(rgba(119, 142, 86, 0.4) 1.5px, transparent 2px);
-  background-size: 64px 64px, 41px 41px, 53px 53px, 34px 34px;
-  background-position: 7px 11px, 19px 27px, 43px 5px, 31px 44px;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
 }
 
 .voidPanel {
@@ -309,7 +317,9 @@
 
 .actionPrimary:active {
   transform: translateY(2px);
-  box-shadow: inset 0 2px 0 rgba(220, 240, 190, 0.1), 0 2px 0 var(--chrome-edge);
+  box-shadow:
+    inset 0 2px 0 rgba(220, 240, 190, 0.1),
+    0 2px 0 var(--chrome-edge);
 }
 
 .actionSecondary {
@@ -331,12 +341,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
+  overflow-y: auto;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
   gap: 14px;
   text-align: center;
   padding: 24px;
-  background:
-    repeating-linear-gradient(0deg, rgba(21, 35, 22, 0.16) 0 2px, transparent 2px 4px),
+  background: repeating-linear-gradient(
+      0deg,
+      rgba(21, 35, 22, 0.16) 0 2px,
+      transparent 2px 4px
+    ),
     rgba(10, 17, 11, 0.93);
   border-radius: 8px;
 }
@@ -417,7 +433,8 @@
 
 .settingsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  flex-shrink: 0;
   gap: 14px;
   width: min(640px, 100%);
   text-align: left;
@@ -445,11 +462,13 @@
   gap: 8px;
   font-size: 12px;
   color: var(--tone-backlight);
-  min-height: 24px;
+  min-height: 36px;
 }
 
 .settingsGrid input[type="range"] {
   flex: 1;
+  min-width: 60px;
+  width: 100%;
   accent-color: var(--tone-backlight);
 }
 
@@ -485,7 +504,7 @@
   margin: 0;
   font-size: 10px;
   letter-spacing: 1.5px;
-  color: #3c4f38;
+  color: #8a9e82;
 }
 
 /* Short-landscape phones: chrome collapses before the battlefield. */
@@ -536,13 +555,20 @@
 
 @media (max-height: 480px) {
   .leftHanded .controls {
+    flex-direction: column;
     right: auto;
     left: 10px;
+  }
+  .leftHanded .stage {
+    padding: 0 10px 0 148px;
   }
 }
 
 /* Portrait phones style the thumb void as receiver readouts. */
 @media (orientation: portrait) and (max-width: 700px) {
+  .stage {
+    align-items: flex-start;
+  }
   .voidPanel {
     display: flex;
   }
@@ -563,5 +589,175 @@
   }
   .colophon {
     display: none;
+  }
+}
+
+/* Glass depth surrounds the actual fitted canvas; it never warps input coordinates. */
+.screenGlass {
+  position: relative;
+  flex: none;
+  line-height: 0;
+  border-radius: 10px;
+  isolation: isolate;
+  box-shadow:
+    0 0 14px #b7d18326,
+    0 0 46px #9fc77718,
+    0 2px 0 #c7ddb244;
+}
+.screenGlass::before,
+.screenGlass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.screenGlass::before {
+  background: linear-gradient(
+    128deg,
+    #ffffff12,
+    transparent 24%,
+    transparent 78%,
+    #bbefcf06
+  );
+  box-shadow:
+    inset 0 0 0 1px #d2ffe226,
+    inset 0 0 18px #030b0755;
+}
+.screenGlass::after {
+  background: radial-gradient(
+    ellipse at 50% 46%,
+    transparent 62%,
+    #02090526 100%
+  );
+}
+.root[data-screen="crt"] {
+  --tone-ink: #07180f;
+  --tone-shadow: #426951;
+  --tone-faded: #a3c7ad;
+  --tone-backlight: #c6ffc0;
+  background: radial-gradient(
+    ellipse at 50% 42%,
+    #173324,
+    #09120e 65%,
+    #060b09
+  );
+}
+.root[data-screen="crt"] .handset {
+  background: linear-gradient(
+    165deg,
+    #354139,
+    #1b2420 22%,
+    #141d18 85%,
+    #25332b
+  );
+  border-color: #0c1410;
+  box-shadow:
+    inset 0 2px 1px #bdd9c438,
+    inset 0 -4px 2px #060c08,
+    0 22px 64px #0009,
+    0 0 90px #63ef8220;
+}
+.root[data-screen="crt"] .stage {
+  background: radial-gradient(ellipse at center, #11271a, #080f0b);
+}
+.root[data-screen="crt"] .screenGlass {
+  box-shadow:
+    0 0 3px #c6ffc066,
+    0 0 22px #76ff8855,
+    0 0 70px #48e4762e,
+    0 0 110px #48e47615;
+}
+.root[data-screen="crt"] .hud {
+  background: #09190f;
+  text-shadow: 0 0 7px #8cff9277;
+}
+.root[data-screen="crt"] .heart {
+  filter: drop-shadow(0 0 3px #7bff9170);
+}
+.root[data-screen="crt"] .title {
+  text-shadow:
+    0 0 3px #c6ffc0,
+    0 0 22px #6cf78388,
+    0 0 60px #6cf78355;
+}
+.root[data-screen="crt"] .actionPrimary {
+  background: linear-gradient(#38573a, #1d3223);
+  box-shadow:
+    inset 0 1px #c6ffc055,
+    0 4px #09120c,
+    0 0 16px #76ff881c;
+}
+.root button:focus-visible,
+.root input:focus-visible {
+  outline: 2px solid var(--tone-backlight);
+  outline-offset: 4px;
+}
+.chip[aria-pressed="true"] {
+  border-color: var(--tone-faded);
+  color: var(--tone-backlight);
+}
+.settingNote {
+  margin: 0 0 4px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--tone-faded);
+}
+.settingsOverlay {
+  gap: 18px;
+}
+.settingsOverlay > * {
+  flex-shrink: 0;
+}
+.root[data-comfort="true"] .screenGlass,
+.root[data-comfort="true"] .handset {
+  box-shadow: none;
+}
+.root[data-comfort="true"] .screenGlass::before,
+.root[data-comfort="true"] .screenGlass::after {
+  display: none;
+}
+.root[data-comfort="true"] .hud,
+.root[data-comfort="true"] .title {
+  text-shadow: none;
+}
+.root[data-comfort="true"] .heart {
+  filter: none;
+}
+@media (orientation: portrait) and (max-width: 480px) {
+  .brand {
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .topbar {
+    flex-wrap: wrap;
+  }
+  .topActions {
+    margin-left: auto;
+  }
+  .chip {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+  .hud {
+    gap: 8px;
+    padding-inline: 6px;
+    letter-spacing: 0.5px;
+  }
+  .hearts {
+    gap: 2px;
+  }
+  .heart {
+    width: 17px;
+    height: auto;
+  }
+  .overlay {
+    padding: 20px 14px;
+  }
+  .voidPanel {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    color: #91ac89;
   }
 }

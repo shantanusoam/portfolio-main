@@ -41,7 +41,7 @@ const BASE_SETTINGS: Settings = {
 };
 
 export function defaultPocketSettings(): PocketSettings {
-  return { ...BASE_SETTINGS, preset: "pocket", palette: "olive" };
+  return { ...BASE_SETTINGS, preset: "crt", palette: "olive" };
 }
 
 export function emptyPocketSave(): PocketSave {
@@ -54,13 +54,13 @@ export function emptyPocketSave(): PocketSave {
   };
 }
 
-const PRESET_NAMES: PresetName[] = ["clean", "pocket", "worn"];
+const PRESET_NAMES: PresetName[] = ["clean", "pocket", "worn", "crt"];
 const PALETTE_NAMES: PaletteName[] = ["olive", "mint"];
 
-function clamp01(value: unknown): number {
+function clamp01(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value)
     ? Math.min(1, Math.max(0, value))
-    : 0;
+    : fallback;
 }
 
 function bool(value: unknown, fallback = false): boolean {
@@ -73,11 +73,13 @@ function checkpoint(value: unknown): Checkpoint | null {
   const sector = typeof raw.sector === "number" ? raw.sector : null;
   const seed = typeof raw.seed === "number" ? raw.seed : null;
   if (sector === null || seed === null) return null;
-  const weapon = raw.weapon === "split" || raw.weapon === "rail" ? raw.weapon : "pulse";
+  const weapon =
+    raw.weapon === "split" || raw.weapon === "rail" ? raw.weapon : "pulse";
   return {
     sector,
     weapon,
-    level: typeof raw.level === "number" ? Math.min(3, Math.max(1, raw.level)) : 1,
+    level:
+      typeof raw.level === "number" ? Math.min(3, Math.max(1, raw.level)) : 1,
     score: typeof raw.score === "number" ? Math.max(0, raw.score) : 0,
     seed,
     assist: bool(raw.assist),
@@ -90,13 +92,14 @@ export function parsePocketSave(raw: string | null): PocketSave {
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return emptyPocketSave();
     const value = parsed as Record<string, unknown>;
-    if (value.version !== 2 || value.edition !== "pocket") return emptyPocketSave();
+    if (value.version !== 2 || value.edition !== "pocket")
+      return emptyPocketSave();
     const source = emptyPocketSave();
     const settings = value.settings as Record<string, unknown> | undefined;
     if (settings && typeof settings === "object") {
       const s = source.settings;
-      s.music = clamp01(settings.music);
-      s.effects = clamp01(settings.effects);
+      s.music = clamp01(settings.music, BASE_SETTINGS.music);
+      s.effects = clamp01(settings.effects, BASE_SETTINGS.effects);
       s.muted = bool(settings.muted);
       s.reducedMotion = bool(settings.reducedMotion);
       s.lowFlashes = bool(settings.lowFlashes, true);
@@ -108,15 +111,21 @@ export function parsePocketSave(raw: string | null): PocketSave {
       s.skin = "lcd";
       s.preset = PRESET_NAMES.includes(settings.preset as PresetName)
         ? (settings.preset as PresetName)
-        : "pocket";
+        : s.preset;
       s.palette = PALETTE_NAMES.includes(settings.palette as PaletteName)
         ? (settings.palette as PaletteName)
         : "olive";
     }
     source.checkpoint = checkpoint(value.checkpoint);
     if (value.best && typeof value.best === "object")
-      for (const [key, score] of Object.entries(value.best as Record<string, unknown>))
-        if (typeof score === "number" && Number.isFinite(score) && /^[a-z:]+$/.test(key))
+      for (const [key, score] of Object.entries(
+        value.best as Record<string, unknown>,
+      ))
+        if (
+          typeof score === "number" &&
+          Number.isFinite(score) &&
+          /^[a-z:]+$/.test(key)
+        )
           source.best[key] = Math.max(0, score);
     return source;
   } catch {
@@ -147,7 +156,8 @@ export function persistPocketGame(save: PocketSave, game: Game): PocketSave {
     settings: { ...save.settings },
     best: { ...save.best },
   };
-  if (game.checkpoint) next.checkpoint = checkpointFor(game, game.checkpoint.sector);
+  if (game.checkpoint)
+    next.checkpoint = checkpointFor(game, game.checkpoint.sector);
   const key = game.mode + (game.assist ? ":assist" : ":standard");
   if (game.score > (next.best[key] ?? 0)) next.best[key] = game.score;
   return next;

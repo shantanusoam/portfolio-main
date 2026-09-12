@@ -5,10 +5,7 @@ import {
   clientToWorld,
   computeFit,
 } from "../../lib/space-impact/pocket/fit";
-import {
-  PRESETS,
-  POCKET_PALETTE,
-} from "../../lib/space-impact/pocket/palette";
+import { PRESETS, POCKET_PALETTE } from "../../lib/space-impact/pocket/palette";
 import {
   emptyPocketSave,
   parsePocketSave,
@@ -67,7 +64,12 @@ test("integer enlargement never exceeds 6x or the available box", () => {
 });
 
 test("pointer mapping uses the displayed world rectangle", () => {
-  const world = clientToWorld(100, 50, { left: 40, top: 20, width: 320, height: 180 });
+  const world = clientToWorld(100, 50, {
+    left: 40,
+    top: 20,
+    width: 320,
+    height: 180,
+  });
   assert.ok(Math.abs(world.x - (60 * 480) / 320) < 1e-9);
   assert.ok(Math.abs(world.y - (30 * 270) / 180) < 1e-9);
 });
@@ -86,14 +88,16 @@ test("pocket save round-trips and rejects malformed envelopes", () => {
   const parsed = parsePocketSave(JSON.stringify(save));
   assert.deepEqual(parsed.checkpoint, save.checkpoint);
   assert.equal(parsed.best["campaign:standard"], 7300);
-  assert.equal(parsed.settings.preset, "pocket");
+  assert.equal(parsed.settings.preset, "crt");
 
   const malformed = parsePocketSave("{not json");
   assert.equal(malformed.version, 2);
   assert.equal(malformed.checkpoint, null);
-  const wrongVersion = parsePocketSave(JSON.stringify({ version: 99, edition: "pocket" }));
+  const wrongVersion = parsePocketSave(
+    JSON.stringify({ version: 99, edition: "pocket" }),
+  );
   assert.equal(wrongVersion.checkpoint, null);
-  assert.equal(wrongVersion.settings.preset, "pocket");
+  assert.equal(wrongVersion.settings.preset, "crt");
   assert.notEqual(POCKET_STORAGE_KEY, "portfolio-space-impact:v1");
 });
 
@@ -101,7 +105,14 @@ test("persisting a game keeps best scores and the sector checkpoint", () => {
   const save = emptyPocketSave();
   const game = createGame(emptyProfile(), "campaign", 0, 77);
   game.score = 1234;
-  game.checkpoint = { sector: 0, weapon: "pulse", level: 1, score: 1234, seed: 77, assist: false };
+  game.checkpoint = {
+    sector: 0,
+    weapon: "pulse",
+    level: 1,
+    score: 1234,
+    seed: 77,
+    assist: false,
+  };
   const persisted = persistPocketGame(save, game);
   assert.equal(persisted.best["campaign:standard"], 1234);
   assert.equal(persisted.checkpoint?.score, 1234);
@@ -122,7 +133,9 @@ test("the pocket palette keeps essential core contrast", () => {
   const lum = (hex: string) => {
     const channel = [0, 2, 4].map((offset) => {
       const raw = parseInt(hex.slice(offset + 1, offset + 3), 16) / 255;
-      return raw <= 0.03928 ? raw / 12.92 : Math.pow((raw + 0.055) / 1.055, 2.4);
+      return raw <= 0.03928
+        ? raw / 12.92
+        : Math.pow((raw + 0.055) / 1.055, 2.4);
     });
     return 0.2126 * channel[0] + 0.7152 * channel[1] + 0.0722 * channel[2];
   };
@@ -162,11 +175,37 @@ test("ship, enemies and watcher have their animation frame budgets", () => {
 });
 
 test("breakup frames dissolve away from the hull", () => {
-  const early = fromGrid([
-    "111",
-    "141",
-    "111",
-  ]);
+  const early = fromGrid(["111", "141", "111"]);
   assert.equal(early.w, 3);
   assert.ok(early.data.reduce((sum, tone) => sum + (tone ? 1 : 0), 0) > 0);
+});
+
+test("existing LCD preferences survive the CRT release and partial saves retain sound defaults", () => {
+  const parsed = parsePocketSave(
+    JSON.stringify({
+      version: 2,
+      edition: "pocket",
+      settings: { preset: "worn", palette: "mint" },
+    }),
+  );
+  assert.equal(parsed.settings.preset, "worn");
+  assert.equal(parsed.settings.palette, "mint");
+  assert.equal(parsed.settings.music, 0.3);
+  assert.equal(parsed.settings.effects, 0.55);
+  const silent = parsePocketSave(
+    JSON.stringify({
+      version: 2,
+      edition: "pocket",
+      settings: { music: 0, effects: 0, muted: true },
+    }),
+  );
+  assert.equal(silent.settings.music, 0);
+  assert.equal(silent.settings.effects, 0);
+  assert.equal(silent.settings.muted, true);
+});
+test("high-DPR post-processing is capped without reducing the CSS playfield", () => {
+  const fit = computeFit(1600, 900, 3);
+  assert.equal(fit.cssWidth, 1600);
+  assert.equal(fit.backingWidth, 1440);
+  assert.equal(fit.backingHeight, 810);
 });

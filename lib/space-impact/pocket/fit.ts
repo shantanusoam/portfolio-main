@@ -33,7 +33,10 @@ export function computeFit(
   dpr: number,
 ): FitResult {
   const ratio = Math.max(0.5, dpr);
-  const targetF = Math.max(0, Math.min(availableWidth, availableHeight * 16 / 9));
+  const targetF = Math.max(
+    0,
+    Math.min(availableWidth, (availableHeight * 16) / 9),
+  );
   let best: FitResult | null = null;
   for (let k = MAX_INTEGER_ENLARGEMENT; k >= 1; k--) {
     const cssWidth = (ART_WIDTH * k) / ratio;
@@ -54,15 +57,19 @@ export function computeFit(
   }
   if (best) return best;
   const cssWidth = Math.min(targetF, availableWidth);
-  const cssHeight = cssWidth * 9 / 16;
+  const cssHeight = (cssWidth * 9) / 16;
+  const backingScale = Math.min(
+    ratio,
+    (ART_WIDTH * MAX_INTEGER_ENLARGEMENT) / Math.max(1, cssWidth),
+  );
   return {
     mode: "nearest",
     cssScale: cssWidth / ART_WIDTH,
     deviceScale: 0,
     cssWidth,
     cssHeight,
-    backingWidth: Math.max(1, Math.round(cssWidth * ratio)),
-    backingHeight: Math.max(1, Math.round(cssHeight * ratio)),
+    backingWidth: Math.max(1, Math.round(cssWidth * backingScale)),
+    backingHeight: Math.max(1, Math.round(cssHeight * backingScale)),
     floorFailed: targetF < READABILITY_FLOOR,
   };
 }
