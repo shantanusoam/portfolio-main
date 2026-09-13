@@ -90,50 +90,80 @@ export default function WorkshopHome() {
         </a>
       </header>
       <main id="main-content">
-        <section className={styles.hero} id="top" aria-labelledby="hero-title">
+        <section
+          className={styles.cinematicHero}
+          id="top"
+          aria-labelledby="hero-title"
+        >
           <span id="hero" className={styles.anchor} aria-hidden="true" />
-          <div className={styles.heroCopy}>
-            <p className={styles.micro}>
-              <span className={styles.dot} /> Creative systems engineer / India
-            </p>
-            <h1 id="hero-title">
-              Useful software.
-              <br />A future worth
-              <br />
-              <em>building.</em>
-            </h1>
-            <p className={styles.intro}>
-              I’m Shantanu. I build business software, interactive tools, and
-              small experiments that make complex things feel understandable.
-            </p>
-            <div className={styles.actions}>
-              <a href="#work" className={styles.button}>
-                Explore my work <span>↗</span>
-              </a>
-              <a href="#contact" className={styles.textLink}>
-                Let’s talk <span>↗</span>
-              </a>
+          <div className={styles.cinematicIntro}>
+            <div className={styles.heroCopy}>
+              <p className={styles.micro}>
+                Shantanu Soam / Creative systems engineer
+              </p>
+              <h1 id="hero-title" className={styles.cinematicTitle}>
+                Useful software.
+                <br />
+                <em>Room to imagine.</em>
+              </h1>
+            </div>
+            <div className={styles.heroAside}>
+              <p>
+                I build business software, interactive tools, and small
+                experiments. A little precision. A lot of curiosity.
+              </p>
+              <div className={styles.actions}>
+                <a href="#work" className={styles.button}>
+                  Explore my work <span>↗</span>
+                </a>
+                <a href="#contact" className={styles.textLink}>
+                  Let’s talk ↗
+                </a>
+              </div>
             </div>
           </div>
-          <figure className={styles.heroArt}>
-            <div className={styles.artFrame}>
+          <div
+            className={styles.landscapeSequence}
+            aria-label="Three imagined landscapes: meadow, shoreline, and dusk"
+          >
+            <figure className={styles.meadowFrame}>
               <Image
-                src="/workshop/courtyard.webp"
-                alt="Illustrated sunlit workshop with a solar canopy, repair bench, terracotta planters and jaali shade"
+                src="/workshop/meadow.webp"
+                alt="A small flock of white birds over a sunlit emerald meadow"
                 width={1536}
                 height={1024}
                 priority
-                sizes="(max-width: 700px) 100vw, 52vw"
+                sizes="(max-width: 700px) 100vw, 92vw"
               />
-            </div>
-            <figcaption>
-              <span>Fig. 01 — Tomorrow’s Workshop</span>
-              <span>An imagined place to make things.</span>
-            </figcaption>
-          </figure>
+              <figcaption>01 / Follow a little curiosity.</figcaption>
+            </figure>
+            <figure className={styles.shoreFrame}>
+              <Image
+                src="/workshop/shore.webp"
+                alt="A white horse on a smooth green bank beside sparkling turquoise water"
+                width={1536}
+                height={1024}
+                sizes="(max-width: 700px) 100vw, 92vw"
+              />
+              <figcaption>02 / Make room for the unexpected.</figcaption>
+            </figure>
+            <figure className={styles.duskFrame}>
+              <Image
+                src="/workshop/dusk.webp"
+                alt="Rose and lavender sunset reflected in a quiet lake"
+                width={1536}
+                height={1024}
+                sizes="(max-width: 700px) 100vw, 92vw"
+              />
+              <figcaption>03 / See where it takes you.</figcaption>
+            </figure>
+          </div>
+          <p className={styles.artCredit}>
+            An imagined landscape, made for this portfolio.
+          </p>
         </section>
         <div className={styles.edition}>
-          <span>Reliable by intention. Playful by nature.</span>
+          <span>A quiet place for ambitious ideas.</span>
           <span>Software / Systems / Small discoveries</span>
           <a href="#work" aria-label="Scroll to selected work">
             ↓
@@ -219,13 +249,11 @@ export default function WorkshopHome() {
         <section className={styles.lab} id="lab" aria-labelledby="lab-title">
           <Anchors section="lab" />
           <div className={styles.labCopy}>
-            <p className={styles.micro}>02 / On the workbench</p>
+            <p className={styles.micro}>02 / The curious part</p>
             <h2 id="lab-title">
-              Good systems
+              A small idea.
               <br />
-              invite you to
-              <br />
-              <em>tinker.</em>
+              <em>Try something.</em>
             </h2>
             <p>
               Move a task. Watch its relationships change. Then undo it. A small
@@ -287,6 +315,19 @@ export default function WorkshopHome() {
             ))}
           </div>
         </section>
+
+        <figure className={styles.landscapeInterlude}>
+          <Image
+            src="/workshop/shore.webp"
+            alt="Sunlight catching the water and grass around a quiet shoreline"
+            width={1536}
+            height={1024}
+            sizes="92vw"
+          />
+          <figcaption>
+            There’s always something worth looking closer at.
+          </figcaption>
+        </figure>
 
         <section
           className={styles.about}

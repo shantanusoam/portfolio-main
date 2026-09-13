@@ -376,8 +376,8 @@ html.lenis {
 html:has(.workshop-home), body:has(.workshop-home) {
   height: auto;
   overflow: visible;
-  background: #f3eedc;
-  color: #173c32;
+  background: #07110e;
+  color: #e7edda;
   scrollbar-width: auto;
 }
 html:has(.workshop-home)::-webkit-scrollbar,
@@ -387,6 +387,6 @@ body:has(.workshop-home)::-webkit-scrollbar {
 }
 html:has(.workshop-home)::-webkit-scrollbar-thumb,
 body:has(.workshop-home)::-webkit-scrollbar-thumb {
-  background: #526357;
-  border: 2px solid #f3eedc;
+  background: #92ad87;
+  border: 2px solid #07110e;
 }

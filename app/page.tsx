@@ -4,7 +4,7 @@ import WorkshopHome from "@/components/workshop/WorkshopHome";
 export const metadata: Metadata = {
   title: "Shantanu Soam — Creative Systems Engineer",
   description:
-    "Useful software. A future worth building. Product engineering, interactive systems, and field notes by Shantanu Soam.",
+    "Useful software. Room to imagine. Product engineering, interactive systems, and field notes by Shantanu Soam.",
   alternates: { canonical: "/" },
 };
 const jsonLd = {

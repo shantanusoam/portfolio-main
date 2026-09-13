@@ -1,3 +1,5 @@
+> Historical first direction. Superseded by [the cinematic landscape revision](./cinematic-landscape-direction.md).
+
 # Tomorrow’s Workshop — asset production
 
 ## Current hero

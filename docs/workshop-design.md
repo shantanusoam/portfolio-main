@@ -1,3 +1,5 @@
+> Historical first direction. Superseded by [the cinematic landscape revision](./cinematic-landscape-direction.md).
+
 # Tomorrow’s Workshop — implementation direction
 
 ## Art direction before implementation

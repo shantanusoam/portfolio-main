@@ -1,38 +1,21 @@
-# Workshop validation
+# Cinematic landscape revision — validation
 
-## Local preview — 13 September 2026
+## Local checks
 
-The homepage was rendered in an isolated Next.js 15.5.21 preview using the repository’s original global CSS, fonts, content data and the new components. The preview layout omits the existing application-wide runtime and analytics; this is not a full-repository production integration test.
+The revised homepage passed an isolated Next.js 15.5.21 production build and TypeScript check. This preview reuses the repository’s CSS, fonts and content but omits the full app runtime and analytics. Its 112 kB first-load JS is a preview measurement, not a full-app performance claim. The original app layout already provides metadataBase; only this simplified preview emitted a localhost metadata warning.
 
-- Isolated Next.js production build passed (static homepage; 112 kB first-load JS in this preview only). The preview omitted metadataBase and emitted a localhost warning; the actual repository layout already supplies metadataBase.
-- TypeScript check passed for the new homepage components and their data dependencies.
-- Four semantic-tree tests passed: descendant preservation, outdent/history immutability, boundary and reversible sibling commands, and 400 supported operations without cycles or lost nodes.
-- Chromium 133 / Playwright browser check: homepage HTTP 200, zero page errors.
-- No horizontal overflow at 320, 360, 390, 430, 768 and 1440 CSS px.
-- All same-page anchor destinations resolved. Existing project/lab/note destinations were checked against repository routes/content, not live destination browsing.
-- User-started sketch loaded; keyboard Enter activated Out; Undo and Reset restored the state.
-- Reduced motion disabled the hero entrance animation.
-- Social-card route returned HTTP 200 and was visually inspected.
+Chromium browser checks at 320, 360, 390, 430, 768 and 1440 CSS px found no horizontal overflow or page errors. Same-page anchors resolved. The user-started sketch loaded, keyboard Out worked, Undo/Reset restored state, and reduced motion disabled the hero entrance. The new social card returned HTTP 200. The four semantic-model tests passed during the prior implementation; that model has not changed.
 
-## Screenshots
+The landscape revision deliberately gives the first viewport to the three reference-inspired scenes. It supersedes the previous tight first-project fold target. Header and hero links provide direct access to Work and Contact.
 
-![Desktop homepage](./workshop-desktop.webp)
+## Visual refinement
 
-![Mobile homepage](./workshop-mobile.webp)
+The alpine first candidate was rejected. The final set matches the reference’s simple green hills, fine glints, small creatures and pink water. Desktop crop positions were adjusted after screenshot review to retain the birds and the complete horse. Phone frames keep all three subjects legible.
 
-## Measured positions
+![Desktop](./workshop-desktop.webp)
 
-These are layout positions in the local preview, not performance timings. The compact 130 px mobile illustration deliberately prioritizes the first project. At 320 px, text wrapping pushes the project farther down; no text is clipped.
+![Phone](./workshop-mobile.webp)
 
-| Width | Document width | First project title Y |
-|---|---|---|
-| 320 | 320 | 834 px |
-| 360 | 360 | 799 px |
-| 390 | 390 | 809 px |
-| 430 | 430 | 800 px |
-| 768 | 768 | 871 px |
-| 1440 | 1440 | 878 px |
+## Release status
 
-## Remaining release checks
-
-Run the full application build and its normal CI checks, inspect the deployed preview, and test actual Safari/Android devices. No production Core Web Vitals, complete accessibility conformance, independent critic score, or live deployment is claimed by these local checks.
+The previous PR commit passed Vercel deployment. This new revision needs its own Vercel preview result. The PR remains a draft; main has not been changed. Real-device Safari/Android, field Web Vitals and complete accessibility conformance are not claimed. These landscape assets are still images; no generated video or autonomous bird/horse animation is claimed.
