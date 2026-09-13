@@ -1,17 +1,72 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Shantanu Soam — Creative Systems Engineer";
+export const alt = "Shantanu Soam — Useful software. A future worth building.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function OpenGraphImage() {
   return new ImageResponse(
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "68px", color: "#eee9df", background: "radial-gradient(circle at 75% 25%, #35170f 0, #0a0908 43%, #050505 100%)", fontFamily: "sans-serif" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 20, letterSpacing: 5, textTransform: "uppercase" }}><span style={{ color: "#ff5d2f" }}>SS / Signal Archive</span><span>Creative Systems Engineer</span></div>
-      <div style={{ display: "flex", flexDirection: "column" }}><div style={{ fontSize: 92, lineHeight: 0.92, letterSpacing: -5 }}>Strange interfaces.<br />Serious evidence.</div><div style={{ marginTop: 30, fontSize: 24, color: "#a9a39a" }}>Product systems · interactive tools · measurable outcomes</div></div>
-      <div style={{ display: "flex", gap: 38, fontSize: 18, textTransform: "uppercase", letterSpacing: 3 }}><span>30%↓ latency</span><span>15+ fixes</span><span>10k+ rows</span></div>
-    </div>,
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "62px 70px",
+          color: "#173c32",
+          background: "#f3eedc",
+          fontFamily: "serif",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            borderBottom: "1px solid #173c3250",
+            paddingBottom: 24,
+            fontSize: 21,
+          }}
+        >
+          <span>Shantanu Soam</span>
+          <span style={{ fontFamily: "sans-serif", fontSize: 16 }}>
+            Creative Systems Engineer
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            fontSize: 83,
+            letterSpacing: -3,
+            lineHeight: 1.05,
+          }}
+        >
+          <span>Useful software.</span>
+          <div style={{ display: "flex" }}>
+            <span>A future worth</span>
+            <span style={{ color: "#91482f", fontStyle: "italic", marginLeft: 18 }}>
+              building.
+            </span>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontFamily: "sans-serif",
+            fontSize: 17,
+            borderTop: "1px solid #173c3250",
+            paddingTop: 24,
+          }}
+        >
+          <span>Product engineering · Interactive systems · Field notes</span>
+          <span>shantanusoam.vercel.app</span>
+        </div>
+      </div>
+    ),
     size,
   );
 }

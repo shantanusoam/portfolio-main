@@ -370,3 +370,23 @@ html.lenis {
 .animate-light-leak {
   animation: light-leak-drift 28s ease-in-out infinite;
 }
+
+
+/* The workshop homepage owns native document scrolling; archive/game themes stay scoped. */
+html:has(.workshop-home), body:has(.workshop-home) {
+  height: auto;
+  overflow: visible;
+  background: #f3eedc;
+  color: #173c32;
+  scrollbar-width: auto;
+}
+html:has(.workshop-home)::-webkit-scrollbar,
+body:has(.workshop-home)::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+}
+html:has(.workshop-home)::-webkit-scrollbar-thumb,
+body:has(.workshop-home)::-webkit-scrollbar-thumb {
+  background: #526357;
+  border: 2px solid #f3eedc;
+}
