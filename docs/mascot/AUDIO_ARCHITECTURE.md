@@ -320,3 +320,25 @@ npx tsc --noEmit -p tsconfig.json
 npx tsx --test tests/mascot/*.test.ts tests/mascot/music/*.test.ts
 npx prettier --check lib/mascot/music components/mascot/MascotSoundControl.tsx
 ```
+
+## Pocket combat score (September 2026)
+
+The arcade route owns a separate `GameAudio` instance. This update does not
+change the mascot or hand-played string instrument. `lib/space-impact/music.ts`
+composes an original eight-bar score with bass, lead, arpeggios, and percussion.
+Sector tempo ranges from 112 to 120 BPM; bosses use 132 BPM and secret rooms use
+sparse accompaniment. Scene changes are independent of the visual render clock.
+
+The graph remains oscillator → per-voice gain → compressor → master gain →
+destination. A 25 ms scheduler uses a 100 ms look-ahead against AudioContext time
+and drops missed beats after interruption. Music stops allocating at 18 voices;
+the total graph cap is 24, leaving capacity for effects. The fake-context
+saturation test requests 100 effects and observes exactly 24 allocated
+oscillators, then verifies cleanup. This measures the allocation bound, not
+hardware audio load or latency.
+
+`selectSounds` preserves Nova, damage, and victory feedback ahead of repetitive
+explosions and shots. Existing gesture, mute, unsupported-audio, and pause tests
+cover lifecycle behavior. Actual mobile speaker output remains unverified.
+Combat and renderer evidence are documented in
+[Pocket combat remix](../space-impact/pocket/COMBAT-REMIX.md).

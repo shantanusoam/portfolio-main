@@ -4,6 +4,7 @@ import {
   MAX_PARTICLES,
   WEAPONS,
   WEAPON_ORDER,
+  WIDTH,
 } from "./config";
 import { SECRETS } from "./content/secrets";
 import { noise } from "./random";
@@ -241,7 +242,11 @@ export function activatePulse(game: Game): boolean {
   game.shake = 3;
   game.bullets = game.bullets.filter((item) => !item.enemy);
   for (const enemy of game.enemies) {
-    if (Math.hypot(enemy.x - game.player.x, enemy.y - game.player.y) < 230) {
+    if (
+      !enemy.dead &&
+      enemy.x <= WIDTH - enemy.radius &&
+      Math.hypot(enemy.x - game.player.x, enemy.y - game.player.y) < 230
+    ) {
       enemy.hp -= 50;
       if (enemy.hp <= 0) killEnemy(game, enemy);
     }

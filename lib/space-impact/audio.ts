@@ -1,4 +1,4 @@
-import type { Settings, Sound } from "./types";
+import type { GameEvent, Settings, Sound } from "./types";
 import {
   composeStep,
   DEFAULT_SCENE,
@@ -6,6 +6,33 @@ import {
   type MusicScene,
 } from "./music";
 export type AudioStatus = "locked" | "running" | "suspended" | "unavailable";
+
+/** Preserve decisive feedback when a single action destroys a whole fleet. */
+export function selectSounds(events: GameEvent[], limit = 6): Sound[] {
+  const priority: Record<Sound, number> = {
+    damage: 0,
+    pulse: 1,
+    clear: 1,
+    secret: 1,
+    shield: 2,
+    overdrive: 2,
+    pickup: 3,
+    combo: 4,
+    warning: 4,
+    explode: 5,
+    hit: 6,
+    rail: 7,
+    seeker: 7,
+    shot: 8,
+  };
+  return events
+    .flatMap((event) =>
+      event.kind === "sound" && event.sound ? [event.sound] : [],
+    )
+    .sort((a, b) => priority[a] - priority[b])
+    .slice(0, limit);
+}
+
 /** Original chiptune score. Activation belongs to a user gesture; never autoplay. */
 export class GameAudio {
   private context: AudioContext | null = null;

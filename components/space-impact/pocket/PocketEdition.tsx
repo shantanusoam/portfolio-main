@@ -7,7 +7,11 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { GameAudio, type AudioStatus } from "@/lib/space-impact/audio";
+import {
+  GameAudio,
+  selectSounds,
+  type AudioStatus,
+} from "@/lib/space-impact/audio";
 import { WEAPONS, WEAPON_ORDER } from "@/lib/space-impact/config";
 import { SECTORS } from "@/lib/space-impact/content/sectors";
 import { nextSector } from "@/lib/space-impact/director";
@@ -200,7 +204,12 @@ export default function PocketEdition() {
       );
       const blocked = fit.floorFailed || fit.cssWidth < READABILITY_FLOOR - 0.5;
       setFloorWarning(blocked);
-      if (blocked && gameRef.current && gameRef.current.status === "running") {
+      if (
+        blocked &&
+        gameRef.current &&
+        (gameRef.current.status === "running" ||
+          gameRef.current.status === "countdown")
+      ) {
         pauseGame(gameRef.current);
         audioGesture.current++;
         audioRef.current?.suspendPlayback();
@@ -240,16 +249,7 @@ export default function PocketEdition() {
           Boolean(model.boss?.awakened),
         );
         const events = model.events.splice(0);
-        const sounds = events
-          .filter((event) => event.kind === "sound")
-          .sort(
-            (a, b) => Number(a.sound === "shot") - Number(b.sound === "shot"),
-          );
-        sounds
-          .slice(0, 6)
-          .forEach(
-            (event) => event.sound && audioRef.current?.play(event.sound),
-          );
+        selectSounds(events).forEach((sound) => audioRef.current?.play(sound));
         if (events.some((event) => event.kind !== "sound")) {
           saveRef.current = persistPocketGame(saveRef.current, model);
           setSaveState(saveRef.current);
@@ -316,7 +316,11 @@ export default function PocketEdition() {
       )
         return;
       const model = gameRef.current;
-      if (event.code === "Escape" && model?.status === "running") {
+      if (
+        event.code === "Escape" &&
+        model &&
+        (model.status === "running" || model.status === "countdown")
+      ) {
         pauseGame(model);
         audioGesture.current++;
         audioRef.current?.suspendPlayback();
@@ -339,7 +343,7 @@ export default function PocketEdition() {
     const interrupt = () => {
       audioGesture.current++;
       const model = gameRef.current;
-      if (model && model.status === "running") pauseGame(model);
+      if (model) pauseGame(model);
       inputRef.current?.clear();
       holdRef.current = false;
       audioRef.current?.suspendPlayback();
@@ -534,7 +538,7 @@ export default function PocketEdition() {
               type="button"
               className={styles.chip}
               onClick={() => {
-                if (game && status === "running") {
+                if (game && (status === "running" || status === "countdown")) {
                   pauseGame(game);
                   audioGesture.current++;
                   audioRef.current?.suspendPlayback();
@@ -640,7 +644,11 @@ export default function PocketEdition() {
               BEST{" "}
               {String(
                 save.best[
-                  `campaign${save.settings.assist ? ":assist" : ":standard"}`
+                  `${game?.mode ?? "campaign"}${
+                    game?.assist ?? save.settings.assist
+                      ? ":assist"
+                      : ":standard"
+                  }`
                 ] ?? 0,
               ).padStart(6, "0")}
             </span>
