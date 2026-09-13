@@ -1,0 +1,33 @@
+{
+  "scope": "offline Canvas fixtures; synthetic invincibility and power grants; no DOM or device-audio QA",
+  "fixtures": [
+    {
+      "filename": "chevron-split-crt.png",
+      "tick": 266,
+      "enemies": 5,
+      "shots": 25,
+      "warnings": 1
+    },
+    {
+      "filename": "weave-seeker-crt.png",
+      "tick": 266,
+      "enemies": 5,
+      "shots": 16,
+      "warnings": 2
+    },
+    {
+      "filename": "wall-rail-crt.png",
+      "tick": 266,
+      "enemies": 4,
+      "shots": 18,
+      "warnings": 0
+    },
+    {
+      "filename": "pincer-pulse-pocket.png",
+      "tick": 266,
+      "enemies": 5,
+      "shots": 22,
+      "warnings": 1
+    }
+  ]
+}

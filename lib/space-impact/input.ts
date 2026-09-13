@@ -12,6 +12,7 @@ export class InputController {
   private keys = new Set<string>();
   private pulseQueued = false;
   private interactQueued = false;
+  private cycleQueued = false;
   ceaseFire = false;
   private readonly player: () => Point;
 
@@ -58,6 +59,7 @@ export class InputController {
   }
 
   keyDown(key: string): void {
+    if (key === "KeyQ" && !this.keys.has(key)) this.cycleQueued = true;
     this.keys.add(key);
     if (key === "Space") this.pulseQueued = true;
     if (key === "KeyE") this.interactQueued = true;
@@ -75,6 +77,10 @@ export class InputController {
     this.interactQueued = true;
   }
 
+  cycleWeapon(): void {
+    this.cycleQueued = true;
+  }
+
   clear(): void {
     this.keys.clear();
     this.pointerId = null;
@@ -82,6 +88,7 @@ export class InputController {
     this.axes = { x: 0, y: 0 };
     this.pulseQueued = false;
     this.interactQueued = false;
+    this.cycleQueued = false;
     this.ceaseFire = false;
   }
 
@@ -98,10 +105,12 @@ export class InputController {
       target: this.target,
       pulse: this.pulseQueued,
       interact: this.interactQueued,
+      cycleWeapon: this.cycleQueued,
       ceaseFire: this.ceaseFire || this.keys.has("KeyF"),
     };
     this.pulseQueued = false;
     this.interactQueued = false;
+    this.cycleQueued = false;
     return input;
   }
 }

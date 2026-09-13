@@ -5,24 +5,24 @@ import {
   PLAYER_RADIUS,
   PLAYER_SPEED,
   STEP,
-  WEAPONS,
   WIDTH,
 } from "./config";
 import { circleRect, segmentCircle } from "./collision";
 import {
   activatePulse,
-  aim,
+  collectPickup,
+  cycleWeapon,
   bullet,
   burst,
   damagePlayer,
   discover,
   fire,
   killEnemy,
-  message,
   sound,
 } from "./combat";
 import { bossVulnerable, updateBoss } from "./content/bosses";
 import { enterRoom, finishBoss, updateDirector } from "./director";
+import { updateEnemies } from "./enemies";
 import type { Game, Input } from "./types";
 
 function updatePlayer(game: Game, input: Input): void {
@@ -53,55 +53,56 @@ function updatePlayer(game: Game, input: Input): void {
   p.y = clamp(p.y, 18, HEIGHT - 18);
   p.invincible = Math.max(0, p.invincible - STEP);
   p.fire = Math.max(0, p.fire - STEP);
+  p.shield = Math.max(0, p.shield - STEP);
+  p.overdrive = Math.max(0, p.overdrive - STEP);
+  p.drones = Math.max(0, p.drones - STEP);
+  p.droneFire = Math.max(0, p.droneFire - STEP);
+  if (input.cycleWeapon) cycleWeapon(game);
   if (input.pulse) activatePulse(game);
-  if (!input.ceaseFire && game.room?.kind !== "observatory") fire(game);
-}
-function updateEnemies(game: Game): void {
-  for (const enemy of game.enemies) {
-    if (enemy.dead) continue;
-    enemy.age += STEP;
-    const speed =
-      enemy.kind === "diver" ? 78 : enemy.kind === "armored" ? 22 : 37;
-    enemy.x -= speed * STEP;
-    if (enemy.kind === "diver")
-      enemy.y += clamp(game.player.y - enemy.y, -75, 75) * STEP;
-    else
-      enemy.y = clamp(
-        enemy.baseY +
-          Math.sin(enemy.age * 2.3 + enemy.phase) *
-            (enemy.kind === "prism" ? 28 : 14),
-        22,
-        248,
+  if (
+    p.drones > 0 &&
+    p.droneFire === 0 &&
+    !input.ceaseFire &&
+    game.room?.kind !== "observatory"
+  ) {
+    for (const offset of [-16, 16])
+      bullet(
+        game,
+        p.x + 2,
+        clamp(p.y + offset, 8, HEIGHT - 8),
+        365,
+        0,
+        false,
+        7,
       );
-    enemy.fire -= STEP;
-    if (
-      enemy.fire <= 0 &&
-      enemy.x < WIDTH - 10 &&
-      enemy.x > game.player.x + 40
-    ) {
-      const pressure = game.assist ? 0.72 : 1;
-      if (enemy.kind === "sentry" || enemy.kind === "armored")
-        aim(
-          game,
-          enemy.x - 8,
-          enemy.y,
-          (72 + game.sector * 5) * pressure,
-          0.2,
-          enemy.kind === "armored" ? 3 : 1,
-        );
-      if (enemy.kind === "prism") {
-        bullet(game, enemy.x, enemy.y, -75 * pressure, -34 * pressure);
-        bullet(game, enemy.x, enemy.y, -75 * pressure, 34 * pressure);
-      }
-      if (enemy.kind === "choir" || enemy.kind === "clucker")
-        aim(game, enemy.x, enemy.y, 65 * pressure, 0.3, 3);
-      enemy.fire = enemy.kind === "armored" ? 3.2 : 2.8;
-    }
-    if (enemy.x < -35) enemy.dead = true;
+    p.droneFire = 0.32;
   }
+  if (!input.ceaseFire && game.room?.kind !== "observatory") fire(game);
 }
 function moveBullets(game: Game): void {
   for (const b of game.bullets) {
+    if (b.seeker && !b.enemy && !b.dead) {
+      const candidates = game.enemies.filter(
+        (enemy) => !enemy.dead && enemy.x > b.x - 12 && enemy.x < WIDTH,
+      );
+      const boss = game.boss;
+      const target = candidates.reduce<{ x: number; y: number } | null>(
+        (best, enemy) =>
+          !best || distance(b, enemy) < distance(b, best) ? enemy : best,
+        boss?.awakened && !game.bossDefeated && boss.x > b.x ? boss : null,
+      );
+      if (target) {
+        const current = Math.atan2(b.vy, b.vx);
+        const desired = Math.atan2(target.y - b.y, target.x - b.x);
+        const diff = Math.atan2(
+          Math.sin(desired - current),
+          Math.cos(desired - current),
+        );
+        const turn = current + clamp(diff, -2.8 * STEP, 2.8 * STEP);
+        b.vx = Math.cos(turn) * 250;
+        b.vy = Math.sin(turn) * 250;
+      }
+    }
     b.previousX = b.x;
     b.previousY = b.y;
     b.x += b.vx * STEP;
@@ -169,6 +170,8 @@ function resolveCollisions(game: Game): void {
     }
     for (const enemy of game.enemies) {
       if (b.dead || enemy.dead || b.hits.includes(enemy.id)) continue;
+      // Formations must enter the visible field before being damaged.
+      if (enemy.x > WIDTH - enemy.radius) continue;
       if (segmentCircle(previous, b, enemy, enemy.radius + b.radius)) {
         enemy.hp -= b.damage;
         b.hits.push(enemy.id);
@@ -222,47 +225,13 @@ function resolveCollisions(game: Game): void {
 function updatePickups(game: Game): void {
   for (const item of game.pickups) {
     item.age += STEP;
-    item.x -= (item.kind === "feather" ? 23 : 30) * STEP;
-    if (distance(item, game.player) < 50) {
+    item.x -= (item.kind === "feather" ? 23 : 42) * STEP;
+    if (distance(item, game.player) < 76) {
       const d = Math.max(1, distance(item, game.player));
       item.x += ((game.player.x - item.x) / d) * 90 * STEP;
       item.y += ((game.player.y - item.y) / d) * 90 * STEP;
     }
-    if (distance(item, game.player) < 17) {
-      item.dead = true;
-      const p = game.player;
-      if (item.kind === "repair") p.hull = Math.min(p.maxHull, p.hull + 1);
-      else if (item.kind === "charge") p.charge = clamp(p.charge + 22, 0, 100);
-      else if (item.kind === "feather") {
-        game.feathers++;
-        message(
-          game,
-          "A feather. In space.",
-          game.feathers + " / 3 recovered",
-          3,
-        );
-      } else if (item.kind === "salvage") game.score += 150;
-      else {
-        const same = p.weapon === item.kind;
-        p.weapon = item.kind;
-        p.level = same ? Math.min(3, p.level + 1) : 1;
-        message(
-          game,
-          WEAPONS[p.weapon].name,
-          "Level " +
-            p.level +
-            " / " +
-            (p.weapon === "rail"
-              ? "Narrow. Piercing. Powerful."
-              : p.weapon === "split"
-                ? "A wider path through the storm."
-                : "A steady light in the dark."),
-          3,
-        );
-      }
-      sound(game, "pickup");
-      burst(game, item.x, item.y, "#c3f5d3", 8);
-    }
+    if (distance(item, game.player) < 17) collectPickup(game, item);
     if (item.x < -25) item.dead = true;
   }
 }
@@ -343,6 +312,10 @@ export function updateGame(game: Game, input: Input, dt = STEP): void {
   game.ghostPlayback = Math.max(0, game.ghostPlayback - STEP);
   game.comboTime = Math.max(0, game.comboTime - STEP);
   if (game.comboTime === 0) game.combo = 0;
+  if (game.combatNotice) {
+    game.combatNotice.life -= STEP;
+    if (game.combatNotice.life <= 0) game.combatNotice = null;
+  }
   if (game.message) {
     game.message.life -= STEP;
     if (game.message.life <= 0) game.message = null;

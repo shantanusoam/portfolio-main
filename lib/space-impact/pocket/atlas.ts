@@ -1,3 +1,5 @@
+import type { Pickup } from "../types";
+import { combatEnemy, supplySprite } from "./combat-art";
 /**
  * Lost Signal: Pocket Edition — baked pixel atlas.
  *
@@ -70,6 +72,10 @@ export interface Atlas {
   scout: AtlasFrame[];
   sentry: AtlasFrame[];
   diver: AtlasFrame[];
+  prism: AtlasFrame[];
+  armored: AtlasFrame[];
+  choir: AtlasFrame[];
+  supplies: Record<Pickup["kind"], AtlasFrame>;
   watcherDormant: AtlasFrame;
   watcherCracking: AtlasFrame;
   watcherOpen: AtlasFrame;
@@ -195,6 +201,26 @@ export function getAtlas(name: AtlasPaletteName = "olive"): Atlas {
     scout: bakeAll([SCOUT_A, SCOUT_B]),
     sentry: bakeAll([SENTRY_BASE, SENTRY_FIRE]),
     diver: bakeAll([DIVER_A, DIVER_B]),
+    prism: bakeAll([combatEnemy("prism", 0), combatEnemy("prism", 1)]),
+    armored: bakeAll([combatEnemy("armored", 0), combatEnemy("armored", 1)]),
+    choir: bakeAll([combatEnemy("choir", 0), combatEnemy("choir", 1)]),
+    supplies: Object.fromEntries(
+      (
+        [
+          "pulse",
+          "split",
+          "rail",
+          "seeker",
+          "shield",
+          "overdrive",
+          "drone",
+          "repair",
+          "charge",
+          "feather",
+          "salvage",
+        ] as const
+      ).map((kind) => [kind, bake(supplySprite(kind), t)]),
+    ) as Record<Pickup["kind"], AtlasFrame>,
     watcherDormant: bake(watcherBody("sealed"), t),
     watcherCracking: bake(watcherBody("cracking"), t),
     watcherOpen: bake(watcherBody("open"), t),
@@ -250,6 +276,12 @@ export function atlasManifest(name: PaletteName = "olive"): AtlasEntry[] {
     entry("scout", a.scout, 14, "2-frame wing cycle"),
     entry("sentry", a.sentry, 16, "core blink + barrel"),
     entry("diver", a.diver, 10, "2-frame fin cycle"),
+    entry("prism", a.prism, 14, "diamond fork emitter"),
+    entry("armored", a.armored, 16, "armored fan cannons"),
+    entry("choir", a.choir, 14, "swept wing choir"),
+    ...Object.entries(a.supplies).map(([kind, frame]) =>
+      entry("supply-" + kind, frame, 0, "lettered supply pod"),
+    ),
     entry("watcher-dormant", a.watcherDormant, 0, "sealed eye"),
     entry("watcher-cracking", a.watcherCracking, 0, "eye opening"),
     entry("watcher-open", a.watcherOpen, 0, "vulnerable iris"),

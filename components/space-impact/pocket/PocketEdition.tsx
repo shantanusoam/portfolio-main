@@ -7,7 +7,12 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { GameAudio, type AudioStatus } from "@/lib/space-impact/audio";
+import {
+  GameAudio,
+  selectSounds,
+  type AudioStatus,
+} from "@/lib/space-impact/audio";
+import { WEAPONS, WEAPON_ORDER } from "@/lib/space-impact/config";
 import { SECTORS } from "@/lib/space-impact/content/sectors";
 import { nextSector } from "@/lib/space-impact/director";
 import { InputController } from "@/lib/space-impact/input";
@@ -19,7 +24,7 @@ import {
 } from "@/lib/space-impact/model";
 import { updateGame } from "@/lib/space-impact/update";
 import { createRuntime } from "@/lib/space-impact/runtime";
-import type { Game, Mode, Profile } from "@/lib/space-impact/types";
+import type { Checkpoint, Game, Mode, Profile } from "@/lib/space-impact/types";
 import { getAtlas } from "@/lib/space-impact/pocket/atlas";
 import { READABILITY_FLOOR } from "@/lib/space-impact/pocket/fit";
 import {
@@ -199,7 +204,12 @@ export default function PocketEdition() {
       );
       const blocked = fit.floorFailed || fit.cssWidth < READABILITY_FLOOR - 0.5;
       setFloorWarning(blocked);
-      if (blocked && gameRef.current && gameRef.current.status === "running") {
+      if (
+        blocked &&
+        gameRef.current &&
+        (gameRef.current.status === "running" ||
+          gameRef.current.status === "countdown")
+      ) {
         pauseGame(gameRef.current);
         audioGesture.current++;
         audioRef.current?.suspendPlayback();
@@ -226,24 +236,23 @@ export default function PocketEdition() {
         const input = controls.sample();
         (model as Game & { lastInput?: unknown }).lastInput = input;
         updateGame(model, input);
+        audioRef.current?.setScene({
+          sector: model.sector,
+          combo: model.combo,
+          enemies: model.enemies.length,
+          overdrive: model.player.overdrive > 0,
+          quiet: Boolean(model.room),
+        });
         // Stop music before terminal effects so their fanfare can finish.
         audioRef.current?.setActive(
           model.status === "running",
           Boolean(model.boss?.awakened),
         );
         const events = model.events.splice(0);
-        const sounds = events
-          .filter((event) => event.kind === "sound")
-          .sort(
-            (a, b) => Number(a.sound === "shot") - Number(b.sound === "shot"),
-          );
-        sounds
-          .slice(0, 6)
-          .forEach(
-            (event) => event.sound && audioRef.current?.play(event.sound),
-          );
+        selectSounds(events).forEach((sound) => audioRef.current?.play(sound));
         if (events.some((event) => event.kind !== "sound")) {
           saveRef.current = persistPocketGame(saveRef.current, model);
+          setSaveState(saveRef.current);
           setStorageWarning(!writePocketSave(saveRef.current));
         }
         if (previousStatus !== model.status) {
@@ -288,9 +297,10 @@ export default function PocketEdition() {
           if (panel)
             panel.style.top = `${Math.round(worldBottom - stageTop + 14)}px`;
         }
-        if (now - lastHud >= 500) {
+        if (now - lastHud >= 100) {
           lastHud = now;
           setFps(perf.fps);
+          refresh();
         }
       },
     );
@@ -306,7 +316,11 @@ export default function PocketEdition() {
       )
         return;
       const model = gameRef.current;
-      if (event.code === "Escape" && model?.status === "running") {
+      if (
+        event.code === "Escape" &&
+        model &&
+        (model.status === "running" || model.status === "countdown")
+      ) {
         pauseGame(model);
         audioGesture.current++;
         audioRef.current?.suspendPlayback();
@@ -329,7 +343,7 @@ export default function PocketEdition() {
     const interrupt = () => {
       audioGesture.current++;
       const model = gameRef.current;
-      if (model && model.status === "running") pauseGame(model);
+      if (model) pauseGame(model);
       inputRef.current?.clear();
       holdRef.current = false;
       audioRef.current?.suspendPlayback();
@@ -362,9 +376,23 @@ export default function PocketEdition() {
   const game = gameRef.current;
 
   const startRun = useCallback(
-    (mode: Mode) => {
+    (mode: Mode, checkpoint: Checkpoint | null = null, sectorIndex = 0) => {
       activateAudio(true);
-      const model = createGame(profileOf(saveRef.current), mode, 0, 331042);
+      const cp = checkpoint
+        ? { ...checkpoint, assist: saveRef.current.settings.assist }
+        : null;
+      const model = createGame(
+        profileOf(saveRef.current),
+        mode,
+        cp?.sector ?? sectorIndex,
+        cp?.seed ?? 331042,
+        cp,
+      );
+      if (mode === "practice") {
+        model.player.arsenal = { pulse: 1, split: 1, rail: 1, seeker: 1 };
+        model.player.charge = 100;
+      }
+      setPanel("none");
       gameRef.current = model;
       inputRef.current?.clear();
       holdRef.current = false;
@@ -376,6 +404,17 @@ export default function PocketEdition() {
     [refresh, activateAudio, announce],
   );
 
+  const retryRun = () => {
+    const model = gameRef.current;
+    const mode = model?.mode ?? "campaign";
+    startRun(
+      mode,
+      mode === "campaign"
+        ? model?.checkpoint ?? saveRef.current.checkpoint
+        : null,
+      mode === "practice" ? model?.sector ?? 0 : 0,
+    );
+  };
   const continueRun = useCallback(() => {
     activateAudio();
     const model = gameRef.current;
@@ -424,10 +463,22 @@ export default function PocketEdition() {
       setDeathReveal(false);
       return;
     }
-    const timer = window.setTimeout(() => setDeathReveal(true), 2800);
+    const timer = window.setTimeout(() => setDeathReveal(true), 1000);
     return () => window.clearTimeout(timer);
   }, [status]);
   const hudVisible = status !== "ready";
+  const activeWeapon = game?.player.weapon ?? "pulse";
+  const weaponName = WEAPONS[activeWeapon].name;
+  const charge = Math.floor(game?.player.charge ?? 0);
+  const chain = 1 + Math.min(20, game?.combo ?? 0) * 0.05;
+  const secondsLeft = Math.max(0, 180 - Math.floor((game?.tick ?? 0) / 60));
+  const powers = game
+    ? [
+        { name: "SHIELD", time: game.player.shield },
+        { name: "BOOST", time: game.player.overdrive },
+        { name: "DRONES", time: game.player.drones },
+      ].filter((power) => power.time > 0)
+    : [];
   const soundLabel = save.settings.muted
     ? "SOUND OFF"
     : audioStatus === "running"
@@ -487,7 +538,7 @@ export default function PocketEdition() {
               type="button"
               className={styles.chip}
               onClick={() => {
-                if (game && status === "running") {
+                if (game && (status === "running" || status === "countdown")) {
                   pauseGame(game);
                   audioGesture.current++;
                   audioRef.current?.suspendPlayback();
@@ -517,21 +568,42 @@ export default function PocketEdition() {
           </span>
           <span className={styles.hudSector}>
             {sector && hudVisible
-              ? `${(game?.sector ?? 0) + 1}·${sector.name.toUpperCase()}`
+              ? game?.mode === "challenge"
+                ? `TIME ${Math.floor(secondsLeft / 60)}:${String(
+                    secondsLeft % 60,
+                  ).padStart(2, "0")}`
+                : `${(game?.sector ?? 0) + 1}·${sector.name.toUpperCase()}`
               : "STANDBY"}
           </span>
           <span
-            className={styles.meter}
-            title={`Presentation ${Math.round(fps)} fps`}
+            className={styles.chain}
+            aria-label={`Score multiplier ${chain.toFixed(2)}`}
           >
-            {Array.from({ length: 5 }, (_, index) => (
-              <i
-                key={index}
-                className={
-                  fps >= (index + 1) * 12 ? styles.meterOn : styles.meterOff
-                }
-              />
-            ))}
+            ×{chain.toFixed(2)}
+            <i style={{ width: `${((game?.comboTime ?? 0) / 4.5) * 100}%` }} />
+          </span>
+        </div>
+
+        <div className={styles.combatHud}>
+          <span className={styles.gunReadout}>
+            {activeWeapon === "seeker"
+              ? "MISSILES"
+              : activeWeapon.toUpperCase()}{" "}
+            <b>
+              {"▮".repeat(game?.player.level ?? 1)}
+              <em>{"▯".repeat(3 - (game?.player.level ?? 1))}</em>
+            </b>
+          </span>
+          <span className={styles.powerReadout}>
+            {powers.length ? (
+              powers.map((power) => (
+                <span key={power.name}>
+                  {power.name} {Math.ceil(power.time)}s
+                </span>
+              ))
+            ) : (
+              <span>COLLECT PODS · BUILD YOUR ARSENAL</span>
+            )}
           </span>
         </div>
 
@@ -572,13 +644,39 @@ export default function PocketEdition() {
               BEST{" "}
               {String(
                 save.best[
-                  `campaign${save.settings.assist ? ":assist" : ":standard"}`
+                  `${game?.mode ?? "campaign"}${
+                    game?.assist ?? save.settings.assist
+                      ? ":assist"
+                      : ":standard"
+                  }`
                 ] ?? 0,
               ).padStart(6, "0")}
             </span>
             <span>CHECKPOINT S{(save.checkpoint?.sector ?? 0) + 1}</span>
             <span>RELAY {Math.round(fps)}Hz</span>
           </div>
+        </div>
+
+        <div
+          className={styles.combatTicker}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <strong>
+            {hudVisible && game?.combatNotice
+              ? game.combatNotice.title
+              : hudVisible
+                ? `${game?.kills ?? 0} KILLS · ${
+                    game?.formationsCleared ?? 0
+                  } FORMATIONS CLEARED`
+                : "FOUR GUNS. ONE LAST SIGNAL."}
+          </strong>
+          <span>
+            {hudVisible && game?.combatNotice
+              ? game.combatNotice.text
+              : "P/S/R/M guns · A shield · O boost · D drones · + hull · ⚡ Nova"}
+          </span>
         </div>
 
         <div className={styles.controls}>
@@ -607,7 +705,43 @@ export default function PocketEdition() {
           </button>
           <button
             type="button"
+            className={styles.actionSwap}
+            disabled={status !== "running"}
+            aria-label={`Switch weapon. Current: ${weaponName}`}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              inputRef.current?.cycleWeapon();
+            }}
+            onClick={(event) => {
+              if (event.detail === 0) inputRef.current?.cycleWeapon();
+            }}
+          >
+            <small>SWAP · Q</small>
+            <strong>
+              {activeWeapon === "seeker"
+                ? "MISSILES"
+                : activeWeapon.toUpperCase()}
+            </strong>
+            <span aria-label="Unlocked guns">
+              {WEAPON_ORDER.map((weapon) => (
+                <i
+                  key={weapon}
+                  data-owned={(game?.player.arsenal[weapon] ?? 0) > 0}
+                  data-active={weapon === activeWeapon}
+                />
+              ))}
+            </span>
+          </button>
+          <button
+            type="button"
             className={styles.actionPrimary}
+            data-ready={charge >= 100}
+            disabled={status !== "running" || charge < 100}
+            aria-label={
+              charge >= 100
+                ? "Nova ready. Clear hostile shots"
+                : `Nova charging ${charge} percent`
+            }
             onPointerDown={(event) => {
               event.preventDefault();
               inputRef.current?.pulse();
@@ -616,7 +750,13 @@ export default function PocketEdition() {
               if (event.detail === 0) inputRef.current?.pulse();
             }}
           >
-            PULSE
+            <strong>NOVA</strong>
+            <small>
+              {charge >= 100 ? "READY · SPACE" : `${charge}% CHARGED`}
+            </small>
+            <span className={styles.chargeTrack} aria-hidden="true">
+              <i style={{ width: `${charge}%` }} />
+            </span>
           </button>
         </div>
 
@@ -633,14 +773,30 @@ export default function PocketEdition() {
                 autoFocus
                 onClick={() => startRun("campaign")}
               >
-                ▶ START TRANSMISSION
+                ▶ NEW TRANSMISSION
+              </button>
+              {save.checkpoint && (
+                <button
+                  type="button"
+                  className={styles.menuButton}
+                  onClick={() => startRun("campaign", save.checkpoint)}
+                >
+                  CONTINUE · SECTOR {save.checkpoint.sector + 1}
+                </button>
+              )}
+              <button
+                type="button"
+                className={styles.menuButton}
+                onClick={() => startRun("challenge")}
+              >
+                3 MINUTE SCORE ATTACK
               </button>
               <button
                 type="button"
                 className={styles.menuButton}
                 onClick={() => startRun("practice")}
               >
-                PRACTICE FLIGHT
+                BOSS LAB · TRY ALL GUNS
               </button>
               <button
                 type="button"
@@ -658,8 +814,8 @@ export default function PocketEdition() {
               </button>
             </div>
             <p className={styles.footnote}>
-              Drag anywhere to steer · fire is automatic · PULSE clears the
-              storm
+              Drag anywhere to steer · fire is automatic · NOVA clears the storm
+              · SWAP changes guns
             </p>
           </div>
         )}
@@ -685,7 +841,7 @@ export default function PocketEdition() {
               <button
                 type="button"
                 className={styles.menuButton}
-                onClick={() => startRun("campaign")}
+                onClick={retryRun}
               >
                 RESTART SECTOR
               </button>
@@ -705,11 +861,16 @@ export default function PocketEdition() {
                 type="button"
                 className={styles.menuPrimary}
                 onClick={() => {
-                  if (game) nextSector(game);
-                  continueRun();
+                  if (game?.mode === "practice") retryRun();
+                  else {
+                    if (game) nextSector(game);
+                    continueRun();
+                  }
                 }}
               >
-                ▶ FOLLOW THE SIGNAL
+                {game?.mode === "practice"
+                  ? "▶ PRACTICE AGAIN"
+                  : "▶ FOLLOW THE SIGNAL"}
               </button>
             </div>
           </div>
@@ -726,7 +887,7 @@ export default function PocketEdition() {
               <button
                 type="button"
                 className={styles.menuPrimary}
-                onClick={() => startRun("campaign")}
+                onClick={retryRun}
               >
                 ▶ RETRY
               </button>
@@ -743,15 +904,24 @@ export default function PocketEdition() {
 
         {!floorWarning && status === "victory" && (
           <div className={styles.overlay}>
-            <h2 className={styles.overlayTitle}>THE REAL SIGNAL</h2>
+            <h2 className={styles.overlayTitle}>
+              {game?.mode === "challenge" ? "TIME COMPLETE" : "THE REAL SIGNAL"}
+            </h2>
             <p className={styles.subtitle}>
-              The storm ends. Someone is answering. Score {game?.score ?? 0}.
+              {game?.mode === "challenge"
+                ? "Three minutes. One more personal best?"
+                : "The storm ends. Someone is answering."}{" "}
+              Score {game?.score ?? 0}.
             </p>
             <div className={styles.menuButtons}>
               <button
                 type="button"
                 className={styles.menuPrimary}
-                onClick={() => startRun("campaign")}
+                onClick={() =>
+                  startRun(
+                    game?.mode === "challenge" ? "challenge" : "campaign",
+                  )
+                }
               >
                 ▶ FLY AGAIN
               </button>
@@ -877,11 +1047,9 @@ export default function PocketEdition() {
                         ...save.settings,
                         assist: event.target.checked,
                       });
-                      const model = gameRef.current;
-                      if (model) model.assist = event.target.checked;
                     }}
                   />
-                  Assistance (5 hull)
+                  Assistance · 5 hull on next flight
                 </label>
               </fieldset>
               <fieldset>
@@ -978,16 +1146,31 @@ export default function PocketEdition() {
                 your tap point.
               </li>
               <li>
-                Keyboard: arrows or WASD to steer, Space to pulse, E to
-                interact, Esc to pause.
+                Keyboard: arrows or WASD to steer, Space for Nova, Q to swap
+                guns, E to interact, Esc to pause.
               </li>
               <li>
                 Cannons fire on their own. <strong>HOLD·TALK</strong> silences
                 them when the probe asks.
               </li>
               <li>
-                <strong>PULSE</strong> clears nearby shots once the meter is
+                <strong>NOVA</strong> clears hostile shots once the meter is
                 charged. Graze danger to charge faster.
+              </li>
+              <li>
+                <strong>Gun pods:</strong> P rapid fire, S wide spread, R
+                piercing rail, M homing missiles. Every gun stays in your
+                arsenal. Duplicates upgrade it to level 3.
+              </li>
+              <li>
+                <strong>Power pods:</strong> A shield absorbs one hit (15s), O
+                overdrive boosts fire (8s), D drones cover your wings (12s).
+                Clear an entire formation for a bonus pod.
+              </li>
+              <li>
+                <strong>Attack cues:</strong> dotted lines lock before firing.
+                Move after the lock; thread the gap in wall formations. Chains
+                raise score up to ×2.
               </li>
               <li>
                 A blinking window in a wreck is worth investigating. Fly close
@@ -1017,7 +1200,7 @@ export default function PocketEdition() {
         )}
       </div>
       <p className={styles.colophon}>
-        DRAG / WASD TO FLY · SPACE TO PULSE · ESC TO PAUSE
+        DRAG / WASD TO FLY · Q TO SWAP · SPACE FOR NOVA · ESC TO PAUSE
       </p>
     </section>
   );

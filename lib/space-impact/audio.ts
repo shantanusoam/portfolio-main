@@ -1,6 +1,38 @@
-import type { Settings, Sound } from "./types";
-const NOTES = [220, 329.63, 440, 392, 293.66, 329.63, 261.63, 293.66];
+import type { GameEvent, Settings, Sound } from "./types";
+import {
+  composeStep,
+  DEFAULT_SCENE,
+  musicTempo,
+  type MusicScene,
+} from "./music";
 export type AudioStatus = "locked" | "running" | "suspended" | "unavailable";
+
+/** Preserve decisive feedback when a single action destroys a whole fleet. */
+export function selectSounds(events: GameEvent[], limit = 6): Sound[] {
+  const priority: Record<Sound, number> = {
+    damage: 0,
+    pulse: 1,
+    clear: 1,
+    secret: 1,
+    shield: 2,
+    overdrive: 2,
+    pickup: 3,
+    combo: 4,
+    warning: 4,
+    explode: 5,
+    hit: 6,
+    rail: 7,
+    seeker: 7,
+    shot: 8,
+  };
+  return events
+    .flatMap((event) =>
+      event.kind === "sound" && event.sound ? [event.sound] : [],
+    )
+    .sort((a, b) => priority[a] - priority[b])
+    .slice(0, limit);
+}
+
 /** Original chiptune score. Activation belongs to a user gesture; never autoplay. */
 export class GameAudio {
   private context: AudioContext | null = null;
@@ -11,7 +43,7 @@ export class GameAudio {
   private step = 0;
   private nextNote = 0;
   private active = false;
-  private boss = false;
+  private scene: MusicScene = { ...DEFAULT_SCENE };
   private disposed = false;
   private lastShot = -1;
   private statusValue: AudioStatus = "locked";
@@ -139,6 +171,22 @@ export class GameAudio {
       this.lastShot = ctx.currentTime;
       this.tone(880, 0.075, level * 0.35, "square", 220);
     }
+    if (sound === "seeker") this.tone(560, 0.18, level * 0.32, "triangle", 160);
+    if (sound === "shield") {
+      this.tone(740, 0.24, level * 0.45, "sine", 370);
+      this.tone(1108, 0.3, level * 0.22, "triangle");
+    }
+    if (sound === "overdrive" || sound === "combo")
+      [587.33, 739.99, 880].forEach((note, i) =>
+        this.tone(
+          note,
+          0.13,
+          level * 0.45,
+          "square",
+          undefined,
+          ctx.currentTime + i * 0.055,
+        ),
+      );
     if (sound === "rail") this.tone(1100, 0.15, level * 0.5, "sawtooth", 120);
     if (sound === "hit") this.tone(360, 0.08, level * 0.5, "triangle", 110);
     if (sound === "explode") {
@@ -179,8 +227,12 @@ export class GameAudio {
     }
   }
 
+  setScene(scene: Omit<MusicScene, "boss">): void {
+    this.scene = { ...scene, boss: this.scene.boss };
+  }
+
   setActive(active: boolean, boss = false): void {
-    this.boss = boss;
+    this.scene.boss = boss;
     if (active === this.active) return;
     this.active = active;
     if (!active) this.silence();
@@ -231,30 +283,21 @@ export class GameAudio {
     if (this.nextNote < now) this.nextNote = now + 0.025;
     let scheduled = 0;
     while (this.nextNote < now + 0.1 && scheduled++ < 2) {
-      const note = NOTES[Math.floor(this.step / 2) % NOTES.length];
-      const level = this.settings.music * 0.08;
-      if (this.step % 4 === 0)
-        this.tone(note / 2, 0.5, level, "triangle", undefined, this.nextNote);
-      if (this.step % 2 === 0 || this.boss)
+      const level = this.settings.music * 0.095;
+      for (const note of composeStep(this.step, this.scene)) {
+        // Reserve six voices for emergency sound effects.
+        if (this.nodes.size >= 18) break;
         this.tone(
-          note * (this.boss ? 2 : 1),
-          0.13,
-          level * 0.55,
-          "square",
-          undefined,
+          note.frequency,
+          note.duration,
+          level * note.gain,
+          note.wave,
+          note.target,
           this.nextNote,
         );
-      if (this.step % 4 === 2)
-        this.tone(
-          note * 2,
-          0.09,
-          level * 0.25,
-          "triangle",
-          undefined,
-          this.nextNote,
-        );
+      }
       this.step++;
-      this.nextNote += 0.18;
+      this.nextNote += 60 / musicTempo(this.scene) / 4;
     }
   }
 

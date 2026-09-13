@@ -1,4 +1,11 @@
-import { clamp, MAX_BULLETS, MAX_PARTICLES, WEAPONS } from "./config";
+import {
+  clamp,
+  MAX_BULLETS,
+  MAX_PARTICLES,
+  WEAPONS,
+  WEAPON_ORDER,
+  WIDTH,
+} from "./config";
 import { SECRETS } from "./content/secrets";
 import { noise } from "./random";
 import type { Enemy, Game, Pickup, Secret, Sound } from "./types";
@@ -58,6 +65,7 @@ export function bullet(
   enemy = true,
   damage = 1,
   rail = false,
+  seeker = false,
 ): void {
   if (game.bullets.length >= MAX_BULLETS) return;
   game.bullets.push({
@@ -75,6 +83,7 @@ export function bullet(
     grazed: false,
     dead: false,
     rail,
+    seeker,
     hits: [],
   });
 }
@@ -105,7 +114,12 @@ export function fire(game: Game): void {
   const player = game.player;
   if (player.fire > 0) return;
   const level = player.level;
-  player.fire = WEAPONS[player.weapon].interval * (1 - (level - 1) * 0.1);
+  const powered = player.overdrive > 0;
+  player.fire =
+    WEAPONS[player.weapon].interval *
+    (1 - (level - 1) * 0.1) *
+    (powered ? 0.58 : 1);
+  const first = game.bullets.length;
   if (player.weapon === "split") {
     const count = level === 3 ? 5 : 3;
     for (let i = 0; i < count; i++) {
@@ -120,6 +134,20 @@ export function fire(game: Game): void {
         7 + level,
       );
     }
+  } else if (player.weapon === "seeker") {
+    const count = level === 3 ? 3 : 2;
+    for (let i = 0; i < count; i++)
+      bullet(
+        game,
+        player.x + 13,
+        player.y + (i - (count - 1) / 2) * 8,
+        230,
+        (i - (count - 1) / 2) * 36,
+        false,
+        13 + level * 3,
+        false,
+        true,
+      );
   } else if (player.weapon === "rail") {
     bullet(game, player.x + 13, player.y, 650, 0, false, 28 + level * 7, true);
   } else {
@@ -135,12 +163,30 @@ export function fire(game: Game): void {
     if (level === 3)
       bullet(game, player.x + 13, player.y + 3, 380, 0, false, 9);
   }
-  sound(game, player.weapon === "rail" ? "rail" : "shot");
+  if (powered)
+    for (let i = first; i < game.bullets.length; i++)
+      game.bullets[i].damage *= 1.2;
+  sound(
+    game,
+    player.weapon === "rail"
+      ? "rail"
+      : player.weapon === "seeker"
+        ? "seeker"
+        : "shot",
+  );
 }
 export function damagePlayer(game: Game): boolean {
   const player = game.player;
   if (player.invincible > 0 || game.status !== "running" || game.pulseTime > 0)
     return false;
+  if (player.shield > 0) {
+    player.shield = 0;
+    player.invincible = 0.9;
+    burst(game, player.x, player.y, "#b8ffec", 18);
+    combatNotice(game, "SHIELD ABSORBED HIT", "Keep your chain alive.");
+    sound(game, "shield");
+    return true;
+  }
   player.hull = Math.max(0, player.hull - 1);
   player.invincible = 1.7;
   game.combo = 0;
@@ -166,7 +212,7 @@ export function killEnemy(game: Game, enemy: Enemy): void {
   enemy.dead = true;
   game.kills++;
   game.combo++;
-  game.comboTime = 3;
+  game.comboTime = 4.5;
   game.score += Math.round(
     (enemy.kind === "armored" ? 160 : 80) *
       (1 + Math.min(20, game.combo) * 0.05),
@@ -180,6 +226,11 @@ export function killEnemy(game: Game, enemy: Enemy): void {
     10,
   );
   sound(game, "explode");
+  resolveSquad(game, enemy, false);
+  if (game.combo > 0 && game.combo % 5 === 0) {
+    game.player.charge = clamp(game.player.charge + 10, 0, 100);
+    sound(game, "combo");
+  }
   if (game.kills % 12 === 0) pickup(game, enemy.x, enemy.y, game.player.weapon);
   if (game.kills % 5 === 0) pickup(game, enemy.x, enemy.y, "charge");
 }
@@ -191,7 +242,11 @@ export function activatePulse(game: Game): boolean {
   game.shake = 3;
   game.bullets = game.bullets.filter((item) => !item.enemy);
   for (const enemy of game.enemies) {
-    if (Math.hypot(enemy.x - game.player.x, enemy.y - game.player.y) < 230) {
+    if (
+      !enemy.dead &&
+      enemy.x <= WIDTH - enemy.radius &&
+      Math.hypot(enemy.x - game.player.x, enemy.y - game.player.y) < 230
+    ) {
       enemy.hp -= 50;
       if (enemy.hp <= 0) killEnemy(game, enemy);
     }
@@ -205,4 +260,134 @@ export function activatePulse(game: Game): boolean {
   burst(game, game.player.x, game.player.y, "#adfff1", 24);
   sound(game, "pulse");
   return true;
+}
+
+export function combatNotice(
+  game: Game,
+  title: string,
+  text: string,
+  life = 3,
+): void {
+  game.combatNotice = { title, text, life };
+}
+export function cycleWeapon(game: Game): boolean {
+  if (game.status !== "running") return false;
+  const p = game.player;
+  p.arsenal[p.weapon] = p.level;
+  const unlocked = WEAPON_ORDER.filter((weapon) => p.arsenal[weapon] > 0);
+  if (unlocked.length < 2) {
+    combatNotice(
+      game,
+      "COLLECT A GUN POD",
+      "Fly into a lettered pod to unlock it.",
+    );
+    return false;
+  }
+  p.weapon = unlocked[(unlocked.indexOf(p.weapon) + 1) % unlocked.length];
+  p.level = p.arsenal[p.weapon];
+  // Cooldown is retained: rapid switching cannot multiply damage.
+  combatNotice(
+    game,
+    WEAPONS[p.weapon].name.toUpperCase(),
+    "LEVEL " + p.level + " · Q / SWAP to change gun",
+    1.6,
+  );
+  sound(game, "pickup");
+  return true;
+}
+export function collectPickup(game: Game, item: Pickup): void {
+  if (item.dead) return;
+  item.dead = true;
+  const p = game.player;
+  if (item.kind === "repair") {
+    if (p.hull === p.maxHull) game.score += 100;
+    p.hull = Math.min(p.maxHull, p.hull + 1);
+    combatNotice(game, "HULL REPAIRED", p.hull + " / " + p.maxHull + " hearts");
+  } else if (item.kind === "charge") {
+    p.charge = clamp(p.charge + 30, 0, 100);
+    combatNotice(
+      game,
+      p.charge === 100 ? "NOVA READY" : "NOVA +30",
+      "SPACE / NOVA clears bullets and damages the fleet.",
+    );
+  } else if (item.kind === "shield") {
+    p.shield = 15;
+    combatNotice(
+      game,
+      "SHIELD · 15s",
+      "Absorbs one hit without breaking your chain.",
+    );
+  } else if (item.kind === "overdrive") {
+    p.overdrive = 8;
+    combatNotice(
+      game,
+      "OVERDRIVE · 8s",
+      "Rapid fire + stronger shots. Make it count.",
+    );
+  } else if (item.kind === "drone") {
+    p.drones = 12;
+    combatNotice(game, "WING DRONES · 12s", "Two escorts add covering fire.");
+  } else if (item.kind === "feather") {
+    game.feathers++;
+    message(game, "A feather. In space.", game.feathers + " / 3 recovered", 3);
+    combatNotice(game, "STRANGE FEATHER", game.feathers + " / 3 recovered");
+  } else if (item.kind === "salvage") game.score += 150;
+  else {
+    p.arsenal[p.weapon] = p.level;
+    const old = p.arsenal[item.kind];
+    p.arsenal[item.kind] = Math.min(3, old + 1);
+    p.weapon = item.kind;
+    p.level = p.arsenal[item.kind];
+    if (old === 3) {
+      game.score += 200;
+      p.charge = clamp(p.charge + 15, 0, 100);
+    }
+    const description = {
+      pulse: "Fast, focused fire",
+      split: "Wide fan for formations",
+      rail: "Pierces entire rows",
+      seeker: "Homing missiles follow targets",
+    };
+    combatNotice(
+      game,
+      WEAPONS[p.weapon].name.toUpperCase() + " · LV " + p.level,
+      old === 3
+        ? "MAX LEVEL · +200 score / +15 charge"
+        : description[p.weapon] + " · Q / SWAP keeps every gun",
+    );
+    message(
+      game,
+      WEAPONS[p.weapon].name,
+      "Level " + p.level + " / " + description[p.weapon],
+      3,
+    );
+  }
+  sound(game, item.kind === "overdrive" ? "overdrive" : "pickup");
+  burst(game, item.x, item.y, "#c3f5d3", 12);
+}
+export function resolveSquad(game: Game, enemy: Enemy, escaped: boolean): void {
+  const squad = game.squads.find((s) => s.id === enemy.squad);
+  if (!squad) return;
+  squad.remaining--;
+  squad.escaped ||= escaped;
+  if (squad.remaining <= 0) {
+    game.squads = game.squads.filter((s) => s !== squad);
+    if (!squad.escaped) {
+      game.formationsCleared++;
+      game.score += 400;
+      game.player.charge = clamp(game.player.charge + 15, 0, 100);
+      pickup(
+        game,
+        clamp(enemy.x, 50, 420),
+        clamp(enemy.y, 30, 240),
+        squad.reward,
+      );
+      combatNotice(
+        game,
+        "FORMATION CLEAR +400",
+        "+15 NOVA · collect the supply pod",
+      );
+      sound(game, "combo");
+    }
+  }
 }

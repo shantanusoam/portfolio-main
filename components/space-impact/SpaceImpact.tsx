@@ -31,7 +31,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { GameAudio } from "@/lib/space-impact/audio";
+import { GameAudio, selectSounds } from "@/lib/space-impact/audio";
 import { WIDTH, WEAPONS } from "@/lib/space-impact/config";
 import { SECTORS } from "@/lib/space-impact/content/sectors";
 import { RELAY_SEQUENCE, SECRETS } from "@/lib/space-impact/content/secrets";
@@ -168,18 +168,20 @@ export default function SpaceImpact() {
         const controls = inputRef.current;
         if (!model || !controls) return;
         updateGame(model, controls.sample());
+        audioRef.current?.setScene({
+          sector: model.sector,
+          combo: model.combo,
+          enemies: model.enemies.length,
+          overdrive: model.player.overdrive > 0,
+          quiet: Boolean(model.room),
+        });
+        audioRef.current?.setActive(
+          model.status === "running",
+          Boolean(model.boss?.awakened),
+        );
         const events = model.events.splice(0);
         // Important sounds first; excess repetitive events are discarded, never queued across a pause.
-        const sounds = events
-          .filter((event) => event.kind === "sound")
-          .sort(
-            (a, b) => Number(a.sound === "shot") - Number(b.sound === "shot"),
-          );
-        sounds
-          .slice(0, 6)
-          .forEach(
-            (event) => event.sound && audioRef.current?.play(event.sound),
-          );
+        selectSounds(events).forEach((sound) => audioRef.current?.play(sound));
         if (events.some((event) => event.kind !== "sound"))
           save(persistGame(profileRef.current, model));
         if (previousStatus !== model.status) {
@@ -199,10 +201,7 @@ export default function SpaceImpact() {
           renderGame(context, model, settings, backdropRef.current);
           lastDrawRef.current = now;
         }
-        audioRef.current?.setActive(
-          model.status === "running",
-          Boolean(model.boss),
-        );
+
         if (now - lastHud >= 90) {
           lastHud = now;
           refresh();

@@ -1,3 +1,4 @@
+import { attackAngles } from "../enemies";
 /**
  * Lost Signal: Pocket Edition — Canvas2D presentation adapter.
  *
@@ -576,18 +577,7 @@ export function createPocketRenderer(
     // Pickups: outlined, never solid-core.
     for (const item of game.pickups) {
       const y = Math.round(half(item.y + Math.sin(item.age * 3) * 2));
-      const frame =
-        item.kind === "repair"
-          ? atlas.pickupRepair
-          : item.kind === "charge"
-            ? atlas.pickupCharge
-            : item.kind === "feather"
-              ? atlas.pickupFeather
-              : item.kind === "split"
-                ? atlas.pickupSplit
-                : item.kind === "rail"
-                  ? atlas.pickupRail
-                  : atlas.pickupPulse;
+      const frame = atlas.supplies[item.kind];
       blitFrame(frame, Math.round(half(item.x)), y, { clearance: border });
     }
 
@@ -600,10 +590,26 @@ export function createPocketRenderer(
         enemy.kind === "scout"
           ? atlas.scout[cycle(14)]
           : enemy.kind === "sentry"
-            ? atlas.sentry[cycle(16)]
+            ? atlas.sentry[enemy.telegraph > 0 ? 1 : 0]
             : enemy.kind === "diver"
               ? atlas.diver[cycle(10)]
-              : atlas.scout[cycle(14)];
+              : enemy.kind === "prism"
+                ? atlas.prism[cycle(14)]
+                : enemy.kind === "armored"
+                  ? atlas.armored[enemy.telegraph > 0 ? 1 : 0]
+                  : atlas.choir[cycle(14)];
+      if (enemy.telegraph > 0) {
+        ctx.fillStyle = toneAt(2);
+        for (const a of attackAngles(enemy))
+          for (let d = 9; d < 95; d += 5)
+            ctx.fillRect(
+              Math.round(x - 4 + Math.cos(a) * d),
+              Math.round(y + Math.sin(a) * d),
+              2,
+              1,
+            );
+        ring(x, y, 10, 2, 2);
+      }
       blitFrame(frame, x, y, { clearance: border });
       if (enemy.hp < enemy.maxHp) {
         ctx.fillStyle = toneAt(preset === "crt" ? 1 : 4);
@@ -697,6 +703,13 @@ export function createPocketRenderer(
         blitFrame(b.radius > 2 ? atlas.orbShot : atlas.enemyShot, x, y, {
           clearance: 2,
         });
+      } else if (b.seeker) {
+        ctx.fillStyle = toneAt(3);
+        ctx.fillRect(x - 7, y, 5, 1);
+        ctx.fillStyle = toneAt(1);
+        ctx.fillRect(x - 2, y - 1, 4, 3);
+        ctx.fillRect(x + 2, y, 2, 1);
+        ctx.fillRect(x - 3, y - 2, 1, 5);
       } else if (b.rail) {
         ctx.fillStyle = toneAt(3);
         ctx.fillRect(x - 11, y - 1, 11, 3);
@@ -742,6 +755,33 @@ export function createPocketRenderer(
           2,
           2,
         );
+      }
+      if (player.shield > 0) {
+        ring(Math.round(half(player.x)), Math.round(half(player.y)), 12, 2, 2);
+        ctx.fillStyle = toneAt(1);
+        ctx.fillRect(
+          Math.round(half(player.x)) + 12,
+          Math.round(half(player.y)) - 3,
+          1,
+          6,
+        );
+      }
+      if (player.drones > 0)
+        for (const offset of [-8, 8]) {
+          const dx = Math.round(half(player.x)) - 3;
+          const dy = Math.round(half(player.y)) + offset;
+          ctx.fillStyle = toneAt(1);
+          ctx.fillRect(dx - 3, dy, 6, 1);
+          ctx.fillRect(dx - 2, dy - 1, 3, 3);
+          ctx.fillStyle = toneAt(3);
+          ctx.fillRect(dx - 5, dy, 2, 1);
+        }
+      if (player.overdrive > 0) {
+        ctx.fillStyle = toneAt(1);
+        const x = Math.round(half(player.x)) - 16;
+        const y = Math.round(half(player.y));
+        ctx.fillRect(x - 3, y - 2, 4, 1);
+        ctx.fillRect(x - 3, y + 2, 4, 1);
       }
       if (game.companion) {
         ctx.fillStyle = toneAt(3);
