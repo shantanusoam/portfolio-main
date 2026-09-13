@@ -1,3 +1,4 @@
+import { restoreArsenal } from "./arsenal";
 import { hashSeed } from "./random";
 import { HEIGHT, VERSION, WIDTH } from "./config";
 import type { Checkpoint, Game, Input, Mode, Profile } from "./types";
@@ -9,6 +10,7 @@ export const emptyInput = (): Input => ({
   pulse: false,
   interact: false,
   ceaseFire: false,
+  cycleWeapon: false,
 });
 export function createGame(
   profile: Profile,
@@ -46,8 +48,20 @@ export function createGame(
       level: checkpoint?.level ?? 1,
       fire: 0,
       charge: 30,
+      arsenal: restoreArsenal(
+        checkpoint?.arsenal,
+        checkpoint?.weapon,
+        checkpoint?.level,
+      ),
+      shield: 0,
+      overdrive: 0,
+      drones: 0,
+      droneFire: 0,
     },
     enemies: [],
+    squads: [],
+    formationsCleared: 0,
+    combatNotice: null,
     bullets: [],
     terrain: [],
     pickups: [],

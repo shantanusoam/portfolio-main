@@ -22,6 +22,7 @@ import {
   finishBoss,
   nextSector,
   submitCode,
+  spawnEnemy,
   updateDirector,
 } from "../../lib/space-impact/director";
 import { InputController } from "../../lib/space-impact/input";
@@ -182,20 +183,8 @@ test("damage is applied once during the recovery interval", () => {
 
 test("fast rail shots hit a target only once", () => {
   const game = running();
-  game.enemies.push({
-    id: 77,
-    kind: "armored",
-    x: 150,
-    y: 135,
-    baseY: 135,
-    radius: 15,
-    hp: 100,
-    maxHp: 100,
-    age: 0,
-    fire: 10,
-    phase: 0,
-    dead: false,
-  });
+  const enemy = spawnEnemy(game, "armored", 150, 135)!;
+  Object.assign(enemy, { id: 77, hp: 100, maxHp: 100, fire: 10, phase: 0 });
   bullet(game, 149, 135, 1, 0, false, 30, true);
   advance(game, 5, { ...emptyInput(), ceaseFire: true });
   assert.equal(game.enemies[0].hp, 70);
@@ -449,24 +438,12 @@ test("probe sanctuary removes a contact shot before damage resolves", () => {
 });
 
 test("combat drops let every weapon reach level three", () => {
-  for (const weapon of ["pulse", "split", "rail"] as const) {
+  for (const weapon of ["pulse", "split", "rail", "seeker"] as const) {
     const game = running();
     game.player.weapon = weapon;
     for (let index = 0; index < 24; index++) {
-      killEnemy(game, {
-        id: index + 100,
-        kind: "scout",
-        x: game.player.x,
-        y: game.player.y,
-        baseY: game.player.y,
-        hp: 0,
-        maxHp: 26,
-        radius: 10,
-        age: 0,
-        fire: 1,
-        phase: 0,
-        dead: false,
-      });
+      const enemy = spawnEnemy(game, "scout", game.player.x, game.player.y)!;
+      killEnemy(game, enemy);
       updateGame(game, { ...emptyInput(), ceaseFire: true });
     }
     assert.equal(game.player.weapon, weapon);

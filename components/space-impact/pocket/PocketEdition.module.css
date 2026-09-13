@@ -761,3 +761,212 @@
     color: #91ac89;
   }
 }
+
+/* Combat readouts stay on the handset edges. */
+.hud,
+.combatHud,
+.combatTicker,
+.controls,
+.topbar {
+  flex-shrink: 0;
+}
+.chain {
+  position: relative;
+  padding-bottom: 3px;
+  min-width: 48px;
+  font-variant-numeric: tabular-nums;
+  color: var(--tone-backlight);
+}
+.chain i {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--tone-backlight);
+}
+.combatHud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 30px;
+  padding: 4px 10px;
+  background: #0b180f;
+  border-inline: 1px solid var(--chrome-edge);
+  color: var(--tone-faded);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+.gunReadout {
+  white-space: nowrap;
+  color: var(--tone-backlight);
+}
+.gunReadout b {
+  margin-left: 6px;
+  letter-spacing: 2px;
+}
+.gunReadout em {
+  color: var(--tone-shadow);
+  font-style: normal;
+}
+.powerReadout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 12px;
+  font-variant-numeric: tabular-nums;
+}
+.combatTicker {
+  min-height: 44px;
+  padding: 6px 5px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--tone-faded);
+}
+.combatTicker strong {
+  color: var(--tone-backlight);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.controls {
+  gap: 10px;
+  padding-top: 8px;
+}
+.actionSwap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 100px;
+  min-height: 60px;
+  padding: 7px 12px;
+  border: 1px solid var(--tone-shadow);
+  border-radius: 8px;
+  background: #18271c;
+  color: var(--tone-backlight);
+  cursor: pointer;
+  touch-action: none;
+  font: inherit;
+}
+.actionSwap small,
+.actionPrimary small {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  font-weight: 400;
+}
+.actionSwap strong {
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.actionSwap > span {
+  display: flex;
+  gap: 5px;
+}
+.actionSwap i {
+  width: 9px;
+  height: 3px;
+  border: 1px solid var(--tone-shadow);
+}
+.actionSwap i[data-owned="true"] {
+  background: var(--tone-shadow);
+}
+.actionSwap i[data-active="true"] {
+  background: var(--tone-backlight);
+}
+.actionPrimary {
+  position: relative;
+  min-width: 124px;
+  min-height: 60px;
+  overflow: hidden;
+  padding: 9px 12px 12px;
+}
+.actionPrimary strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.chargeTrack {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #0a160f;
+}
+.chargeTrack i {
+  display: block;
+  height: 100%;
+  background: var(--tone-backlight);
+}
+.actionPrimary[data-ready="true"] {
+  border-color: var(--tone-backlight);
+  box-shadow:
+    inset 0 0 18px #b5ffc822,
+    0 0 20px #7bff912e;
+}
+.actionPrimary:disabled,
+.actionSwap:disabled {
+  cursor: default;
+  box-shadow: none;
+}
+.actionSecondary {
+  min-width: 76px;
+  padding-inline: 10px;
+  letter-spacing: 0.5px;
+}
+@media (max-width: 480px) {
+  .controls {
+    gap: 6px;
+    padding-inline: 0;
+  }
+  .actionSwap {
+    min-width: 86px;
+    padding-inline: 7px;
+  }
+  .actionPrimary {
+    min-width: 108px;
+  }
+  .combatHud {
+    gap: 6px;
+    padding-inline: 6px;
+    font-size: 9px;
+  }
+  .powerReadout {
+    gap: 3px 6px;
+  }
+  .combatTicker {
+    min-height: 52px;
+  }
+}
+@media (max-height: 480px) {
+  .combatHud {
+    min-height: 24px;
+    padding-block: 2px;
+  }
+  .combatTicker {
+    min-height: 30px;
+    padding-right: 145px;
+  }
+  .combatTicker > span {
+    display: none;
+  }
+  .controls {
+    gap: 6px;
+    width: 128px;
+    padding-top: 0;
+  }
+  .controls > button {
+    width: 100%;
+    min-height: 48px;
+    padding-block: 6px;
+  }
+  .leftHanded .combatTicker {
+    padding-left: 145px;
+    padding-right: 5px;
+  }
+}

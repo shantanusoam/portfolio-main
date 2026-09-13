@@ -86,7 +86,10 @@ test("pocket save round-trips and rejects malformed envelopes", () => {
   };
   save.best = { "campaign:standard": 7300 };
   const parsed = parsePocketSave(JSON.stringify(save));
-  assert.deepEqual(parsed.checkpoint, save.checkpoint);
+  assert.deepEqual(parsed.checkpoint, {
+    ...save.checkpoint,
+    arsenal: { pulse: 1, split: 0, rail: 2, seeker: 0 },
+  });
   assert.equal(parsed.best["campaign:standard"], 7300);
   assert.equal(parsed.settings.preset, "crt");
 

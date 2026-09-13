@@ -8,7 +8,10 @@ export type Status =
   | "dead"
   | "victory"
   | "console";
-export type Weapon = "pulse" | "split" | "rail";
+export type Weapon = "pulse" | "split" | "rail" | "seeker";
+export type Arsenal = Record<Weapon, number>;
+export type Formation = "chevron" | "weave" | "pincer" | "wall";
+export type AttackPattern = "aimed" | "fan" | "cross" | "burst";
 export type Secret =
   | "lcd"
   | "window"
@@ -43,7 +46,11 @@ export type Sound =
   | "pulse"
   | "warning"
   | "secret"
-  | "clear";
+  | "clear"
+  | "seeker"
+  | "shield"
+  | "overdrive"
+  | "combo";
 export interface Point {
   x: number;
   y: number;
@@ -55,6 +62,7 @@ export interface Input {
   pulse: boolean;
   interact: boolean;
   ceaseFire: boolean;
+  cycleWeapon?: boolean;
 }
 export interface Settings {
   music: number;
@@ -70,6 +78,7 @@ export interface Settings {
   assist: boolean;
 }
 export interface Checkpoint {
+  arsenal?: Arsenal;
   sector: number;
   weapon: Weapon;
   level: number;
@@ -97,8 +106,22 @@ export interface Player extends Point {
   level: number;
   fire: number;
   charge: number;
+  arsenal: Arsenal;
+  shield: number;
+  overdrive: number;
+  drones: number;
+  droneFire: number;
 }
 export interface Enemy extends Point {
+  formation?: Formation;
+  squad?: number;
+  slot: number;
+  originX: number;
+  telegraph: number;
+  targetX: number;
+  targetY: number;
+  attackPattern: AttackPattern;
+  burstLeft: number;
   id: number;
   kind: EnemyKind;
   hp: number;
@@ -124,6 +147,7 @@ export interface Bullet extends Point {
   dead: boolean;
   rail: boolean;
   hits: number[];
+  seeker?: boolean;
 }
 export interface Terrain extends Point {
   id: number;
@@ -134,7 +158,15 @@ export interface Terrain extends Point {
 }
 export interface Pickup extends Point {
   id: number;
-  kind: Weapon | "repair" | "charge" | "feather" | "salvage";
+  kind:
+    | Weapon
+    | "repair"
+    | "charge"
+    | "feather"
+    | "salvage"
+    | "shield"
+    | "overdrive"
+    | "drone";
   age: number;
   dead: boolean;
 }
@@ -204,6 +236,14 @@ export interface Game {
   comboTime: number;
   player: Player;
   enemies: Enemy[];
+  squads: {
+    id: number;
+    remaining: number;
+    escaped: boolean;
+    reward: Pickup["kind"];
+  }[];
+  formationsCleared: number;
+  combatNotice: Message | null;
   bullets: Bullet[];
   terrain: Terrain[];
   pickups: Pickup[];
@@ -236,8 +276,17 @@ export interface Game {
   checkpoint: Checkpoint | null;
 }
 export interface Encounter {
+  formation?: Formation;
+  drop?: Pickup["kind"];
   at: number;
-  kind: EnemyKind | "corridor" | "current" | "weapon" | "repair" | "feather";
+  kind:
+    | EnemyKind
+    | "corridor"
+    | "current"
+    | "weapon"
+    | "repair"
+    | "feather"
+    | "supply";
   lane: number;
   count?: number;
 }

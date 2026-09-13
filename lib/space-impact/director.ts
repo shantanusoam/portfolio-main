@@ -1,28 +1,57 @@
 import { clamp, HEIGHT, WIDTH } from "./config";
-import { burst, discover, message, pickup, sound } from "./combat";
+import {
+  burst,
+  combatNotice,
+  discover,
+  message,
+  pickup,
+  sound,
+} from "./combat";
 import { announceBoss, createBoss } from "./content/bosses";
 import { SECTORS } from "./content/sectors";
 import { FRAGMENTS } from "./content/secrets";
 import { hashSeed, random } from "./random";
 import { checkpointFor } from "./storage";
-import type { Encounter, EnemyKind, Game, Room } from "./types";
+import type {
+  Encounter,
+  Enemy,
+  EnemyKind,
+  Formation,
+  Game,
+  Pickup,
+  Room,
+} from "./types";
 
 export function spawnEnemy(
   game: Game,
   kind: EnemyKind,
   x: number,
   y: number,
-): void {
-  if (game.enemies.length >= 45) return;
+): Enemy | null {
+  if (game.enemies.length >= 45) return null;
   const hp =
     (kind === "armored" ? 80 : kind === "sentry" ? 42 : 26) *
     (game.assist ? 0.8 : 1);
-  game.enemies.push({
+  const enemy: Enemy = {
     id: ++game.nextId,
     kind,
     x,
     y,
     baseY: y,
+    originX: x,
+    slot: 0,
+    telegraph: 0,
+    targetX: 86,
+    targetY: y,
+    burstLeft: 0,
+    attackPattern:
+      kind === "armored" || kind === "choir"
+        ? "fan"
+        : kind === "prism"
+          ? "cross"
+          : kind === "sentry"
+            ? "burst"
+            : "aimed",
     hp,
     maxHp: hp,
     radius: kind === "armored" ? 15 : 10,
@@ -30,11 +59,90 @@ export function spawnEnemy(
     fire: 1.2 + random(game) * 1.2,
     phase: random(game) * Math.PI * 2,
     dead: false,
-  });
+  };
+  game.enemies.push(enemy);
+  return enemy;
+}
+export function spawnFormation(
+  game: Game,
+  kind: EnemyKind,
+  formation: Formation,
+  lane = 0.5,
+  count = 5,
+  reward: Pickup["kind"] = "overdrive",
+): void {
+  if (game.squads.length >= 12) return;
+  const id = ++game.nextId;
+  const middle = clamp(lane * HEIGHT, 75, 195);
+  const wall = [32, 66, 100, 134, 168, 202, 236].filter(
+    (y) => Math.abs(y - middle) > 42,
+  );
+  const total = Math.min(
+    count,
+    formation === "wall" ? wall.length : 7,
+    45 - game.enemies.length,
+  );
+  let members = 0;
+  for (let i = 0; i < total; i++) {
+    const offset = i - (total - 1) / 2;
+    const x =
+      WIDTH +
+      22 +
+      (formation === "chevron"
+        ? Math.abs(offset) * 30
+        : formation === "wall"
+          ? (i % 2) * 12
+          : i * 30);
+    const y =
+      formation === "wall"
+        ? wall[i]
+        : formation === "pincer"
+          ? i % 2
+            ? 228
+            : 42
+          : formation === "chevron"
+            ? middle + offset * 26
+            : middle;
+    const enemy = spawnEnemy(game, kind, x, y);
+    if (!enemy) continue;
+    Object.assign(enemy, {
+      formation,
+      squad: id,
+      slot: i,
+      phase: 0,
+      fire: 2.1 + i * 0.2,
+    });
+    members++;
+  }
+  if (!members) return;
+  game.squads.push({ id, remaining: members, escaped: false, reward });
+  combatNotice(
+    game,
+    formation.toUpperCase() + " INBOUND",
+    "Clear the entire formation for +400 and a power pod",
+    2,
+  );
 }
 function spawnEncounter(game: Game, encounter: Encounter): void {
   const y = clamp(encounter.lane * HEIGHT, 30, 240);
   const kind = encounter.kind;
+  if (kind === "supply") {
+    const early = game.sector === 0 && encounter.at <= 3;
+    pickup(
+      game,
+      early ? Math.min(430, game.player.x + 85) : WIDTH - 30,
+      early ? game.player.y : y,
+      encounter.drop ?? "charge",
+    );
+    if (early)
+      combatNotice(
+        game,
+        "YOUR FIRST UPGRADE",
+        "Fly into the S pod. It unlocks split shot.",
+        4,
+      );
+    return;
+  }
   if (kind === "weapon") {
     const weapons = ["split", "rail", "pulse"] as const;
     pickup(game, WIDTH - 20, y, weapons[game.sector % 3]);
@@ -82,6 +190,17 @@ function spawnEncounter(game: Game, encounter: Encounter): void {
     spawnEnemy(game, "choir", WIDTH + 20, y);
     return;
   }
+  if (encounter.formation) {
+    spawnFormation(
+      game,
+      kind,
+      encounter.formation,
+      encounter.lane,
+      encounter.count,
+      encounter.drop ?? "overdrive",
+    );
+    return;
+  }
   for (let i = 0; i < (encounter.count || 1); i++) {
     spawnEnemy(
       game,
@@ -99,6 +218,7 @@ export function enterRoom(game: Game, kind: Room["kind"]): void {
     duration: kind === "salvage" ? 12 : kind === "observatory" ? 10 : 30,
   };
   game.enemies = [];
+  game.squads = [];
   game.bullets = [];
   game.terrain = [];
   game.features = [];
@@ -159,6 +279,7 @@ function finishGame(game: Game, ending: Game["ending"]): void {
   game.status = "victory";
   game.bullets = [];
   game.enemies = [];
+  game.squads = [];
   game.features = [];
   game.terrain = [];
   game.events.push({ kind: "complete" });
@@ -171,6 +292,7 @@ export function finishBoss(game: Game): void {
   game.score += 2000 + game.sector * 500;
   game.bullets = [];
   game.enemies = [];
+  game.squads = [];
   game.terrain = [];
   burst(game, boss.x, boss.y, SECTORS[game.sector].color, 50);
   game.shake = 4;
@@ -218,6 +340,7 @@ export function nextSector(game: Game): void {
   game.features = [];
   game.terrain = [];
   game.enemies = [];
+  game.squads = [];
   game.bullets = [];
   game.player.x = 86;
   game.player.y = 135;
@@ -250,6 +373,7 @@ export function updateDirector(game: Game): void {
       if (room.kind === "cluck") discover(game, "cluck");
       game.room = null;
       game.enemies = [];
+      game.squads = [];
       game.bullets = [];
       game.pickups = [];
       game.player.invincible = 2;

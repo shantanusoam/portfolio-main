@@ -15,8 +15,10 @@ export const WEAPONS: Record<
 > = {
   pulse: { name: "Pulse cannon", color: "#9af8e9", interval: 0.19 },
   split: { name: "Split shot", color: "#ffc480", interval: 0.32 },
+  seeker: { name: "Seeker missiles", color: "#ffe38a", interval: 0.65 },
   rail: { name: "Rail lance", color: "#c4afff", interval: 0.52 },
 };
+export const WEAPON_ORDER: Weapon[] = ["pulse", "split", "rail", "seeker"];
 export const DEFAULT_SETTINGS: Settings = {
   music: 0.3,
   effects: 0.55,
