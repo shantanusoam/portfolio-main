@@ -95,6 +95,24 @@ export interface CharacterLocomotionSpec {
   surfaceInset: number;
 }
 
+export interface CharacterGrappleSpec {
+  enabled: boolean;
+  /** Furthest pointer contact the creature may acquire, in CSS pixels. */
+  maxReach: number;
+  /** Slack distance before the tether starts pulling the body. */
+  restLength: number;
+  /** Acceleration applied along a taut tentacle. */
+  pullStrength: number;
+  /** Removes velocity that is travelling away from the contact point. */
+  radialDamping: number;
+  /** How quickly the selected tentacle grows and recoils. */
+  extensionSpeed: number;
+  /** Preserves a little swing energy when the player lets go. */
+  releaseBoost: number;
+  /** How closely an attached tip follows a moving pointer. */
+  targetResponsiveness: number;
+}
+
 /** Cached CSS-pixel rectangle. Physics never reads DOM layout directly. */
 export interface EnvironmentSurface {
   id: string;
@@ -247,6 +265,7 @@ export interface CharacterSpec {
   dynamics: BodyDynamicsSpec;
   idle: IdleMovementSpec;
   locomotion: CharacterLocomotionSpec;
+  grapple: CharacterGrappleSpec;
   appendages: readonly AppendageSpec[];
   gait: GaitSpec;
   eyes: EyeSpec;
@@ -278,7 +297,17 @@ export interface CharacterManualControl {
 export interface CharacterActionState {
   crouch: number;
   grab: number;
+  jumpCharge: number;
   inkPulse: number;
+}
+
+export interface CharacterGrappleState {
+  active: boolean;
+  attached: boolean;
+  appendageIndex: number;
+  point: Vec2Like;
+  tension: number;
+  reachScale: number;
 }
 
 /** Continuously blended animation signals calculated outside the renderer. */
@@ -312,6 +341,7 @@ export interface CharacterDebugSnapshot {
     surfaceId: string | null;
     groundY: number | null;
   };
+  grapple: CharacterGrappleState;
   environmentSurfaces: readonly EnvironmentSurface[];
   appendages: ReadonlyArray<{
     id: string;

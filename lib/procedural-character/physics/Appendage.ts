@@ -1,5 +1,5 @@
 import type { AppendageSpec, Vec2Like } from "../types";
-import { copy, fromAngle, rotate, vec2 } from "../math/Vec2";
+import { clamp, copy, fromAngle, rotate, vec2 } from "../math/Vec2";
 import {
   createFabrikChain,
   solveFabrik,
@@ -15,7 +15,8 @@ export class AppendageRuntime {
   readonly index: number;
   readonly spec: AppendageSpec;
   readonly segmentLengths: number[];
-  readonly maxReach: number;
+  readonly baseSegmentLengths: number[];
+  readonly baseMaxReach: number;
 
   readonly anchor = vec2();
   readonly idealFootTarget = vec2();
@@ -37,6 +38,7 @@ export class AppendageRuntime {
   stepDemand = 0;
   phaseDistance = 1;
   triggerReason = "planted";
+  reachScale = 1;
 
   private readonly solverOptions: FabrikSolverOptions;
   private readonly softChain: SoftChain;
@@ -54,8 +56,9 @@ export class AppendageRuntime {
   ) {
     this.spec = spec;
     this.index = index;
-    this.segmentLengths = spec.segmentLengths.map((value) => value * scale);
-    this.maxReach = spec.maxReach * scale;
+    this.baseSegmentLengths = spec.segmentLengths.map((value) => value * scale);
+    this.segmentLengths = [...this.baseSegmentLengths];
+    this.baseMaxReach = spec.maxReach * scale;
     this.solverOptions = {
       iterations: solverIterations,
       tolerance: 0.08,
@@ -124,16 +127,43 @@ export class AppendageRuntime {
     );
   }
 
+  get maxReach(): number {
+    return this.baseMaxReach * this.reachScale;
+  }
+
+  /**
+   * Smoothly changes the physical chain length. The same mutable segment
+   * array is shared by FABRIK and the Verlet ribbon, so the visible arm and
+   * its reach constraint can never disagree during an elastic grab.
+   */
+  updateReachScale(targetScale: number, dt: number, response: number): void {
+    const target = clamp(targetScale, 1, 6);
+    const blend = 1 - Math.exp(-Math.max(0.1, response) * Math.max(0, dt));
+    this.reachScale += (target - this.reachScale) * blend;
+    if (
+      Math.abs(this.reachScale - target) < 0.0005 ||
+      (target === 1 && this.reachScale < 1.002)
+    ) {
+      this.reachScale = target;
+    }
+    for (let index = 0; index < this.segmentLengths.length; index += 1) {
+      this.segmentLengths[index] =
+        this.baseSegmentLengths[index] * this.reachScale;
+    }
+  }
+
   updateSecondaryMotion(
     dt: number,
     elapsedTime: number,
     reducedMotion: boolean,
+    tension = 0,
   ): void {
     this.softChain.update(this.points, this.anchor, this.foot, {
       dt,
       elapsedTime,
       phase: this.spec.gaitPhase,
       reducedMotion,
+      tension,
       spring: this.spec.spring,
     });
   }
@@ -144,6 +174,10 @@ export class AppendageRuntime {
     bodyRadius: number,
     scale: number,
   ): void {
+    this.reachScale = 1;
+    for (let index = 0; index < this.segmentLengths.length; index += 1) {
+      this.segmentLengths[index] = this.baseSegmentLengths[index];
+    }
     this.placeAnchor(bodyPosition, bodyFacing, bodyRadius, scale);
     this.placeInitialFoot(bodyPosition, bodyFacing, scale);
     this.stepping = false;

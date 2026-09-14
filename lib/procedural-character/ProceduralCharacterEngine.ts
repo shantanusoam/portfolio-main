@@ -21,6 +21,7 @@ import type {
   CharacterDebugSnapshot,
   CharacterActionState,
   CharacterKinematics,
+  CharacterGrappleState,
   CharacterMode,
   CharacterPerformanceSnapshot,
   CharacterSpec,
@@ -62,6 +63,14 @@ export class ProceduralCharacterEngine {
     activeSteps: 0,
     gaitPhase: 0,
   };
+  readonly grapple: CharacterGrappleState = {
+    active: false,
+    attached: false,
+    appendageIndex: -1,
+    point: vec2(),
+    tension: 0,
+    reachScale: 1,
+  };
 
   private readonly renderer: CharacterRenderer;
   private readonly targetDriver: TargetDriver;
@@ -82,6 +91,8 @@ export class ProceduralCharacterEngine {
   private frameCount = 0;
   private frameWindowStartedAt = now();
   private normalizedMovementIntent = 0;
+  private jumpWindupRemaining = 0;
+  private readonly jumpWindupDuration = 0.085;
   private environmentSurfaces: readonly EnvironmentSurface[] = [];
   private timeScale = 1;
   private viewportWidth = 1;
@@ -97,6 +108,7 @@ export class ProceduralCharacterEngine {
   private readonly actionState: CharacterActionState = {
     crouch: 0,
     grab: 0,
+    jumpCharge: 0,
     inkPulse: 0,
   };
 
@@ -191,6 +203,7 @@ export class ProceduralCharacterEngine {
       appendages: this.appendages,
       performance: this.performance,
       action: this.actionState,
+      grapple: this.grapple,
       environmentSurfaces: this.environmentSurfaces,
       elapsedTime: 0,
       debug: this.debug,
@@ -289,6 +302,12 @@ export class ProceduralCharacterEngine {
 
   requestJump(): void {
     this.manualControl.enabled = true;
+    if (this.platformLocomotion?.grounded) {
+      if (this.jumpWindupRemaining <= 0) {
+        this.jumpWindupRemaining = this.jumpWindupDuration;
+      }
+      return;
+    }
     this.manualControl.jump = true;
   }
 
@@ -302,6 +321,13 @@ export class ProceduralCharacterEngine {
     this.targetDriver.reset(position);
     this.elapsedTime = 0;
     this.normalizedMovementIntent = 0;
+    this.jumpWindupRemaining = 0;
+    this.actionState.jumpCharge = 0;
+    this.grapple.active = false;
+    this.grapple.attached = false;
+    this.grapple.appendageIndex = -1;
+    this.grapple.tension = 0;
+    this.grapple.reachScale = 1;
     this.platformLocomotion?.reset();
     this.softBody?.reset(
       position,
@@ -353,6 +379,10 @@ export class ProceduralCharacterEngine {
           ? this.platformLocomotion?.groundY ?? null
           : null,
       },
+      grapple: {
+        ...this.grapple,
+        point: { ...this.grapple.point },
+      },
       environmentSurfaces: this.environmentSurfaces.map((surface) => ({
         ...surface,
       })),
@@ -392,6 +422,7 @@ export class ProceduralCharacterEngine {
   private update(dt: number): void {
     this.elapsedTime += dt;
     this.targetDriver.update(dt);
+    this.updateJumpWindup(dt);
 
     const maximumSpeed =
       this.spec.dynamics.maxSpeed *
@@ -408,6 +439,7 @@ export class ProceduralCharacterEngine {
       this.manualControl.enabled ? this.manualControl : null,
     );
     this.manualControl.jump = false;
+    this.updateGrappleRoot(dt, maximumSpeed);
     if (!this.platformLocomotion) {
       this.dynamics.update(
         dt,
@@ -454,6 +486,7 @@ export class ProceduralCharacterEngine {
       supportsFootPlanting:
         !this.platformLocomotion || this.platformLocomotion.grounded,
     });
+    this.updateGrappleAppendage(dt);
 
     this.personalityController.update(
       dt,
@@ -469,7 +502,10 @@ export class ProceduralCharacterEngine {
       actionBlend;
     this.actionState.grab +=
       ((this.manualControl.grab ? 1 : 0) - this.actionState.grab) * actionBlend;
-    this.actionState.inkPulse = Math.max(0, this.actionState.inkPulse - dt * 1.35);
+    this.actionState.inkPulse = Math.max(
+      0,
+      this.actionState.inkPulse - dt * 1.35,
+    );
 
     const solverStartedAt = now();
     const solverIterations = this.resolveSolverIterations();
@@ -480,11 +516,194 @@ export class ProceduralCharacterEngine {
         dt,
         this.elapsedTime,
         this.reducedMotion,
+        this.grapple.attached && this.grapple.appendageIndex === index
+          ? this.grapple.tension
+          : 0,
       );
     }
     this.performance.solverTimeMs = now() - solverStartedAt;
     this.performance.activeSteps = this.gaitPlanner.activeSteps;
     this.performance.gaitPhase = this.gaitPlanner.phase;
+  }
+
+  private updateJumpWindup(dt: number): void {
+    if (this.jumpWindupRemaining <= 0) {
+      this.actionState.jumpCharge +=
+        (0 - this.actionState.jumpCharge) * (1 - Math.exp(-dt * 18));
+      return;
+    }
+
+    this.jumpWindupRemaining = Math.max(0, this.jumpWindupRemaining - dt);
+    this.actionState.jumpCharge = clamp(
+      1 - this.jumpWindupRemaining / this.jumpWindupDuration,
+      0,
+      1,
+    );
+    if (this.jumpWindupRemaining === 0) this.manualControl.jump = true;
+  }
+
+  /**
+   * Couples one selected tentacle back into root motion. This is the missing
+   * physical relationship in a purely visual IK rig: once the tip is taut,
+   * the contact can lift, swing and redirect the body instead of merely
+   * drawing a long arm toward the cursor.
+   */
+  private updateGrappleRoot(dt: number, maximumSpeed: number): void {
+    const config = this.spec.grapple;
+    const requested =
+      config.enabled && this.manualControl.grab && this.appendages.length > 0;
+    this.grapple.active = requested;
+
+    if (requested && !this.grapple.attached) {
+      const deltaX = this.targetDriver.target.x - this.body.position.x;
+      const deltaY = this.targetDriver.target.y - this.body.position.y;
+      const distance = Math.hypot(deltaX, deltaY);
+      const acquisitionRadius = config.maxReach * this.spec.scale;
+      if (
+        distance >= this.spec.body.radius * this.spec.scale * 0.72 &&
+        distance <= acquisitionRadius
+      ) {
+        let selectedIndex = 0;
+        let selectedDistance = Number.POSITIVE_INFINITY;
+        for (let index = 0; index < this.appendages.length; index += 1) {
+          const appendage = this.appendages[index];
+          const anchorDistance = Math.hypot(
+            this.targetDriver.target.x - appendage.anchor.x,
+            this.targetDriver.target.y - appendage.anchor.y,
+          );
+          if (anchorDistance < selectedDistance) {
+            selectedDistance = anchorDistance;
+            selectedIndex = index;
+          }
+        }
+        this.grapple.appendageIndex = selectedIndex;
+        copy(this.grapple.point, this.targetDriver.target);
+        this.grapple.attached = true;
+      }
+    }
+
+    if (!requested && this.grapple.attached) {
+      const boostedVelocity = {
+        x: this.body.velocity.x * config.releaseBoost,
+        y: this.body.velocity.y * config.releaseBoost,
+      };
+      clampLength(
+        this.body.velocity,
+        boostedVelocity,
+        maximumSpeed * Math.max(1, config.releaseBoost),
+      );
+      this.grapple.attached = false;
+    }
+
+    if (!this.grapple.attached) {
+      this.grapple.tension *= Math.exp(-dt * 14);
+      return;
+    }
+
+    const follow = 1 - Math.exp(-config.targetResponsiveness * dt);
+    this.grapple.point.x +=
+      (this.targetDriver.target.x - this.grapple.point.x) * follow;
+    this.grapple.point.y +=
+      (this.targetDriver.target.y - this.grapple.point.y) * follow;
+
+    let deltaX = this.grapple.point.x - this.body.position.x;
+    let deltaY = this.grapple.point.y - this.body.position.y;
+    let distance = Math.max(EPSILON, Math.hypot(deltaX, deltaY));
+    let directionX = deltaX / distance;
+    let directionY = deltaY / distance;
+    const maximumReach = config.maxReach * this.spec.scale;
+    const restLength = Math.min(
+      maximumReach * 0.82,
+      config.restLength * this.spec.scale,
+    );
+
+    if (distance > maximumReach) {
+      const correction = (distance - maximumReach) * 0.72;
+      this.body.position.x += directionX * correction;
+      this.body.position.y += directionY * correction;
+      deltaX = this.grapple.point.x - this.body.position.x;
+      deltaY = this.grapple.point.y - this.body.position.y;
+      distance = Math.max(EPSILON, Math.hypot(deltaX, deltaY));
+      directionX = deltaX / distance;
+      directionY = deltaY / distance;
+    }
+
+    const extension = Math.max(0, distance - restLength);
+    this.grapple.tension = clamp(
+      extension / Math.max(1, maximumReach - restLength),
+      0,
+      1,
+    );
+    if (extension <= 0) return;
+
+    if (
+      this.platformLocomotion?.grounded &&
+      this.grapple.point.y <
+        this.body.position.y - this.spec.body.radius * this.spec.scale * 0.3 &&
+      this.grapple.tension > 0.035
+    ) {
+      this.platformLocomotion.releaseSupport(this.spec.locomotion);
+    }
+
+    const acceleration =
+      config.pullStrength *
+        this.spec.scale *
+        (0.16 + this.grapple.tension * 1.18) +
+      extension * 8;
+    this.body.velocity.x += directionX * acceleration * dt;
+    this.body.velocity.y += directionY * acceleration * dt;
+
+    const radialVelocity =
+      this.body.velocity.x * directionX + this.body.velocity.y * directionY;
+    if (radialVelocity < 0) {
+      const damping = 1 - Math.exp(-config.radialDamping * dt);
+      this.body.velocity.x -= directionX * radialVelocity * damping;
+      this.body.velocity.y -= directionY * radialVelocity * damping;
+    }
+    clampLength(this.body.velocity, this.body.velocity, maximumSpeed * 1.18);
+    this.body.acceleration.x += directionX * acceleration;
+    this.body.acceleration.y += directionY * acceleration;
+  }
+
+  private updateGrappleAppendage(dt: number): void {
+    const selectedIndex = this.grapple.appendageIndex;
+    if (selectedIndex < 0 || selectedIndex >= this.appendages.length) return;
+    const appendage = this.appendages[selectedIndex];
+    const response = this.spec.grapple.extensionSpeed;
+
+    if (this.grapple.attached) {
+      const targetDistance = Math.hypot(
+        this.grapple.point.x - appendage.anchor.x,
+        this.grapple.point.y - appendage.anchor.y,
+      );
+      const maximumScale = Math.max(
+        1,
+        (this.spec.grapple.maxReach * this.spec.scale) /
+          Math.max(EPSILON, appendage.baseMaxReach),
+      );
+      const targetScale = clamp(
+        (targetDistance / Math.max(EPSILON, appendage.baseMaxReach)) * 1.035,
+        1,
+        maximumScale,
+      );
+      appendage.updateReachScale(targetScale, dt, response);
+      appendage.stepping = false;
+      appendage.stepProgress = 1;
+      copy(appendage.idealFootTarget, this.grapple.point);
+      copy(appendage.foot, this.grapple.point);
+      copy(appendage.lockedFootPosition, this.grapple.point);
+      copy(appendage.stepStart, this.grapple.point);
+      copy(appendage.stepDestination, this.grapple.point);
+      this.grapple.reachScale = appendage.reachScale;
+      return;
+    }
+
+    appendage.updateReachScale(1, dt, response * 0.72);
+    this.grapple.reachScale = appendage.reachScale;
+    if (appendage.reachScale <= 1.002) {
+      this.grapple.appendageIndex = -1;
+      this.grapple.reachScale = 1;
+    }
   }
 
   private updateBodyKinematics(dt: number, maximumSpeed: number): void {
@@ -687,9 +906,7 @@ export class ProceduralCharacterEngine {
       this.manualControl.enabled &&
       Math.abs(this.manualControl.horizontal) > 0.01
     ) {
-      this.movementIntentDirection.x = Math.sign(
-        this.manualControl.horizontal,
-      );
+      this.movementIntentDirection.x = Math.sign(this.manualControl.horizontal);
       this.movementIntentDirection.y = 0;
       this.normalizedMovementIntent = Math.max(
         this.body.normalizedSpeed,

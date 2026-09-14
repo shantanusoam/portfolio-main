@@ -102,7 +102,10 @@ export default function ProceduralCharacter({
     applySize();
     environmentSampler?.attach();
 
-    const pointerInput = new PointerInput({ activeTimeoutMs: 300 });
+    const pointerInput = new PointerInput({
+      activeTimeoutMs: 300,
+      ignoreSelector: "[data-character-control]",
+    });
     const unsubscribePointer = pointerInput.onChange((pointer) => {
       engine.setTarget(pointer.x, pointer.y, pointer.active);
     });

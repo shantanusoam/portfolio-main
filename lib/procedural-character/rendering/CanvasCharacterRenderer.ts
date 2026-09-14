@@ -50,6 +50,7 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     this.drawInkBurst(context, state);
     this.drawGlow(context, state);
     this.drawAppendages(context, state);
+    this.drawGrappleContact(context, state);
     this.drawBody(context, state);
     this.drawMarkings(context, state);
     this.drawEyes(context, state);
@@ -128,6 +129,7 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     context.shadowOffsetY = 4;
 
     for (let index = 0; index < appendages.length; index += 1) {
+      if (state.grapple.appendageIndex === index) continue;
       const appendage = appendages[index];
       const paletteColor =
         spec.rendering.debugPalette[
@@ -144,6 +146,22 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
       this.drawTaperedTentacle(context, appendage, spec.scale);
     }
 
+    const selected = appendages[state.grapple.appendageIndex];
+    if (selected) {
+      const selectedColor =
+        spec.rendering.debugPalette[
+          Math.abs(selected.spec.gaitGroup) % spec.rendering.debugPalette.length
+        ];
+      context.fillStyle = state.debug
+        ? `${selectedColor}b8`
+        : spec.rendering.appendageColor;
+      context.strokeStyle = state.debug
+        ? `${selectedColor}e6`
+        : spec.rendering.outlineColor;
+      context.lineWidth = Math.max(0.65, spec.rendering.outlineWidth * 0.65);
+      this.drawTaperedTentacle(context, selected, spec.scale);
+    }
+
     context.restore();
   }
 
@@ -155,7 +173,9 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     const points = appendage.softPoints;
     const last = Math.min(points.length - 1, MAX_RIBBON_POINTS - 1);
     if (last < 1) return;
-    const baseHalfWidth = appendage.spec.thickness * scale * 0.5;
+    const extensionThin = 1 / Math.sqrt(Math.max(1, appendage.reachScale));
+    const baseHalfWidth =
+      appendage.spec.thickness * scale * 0.5 * extensionThin;
 
     for (let index = 0; index <= last; index += 1) {
       const before = points[Math.max(0, index - 1)];
@@ -168,7 +188,7 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
       const t = index / last;
       const taper = Math.pow(1 - t, 0.72);
       const muscle = 1 + Math.sin(t * Math.PI) * 0.16;
-      const halfWidth = Math.max(1.15 * scale, baseHalfWidth * taper * muscle);
+      const halfWidth = Math.max(0.78 * scale, baseHalfWidth * taper * muscle);
 
       this.leftX[index] = points[index].x + normalX * halfWidth;
       this.leftY[index] = points[index].y + normalY * halfWidth;
@@ -202,6 +222,32 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
     context.stroke();
   }
 
+  private drawGrappleContact(
+    context: CanvasRenderingContext2D,
+    state: CharacterRenderState,
+  ): void {
+    if (!state.grapple.attached) return;
+    const appendage = state.appendages[state.grapple.appendageIndex];
+    const tip = appendage?.softPoints[appendage.softPoints.length - 1];
+    if (!tip) return;
+    const pulse = 0.5 + Math.sin(state.elapsedTime * 9) * 0.5;
+    const radius = state.spec.scale * (4.2 + state.grapple.tension * 2.4);
+
+    context.save();
+    context.strokeStyle = state.spec.rendering.glowColor;
+    context.fillStyle = state.spec.rendering.eyeColor;
+    context.lineWidth = 1;
+    context.globalAlpha = 0.4 + state.grapple.tension * 0.42;
+    context.beginPath();
+    context.arc(tip.x, tip.y, radius * (0.7 + pulse * 0.24), 0, Math.PI * 2);
+    context.stroke();
+    context.globalAlpha = 0.2 + state.grapple.tension * 0.28;
+    context.beginPath();
+    context.arc(tip.x, tip.y, radius * 0.34, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  }
+
   private drawBody(
     context: CanvasRenderingContext2D,
     state: CharacterRenderState,
@@ -215,10 +261,23 @@ export class CanvasCharacterRenderer implements CharacterRenderer {
 
     context.save();
     context.translate(body.position.x, body.position.y);
+    if (state.grapple.attached && state.grapple.tension > 0) {
+      const pullAngle = Math.atan2(
+        state.grapple.point.y - body.position.y,
+        state.grapple.point.x - body.position.x,
+      );
+      context.rotate(pullAngle);
+      context.scale(
+        1 + state.grapple.tension * 0.13,
+        1 - state.grapple.tension * 0.055,
+      );
+      context.rotate(-pullAngle);
+    }
     context.rotate(pose.rotation + pose.wobble);
+    const preload = Math.max(state.action.crouch, state.action.jumpCharge);
     context.scale(
-      pose.scaleX * (1 + state.action.crouch * 0.16),
-      pose.scaleY * (1 - state.action.crouch * 0.22),
+      pose.scaleX * (1 + preload * 0.16),
+      pose.scaleY * (1 - preload * 0.22),
     );
     context.shadowColor = spec.rendering.bodyShadowColor;
     context.shadowBlur = 9;

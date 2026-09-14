@@ -6,6 +6,7 @@ export interface SoftChainUpdateOptions {
   elapsedTime: number;
   phase: number;
   reducedMotion: boolean;
+  tension?: number;
   spring: AppendageSpringSpec;
 }
 
@@ -62,16 +63,21 @@ export class SoftChain {
       clamp(options.spring.damping, 0, 0.999),
       referenceSteps,
     );
+    const tension = clamp(options.tension ?? 0, 0, 1);
     const guideBlend =
       1 -
       Math.pow(
-        1 - clamp(options.spring.guideStrength, 0.001, 0.999),
+        1 - clamp(options.spring.guideStrength + tension * 0.2, 0.001, 0.999),
         referenceSteps,
       );
     const gravity =
       options.spring.gravity * dt * dt * (options.reducedMotion ? 0.25 : 1);
     const curlStrength =
-      options.spring.curl * dt * dt * (options.reducedMotion ? 0.18 : 1);
+      options.spring.curl *
+      dt *
+      dt *
+      (options.reducedMotion ? 0.18 : 1) *
+      (1 - tension * 0.84);
 
     for (let index = 1; index < last; index += 1) {
       const point = this.points[index];

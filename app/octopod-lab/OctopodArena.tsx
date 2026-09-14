@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   useCallback,
   useEffect,
@@ -109,6 +110,7 @@ export interface OctopodArenaProps {
 }
 
 export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
+  const prefersReducedMotion = useReducedMotion();
   const pageRef = useRef<HTMLElement | null>(null);
   const platformNodes = useRef(new Map<string, HTMLDivElement>());
   const platformsRef = useRef<AscentPlatform[]>([]);
@@ -240,7 +242,7 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
       if (active) {
         setLastAction(
           control === "grab"
-            ? "Tentacles braced"
+            ? "Reaching for the cursor"
             : control === "crouch"
               ? "Landing softened"
               : `Steering ${control}`,
@@ -483,17 +485,24 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
         onEngineReady={setEngine}
       />
 
-      <header className={styles.titlebar}>
+      <motion.header
+        className={styles.titlebar}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      >
         <p className={styles.eyebrow}>Procedural ascent / endless study</p>
         <h1>Spring Octopus</h1>
         <p>
           You choose each jump and steer the landing. Rhythm mode adds automatic
-          rebounds when you want the reference-video flow.
+          rebounds when you want the reference-video flow. Move the cursor, hold
+          E, and release at the edge of the swing.
         </p>
         <div className={styles.headerLinks}>
           <Link href="/creature-lab?creature=octopus">Open the rig lab</Link>
           <button
             type="button"
+            data-character-control
             aria-pressed={debug}
             onClick={() => setDebug((value) => !value)}
           >
@@ -501,21 +510,28 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
           </button>
           <button
             type="button"
+            data-character-control
             aria-pressed={autoBounce}
             onClick={toggleAutoBounce}
           >
             Rhythm {autoBounce ? "on" : "off"}
           </button>
         </div>
-      </header>
+      </motion.header>
 
-      <aside className={styles.scoreCard} aria-live="polite">
+      <motion.aside
+        className={styles.scoreCard}
+        aria-live="polite"
+        initial={prefersReducedMotion ? false : { opacity: 0, x: 12 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+      >
         <span>Altitude</span>
         <strong>{(score * 12).toString().padStart(3, "0")}m</strong>
         <small>
           best {(best * 12).toString().padStart(3, "0")}m · {lastAction}
         </small>
-      </aside>
+      </motion.aside>
 
       <section className={styles.keymap} aria-label="Keyboard controls">
         <div>
@@ -534,7 +550,7 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
         </div>
         <div>
           <kbd>E</kbd>
-          <span>brace tentacles</span>
+          <span>grapple cursor / swing</span>
         </div>
         <div>
           <kbd>Q</kbd>
@@ -546,7 +562,12 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
         </div>
       </section>
 
-      <section className={styles.deck}>
+      <motion.section
+        className={styles.deck}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div>
           <p>Read the next ledge, jump, then shape the landing.</p>
           <span>
@@ -555,26 +576,39 @@ export default function OctopodArena({ initialDebug }: OctopodArenaProps) {
           </span>
         </div>
         <div className={styles.touchControls} aria-label="Touch controls">
-          <button type="button" aria-label="Move left" {...bindHold("left")}>
+          <button
+            type="button"
+            data-character-control
+            aria-label="Move left"
+            {...bindHold("left")}
+          >
             ←
           </button>
-          <button type="button" aria-label="Move right" {...bindHold("right")}>
+          <button
+            type="button"
+            data-character-control
+            aria-label="Move right"
+            {...bindHold("right")}
+          >
             →
           </button>
-          <button type="button" onClick={jump}>
+          <button type="button" data-character-control onClick={jump}>
             Pulse
           </button>
-          <button type="button" {...bindHold("crouch")}>
+          <button type="button" data-character-control {...bindHold("crouch")}>
             Soften
           </button>
-          <button type="button" onClick={ink}>
+          <button type="button" data-character-control {...bindHold("grab")}>
+            Reach
+          </button>
+          <button type="button" data-character-control onClick={ink}>
             Ink
           </button>
-          <button type="button" onClick={reset}>
+          <button type="button" data-character-control onClick={reset}>
             Restart
           </button>
         </div>
-      </section>
+      </motion.section>
 
       <div
         className={styles.recoveryVeil}

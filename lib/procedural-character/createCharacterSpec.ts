@@ -4,6 +4,7 @@ import type {
   BodyShape,
   BodySpec,
   CharacterPerformanceSpec,
+  CharacterGrappleSpec,
   CharacterLocomotionSpec,
   CharacterRenderingSpec,
   CharacterSpec,
@@ -35,6 +36,7 @@ export interface CreateCharacterSpecOptions {
   dynamics?: Partial<BodyDynamicsSpec>;
   idle?: Partial<IdleMovementSpec>;
   locomotion?: Partial<CharacterLocomotionSpec>;
+  grapple?: Partial<CharacterGrappleSpec>;
   appendages: number | readonly AppendageSpec[];
   appendageDefaults?: AppendageTemplate;
   appendageFactory?: (
@@ -119,6 +121,17 @@ const DEFAULT_LOCOMOTION: CharacterLocomotionSpec = {
   coyoteTime: 0.08,
   bodyGroundOffset: 58,
   surfaceInset: 8,
+};
+
+const DEFAULT_GRAPPLE: CharacterGrappleSpec = {
+  enabled: false,
+  maxReach: 300,
+  restLength: 78,
+  pullStrength: 2200,
+  radialDamping: 7,
+  extensionSpeed: 10,
+  releaseBoost: 1.08,
+  targetResponsiveness: 18,
 };
 
 const DEFAULT_GAIT: GaitSpec = {
@@ -300,6 +313,7 @@ export function createCharacterSpec(
     dynamics: { ...DEFAULT_DYNAMICS, ...options.dynamics },
     idle: { ...DEFAULT_IDLE, ...options.idle },
     locomotion: { ...DEFAULT_LOCOMOTION, ...options.locomotion },
+    grapple: { ...DEFAULT_GRAPPLE, ...options.grapple },
     appendages,
     gait: {
       ...DEFAULT_GAIT,

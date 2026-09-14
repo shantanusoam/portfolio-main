@@ -19,6 +19,8 @@ export type PointerInputListener = (state: PointerInputState) => void;
 
 export interface PointerInputOptions {
   activeTimeoutMs?: number;
+  /** Ignore pointer events originating from overlay controls. */
+  ignoreSelector?: string;
 }
 
 const DEFAULT_ACTIVE_TIMEOUT_MS = 220;
@@ -29,12 +31,14 @@ export class PointerInput {
   private active = false;
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly activeTimeoutMs: number;
+  private readonly ignoreSelector: string | null;
   private readonly listeners = new Set<PointerInputListener>();
   private target: Window | null = null;
   private attached = false;
 
   constructor(options: PointerInputOptions = {}) {
     this.activeTimeoutMs = options.activeTimeoutMs ?? DEFAULT_ACTIVE_TIMEOUT_MS;
+    this.ignoreSelector = options.ignoreSelector ?? null;
   }
 
   // Typed as `Event` (not `PointerEvent`) and narrowed inside, so
@@ -42,6 +46,7 @@ export class PointerInput {
   // cast — the base ESLint no-undef rule here isn't TypeScript-type-aware
   // and doesn't recognize the ambient `EventListener` interface name.
   private readonly handleMove = (event: Event): void => {
+    if (this.shouldIgnore(event)) return;
     const pointerEvent = event as PointerEvent;
     this.x = pointerEvent.clientX;
     this.y = pointerEvent.clientY;
@@ -49,6 +54,7 @@ export class PointerInput {
   };
 
   private readonly handleDown = (event: Event): void => {
+    if (this.shouldIgnore(event)) return;
     this.handleMove(event);
   };
 
@@ -72,6 +78,16 @@ export class PointerInput {
         this.emit();
       }, this.activeTimeoutMs);
     }
+  }
+
+  private shouldIgnore(event: Event): boolean {
+    if (!this.ignoreSelector) return false;
+    const target = event.target;
+    return (
+      typeof Element !== "undefined" &&
+      target instanceof Element &&
+      target.closest(this.ignoreSelector) !== null
+    );
   }
 
   private emit(): void {

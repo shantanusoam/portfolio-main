@@ -52,6 +52,16 @@ export const octopodPreset = createCharacterSpec({
     bodyGroundOffset: 52,
     surfaceInset: 7,
   },
+  grapple: {
+    enabled: true,
+    maxReach: 360,
+    restLength: 74,
+    pullStrength: 2650,
+    radialDamping: 8.5,
+    extensionSpeed: 13,
+    releaseBoost: 1.12,
+    targetResponsiveness: 22,
+  },
   idle: {
     delay: 2.8,
     breathingFrequency: 0.82,

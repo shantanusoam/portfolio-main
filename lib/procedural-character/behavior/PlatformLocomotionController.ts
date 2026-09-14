@@ -66,6 +66,12 @@ export class PlatformLocomotionController {
     this.jumpBufferTimer = 0;
   }
 
+  /** Lets an external physical constraint (for example a taut tentacle)
+   * peel the body away from its current ledge without inventing a jump. */
+  releaseSupport(spec: CharacterLocomotionSpec): void {
+    if (this.grounded) this.leaveGround(spec);
+  }
+
   translateSupport(dx: number, dy: number): void {
     if (Number.isFinite(this.groundY)) this.groundY += dy;
     if (Number.isFinite(this.groundLeft)) this.groundLeft += dx;
