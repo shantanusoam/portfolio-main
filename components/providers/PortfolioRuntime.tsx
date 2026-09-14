@@ -10,7 +10,7 @@ import SoundroomNub from "@/components/soundroom/SoundroomNub";
 import SmoothScrollProvider from "./SmoothScrollProvider";
 import type { CommandEntry } from "@/lib/archive/command-index";
 
-/** Full-screen games own input and audio. Unmount ambient engines, not just their visible layers. */
+/** The workshop uses native scrolling; full-screen games own input and audio. */
 export default function PortfolioRuntime({
   children,
   entries,
@@ -19,7 +19,7 @@ export default function PortfolioRuntime({
   entries: CommandEntry[];
 }) {
   const pathname = usePathname();
-  if (pathname.startsWith("/arcade/")) return <>{children}</>;
+  if (pathname === "/" || pathname.startsWith("/arcade/")) return <>{children}</>;
   return (
     <CommandPaletteProvider entries={entries}>
       <PageAtmosphere />
@@ -30,3 +30,4 @@ export default function PortfolioRuntime({
     </CommandPaletteProvider>
   );
 }
+
