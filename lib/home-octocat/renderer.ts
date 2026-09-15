@@ -1,4 +1,5 @@
 import {
+  ACESFilmicToneMapping,
   BufferAttribute,
   BufferGeometry,
   CircleGeometry,
@@ -18,6 +19,19 @@ import {
   WebGLRenderer,
 } from "three";
 import { clamp, HomeOctocatMotion, type Limb } from "./motion";
+import { CanvasOctocatRenderer } from "./canvasRenderer";
+
+export function createHomeOctocatRenderer(canvas: HTMLCanvasElement) {
+  const context = canvas.getContext("webgl2", {
+    alpha: true,
+    antialias: true,
+    powerPreference: "low-power",
+  });
+  canvas.dataset.renderer = context ? "three" : "canvas";
+  return context
+    ? new HomeOctocatRenderer(canvas, context)
+    : new CanvasOctocatRenderer(canvas);
+}
 
 const SIZE = 220;
 const RINGS = 25;
@@ -121,9 +135,13 @@ export class HomeOctocatRenderer {
   private readonly shadow: Mesh<CircleGeometry, MeshBasicMaterial>;
   private readonly tubes: SoftTube[];
 
-  constructor(private readonly canvas: HTMLCanvasElement) {
+  constructor(
+    private readonly canvas: HTMLCanvasElement,
+    context: WebGL2RenderingContext,
+  ) {
     this.renderer = new WebGLRenderer({
       canvas,
+      context,
       alpha: true,
       antialias: true,
       powerPreference: "low-power",
@@ -132,6 +150,7 @@ export class HomeOctocatRenderer {
     this.renderer.setSize(SIZE, SIZE, false);
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.outputColorSpace = SRGBColorSpace;
+    this.renderer.toneMapping = ACESFilmicToneMapping;
     this.camera.position.z = 400;
     this.scene.add(new HemisphereLight(0xdcecff, 0x4b5266, 2.4));
     const key = new DirectionalLight(0xfff5e8, 3);

@@ -1,6 +1,6 @@
 import { FixedStepLoop } from "@/lib/mascot/core/FixedStepLoop";
 import { HomeOctocatMotion, type Ledge } from "./motion";
-import { HomeOctocatRenderer } from "./renderer";
+import { createHomeOctocatRenderer } from "./renderer";
 
 interface Callbacks {
   onLayout: (surfaces: Ledge[]) => void;
@@ -12,7 +12,7 @@ interface Callbacks {
 /** Owns one animation loop, cached DOM geometry, and explicit teardown. */
 export class HomeOctocatRuntime {
   readonly motion = new HomeOctocatMotion();
-  private readonly renderer: HomeOctocatRenderer;
+  private readonly renderer: ReturnType<typeof createHomeOctocatRenderer>;
   private readonly loop: FixedStepLoop;
   private readonly resizeObserver: ResizeObserver;
   private readonly intersectionObserver: IntersectionObserver;
@@ -30,7 +30,7 @@ export class HomeOctocatRuntime {
     private readonly hero: HTMLElement,
     private readonly callbacks: Callbacks,
   ) {
-    this.renderer = new HomeOctocatRenderer(canvas);
+    this.renderer = createHomeOctocatRenderer(canvas);
     this.loop = new FixedStepLoop({
       fixedDt: 1 / 120,
       maxSteps: 6,

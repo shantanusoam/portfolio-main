@@ -44,6 +44,8 @@ The editable model is constructed in `lib/home-octocat/renderer.ts` using Three.
   planted foot targets, swept one-way contacts, coyote time and jump buffering.
 - `renderer.ts`: Three.js orthographic camera and lit meshes; tapered tube vertex
   and normal buffers are updated in place. No per-frame geometry reconstruction.
+- `canvasRenderer.ts`: a shaded Canvas 2D cat using the same rig and game state
+  when WebGL 2 is unavailable. Canvas selection is recorded on `data-renderer`.
 - `runtime.ts`: reuses the repository's `FixedStepLoop` with a 1/120 s step and
   at most six catch-up updates. DOM geometry is sampled outside the animation
   loop on mount, reflow, settled entrance, resize, and throttled scroll.
@@ -65,14 +67,17 @@ the home companion. Scrolling away ends play without moving keyboard focus.
 
 ## Verification
 
-- `npm run test:home-octocat`: nine deterministic tests covering anticipation,
+- `npm run test:home-octocat`: ten deterministic tests covering anticipation,
   landing/goal collection, variable jump height, fast falls, coyote time,
-  scroll translation, dragging, stable limb chains, and reset/reduced motion.
+  scroll translation, dragging, stable limb chains, continuous walking without
+  foot starvation, and reset/reduced motion.
 - `npm run test:procedural-character`: existing 23 tests pass.
 - `npx tsc --noEmit`: passes.
 - Targeted Next ESLint on the changed TypeScript files: passes.
 - `npm run build`: passes.
 
-The cloud browser cannot reach the workspace's localhost preview. Live visual
-and control checks are performed against the normal GitHub-triggered deployment.
-These checks are not a measured frame-rate or mobile-device performance benchmark.
+The cloud browser cannot reach the workspace's localhost preview and reports
+WebGL as disabled. Deployed interaction checks therefore exercise the Canvas
+fallback. Three.js passes type and build checks but cannot receive a visual
+GPU review in this browser. These checks are not a measured frame-rate or
+mobile-device performance benchmark.

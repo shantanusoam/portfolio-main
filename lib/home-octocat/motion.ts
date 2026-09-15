@@ -41,6 +41,7 @@ export class Limb {
   stepFromX = 0;
   stepToX = 0;
   stepTime = 1;
+  cooldown = 0;
   constructor(index: number, offset: number) {
     this.index = index;
     this.offset = offset;
@@ -144,6 +145,7 @@ export class HomeOctocatMotion {
     for (const limb of this.limbs) {
       limb.foot = point(this.x + limb.offset, this.y);
       limb.stepTime = 1;
+      limb.cooldown = 0;
       limb.points.forEach((p, i) => {
         p.x = this.x + (limb.offset * i) / 8;
         p.y = this.y - 28 + i * 3.5;
@@ -345,6 +347,7 @@ export class HomeOctocatMotion {
     for (let i = 0; i < 4; i++) if (this.limbs[i].stepTime < 1) stepping++;
     for (const limb of this.limbs) {
       const i = limb.index;
+      limb.cooldown = Math.max(0, limb.cooldown - dt);
       const arm = i >= 4 && i <= 5;
       const tail = i === 6;
       const side = limb.offset < 0 ? -1 : 1;
@@ -361,6 +364,7 @@ export class HomeOctocatMotion {
         );
         if (
           limb.stepTime >= 1 &&
+          limb.cooldown === 0 &&
           Math.abs(desired - limb.foot.x) > 14 &&
           stepping < 2
         ) {
@@ -371,6 +375,7 @@ export class HomeOctocatMotion {
         }
         if (limb.stepTime < 1) {
           limb.stepTime = Math.min(1, limb.stepTime + dt / 0.16);
+          if (limb.stepTime === 1) limb.cooldown = 0.08;
           limb.foot.x =
             limb.stepFromX +
             (limb.stepToX - limb.stepFromX) * smooth(limb.stepTime);

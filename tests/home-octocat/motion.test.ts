@@ -161,3 +161,23 @@ test("reset clears grabs, pending jumps and score; reduced-motion idle stays sti
   assert.equal(m.x, x);
   assert.equal(m.state, "idle");
 });
+
+test("all four feet take turns throughout a continuous walk", () => {
+  const longLedge = { ...floor, width: 3960 };
+  const m = setup([longLedge]);
+  m.setLayout([longLedge], 4000, 800, 0);
+  m.reset();
+  const startingFeet = m.limbs.map((limb) => limb.foot.x);
+  m.axis = -1;
+  for (let i = 0; i < 8 * 120; i++) {
+    m.update(1 / 120);
+    for (let foot = 0; foot < 4; foot++) {
+      assert.ok(
+        Math.abs(m.limbs[foot].foot.x - m.x) < 130,
+        `foot ${foot} must not be left behind`,
+      );
+    }
+  }
+  for (let foot = 0; foot < 4; foot++)
+    assert.ok(startingFeet[foot] - m.limbs[foot].foot.x > 1500);
+});
