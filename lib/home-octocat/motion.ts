@@ -1,4 +1,4 @@
-/** Screen-space physics. No DOM, React, or renderer dependencies. */
+/** Mochi's world uses pixels, positive Y down. The body is one connected mass. */
 export interface Ledge {
   id: string;
   x: number;
@@ -6,46 +6,75 @@ export interface Ledge {
   width: number;
   goal: boolean;
 }
-
-export interface SpringPoint {
+export type PlatformKind = "normal" | "spring" | "moving" | "crumble";
+export interface Platform {
+  id: number;
+  x: number;
+  baseX: number;
+  y: number;
+  width: number;
+  kind: PlatformKind;
+  hit: number;
+  broken: boolean;
+  star: boolean;
+}
+export interface Particle {
   x: number;
   y: number;
   vx: number;
   vy: number;
+  life: number;
+  maxLife: number;
+  gold: boolean;
 }
+export type GamePhase = "idle" | "ready" | "climbing" | "over";
+export type MotionEvent = "hop" | "spring" | "star" | "extra" | "over";
+export const clamp = (v: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, v));
+export const GRAVITY = 1500;
+export const HOP_SPEED = 650;
+export const RUN_SPEED = 330;
+const damp = (a: number, b: number, rate: number, dt: number) =>
+  a + (b - a) * (1 - Math.exp(-rate * dt));
+const noise = (n: number) => {
+  const v = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return v - Math.floor(v);
+};
 
-export const clamp = (value: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, value));
-
-const point = (x: number, y: number): SpringPoint => ({ x, y, vx: 0, vy: 0 });
-const smooth = (t: number) => t * t * (3 - 2 * t);
-
-function spring(
-  p: SpringPoint,
-  x: number,
-  y: number,
-  dt: number,
-  stiffness = 210,
-) {
-  p.vx += ((x - p.x) * stiffness - p.vx * 23) * dt;
-  p.vy += ((y - p.y) * stiffness - p.vy * 23) * dt;
-  p.x += p.vx * dt;
-  p.y += p.vy * dt;
-}
-
-export class Limb {
-  readonly index: number;
-  readonly offset: number;
-  readonly points = Array.from({ length: 9 }, () => point(0, 0));
-  foot = point(0, 0);
-  stepFromX = 0;
-  stepToX = 0;
-  stepTime = 1;
-  cooldown = 0;
-  constructor(index: number, offset: number) {
-    this.index = index;
-    this.offset = offset;
-  }
+/** Every consecutive platform is reachable with a normal bounce, without an extra hop. */
+export function nextPlatform(
+  previous: Platform,
+  id: number,
+  width: number,
+): Platform {
+  const difficulty = Math.min(1, id / 65);
+  const size = Math.min(width * 0.42, 126 - difficulty * 34);
+  const direction = Math.sin(id * 0.82) > 0 ? 1 : -1;
+  const stride = id < 4 ? 30 + id * 8 : 70 + noise(id) * 58;
+  const center = clamp(
+    previous.baseX + previous.width / 2 + direction * stride,
+    size / 2 + 30,
+    width - size / 2 - 30,
+  );
+  const kind: PlatformKind =
+    id % 6 === 5
+      ? "spring"
+      : id > 9 && id % 7 === 0
+        ? "crumble"
+        : id > 6 && id % 5 === 0
+          ? "moving"
+          : "normal";
+  return {
+    id,
+    x: center - size / 2,
+    baseX: center - size / 2,
+    y: previous.y - (id < 4 ? 76 : 82 + noise(id + 4) * 16),
+    width: size,
+    kind,
+    hit: 0,
+    broken: false,
+    star: id > 0 && id % 2 === 0,
+  };
 }
 
 export class HomeOctocatMotion {
@@ -58,379 +87,459 @@ export class HomeOctocatMotion {
   time = 0;
   gait = 0;
   grounded = true;
-  ledgeId = "";
-  playing = false;
-  dragging = false;
   reducedMotion = false;
+  phase: GamePhase = "idle";
   axis = 0;
-  jumpHeld = false;
+  pointerX: number | null = null;
   lookX = 0;
   lookY = 0;
   squash = 0;
   squashVelocity = 0;
-  turn = 0;
-  head = point(0, 0);
-  limbs = [-18, -6, 7, 19, -1, 1, -1].map(
-    (offset, index) => new Limb(index, offset),
-  );
-
-  readonly visited = new Set<string>();
-  surfaces: Ledge[] = [];
+  tilt = 0;
+  tiltVelocity = 0;
+  ears = [0, 0];
+  earVelocity = [0, 0];
+  camera = 0;
+  previousCamera = 0;
+  heightMetres = 0;
+  stars = 0;
+  landings = 0;
+  extraHop = true;
+  launchY = 0;
   width = 1280;
   height = 800;
+  fieldLeft = 0;
+  fieldWidth = 600;
+  surfaces: Ledge[] = [];
+  platforms: Platform[] = [];
+  particles: Particle[] = [];
+  events: MotionEvent[] = [];
+  dragging = false;
   private initialized = false;
-  private coyote = 0;
-  private jumpBuffer = 0;
-  private windup = 0;
-  private jumpCut = false;
+  private scrollY = 0;
+  private idleOrigin = 0;
+  private contact = 0;
+  private launchSpeed = HOP_SPEED;
+  private platformId = 0;
   private dragX = 0;
   private dragY = 0;
-  private scrollY = 0;
-  private patrolOrigin = 0;
+  private lastCameraTarget = 0;
+
+  get playing() {
+    return this.phase !== "idle";
+  }
 
   get state() {
     if (this.dragging) return "dragging";
-    if (this.windup > 0) return "crouching";
+    if (this.phase === "over") return "over";
+    if (this.contact > 0) return "crouching";
     if (!this.grounded) return this.vy < 0 ? "jumping" : "falling";
-    return Math.abs(this.vx) > 10 ? "walking" : "idle";
+    return Math.abs(this.vx) > 5 ? "walking" : "idle";
+  }
+
+  get screenX() {
+    return this.x + (this.playing ? this.fieldLeft : 0);
+  }
+
+  get screenY() {
+    return this.y + this.camera;
   }
 
   setLayout(surfaces: Ledge[], width: number, height: number, scrollY: number) {
-    const oldLedge = this.surfaces.find((s) => s.id === this.ledgeId);
-    const nextLedge = surfaces.find((s) => s.id === this.ledgeId);
-    const dy =
-      this.grounded && oldLedge && nextLedge
-        ? nextLedge.y - oldLedge.y
-        : this.scrollY - scrollY;
+    const oldWidth = this.fieldWidth;
     this.surfaces = surfaces;
     this.width = width;
     this.height = height;
-    this.scrollY = scrollY;
+    this.fieldWidth = Math.min(580, width - 32);
+    this.fieldLeft = (width - this.fieldWidth) / 2;
     if (!this.initialized) {
-      if (surfaces.length) this.reset();
-      return;
+      this.resetIdle();
+      this.initialized = true;
+    } else if (!this.playing) {
+      this.y += this.scrollY - scrollY;
+      const perch = this.perch();
+      if (this.grounded) {
+        this.y = perch.y;
+        this.x = clamp(this.x, perch.x + 25, perch.x + perch.width - 25);
+      }
+      this.previousX = this.x;
+      this.previousY = this.y;
+      this.idleOrigin = this.x;
+    } else if (oldWidth !== this.fieldWidth) {
+      const ratio = this.fieldWidth / oldWidth;
+      this.x *= ratio;
+      this.previousX = this.x;
+      this.pointerX = null;
+      for (const p of this.platforms) {
+        p.x *= ratio;
+        p.baseX *= ratio;
+        p.width *= ratio;
+      }
     }
-    this.translate(0, dy);
-    // Reflow can move a ledge horizontally as well as vertically.
-    if (this.grounded && nextLedge) {
-      this.translate(
-        clamp(this.x, nextLedge.x + 12, nextLedge.x + nextLedge.width - 12) -
-          this.x,
-        0,
-      );
-      this.patrolOrigin = this.x;
-    } else if (this.grounded && !nextLedge) {
-      this.grounded = false;
-    }
+    this.scrollY = scrollY;
   }
 
-  reset(clearScore = true) {
-    const perch =
-      this.surfaces.find((s) => s.id === "instrument") ?? this.surfaces[0];
-    if (!perch) return;
-    this.x = clamp(perch.x + perch.width * 0.91, 30, this.width - 30);
-    this.y = perch.y;
+  private perch() {
+    return (
+      this.surfaces.find((s) => s.id === "instrument") ?? {
+        id: "floor",
+        x: 30,
+        y: this.height * 0.64,
+        width: this.width - 60,
+        goal: false,
+      }
+    );
+  }
+
+  private resetPose() {
     this.previousX = this.x;
     this.previousY = this.y;
-    this.vx = this.vy = this.axis = this.windup = this.jumpBuffer = 0;
-    this.squash = this.squashVelocity = 0;
-    this.coyote = 0.1;
-    this.jumpHeld = this.jumpCut = this.dragging = false;
+    this.vx =
+      this.vy =
+      this.squash =
+      this.squashVelocity =
+      this.tilt =
+      this.tiltVelocity =
+        0;
+    this.ears.fill(0);
+    this.earVelocity.fill(0);
+    this.contact = 0;
+    this.dragging = false;
     this.grounded = true;
-    this.ledgeId = perch.id;
-    this.patrolOrigin = this.x;
-    this.head = point(this.x, this.y - 53);
-    this.initialized = true;
-    if (clearScore) this.visited.clear();
-    for (const limb of this.limbs) {
-      limb.foot = point(this.x + limb.offset, this.y);
-      limb.stepTime = 1;
-      limb.cooldown = 0;
-      limb.points.forEach((p, i) => {
-        p.x = this.x + (limb.offset * i) / 8;
-        p.y = this.y - 28 + i * 3.5;
-        p.vx = p.vy = 0;
-      });
-    }
+    this.clearInput();
+  }
+
+  private resetIdle() {
+    const p = this.perch();
+    this.x = p.x + p.width * 0.87;
+    this.y = p.y;
+    this.idleOrigin = this.x;
+    this.camera = this.previousCamera = 0;
+    this.resetPose();
   }
 
   play() {
-    if (this.playing) return;
-    this.playing = true;
-    this.reset();
+    if (!this.playing) {
+      this.phase = "ready";
+      this.reset();
+    }
   }
 
   stop() {
-    this.playing = false;
-    this.reset();
+    this.phase = "idle";
+    this.platforms = [];
+    this.particles = [];
+    this.events = [];
+    this.resetIdle();
+  }
+
+  reset() {
+    this.phase = "ready";
+    this.x = this.fieldWidth / 2;
+    const base = Math.max(180, this.height - 310);
+    this.launchY = clamp(
+      this.perch().y,
+      Math.min(this.height * 0.5, base),
+      base,
+    );
+    this.y = this.launchY;
+    this.camera = this.previousCamera = this.lastCameraTarget = 0;
+    this.heightMetres = this.stars = this.landings = this.platformId = 0;
+    this.extraHop = true;
+    this.particles = [];
+    this.events = [];
+    this.platforms = [
+      {
+        id: 0,
+        x: 18,
+        baseX: 18,
+        y: this.y,
+        width: this.fieldWidth - 36,
+        kind: "normal",
+        hit: 0,
+        broken: false,
+        star: false,
+      },
+    ];
+    // The first three ledges make a forgiving, visible on-ramp.
+    this.fillPlatforms();
+    this.resetPose();
+  }
+
+  begin() {
+    if (this.phase === "ready") {
+      this.phase = "climbing";
+      this.contact = 0.09;
+      this.launchSpeed = HOP_SPEED;
+    }
   }
 
   clearInput() {
     this.axis = 0;
-    this.jumpHeld = false;
-    this.jumpBuffer = 0;
+    this.pointerX = null;
     if (this.dragging) this.release();
   }
 
   jump() {
-    if (!this.playing || this.dragging) return;
-    this.jumpBuffer = 0.14;
-    this.jumpHeld = true;
+    if (this.phase === "ready") {
+      this.begin();
+      return;
+    }
+    if (this.phase === "over") {
+      this.reset();
+      this.begin();
+      return;
+    }
+    if (this.phase !== "climbing" || this.grounded || !this.extraHop) return;
+    this.extraHop = false;
+    this.vy = -HOP_SPEED * 0.92;
+    this.squashVelocity = -4;
+    this.emit("extra");
+    this.burst(this.x, this.y, false, 9);
+  }
+
+  steer(screenX: number) {
+    if (this.phase === "climbing")
+      this.pointerX = clamp(screenX - this.fieldLeft, 18, this.fieldWidth - 18);
   }
 
   grab(x: number, y: number) {
+    if (this.playing) return;
     this.dragging = true;
     this.grounded = false;
-    this.windup = this.jumpBuffer = 0;
     this.dragTo(x, y);
   }
 
   dragTo(x: number, y: number) {
-    this.dragX = clamp(x, 30, this.width - 30);
-    this.dragY = clamp(y + 52, 85, this.height - 8);
+    this.dragX = clamp(x, 24, this.width - 24);
+    this.dragY = clamp(y + 28, 80, this.height - 25);
   }
 
   release() {
     this.dragging = false;
-    this.vx = clamp(this.vx, -620, 620);
-    this.vy = clamp(this.vy, -760, 650);
-    this.jumpCut = true;
+    this.vx = clamp(this.vx, -400, 400);
+    this.vy = clamp(this.vy, -650, 600);
   }
 
-  private translate(dx: number, dy: number) {
-    this.x += dx;
-    this.y += dy;
-    this.previousX += dx;
-    this.previousY += dy;
-    this.head.x += dx;
-    this.head.y += dy;
-    for (const limb of this.limbs) {
-      limb.foot.x += dx;
-      limb.foot.y += dy;
-      limb.stepFromX += dx;
-      limb.stepToX += dx;
-      for (const p of limb.points) {
-        p.x += dx;
-        p.y += dy;
-      }
+  private emit(event: MotionEvent) {
+    if (this.events.length < 16) this.events.push(event);
+  }
+
+  private fillPlatforms() {
+    let top = this.platforms[this.platforms.length - 1];
+    while (top.y + this.camera > -180) {
+      top = nextPlatform(top, ++this.platformId, this.fieldWidth);
+      this.platforms.push(top);
+    }
+  }
+
+  private burst(x: number, y: number, gold: boolean, count = 6) {
+    if (this.reducedMotion) return;
+    for (let i = 0; i < count && this.particles.length < 80; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * (35 + noise(i + this.time) * 65),
+        vy: Math.sin(angle) * 70 - 30,
+        life: 0.45,
+        maxLife: 0.45,
+        gold,
+      });
     }
   }
 
   update(dt: number) {
     if (!this.initialized) return;
-    this.time += dt;
     this.previousX = this.x;
     this.previousY = this.y;
-    this.jumpBuffer = Math.max(0, this.jumpBuffer - dt);
-    this.coyote = this.grounded ? 0.1 : Math.max(0, this.coyote - dt);
-
-    if (this.dragging) {
-      this.vx += ((this.dragX - this.x) * 125 - this.vx * 16) * dt;
-      this.vy += ((this.dragY - this.y) * 125 - this.vy * 16) * dt;
-      this.x += this.vx * dt;
-      this.y += this.vy * dt;
-    } else {
-      let axis = this.axis;
-      if (!this.playing) {
-        const ledge = this.surfaces.find((s) => s.id === this.ledgeId);
-        const target = ledge
-          ? clamp(
-              this.patrolOrigin + Math.sin(this.time * 0.36) * 45,
-              ledge.x + 34,
-              ledge.x + ledge.width - 34,
-            )
-          : this.patrolOrigin;
-        axis =
-          this.reducedMotion || !ledge
-            ? 0
-            : clamp((target - this.x) / 45, -0.23, 0.23);
-      }
-      const acceleration = this.grounded ? 14 : 6;
-      this.vx += (axis * 245 - this.vx) * (1 - Math.exp(-acceleration * dt));
-      this.x = clamp(this.x + this.vx * dt, 26, this.width - 26);
-      if (this.x === 26 || this.x === this.width - 26) this.vx = 0;
-      if (this.jumpBuffer > 0 && this.coyote > 0 && this.windup === 0) {
-        this.windup = 0.075;
-        this.jumpBuffer = this.coyote = 0;
-      }
-      if (this.windup > 0) {
-        this.windup = Math.max(0, this.windup - dt);
-        if (this.windup === 0) {
-          this.vy = -750;
-          this.grounded = false;
-          this.coyote = 0;
-          this.jumpCut = false;
-          this.squashVelocity = -4;
-        }
-      }
-      const support = this.surfaces.find((s) => s.id === this.ledgeId);
-      if (
-        this.grounded &&
-        (!support ||
-          this.x < support.x - 5 ||
-          this.x > support.x + support.width + 5)
-      ) {
-        this.grounded = false;
-      }
-      if (!this.grounded) {
-        if (!this.jumpHeld && !this.jumpCut && this.vy < -300) {
-          this.vy *= 0.65;
-          this.jumpCut = true;
-        }
-        this.vy = Math.min(960, this.vy + 1500 * dt);
-        this.y += this.vy * dt;
-        // Swept, one-way contacts: cross tops on descent, never teleport up.
-        let landing: Ledge | undefined;
-        if (this.vy >= 0) {
-          for (const ledge of this.surfaces) {
-            if (this.x < ledge.x - 4 || this.x > ledge.x + ledge.width + 4)
-              continue;
-            if (
-              this.previousY <= ledge.y + 0.5 &&
-              this.y >= ledge.y &&
-              (!landing || ledge.y < landing.y)
-            )
-              landing = ledge;
-          }
-        }
-        if (landing) {
-          this.y = landing.y;
-          this.squashVelocity = Math.min(6, this.vy / 140);
-          this.vy = 0;
-          this.grounded = true;
-          this.ledgeId = landing.id;
-          for (let i = 0; i < 4; i++) {
-            const limb = this.limbs[i];
-            limb.foot.x = this.x + limb.offset;
-            limb.foot.y = this.y;
-            limb.stepTime = 1;
-          }
-          if (this.playing && landing.goal) this.visited.add(landing.id);
-        }
-      }
+    this.previousCamera = this.camera;
+    this.time += dt;
+    const oldVx = this.vx;
+    if (this.phase === "idle") this.updateIdle(dt);
+    else if (this.phase === "climbing") this.updateClimb(dt);
+    this.animate(dt, (this.vx - oldVx) / dt);
+    for (const p of this.particles) {
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 160 * dt;
     }
-
-    if (this.y > this.height + 180 || this.y < -450) this.reset(false);
-    this.gait += Math.abs(this.vx) * dt * 0.095;
-    const squashTarget = this.reducedMotion
-      ? 0
-      : this.windup > 0
-        ? 0.25
-        : clamp(this.vy / 3000, -0.15, 0.08);
-    this.squashVelocity +=
-      ((squashTarget - this.squash) * 260 - this.squashVelocity * 19) * dt;
-    this.squash += this.squashVelocity * dt;
-    this.turn +=
-      (clamp(this.vx / 220, -1, 1) * 0.7 +
-        clamp((this.lookX - this.x) / 1000, -0.2, 0.2) -
-        this.turn) *
-      (1 - Math.exp(-10 * dt));
-    const bob = this.reducedMotion
-      ? 0
-      : this.grounded
-        ? Math.sin(this.gait * 2) * Math.min(1.8, Math.abs(this.vx) / 60) +
-          Math.sin(this.time * 2.1) * 0.6
-        : 0;
-    spring(
-      this.head,
-      this.x + this.vx * 0.014,
-      this.y - 53 + this.squash * 22 + bob,
-      dt,
-      340,
-    );
-    this.updateLimbs(dt);
+    this.particles = this.particles.filter((p) => p.life > 0);
   }
 
-  private updateLimbs(dt: number) {
-    const support = this.surfaces.find((s) => s.id === this.ledgeId);
-    let stepping = 0;
-    for (let i = 0; i < 4; i++) if (this.limbs[i].stepTime < 1) stepping++;
-    for (const limb of this.limbs) {
-      const i = limb.index;
-      limb.cooldown = Math.max(0, limb.cooldown - dt);
-      const arm = i >= 4 && i <= 5;
-      const tail = i === 6;
-      const side = limb.offset < 0 ? -1 : 1;
-      const anchorX =
-        this.x + (arm ? side * 7 : tail ? -5 : limb.offset * 0.36);
-      const anchorY = this.y - 28 + this.squash * 12;
-      let endX: number;
-      let endY: number;
-      if (!arm && !tail && this.grounded && support) {
-        const desired = clamp(
-          this.x + limb.offset + this.vx * 0.085,
-          support.x + 2,
-          support.x + support.width - 2,
-        );
-        if (
-          limb.stepTime >= 1 &&
-          limb.cooldown === 0 &&
-          Math.abs(desired - limb.foot.x) > 14 &&
-          stepping < 2
-        ) {
-          limb.stepFromX = limb.foot.x;
-          limb.stepToX = desired;
-          limb.stepTime = 0;
-          stepping++;
+  private updateIdle(dt: number) {
+    const perch = this.perch();
+    if (this.dragging) {
+      this.vx += ((this.dragX - this.x) * 145 - this.vx * 21) * dt;
+      this.vy += ((this.dragY - this.y) * 145 - this.vy * 21) * dt;
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      return;
+    }
+    if (this.grounded) {
+      const target = this.reducedMotion
+        ? this.x
+        : this.idleOrigin + Math.sin(this.time * 0.45) * 22;
+      this.vx = damp(this.vx, clamp((target - this.x) * 1.4, -20, 20), 9, dt);
+      this.x = clamp(
+        this.x + this.vx * dt,
+        perch.x + 22,
+        perch.x + perch.width - 22,
+      );
+    } else {
+      this.vx = damp(this.vx, 0, 1.5, dt);
+      this.x += this.vx * dt;
+      this.vy += GRAVITY * dt;
+      this.y += this.vy * dt;
+      if (
+        this.vy > 0 &&
+        this.previousY <= perch.y &&
+        this.y >= perch.y &&
+        this.x >= perch.x &&
+        this.x <= perch.x + perch.width
+      ) {
+        this.y = perch.y;
+        this.vy = 0;
+        this.grounded = true;
+        this.squashVelocity = 4;
+        this.idleOrigin = this.x;
+      }
+      if (this.y > this.height + 90) this.resetIdle();
+    }
+  }
+
+  private updateClimb(dt: number) {
+    for (const p of this.platforms) {
+      p.hit = Math.max(0, p.hit - dt * 3);
+      if (p.kind === "moving")
+        p.x = p.baseX + Math.sin(this.time * 1.2 + p.id) * 18;
+    }
+    const targetVx = this.axis
+      ? this.axis * RUN_SPEED
+      : this.pointerX !== null
+        ? clamp((this.pointerX - this.x) * 9, -RUN_SPEED, RUN_SPEED)
+        : 0;
+    this.vx = damp(this.vx, targetVx, 13, dt);
+    this.x = clamp(this.x + this.vx * dt, 16, this.fieldWidth - 16);
+    if (this.x === 16 || this.x === this.fieldWidth - 16) this.vx = 0;
+    if (this.contact > 0) {
+      this.contact = Math.max(0, this.contact - dt);
+      if (this.contact === 0) {
+        this.vy = -this.launchSpeed;
+        this.grounded = false;
+        this.squashVelocity = -4.2;
+        this.emit(this.launchSpeed > HOP_SPEED ? "spring" : "hop");
+      }
+    }
+    if (!this.grounded) {
+      this.vy = Math.min(1000, this.vy + GRAVITY * dt);
+      this.y += this.vy * dt;
+      let landing: Platform | undefined;
+      if (this.vy >= 0)
+        for (const p of this.platforms) {
+          if (p.broken || this.x + 11 < p.x || this.x - 11 > p.x + p.width)
+            continue;
+          if (
+            this.previousY <= p.y + 0.5 &&
+            this.y >= p.y &&
+            (!landing || p.y < landing.y)
+          )
+            landing = p;
         }
-        if (limb.stepTime < 1) {
-          limb.stepTime = Math.min(1, limb.stepTime + dt / 0.16);
-          if (limb.stepTime === 1) limb.cooldown = 0.08;
-          limb.foot.x =
-            limb.stepFromX +
-            (limb.stepToX - limb.stepFromX) * smooth(limb.stepTime);
-          limb.foot.y = this.y - Math.sin(limb.stepTime * Math.PI) * 10;
-        } else limb.foot.y = this.y;
-        endX = limb.foot.x;
-        endY = limb.foot.y;
-      } else if (tail) {
-        endX = this.x - 36 - this.vx * 0.065;
-        endY =
-          this.y -
-          25 +
-          (this.reducedMotion ? 0 : Math.sin(this.time * 2.7) * 5);
-      } else if (arm) {
-        endX =
-          this.x +
-          side * (30 + Math.min(15, Math.abs(this.vy) * 0.025)) -
-          this.vx * 0.07;
-        endY =
-          this.y -
-          29 -
-          this.vy * 0.026 +
-          (this.reducedMotion
-            ? 0
-            : Math.sin(this.gait + i * Math.PI) *
-              Math.min(7, Math.abs(this.vx) * 0.04));
-      } else {
-        endX = this.x + limb.offset * 1.3 - this.vx * (0.055 + i * 0.006);
-        endY =
-          this.y -
-          Math.min(18, Math.abs(this.vy) * 0.018) +
-          Math.sin(this.time * 4 + i) * 3;
-        limb.foot.x = endX;
-        limb.foot.y = endY;
-        limb.stepTime = 1;
+      if (landing) {
+        this.y = landing.y;
+        this.vy = 0;
+        this.grounded = true;
+        this.contact = 0.065;
+        this.launchSpeed = landing.kind === "spring" ? 870 : HOP_SPEED;
+        this.extraHop = true;
+        this.landings++;
+        this.squashVelocity = 5.2;
+        landing.hit = 1;
+        if (landing.kind === "crumble") landing.broken = true;
+        this.burst(this.x, this.y, landing.kind === "spring");
       }
-      for (let j = 0; j < limb.points.length; j++) {
-        const t = j / (limb.points.length - 1);
-        const bend = Math.sin(t * Math.PI);
-        const x =
-          anchorX +
-          (endX - anchorX) * t +
-          bend * (tail ? -20 : side * 5 - this.vx * 0.016);
-        const y =
-          anchorY + (endY - anchorY) * t + bend * (tail ? 22 : arm ? 9 : -5);
-        const p = limb.points[j];
-        if (j === 0) {
-          p.x = x;
-          p.y = y;
-        } else if (j === 8 && !arm && !tail && this.grounded) {
-          p.x = x;
-          p.y = y;
-          p.vx = p.vy = 0;
-        } else spring(p, x, y, dt, this.reducedMotion ? 340 : 230 - j * 9);
+    }
+    // Swept star pickup also works during the fast part of a spring launch.
+    for (const p of this.platforms) {
+      if (!p.star) continue;
+      const sx = p.x + p.width / 2;
+      const sy = p.y - 31;
+      const dx = this.x - this.previousX;
+      const dy = this.y - this.previousY;
+      const t = clamp(
+        ((sx - this.previousX) * dx + (sy - (this.previousY - 23)) * dy) /
+          (dx * dx + dy * dy || 1),
+        0,
+        1,
+      );
+      if (
+        Math.hypot(
+          sx - (this.previousX + dx * t),
+          sy - (this.previousY - 23 + dy * t),
+        ) < 30
+      ) {
+        p.star = false;
+        this.stars++;
+        this.emit("star");
+        this.burst(sx, sy, true, 10);
       }
+    }
+    this.heightMetres = Math.max(
+      this.heightMetres,
+      Math.floor((this.launchY - this.y) / 10),
+    );
+    this.lastCameraTarget = Math.max(
+      this.lastCameraTarget,
+      this.height * 0.44 - this.y,
+    );
+    this.camera = damp(this.camera, this.lastCameraTarget, 7, dt);
+    this.fillPlatforms();
+    this.platforms = this.platforms.filter(
+      (p) => p.y + this.camera < this.height + 140,
+    );
+    if (this.screenY > this.height + 65) {
+      this.phase = "over";
+      this.clearInput();
+      this.emit("over");
+    }
+  }
+
+  private animate(dt: number, acceleration: number) {
+    this.gait += Math.abs(this.vx) * dt * 0.11;
+    const target = this.reducedMotion
+      ? 0
+      : this.contact > 0
+        ? 0.25
+        : !this.grounded
+          ? clamp(this.vy / 3700, -0.17, 0.11)
+          : 0;
+    this.squashVelocity +=
+      ((target - this.squash) * 280 - this.squashVelocity * 20) * dt;
+    this.squash = clamp(this.squash + this.squashVelocity * dt, -0.25, 0.3);
+    const tiltTarget = this.reducedMotion
+      ? 0
+      : clamp(this.vx * 0.00065, -0.2, 0.2);
+    this.tiltVelocity +=
+      ((tiltTarget - this.tilt) * 160 - this.tiltVelocity * 19) * dt;
+    this.tilt += this.tiltVelocity * dt;
+    for (let i = 0; i < 2; i++) {
+      const targetEar = this.reducedMotion
+        ? 0
+        : clamp(
+            -this.vx * 0.0012 -
+              acceleration * 0.0001 +
+              Math.sin(this.time * 2.1 + i) * 0.025 +
+              this.squashVelocity * (i ? 0.08 : -0.06),
+            -0.65,
+            0.65,
+          );
+      this.earVelocity[i] +=
+        ((targetEar - this.ears[i]) * (i ? 100 : 125) -
+          this.earVelocity[i] * 12) *
+        dt;
+      this.ears[i] = clamp(this.ears[i] + this.earVelocity[i] * dt, -0.7, 0.7);
     }
   }
 }

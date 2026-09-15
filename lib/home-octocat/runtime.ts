@@ -1,36 +1,49 @@
 import { FixedStepLoop } from "@/lib/mascot/core/FixedStepLoop";
-import { HomeOctocatMotion, type Ledge } from "./motion";
+import { HomeOctocatMotion, type Ledge, type GamePhase } from "./motion";
 import { createHomeOctocatRenderer } from "./renderer";
+import { WorldRenderer } from "./worldRenderer";
+import { MochiAudio } from "./audio";
 
+export interface GameSnapshot {
+  phase: GamePhase;
+  height: number;
+  stars: number;
+  extraHop: boolean;
+}
 interface Callbacks {
-  onLayout: (surfaces: Ledge[]) => void;
-  onScore: (visited: string[]) => void;
-  onLeaveHero: () => void;
+  onGame: (game: GameSnapshot) => void;
   onUnavailable: () => void;
 }
 
-/** Owns one animation loop, cached DOM geometry, and explicit teardown. */
 export class HomeOctocatRuntime {
   readonly motion = new HomeOctocatMotion();
+  readonly audio = new MochiAudio();
   private readonly renderer: ReturnType<typeof createHomeOctocatRenderer>;
+  private readonly world: WorldRenderer;
   private readonly loop: FixedStepLoop;
   private readonly resizeObserver: ResizeObserver;
   private readonly intersectionObserver: IntersectionObserver;
   private refreshTimer: ReturnType<typeof setTimeout> | undefined;
   private settleTimer: ReturnType<typeof setTimeout> | undefined;
-  private score = -1;
+  private signature = "";
   private visible = true;
   private paused = false;
   private destroyed = false;
   private unavailable = false;
+  private originalTranslate: string;
+  private originalWillChange: string;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
+    worldCanvas: HTMLCanvasElement,
     private readonly hitTarget: HTMLButtonElement,
     private readonly hero: HTMLElement,
     private readonly callbacks: Callbacks,
   ) {
+    this.originalTranslate = hero.style.translate;
+    this.originalWillChange = hero.style.willChange;
     this.renderer = createHomeOctocatRenderer(canvas);
+    this.world = new WorldRenderer(worldCanvas);
     this.loop = new FixedStepLoop({
       fixedDt: 1 / 120,
       maxSteps: 6,
@@ -44,13 +57,14 @@ export class HomeOctocatRuntime {
       .forEach((el) => this.resizeObserver.observe(el));
     this.intersectionObserver = new IntersectionObserver(
       ([entry]) => {
-        this.visible = entry.isIntersecting && entry.intersectionRatio > 0.2;
-        canvas.style.visibility = this.visible ? "visible" : "hidden";
-        hitTarget.style.visibility = this.visible ? "visible" : "hidden";
-        if (!this.visible && this.motion.playing) callbacks.onLeaveHero();
+        this.visible = entry.isIntersecting;
+        if (!this.motion.playing) {
+          canvas.style.visibility = this.visible ? "visible" : "hidden";
+          hitTarget.style.visibility = this.visible ? "visible" : "hidden";
+        }
         this.syncLoop();
       },
-      { threshold: [0, 0.2, 0.5] },
+      { threshold: [0, 0.2] },
     );
     this.intersectionObserver.observe(hero);
     window.addEventListener("scroll", this.scheduleRefresh, { passive: true });
@@ -60,7 +74,6 @@ export class HomeOctocatRuntime {
     document.fonts.addEventListener("loadingdone", this.scheduleRefresh);
     canvas.addEventListener("webglcontextlost", this.contextLost);
     this.refresh();
-    // The hero's entrance uses Framer transforms; remeasure after it settles.
     this.settleTimer = setTimeout(this.refresh, 1100);
     this.syncLoop();
   }
@@ -88,56 +101,76 @@ export class HomeOctocatRuntime {
 
   private refresh = () => {
     if (this.destroyed) return;
-    const surfaces: Ledge[] = [];
-    this.hero
-      .querySelectorAll<HTMLElement>("[data-octocat-surface]")
-      .forEach((element) => {
-        let rect = element.getBoundingClientRect();
-        if (rect.width < 20 || rect.height === 0) return;
-        // Stand on the visible top string, rather than the wrapper's empty padding.
-        if (element.dataset.octocatSurface === "instrument") {
-          const string = element.querySelector<SVGGraphicsElement>(
-            "[data-mascot-string-index='0']",
-          );
-          const stringRect = string?.getBoundingClientRect();
-          if (stringRect && stringRect.width > 20) rect = stringRect;
-        }
-        surfaces.push({
-          id: element.dataset.octocatSurface!,
-          x: rect.left,
-          y: rect.top,
-          width: rect.width,
-          goal: element.hasAttribute("data-octocat-goal"),
+    // Active world geometry is independent of the translated hero underneath it.
+    const surfaces: Ledge[] = this.motion.playing ? this.motion.surfaces : [];
+    if (!this.motion.playing)
+      this.hero
+        .querySelectorAll<HTMLElement>("[data-octocat-surface]")
+        .forEach((element) => {
+          let rect = element.getBoundingClientRect();
+          if (rect.width < 20 || rect.height === 0) return;
+          if (element.dataset.octocatSurface === "instrument") {
+            const string = element
+              .querySelector<SVGGraphicsElement>(
+                "[data-mascot-string-index='0']",
+              )
+              ?.getBoundingClientRect();
+            if (string && string.width > 20) rect = string;
+          }
+          surfaces.push({
+            id: element.dataset.octocatSurface!,
+            x: rect.left,
+            y: rect.top,
+            width: rect.width,
+            goal: false,
+          });
         });
-      });
     this.motion.setLayout(
       surfaces,
       window.innerWidth,
       window.innerHeight,
       window.scrollY,
     );
-    this.callbacks.onLayout(surfaces);
+    this.world.resize(window.innerWidth, window.innerHeight);
     this.render();
   };
 
   private render(alpha = 1) {
-    if (this.unavailable) return;
+    if (this.unavailable || this.destroyed) return;
+    this.world.render(this.motion, alpha);
     const { x, y } = this.renderer.render(this.motion, alpha);
-    this.hitTarget.style.transform = `translate3d(${x - 43}px,${y - 94}px,0)`;
+    this.hitTarget.style.transform = `translate3d(${x - 32}px,${y - 72}px,0)`;
     this.hitTarget.dataset.motion = this.motion.state;
-    if (this.score !== this.motion.visited.size) {
-      this.score = this.motion.visited.size;
-      this.callbacks.onScore(Array.from(this.motion.visited));
+    if (this.motion.playing)
+      this.hero.style.translate = `0 ${-this.motion.camera * 0.7}px`;
+    for (const event of this.motion.events.splice(0)) this.audio.play(event);
+    const m = this.motion;
+    const signature = `${m.phase}:${m.heightMetres}:${m.stars}:${m.extraHop}`;
+    if (signature !== this.signature) {
+      this.signature = signature;
+      this.callbacks.onGame({
+        phase: m.phase,
+        height: m.heightMetres,
+        stars: m.stars,
+        extraHop: m.extraHop,
+      });
     }
+    if (
+      m.phase === "over" ||
+      (m.reducedMotion && !m.playing && !m.dragging && m.grounded)
+    )
+      this.loop.stop();
   }
 
   private syncLoop = () => {
     if (this.destroyed || this.unavailable) return;
+    const m = this.motion;
     if (
       !document.hidden &&
-      this.visible &&
+      (this.visible || m.playing) &&
       !this.paused &&
-      (!this.motion.reducedMotion || this.motion.playing)
+      m.phase !== "over" &&
+      (!m.reducedMotion || m.phase === "climbing" || m.dragging || !m.grounded)
     )
       this.loop.start();
     else {
@@ -148,10 +181,6 @@ export class HomeOctocatRuntime {
 
   setReducedMotion(reduced: boolean) {
     this.motion.reducedMotion = reduced;
-    if (reduced && !this.motion.playing) {
-      // Settle the rig once so the static pose is complete without idle motion.
-      for (let i = 0; i < 90; i++) this.motion.update(1 / 120);
-    }
     this.syncLoop();
   }
 
@@ -159,21 +188,35 @@ export class HomeOctocatRuntime {
     this.refresh();
     this.motion.play();
     this.paused = false;
+    this.canvas.style.visibility = "visible";
+    this.hero.style.willChange = "translate";
+    this.syncLoop();
+    this.render();
+  }
+
+  wake() {
+    this.syncLoop();
+  }
+
+  begin() {
+    this.motion.begin();
     this.syncLoop();
   }
 
   restart() {
     this.motion.reset();
+    this.motion.begin();
     this.paused = false;
     this.syncLoop();
     this.render();
   }
 
   stop() {
+    this.restoreHero();
     this.motion.stop();
     this.paused = false;
+    this.refresh();
     this.syncLoop();
-    this.render();
   }
 
   setPaused(paused: boolean) {
@@ -182,9 +225,15 @@ export class HomeOctocatRuntime {
     this.syncLoop();
   }
 
+  private restoreHero() {
+    this.hero.style.translate = this.originalTranslate;
+    this.hero.style.willChange = this.originalWillChange;
+  }
+
   destroy() {
     this.destroyed = true;
     this.loop.stop();
+    this.restoreHero();
     clearTimeout(this.refreshTimer);
     clearTimeout(this.settleTimer);
     this.resizeObserver.disconnect();
@@ -196,5 +245,7 @@ export class HomeOctocatRuntime {
     document.fonts.removeEventListener("loadingdone", this.scheduleRefresh);
     this.canvas.removeEventListener("webglcontextlost", this.contextLost);
     this.renderer.destroy();
+    this.world.destroy();
+    this.audio.destroy();
   }
 }

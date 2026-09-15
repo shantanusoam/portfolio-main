@@ -4,13 +4,31 @@
   z-index: 1700;
   pointer-events: none;
   outline: none;
+  color: #e8eddf;
+  font-family: var(--font-body), sans-serif;
+}
+.world,
+.inputSurface,
+.gameUI {
+  position: absolute;
+  inset: 0;
+}
+.world {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.inputSurface {
+  pointer-events: auto;
+  touch-action: none;
+  cursor: default;
 }
 .canvas {
   position: absolute;
   top: 0;
   left: 0;
-  width: 220px;
-  height: 220px;
+  width: 160px;
+  height: 160px;
   pointer-events: none;
   will-change: transform;
 }
@@ -18,8 +36,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 86px;
-  height: 89px;
+  width: 64px;
+  height: 76px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -41,185 +59,316 @@
   cursor: grabbing;
 }
 .character:focus-visible {
-  outline: 1px dashed #b4c9dc;
-  outline-offset: 5px;
+  outline: 1px dashed #d3dfb9;
+  outline-offset: 4px;
 }
 .whisper {
   position: absolute;
   left: 50%;
-  top: -19px;
+  top: -15px;
   transform: translateX(-50%);
   white-space: nowrap;
   font:
     10px/1.5 var(--font-mono),
     monospace;
-  letter-spacing: 0.02em;
-  color: #d2dee8;
-  padding: 3px 9px;
-  background: #171e29e8;
-  border: 1px solid #a6c5e526;
-  border-radius: 20px;
-  opacity: 0;
+  color: #d6dec6;
+  opacity: 0.75;
   transition: opacity 0.2s;
 }
-.character:hover .whisper,
-.character:focus-visible .whisper {
+.character:hover .whisper {
   opacity: 1;
 }
-.ledge {
-  position: absolute;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #e6c78999, transparent);
-  box-shadow: 0 -2px 12px #e6c78926;
+.gameUI {
   pointer-events: none;
-}
-.spark {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  transform: rotate(45deg);
-  border-radius: 1px;
-  background: #efd7a4;
-  box-shadow: 0 0 12px #f8cc75a6;
 }
 .hud {
   position: absolute;
-  bottom: max(24px, env(safe-area-inset-bottom));
+  top: max(25px, env(safe-area-inset-top));
   left: 50%;
-  translate: -50% 0;
-  width: min(490px, calc(100vw - 32px));
-  padding: 17px 19px 12px;
-  border: 1px solid #b0c9e32b;
-  border-radius: 18px;
-  background: #131922f2;
-  box-shadow:
-    0 16px 64px #0006,
-    inset 0 1px 0 #ffffff08;
-  backdrop-filter: blur(20px);
-  color: #d8e3ec;
-  font:
-    12px/1.5 var(--font-mono),
-    monospace;
-  pointer-events: auto;
-}
-.identity {
+  transform: translateX(-50%);
+  width: min(720px, calc(100% - 40px));
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 26px;
 }
-.identity strong {
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 138px;
+}
+.brand strong {
   display: block;
-  color: #f0f4f6;
   font:
-    500 14px/1.6 var(--font-body),
+    500 20px/1.2 var(--font-body),
     sans-serif;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.6px;
+  color: #f0eddd;
 }
-.identity p {
-  margin: 2px 0 0;
-  font-size: 10px;
-  color: #94a4b5;
+.brand span:not(.dot) {
+  display: block;
+  margin-top: 5px;
+  font:
+    9px/1 var(--font-mono),
+    monospace;
+  letter-spacing: 0.06em;
+  color: #93a797;
 }
-.statusDot {
-  width: 6px;
-  height: 6px;
-  flex-shrink: 0;
-  background: #d9c08d;
+.dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  box-shadow: 0 0 14px #dbc38c55;
+  background: #bed8a8;
+  box-shadow: 0 0 15px #c1dbad33;
 }
 .score {
-  margin-left: auto;
-  white-space: nowrap;
-  color: #efd5a4;
-  font-size: 15px;
+  flex: 1;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.score span {
-  color: #718294;
-  font-size: 11px;
+.score strong {
+  display: block;
+  font:
+    400 35px/1 var(--font-body),
+    sans-serif;
+  letter-spacing: -1px;
+  color: #f0efdf;
 }
-.toolbar {
+.score small {
+  font-size: 14px;
+  margin-left: 3px;
+  color: #9aad9c;
+}
+.score > span {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  margin-top: 13px;
-  padding-top: 10px;
-  border-top: 1px solid #b0c9e318;
+  margin-top: 8px;
+  color: #e5c985;
+  font:
+    10px/1 var(--font-mono),
+    monospace;
 }
-.toolbar button,
-.touchControls button {
-  color: #c5d2df;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  padding: 5px 8px;
-  font-size: 10px;
+.score i {
+  font-style: normal;
+  margin-left: 9px;
+  color: #839888;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 138px;
+  pointer-events: auto;
+}
+.actions button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #cbdcb319;
+  background: #132220a6;
+  color: #b7c9b7;
+  cursor: pointer;
+}
+.actions button:hover {
+  background: #d5e5bf12;
+  color: #f3f0dd;
+}
+.actions button:focus-visible,
+.card button:focus-visible,
+.controls button:focus-visible {
+  outline: 2px solid #d6deab;
+  outline-offset: 4px;
+}
+.card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(350px, calc(100vw - 40px));
+  box-sizing: border-box;
+  padding: 29px;
+  border: 1px solid #deead52b;
+  border-radius: 24px;
+  background: #edf0df;
+  color: #293c31;
+  text-align: center;
+  pointer-events: auto;
+  box-shadow:
+    0 22px 80px #020c1055,
+    inset 0 1px 0 #fff8;
+}
+.intro {
+  top: auto;
+  bottom: 77px;
+  translate: -50% 0;
+  padding: 22px 26px 17px;
+}
+.eyebrow {
+  font:
+    9px/1.4 var(--font-mono),
+    monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #778570;
+}
+.card h2 {
+  font:
+    500 26px/1.2 var(--font-body),
+    sans-serif;
+  letter-spacing: -1px;
+  margin: 9px 0 11px;
+}
+.card p {
+  margin: 0 0 20px;
+  color: #697766;
+  font:
+    12px/1.7 var(--font-body),
+    sans-serif;
+}
+.card p svg {
+  display: inline;
+  vertical-align: -2px;
+}
+.primary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 45px;
+  padding: 11px 20px;
+  background: #2a4335;
+  color: #f0f0de;
+  border: 0;
+  border-radius: 12px;
+  font:
+    500 13px/1.4 var(--font-body),
+    sans-serif;
   cursor: pointer;
   transition:
-    background 0.15s,
-    color 0.15s;
+    background 0.2s,
+    transform 0.2s;
 }
-.toolbar button:hover {
-  color: #fff;
-  background: #e8f2ff0b;
+.primary:hover {
+  background: #375742;
+  transform: translateY(-1px);
 }
-.toolbar button:focus-visible,
-.touchControls button:focus-visible {
-  outline: 2px solid #d5bd88;
-  outline-offset: 2px;
+.primary:active {
+  transform: translateY(1px);
 }
-.toolbar button:disabled,
-.touchControls button:disabled {
+.primary:disabled {
   opacity: 0.4;
-  cursor: default;
+  cursor: wait;
 }
-.keyboardHint {
-  flex: 1;
-  color: #8b9baa;
-  font-size: 9px;
-  white-space: nowrap;
+.cardHint {
+  display: block;
+  margin-top: 9px;
+  font:
+    9px/1.5 var(--font-mono),
+    monospace;
+  color: #8b9481;
 }
-.keyboardHint kbd {
-  padding: 2px 4px;
-  margin-right: 3px;
+.textButton {
+  display: block;
+  margin: 14px auto 0;
+  padding: 5px 8px;
+  color: #74816c;
+  font:
+    11px/1.5 var(--font-body),
+    sans-serif;
+  cursor: pointer;
+}
+.card .finalHeight {
+  font:
+    400 76px/1 var(--font-body),
+    sans-serif;
+  letter-spacing: -4px;
+  margin: 17px 0;
+}
+.finalHeight span {
+  font-size: 24px;
+  letter-spacing: -1px;
+  color: #869276;
+  margin-left: 4px;
+}
+.footer {
+  position: absolute;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  left: 50%;
+  translate: -50% 0;
+  width: min(580px, calc(100vw - 36px));
+}
+.instructions {
+  text-align: center;
+  font:
+    10px/1.7 var(--font-mono),
+    monospace;
+  color: #819788;
+  margin: 0;
+}
+.instructions kbd {
   font: inherit;
-  color: #c6d2df;
-  border: 1px solid #b7cde52b;
+  color: #beccb3;
+  padding: 1px 4px;
+  border: 1px solid #c2d3b224;
   border-radius: 4px;
 }
-.keyboardHint kbd:last-of-type {
-  margin-left: 7px;
-}
-.escape {
-  font-size: 8px;
-  color: #6f8192;
-}
-.touchControls {
+.mobileHint {
   display: none;
-  gap: 8px;
-  margin-top: 12px;
-  touch-action: none;
 }
-.touchControls button {
-  min-width: 56px;
+.controls {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  pointer-events: auto;
+}
+.directions {
+  display: none;
+  gap: 9px;
+}
+.controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   min-height: 44px;
-  border-color: #b0c9e329;
-  background: #e8f2ff05;
-  font-size: 19px;
+  padding: 8px 16px;
+  color: #c6d8b7;
+  background: #1e3229cc;
+  border: 1px solid #c3d6b52b;
+  border-radius: 24px;
+  font:
+    11px/1.5 var(--font-mono),
+    monospace;
+  cursor: pointer;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }
-.touchControls button:active {
-  background: #d9c08d25;
-  border-color: #d9c08d77;
+.controls button:active {
+  background: #375442;
 }
-.touchControls .jumpButton {
-  margin-left: auto;
-  min-width: 105px;
-  font-size: 12px;
+.controls button:disabled {
+  color: #728571;
+  border-color: #a1b29118;
+  cursor: default;
+}
+.hopDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #c9e9a8;
+  box-shadow: 0 0 9px #c9e9a877;
+}
+button:disabled .hopDot {
+  opacity: 0.2;
+  box-shadow: none;
 }
 .srOnly {
   position: absolute;
@@ -231,47 +380,127 @@
 }
 .unavailable {
   position: absolute;
-  bottom: 96px;
+  bottom: 90px;
   right: 20px;
   width: min(310px, calc(100vw - 40px));
   padding: 14px;
-  color: #c5d2df;
-  border: 1px solid #b0c9e32b;
+  color: #c5d2bf;
+  border: 1px solid #b0c9aa2b;
   border-radius: 12px;
-  background: #131922f2;
+  background: #13221bf2;
   font: 12px/1.5 sans-serif;
   pointer-events: auto;
 }
 .unavailable button {
+  display: inline-flex;
+  vertical-align: middle;
   margin-left: 8px;
   padding: 3px 8px;
-  color: #fff;
 }
-@media (hover: none), (pointer: coarse), (max-width: 640px) {
-  .touchControls {
-    display: flex;
+@media (max-width: 640px), (pointer: coarse) {
+  .hud {
+    top: max(17px, env(safe-area-inset-top));
+    width: calc(100% - 32px);
+    gap: 8px;
   }
-  .keyboardHint {
+  .brand,
+  .actions {
+    min-width: 99px;
+  }
+  .brand {
+    gap: 7px;
+  }
+  .brand strong {
+    font-size: 17px;
+  }
+  .brand span:not(.dot) {
+    font-size: 8px;
+  }
+  .actions {
+    gap: 2px;
+  }
+  .actions button {
+    width: 32px;
+    height: 36px;
+  }
+  .score strong {
+    font-size: 29px;
+  }
+  .score i {
     display: none;
   }
-  .toolbar {
-    justify-content: flex-end;
+  .intro {
+    bottom: 76px;
+    padding: 18px 23px 14px;
+  }
+  .card h2 {
+    font-size: 25px;
+  }
+  .card p {
+    font-size: 11px;
+    margin-bottom: 14px;
+  }
+  .desktopHint {
+    display: none;
+  }
+  .mobileHint {
+    display: inline;
+  }
+  .instructions {
+    font-size: 9px;
+  }
+  .instructions > span:last-child {
+    display: block;
+    margin-top: 3px;
+  }
+  .controls {
+    justify-content: space-between;
+    margin-top: 12px;
+  }
+  .directions {
+    display: flex;
+  }
+  .directions button {
+    min-width: 53px;
+    min-height: 48px;
+    padding: 8px;
+  }
+  .controls .extraHop {
+    min-width: 145px;
+    min-height: 48px;
+    font-size: 10px;
+  }
+  .footer {
+    bottom: max(15px, env(safe-area-inset-bottom));
+  }
+}
+@media (max-height: 600px) {
+  .intro {
+    bottom: 53px;
+    padding: 12px 20px;
+  }
+  .intro .eyebrow,
+  .intro .cardHint {
+    display: none;
+  }
+  .intro h2 {
+    font-size: 22px;
+    margin: 3px 0 7px;
+  }
+  .intro p {
+    font-size: 11px;
+    margin-bottom: 10px;
   }
   .hud {
-    bottom: max(12px, env(safe-area-inset-bottom));
-    padding: 13px 15px 12px;
+    top: 12px;
   }
-  .identity strong {
-    font-size: 13px;
-  }
-  .identity p {
-    max-width: 225px;
-    font-size: 9px;
+  .footer {
+    bottom: 10px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .whisper,
-  .toolbar button {
+  .primary {
     transition: none;
   }
 }

@@ -1,128 +1,100 @@
-import type { HomeOctocatMotion, Limb } from "./motion";
+import type { HomeOctocatMotion } from "./motion";
+import {
+  CHARACTER_SIZE,
+  CHARACTER_ORIGIN_X as OX,
+  CHARACTER_ORIGIN_Y as OY,
+  mochiPose,
+  type MochiPose,
+} from "./pose";
 
-/** The same rig remains playable when a device cannot create a WebGL 2 context. */
+/** Also exported for deterministic, offline visual review of the actual drawing code. */
+export function drawMochi(ctx: CanvasRenderingContext2D, pose: MochiPose) {
+  const ellipse = (
+    x: number,
+    y: number,
+    rx: number,
+    ry: number,
+    fill: string | CanvasGradient,
+  ) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  ctx.save();
+  ctx.translate(0, -2 - pose.bob);
+  ctx.rotate(pose.tilt);
+  ctx.scale(pose.sx, pose.sy);
+  const fur = ctx.createRadialGradient(-8, -35, 2, 3, -18, 35);
+  fur.addColorStop(0, "#fffef3");
+  fur.addColorStop(0.55, "#f5ebd7");
+  fur.addColorStop(1, "#c5bbab");
+  for (let i = 0; i < 2; i++) {
+    const side = i === 0 ? -1 : 1;
+    ctx.save();
+    ctx.translate(side * 10, -35);
+    ctx.rotate(pose.ears[i]);
+    ellipse(0, -10, 6.5, i ? 17 : 15, fur);
+    ellipse(0.7, -12, 2.7, i ? 10.5 : 9, "#e9bdab");
+    ctx.restore();
+  }
+  ellipse(-10, -1 - pose.feet[0], 8, 4.2, "#eee3ce");
+  ellipse(10, -1 - pose.feet[1], 8, 4.2, "#eee3ce");
+  ellipse(0, -22, 21, 22, fur);
+  ellipse(-17, -13, 4.5, 7, fur);
+  ellipse(17, -13, 4.5, 7, fur);
+  const gaze = pose.look;
+  for (const side of [-1, 1]) {
+    ellipse(side * 12 + gaze * 0.5, -18.5, 3.7, 2.2, "#eabbaa");
+    ellipse(side * 6.6 + gaze, -23, 2.2, 3 * pose.blink, "#343d3c");
+    if (pose.blink > 0.4)
+      ellipse(side * 6.6 + gaze - 0.5, -24, 0.65, 0.75, "#fffef4");
+  }
+  ellipse(gaze, -17, 1.3, 0.95, "#b58479");
+  ctx.strokeStyle = "#66554e";
+  ctx.lineWidth = 0.8;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(gaze - 2.5, -14.8);
+  ctx.quadraticCurveTo(gaze, -12.3, gaze + 2.5, -14.8);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Low-power / WebGL-unavailable devices keep the same character and physics. */
 export class CanvasOctocatRenderer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly dpr: number;
-
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("No supported character renderer");
     this.ctx = ctx;
-    this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    canvas.width = canvas.height = Math.round(220 * this.dpr);
-  }
-
-  private limb(limb: Limb, m: HomeOctocatMotion) {
-    const ctx = this.ctx;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    for (let i = 0; i < limb.points.length - 1; i++) {
-      const a = limb.points[i];
-      const b = limb.points[i + 1];
-      const next = limb.points[Math.min(i + 2, limb.points.length - 1)];
-      const t = i / (limb.points.length - 1);
-      ctx.strokeStyle =
-        limb.index === 0 || limb.index === 2 || limb.index === 6
-          ? "#8da4b9"
-          : "#bdcddc";
-      ctx.lineWidth = (limb.index < 4 ? 8.6 : 7.2) * Math.pow(1 - t, 0.56);
-      ctx.beginPath();
-      ctx.moveTo(110 + a.x - m.x, 150 + a.y - m.y);
-      ctx.quadraticCurveTo(
-        110 + b.x - m.x,
-        150 + b.y - m.y,
-        110 + (b.x + next.x) / 2 - m.x,
-        150 + (b.y + next.y) / 2 - m.y,
-      );
-      ctx.stroke();
-    }
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = canvas.height = CHARACTER_SIZE * this.dpr;
   }
 
   render(m: HomeOctocatMotion, alpha = 1) {
-    const x = m.previousX + (m.x - m.previousX) * alpha;
-    const y = m.previousY + (m.y - m.previousY) * alpha;
-    this.canvas.style.transform = `translate3d(${x - 110}px,${y - 150}px,0)`;
+    const x =
+      m.previousX + (m.x - m.previousX) * alpha + (m.playing ? m.fieldLeft : 0);
+    const y =
+      m.previousY +
+      (m.y - m.previousY) * alpha +
+      m.previousCamera +
+      (m.camera - m.previousCamera) * alpha;
+    this.canvas.style.transform = `translate3d(${x - OX}px,${y - OY}px,0)`;
+    this.canvas.style.opacity = m.phase === "over" ? "0" : "1";
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.clearRect(0, 0, 220, 220);
+    ctx.clearRect(0, 0, CHARACTER_SIZE, CHARACTER_SIZE);
     if (m.grounded) {
-      ctx.fillStyle = "#93aabd33";
+      ctx.fillStyle = "#07171630";
       ctx.beginPath();
-      ctx.ellipse(110, 151, 27, 2.6, 0, 0, Math.PI * 2);
+      ctx.ellipse(OX, OY + 1, 21, 3, 0, 0, Math.PI * 2);
       ctx.fill();
     }
-    for (const i of [6, 0, 2, 1, 3, 4, 5]) this.limb(m.limbs[i], m);
-    const body = ctx.createLinearGradient(101, 120, 120, 135);
-    body.addColorStop(0, "#cfdae3");
-    body.addColorStop(1, "#8da4b9");
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.ellipse(
-      110 - m.vx * 0.012,
-      121 + m.squash * 14,
-      9.5 * (1 + m.squash),
-      15 * (1 - m.squash),
-      m.vx * 0.0003,
-      0,
-      Math.PI * 2,
-    );
-    ctx.fill();
-
     ctx.save();
-    ctx.translate(110 + m.head.x - m.x, 150 + m.head.y - m.y);
-    ctx.rotate(m.vx * 0.00055);
-    ctx.scale(
-      (1 + m.squash * 0.35) * (1 - Math.abs(m.turn) * 0.08),
-      1 - m.squash * 0.4,
-    );
-    const head = ctx.createRadialGradient(-9, -15, 3, 0, 0, 34);
-    head.addColorStop(0, "#e7edf2");
-    head.addColorStop(0.5, "#bdccd9");
-    head.addColorStop(1, "#8199af");
-    ctx.fillStyle = head;
-    ctx.beginPath();
-    ctx.moveTo(-20, 5);
-    ctx.quadraticCurveTo(-27, -6, -19, -15);
-    ctx.lineTo(-19, -29);
-    ctx.quadraticCurveTo(-19, -34, -7, -20);
-    ctx.quadraticCurveTo(0, -24, 8, -20);
-    ctx.lineTo(21, -31);
-    ctx.quadraticCurveTo(25, -34, 22, -12);
-    ctx.quadraticCurveTo(28, 4, 20, 13);
-    ctx.quadraticCurveTo(1, 27, -18, 12);
-    ctx.closePath();
-    ctx.fill();
-    const look = Math.sin(m.turn) * 6;
-    ctx.fillStyle = "#e8edf0";
-    ctx.beginPath();
-    ctx.ellipse(look, 4, 17, 12.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    const phase = m.time % 4.7;
-    const blink =
-      !m.reducedMotion && phase > 4.52
-        ? Math.max(0.08, Math.abs(phase - 4.61) / 0.09)
-        : 1;
-    for (const side of [-1, 1]) {
-      ctx.fillStyle = "#1d2c3f";
-      ctx.beginPath();
-      ctx.ellipse(look + side * 7.3, 1.5, 2.8, 4.3 * blink, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.ellipse(look + side * 7.3 - 0.7, 0.3, 0.8, blink, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.fillStyle = "#253748";
-    ctx.beginPath();
-    ctx.ellipse(look, 8, 1.6, 1.1, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#5e7180";
-    ctx.lineWidth = 0.7;
-    ctx.beginPath();
-    ctx.moveTo(look - 3, 11);
-    ctx.quadraticCurveTo(look, 13, look + 3, 11);
-    ctx.stroke();
+    ctx.translate(OX, OY);
+    drawMochi(ctx, mochiPose(m));
     ctx.restore();
     return { x, y };
   }

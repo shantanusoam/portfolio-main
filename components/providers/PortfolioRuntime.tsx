@@ -32,10 +32,10 @@ export default function PortfolioRuntime({
   if (pathname.startsWith("/arcade/")) return <>{children}</>;
   return (
     <CommandPaletteProvider entries={entries}>
-      <PageAtmosphere />
-      <PageScrollProgress />
+      {!octocatActive && <PageAtmosphere />}
+      {!octocatActive && <PageScrollProgress />}
       {!(pathname === "/" && octocatActive) && <ProceduralMascotLoader />}
-      <SoundroomNub />
+      {!octocatActive && <SoundroomNub />}
       <SmoothScrollProvider>{children}</SmoothScrollProvider>
     </CommandPaletteProvider>
   );

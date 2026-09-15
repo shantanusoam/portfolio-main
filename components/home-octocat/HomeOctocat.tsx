@@ -2,6 +2,17 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  Pause,
+  Play,
+  Star,
+  Volume2,
+  VolumeX,
+  X,
+} from "lucide-react";
+import {
   useCallback,
   useEffect,
   useRef,
@@ -10,28 +21,29 @@ import {
 } from "react";
 import usePrefersReducedMotion from "@/hooks/usePreferedRedcedMotion";
 import { announceHomeOctocat } from "@/lib/home-octocat/events";
-import type { Ledge } from "@/lib/home-octocat/motion";
-import type { HomeOctocatRuntime } from "@/lib/home-octocat/runtime";
+import type {
+  GameSnapshot,
+  HomeOctocatRuntime,
+} from "@/lib/home-octocat/runtime";
 import styles from "./HomeOctocat.module.css";
 
-const MOVEMENT_KEYS = new Set([
-  "ArrowLeft",
-  "ArrowRight",
-  "ArrowUp",
-  "ArrowDown",
-  " ",
-  "a",
-  "d",
-  "w",
-]);
+const BEST_KEY = "portfolio:mochi-best:v1";
+const INITIAL: GameSnapshot = {
+  phase: "idle",
+  height: 0,
+  stars: 0,
+  extraHop: true,
+};
 
 export default function HomeOctocat() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const worldRef = useRef<HTMLCanvasElement>(null);
   const playerRef = useRef<HTMLButtonElement>(null);
   const regionRef = useRef<HTMLElement>(null);
   const runtimeRef = useRef<HomeOctocatRuntime | null>(null);
   const activeRef = useRef(false);
   const pausedRef = useRef(false);
+  const restoreFocusRef = useRef(false);
   const keys = useRef(new Set<string>());
   const touch = useRef({ left: false, right: false });
   const drag = useRef<{
@@ -40,23 +52,22 @@ export default function HomeOctocat() {
     y: number;
     moved: boolean;
   } | null>(null);
-  const jumpTimer = useRef<ReturnType<typeof setTimeout>>();
   const [active, setActive] = useState(false);
   const [paused, setPaused] = useState(false);
   const [ready, setReady] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
-  const [surfaces, setSurfaces] = useState<Ledge[]>([]);
-  const [visited, setVisited] = useState<string[]>([]);
+  const [sound, setSound] = useState(false);
+  const [best, setBest] = useState(0);
+  const [game, setGame] = useState<GameSnapshot>(INITIAL);
   const reducedMotion = usePrefersReducedMotion();
   const reducedRef = useRef(reducedMotion);
   reducedRef.current = reducedMotion;
-
   const clearInput = useCallback(() => {
     keys.current.clear();
     touch.current = { left: false, right: false };
     runtimeRef.current?.motion.clearInput();
   }, []);
-
+  const focusGame = () => regionRef.current?.focus({ preventScroll: true });
   const start = useCallback(() => {
     activeRef.current = true;
     pausedRef.current = false;
@@ -65,7 +76,6 @@ export default function HomeOctocat() {
     runtimeRef.current?.play();
     regionRef.current?.focus({ preventScroll: true });
   }, []);
-
   const stop = useCallback(
     (restoreFocus = true) => {
       activeRef.current = false;
@@ -76,57 +86,75 @@ export default function HomeOctocat() {
       setActive(false);
       setPaused(false);
       const url = new URL(window.location.href);
-      if (url.searchParams.has("octocat")) {
-        url.searchParams.delete("octocat");
-        window.history.replaceState(
-          window.history.state,
-          "",
-          `${url.pathname}${url.search}${url.hash}`,
-        );
-      }
-      if (restoreFocus) playerRef.current?.focus({ preventScroll: true });
+      url.searchParams.delete("octocat");
+      url.searchParams.delete("mochi");
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
+      restoreFocusRef.current = restoreFocus;
     },
     [clearInput],
   );
-
   const pause = useCallback(
     (next: boolean) => {
       pausedRef.current = next;
       clearInput();
       runtimeRef.current?.setPaused(next);
       setPaused(next);
+      regionRef.current?.focus({ preventScroll: true });
     },
     [clearInput],
   );
-
-  const restart = () => {
+  const restart = useCallback(() => {
     clearInput();
     runtimeRef.current?.restart();
     pausedRef.current = false;
     setPaused(false);
     regionRef.current?.focus({ preventScroll: true });
+  }, [clearInput]);
+  const begin = () => {
+    runtimeRef.current?.begin();
+    focusGame();
+  };
+  const extraHop = () => {
+    if (!pausedRef.current) runtimeRef.current?.motion.jump();
+    focusGame();
   };
 
   useEffect(() => {
     let cancelled = false;
     const hero = document.getElementById("hero");
     if (!hero) return;
-    if (new URLSearchParams(window.location.search).get("octocat") === "play")
+    try {
+      const value = Number(localStorage.getItem(BEST_KEY));
+      if (Number.isFinite(value) && value > 0) setBest(value);
+    } catch {
+      /* Best score is optional. */
+    }
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("mochi") === "play" || query.get("octocat") === "play")
       start();
     const timer = setTimeout(async () => {
       try {
         const { HomeOctocatRuntime } = await import(
           "@/lib/home-octocat/runtime"
         );
-        if (cancelled || !canvasRef.current || !playerRef.current) return;
+        if (
+          cancelled ||
+          !canvasRef.current ||
+          !worldRef.current ||
+          !playerRef.current
+        )
+          return;
         const runtime = new HomeOctocatRuntime(
           canvasRef.current,
+          worldRef.current,
           playerRef.current,
           hero,
           {
-            onLayout: setSurfaces,
-            onScore: setVisited,
-            onLeaveHero: () => stop(false),
+            onGame: setGame,
             onUnavailable: () => {
               stop(false);
               setUnavailable(true);
@@ -148,19 +176,38 @@ export default function HomeOctocat() {
     return () => {
       cancelled = true;
       clearTimeout(timer);
-      clearTimeout(jumpTimer.current);
       runtimeRef.current?.destroy();
       runtimeRef.current = null;
       announceHomeOctocat(false);
     };
   }, [start, stop]);
-
   useEffect(() => {
     runtimeRef.current?.setReducedMotion(reducedMotion);
   }, [reducedMotion]);
   useEffect(() => {
     announceHomeOctocat(active);
+    if (!active && restoreFocusRef.current) {
+      restoreFocusRef.current = false;
+      playerRef.current?.focus({ preventScroll: true });
+    }
   }, [active]);
+  useEffect(() => {
+    if (!active) return;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = overflow;
+    };
+  }, [active]);
+  useEffect(() => {
+    if (game.phase !== "over" || game.height <= best) return;
+    setBest(game.height);
+    try {
+      localStorage.setItem(BEST_KEY, String(game.height));
+    } catch {
+      /* Storage can be disabled. */
+    }
+  }, [game.phase, game.height, best]);
 
   const syncAxis = useCallback(() => {
     const left =
@@ -171,65 +218,105 @@ export default function HomeOctocat() {
       keys.current.has("ArrowRight") ||
       keys.current.has("d") ||
       touch.current.right;
-    if (runtimeRef.current)
+    if (runtimeRef.current) {
       runtimeRef.current.motion.axis = Number(right) - Number(left);
+      runtimeRef.current.motion.pointerX = null;
+    }
   }, []);
-
   useEffect(() => {
     if (!active) return;
     const keyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
-      if (
-        target?.closest(
-          "input, textarea, select, [contenteditable='true'], [role='dialog']",
-        )
-      )
+      if (target?.closest("input, textarea, select, [contenteditable='true']"))
         return;
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      // Preserve Space/Enter activation for the HUD's real buttons and links.
+      if (key === "Tab") {
+        const buttons = Array.from(
+          regionRef.current?.querySelectorAll<HTMLButtonElement>(
+            "button:not(:disabled)",
+          ) ?? [],
+        ).filter((el) => el.offsetParent !== null && el.tabIndex >= 0);
+        const first = buttons[0];
+        const last = buttons[buttons.length - 1];
+        if (!first) return;
+        if (
+          event.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === regionRef.current)
+        ) {
+          event.preventDefault();
+          last.focus();
+        } else if (
+          !event.shiftKey &&
+          (document.activeElement === last ||
+            document.activeElement === regionRef.current)
+        ) {
+          event.preventDefault();
+          first.focus();
+        }
+        return;
+      }
       if (key === " " && target?.closest("button, a")) return;
       if (
-        !MOVEMENT_KEYS.has(key) &&
-        key !== "Escape" &&
-        key !== "p" &&
-        key !== "r"
+        ![
+          "ArrowLeft",
+          "ArrowRight",
+          "ArrowUp",
+          " ",
+          "a",
+          "d",
+          "w",
+          "p",
+          "r",
+          "Escape",
+          "Enter",
+        ].includes(key)
       )
         return;
+      if (key === "Enter" && target?.closest("button, a")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       if (key === "Escape") {
         stop();
         return;
       }
-      if (key === "p" && !event.repeat) {
+      if (
+        key === "p" &&
+        !event.repeat &&
+        runtimeRef.current?.motion.phase === "climbing"
+      ) {
         pause(!pausedRef.current);
         return;
       }
       if (key === "r" && !event.repeat) {
-        clearInput();
-        runtimeRef.current?.restart();
-        pausedRef.current = false;
-        setPaused(false);
+        restart();
         return;
       }
-      if (pausedRef.current) return;
-      keys.current.add(key);
-      syncAxis();
-      if (!event.repeat && (key === " " || key === "ArrowUp" || key === "w"))
-        runtimeRef.current?.motion.jump();
+      if (pausedRef.current) {
+        if ((key === " " || key === "Enter") && !event.repeat) pause(false);
+        return;
+      }
+      if (["ArrowLeft", "ArrowRight", "a", "d"].includes(key)) {
+        keys.current.add(key);
+        syncAxis();
+      }
+      if (!event.repeat && [" ", "ArrowUp", "w", "Enter"].includes(key)) {
+        const phase = runtimeRef.current?.motion.phase;
+        if (phase === "ready") runtimeRef.current?.begin();
+        else if (phase === "over") restart();
+        else runtimeRef.current?.motion.jump();
+      }
     };
     const keyUp = (event: KeyboardEvent) => {
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      keys.current.delete(key);
-      syncAxis();
-      if (key === " " || key === "ArrowUp" || key === "w") {
-        if (runtimeRef.current) runtimeRef.current.motion.jumpHeld = false;
-      }
+      if (keys.current.delete(key)) syncAxis();
     };
-    const blur = () => pause(true);
+    const blur = () => {
+      if (runtimeRef.current?.motion.phase === "climbing") pause(true);
+    };
     const hidden = () => {
-      if (document.hidden) pause(true);
+      if (document.hidden) blur();
     };
     window.addEventListener("keydown", keyDown, true);
     window.addEventListener("keyup", keyUp, true);
@@ -242,19 +329,10 @@ export default function HomeOctocat() {
       window.removeEventListener("blur", blur);
       document.removeEventListener("visibilitychange", hidden);
     };
-  }, [active, clearInput, pause, stop, syncAxis]);
-
-  const jumpPulse = () => {
-    if (pausedRef.current) return;
-    runtimeRef.current?.motion.jump();
-    clearTimeout(jumpTimer.current);
-    jumpTimer.current = setTimeout(() => {
-      if (runtimeRef.current) runtimeRef.current.motion.jumpHeld = false;
-    }, 180);
-  };
+  }, [active, clearInput, pause, restart, stop, syncAxis]);
 
   const onGrab = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (event.button !== 0 || !ready || pausedRef.current) return;
+    if (event.button !== 0 || !ready || activeRef.current) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = {
@@ -271,12 +349,18 @@ export default function HomeOctocat() {
       !current.moved &&
       Math.hypot(event.clientX - current.x, event.clientY - current.y) > 5
     ) {
-      if (!activeRef.current) start();
       runtimeRef.current?.motion.grab(event.clientX, event.clientY);
       current.moved = true;
+      runtimeRef.current?.wake();
     }
     if (current.moved)
       runtimeRef.current?.motion.dragTo(event.clientX, event.clientY);
+  };
+  const cancelDrag = () => {
+    if (drag.current) {
+      drag.current = null;
+      runtimeRef.current?.motion.release();
+    }
   };
   const onRelease = (event: ReactPointerEvent<HTMLButtonElement>) => {
     const current = drag.current;
@@ -285,27 +369,74 @@ export default function HomeOctocat() {
     if (event.currentTarget.hasPointerCapture(event.pointerId))
       event.currentTarget.releasePointerCapture(event.pointerId);
     if (current.moved) runtimeRef.current?.motion.release();
-    else if (!activeRef.current) start();
-    else jumpPulse();
+    else start();
   };
-  const cancelDrag = () => {
-    if (!drag.current) return;
-    drag.current = null;
-    runtimeRef.current?.motion.release();
+  const touchDirection = (
+    direction: "left" | "right",
+    down: boolean,
+    event: ReactPointerEvent<HTMLButtonElement>,
+  ) => {
+    event.preventDefault();
+    if (down) event.currentTarget.setPointerCapture(event.pointerId);
+    touch.current[direction] = down;
+    syncAxis();
   };
-
-  const total = surfaces.filter((s) => s.goal).length || 3;
-  const won = visited.length >= total;
+  const running = game.phase === "climbing";
+  const animation = {
+    initial: { opacity: 0, y: reducedMotion ? 0 : 10 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: reducedMotion ? 0 : 5 },
+    transition: { type: "spring", stiffness: 260, damping: 26 },
+  };
 
   return (
     <section
       ref={regionRef}
       tabIndex={-1}
       className={styles.layer}
-      aria-label="Octocat home playground"
+      aria-label={
+        active
+          ? "Mochi, a little higher. Climbing game"
+          : "Mochi home companion"
+      }
+      role={active ? "dialog" : undefined}
+      aria-modal={active || undefined}
+      aria-describedby={active ? "mochi-instructions" : undefined}
       data-octocat-ui
       data-active={active}
+      data-phase={game.phase}
+      data-lenis-prevent
     >
+      <canvas
+        ref={worldRef}
+        className={styles.world}
+        aria-hidden="true"
+        hidden={!active}
+      />
+      {active && (
+        <div
+          className={styles.inputSurface}
+          aria-hidden="true"
+          onPointerDown={(e) => {
+            if (!pausedRef.current) {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              runtimeRef.current?.motion.steer(e.clientX);
+              focusGame();
+            }
+          }}
+          onPointerMove={(e) => {
+            if (!pausedRef.current && (e.pointerType === "mouse" || e.buttons))
+              runtimeRef.current?.motion.steer(e.clientX);
+          }}
+          onPointerUp={(e) => {
+            if (e.currentTarget.hasPointerCapture(e.pointerId))
+              e.currentTarget.releasePointerCapture(e.pointerId);
+          }}
+          onPointerCancel={() => {
+            if (runtimeRef.current) runtimeRef.current.motion.pointerX = null;
+          }}
+        />
+      )}
       <canvas
         ref={canvasRef}
         className={styles.canvas}
@@ -317,182 +448,228 @@ export default function HomeOctocat() {
         type="button"
         className={styles.character}
         data-ready={ready}
-        aria-label={
-          active
-            ? "Octocat. Click to jump, or drag and release."
-            : "Play with Octocat"
-        }
-        aria-describedby={active ? "octocat-instructions" : undefined}
-        disabled={!ready}
+        hidden={active}
+        aria-label="Play with Mochi"
+        disabled={!ready || active}
         onPointerDown={onGrab}
         onPointerMove={onDrag}
         onPointerUp={onRelease}
         onPointerCancel={cancelDrag}
         onLostPointerCapture={cancelDrag}
-        onClick={(event) => {
-          if (event.detail === 0) active ? jumpPulse() : start();
+        onClick={(e) => {
+          if (e.detail === 0) start();
         }}
       >
-        {!active && <span className={styles.whisper}>Psst. Play?</span>}
+        <span className={styles.whisper}>psst… play?</span>
       </button>
       <AnimatePresence>
         {active && (
-          <>
-            {surfaces
-              .filter((s) => s.goal && !visited.includes(s.id))
-              .map((surface) => (
-                <motion.div
-                  key={surface.id}
-                  className={styles.ledge}
-                  aria-hidden="true"
-                  style={{
-                    left: surface.x,
-                    top: surface.y,
-                    width: surface.width,
-                  }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <span className={styles.spark} />
-                </motion.div>
-              ))}
-            <motion.div
-              className={styles.hud}
-              initial={{ opacity: 0, y: reducedMotion ? 0 : 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
-              transition={{ type: "spring", stiffness: 240, damping: 26 }}
-            >
-              <div className={styles.identity}>
-                <span className={styles.statusDot} />
+          <motion.div className={styles.gameUI} {...animation}>
+            <header className={styles.hud}>
+              <div className={styles.brand}>
+                <span className={styles.dot} />
                 <div>
-                  <strong>
-                    {!ready
-                      ? "Waking up…"
-                      : paused
-                        ? "Taking a breather"
-                        : won
-                          ? "A little home run."
-                          : "The floor is a portfolio."}
-                  </strong>
-                  <p id="octocat-instructions">
-                    {won
-                      ? "All sparks found. Fancy another lap?"
-                      : "Reach the 3 glowing ledges. Drag me, too."}
-                  </p>
+                  <strong>Mochi</strong>
+                  <span>a little higher</span>
                 </div>
-                <span
-                  className={styles.score}
-                  aria-label={`${visited.length} of ${total} ledges reached`}
-                >
-                  {String(visited.length).padStart(2, "0")}
-                  <span> / {String(total).padStart(2, "0")}</span>
-                </span>
-              </div>
-              <div className={styles.toolbar}>
-                <span className={styles.keyboardHint}>
-                  <kbd>←</kbd>
-                  <kbd>→</kbd> move <kbd>Space</kbd> jump
-                </span>
-                <button
-                  type="button"
-                  onClick={() => pause(!paused)}
-                  disabled={!ready}
-                >
-                  {paused ? "Resume" : "Pause"}
-                </button>
-                <button type="button" onClick={restart} disabled={!ready}>
-                  {won ? "Again" : "Reset"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => stop()}
-                  aria-label="Exit Octocat playground"
-                >
-                  Exit <span className={styles.escape}>esc</span>
-                </button>
               </div>
               <div
-                className={styles.touchControls}
-                aria-label="Touch game controls"
+                className={styles.score}
+                aria-label={`${game.height} metres, ${game.stars} stars`}
               >
-                {(["left", "right"] as const).map((direction) => (
-                  <button
-                    key={direction}
-                    type="button"
-                    aria-label={`Move ${direction}`}
-                    disabled={!ready || paused}
-                    onPointerDown={(event) => {
-                      event.preventDefault();
-                      event.currentTarget.setPointerCapture(event.pointerId);
-                      touch.current[direction] = true;
-                      syncAxis();
-                    }}
-                    onPointerUp={() => {
-                      touch.current[direction] = false;
-                      syncAxis();
-                    }}
-                    onPointerCancel={() => {
-                      touch.current[direction] = false;
-                      syncAxis();
-                    }}
-                    onLostPointerCapture={() => {
-                      touch.current[direction] = false;
-                      syncAxis();
-                    }}
-                  >
-                    {direction === "left" ? "←" : "→"}
-                  </button>
-                ))}
+                <strong>
+                  {game.height}
+                  <small>m</small>
+                </strong>
+                <span>
+                  <Star size={11} /> {game.stars}{" "}
+                  <i>best {Math.max(best, game.height)}m</i>
+                </span>
+              </div>
+              <div className={styles.actions}>
                 <button
                   type="button"
-                  className={styles.jumpButton}
-                  disabled={!ready || paused}
-                  onPointerDown={(event) => {
-                    event.preventDefault();
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    runtimeRef.current?.motion.jump();
-                  }}
-                  onPointerUp={() => {
-                    if (runtimeRef.current)
-                      runtimeRef.current.motion.jumpHeld = false;
-                  }}
-                  onPointerCancel={() => {
-                    if (runtimeRef.current)
-                      runtimeRef.current.motion.jumpHeld = false;
-                  }}
-                  onLostPointerCapture={() => {
-                    if (runtimeRef.current)
-                      runtimeRef.current.motion.jumpHeld = false;
-                  }}
-                  onClick={(event) => {
-                    if (event.detail === 0) jumpPulse();
+                  aria-label={sound ? "Mute sound" : "Enable sound"}
+                  aria-pressed={sound}
+                  onClick={async () => {
+                    const enabled = await runtimeRef.current?.audio.toggle();
+                    setSound(Boolean(enabled));
                   }}
                 >
-                  Jump ↑
+                  {sound ? <Volume2 size={17} /> : <VolumeX size={17} />}
+                </button>
+                {running && (
+                  <button
+                    type="button"
+                    aria-label={paused ? "Resume game" : "Pause game"}
+                    onClick={() => pause(!paused)}
+                  >
+                    {paused ? <Play size={16} /> : <Pause size={16} />}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  aria-label="Back to portfolio"
+                  onClick={() => stop()}
+                >
+                  <X size={18} />
                 </button>
               </div>
-            </motion.div>
-          </>
+            </header>
+            <AnimatePresence mode="wait">
+              {game.phase === "ready" && (
+                <motion.div
+                  key="intro"
+                  className={`${styles.card} ${styles.intro}`}
+                  {...animation}
+                >
+                  <span className={styles.eyebrow}>a tiny escape</span>
+                  <h2>Little bunny. Big sky.</h2>
+                  <p>
+                    Mochi bounces. You find the next foothold.
+                    <br />
+                    Catch stars. Ride the green springs.
+                  </p>
+                  <button
+                    type="button"
+                    className={styles.primary}
+                    onClick={begin}
+                    disabled={!ready}
+                  >
+                    Let&apos;s hop <ArrowUp size={16} />
+                  </button>
+                  <span className={styles.cardHint}>or press Space</span>
+                </motion.div>
+              )}
+              {paused && (
+                <motion.div key="pause" className={styles.card} {...animation}>
+                  <span className={styles.eyebrow}>catch your breath</span>
+                  <h2>We can wait.</h2>
+                  <p>Your next foothold is right where you left it.</p>
+                  <button
+                    type="button"
+                    className={styles.primary}
+                    onClick={() => pause(false)}
+                  >
+                    Keep hopping <Play size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.textButton}
+                    onClick={() => stop()}
+                  >
+                    Back to portfolio
+                  </button>
+                </motion.div>
+              )}
+              {game.phase === "over" && (
+                <motion.div key="over" className={styles.card} {...animation}>
+                  <span className={styles.eyebrow}>
+                    {game.height > 0 && game.height >= best
+                      ? "a new little best"
+                      : "a lovely little adventure"}
+                  </span>
+                  <h2 className={styles.finalHeight}>
+                    {game.height}
+                    <span>m</span>
+                  </h2>
+                  <p>
+                    <Star size={13} /> {game.stars} stars collected · best{" "}
+                    {Math.max(best, game.height)}m
+                  </p>
+                  <button
+                    type="button"
+                    className={styles.primary}
+                    onClick={restart}
+                  >
+                    One more hop <ArrowUp size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.textButton}
+                    onClick={() => stop()}
+                  >
+                    Back to portfolio
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <footer className={styles.footer}>
+              <p id="mochi-instructions" className={styles.instructions}>
+                <span className={styles.desktopHint}>
+                  Move your mouse or use <kbd>←</kbd> <kbd>→</kbd> to steer.
+                </span>
+                <span className={styles.mobileHint}>
+                  Drag to steer, or use the arrows.
+                </span>{" "}
+                <span>
+                  Auto-bounce · <kbd>Space</kbd> extra hop
+                </span>
+              </p>
+              {running && !paused && (
+                <div className={styles.controls}>
+                  <div className={styles.directions}>
+                    {(["left", "right"] as const).map((direction) => (
+                      <button
+                        key={direction}
+                        type="button"
+                        aria-label={`Move ${direction}`}
+                        onPointerDown={(e) =>
+                          touchDirection(direction, true, e)
+                        }
+                        onPointerUp={(e) => touchDirection(direction, false, e)}
+                        onPointerCancel={(e) =>
+                          touchDirection(direction, false, e)
+                        }
+                        onLostPointerCapture={(e) =>
+                          touchDirection(direction, false, e)
+                        }
+                      >
+                        {direction === "left" ? (
+                          <ArrowLeft size={23} />
+                        ) : (
+                          <ArrowRight size={23} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.extraHop}
+                    disabled={!game.extraHop}
+                    onClick={extraHop}
+                  >
+                    <span className={styles.hopDot} />
+                    <ArrowUp size={15} />{" "}
+                    {game.extraHop ? "Extra hop" : "Refills on landing"}
+                  </button>
+                </div>
+              )}
+            </footer>
+          </motion.div>
         )}
       </AnimatePresence>
       <span className={styles.srOnly} role="status" aria-live="polite">
         {active &&
-          (won
-            ? "All three ledges reached!"
-            : `${visited.length} of ${total} ledges reached.`)}
+          (game.phase === "over"
+            ? `Run complete. ${game.height} metres and ${game.stars} stars. Press Space to play again.`
+            : paused
+              ? "Game paused."
+              : game.phase === "ready"
+                ? "Ready. Press Space to start. Mochi bounces automatically. Arrows steer, Space gives one extra hop between landings."
+                : `${Math.floor(game.height / 25) * 25} metres. ${
+                    game.stars
+                  } stars.`)}
       </span>
       {unavailable && (
         <div className={styles.unavailable} role="status">
-          The companion couldn&apos;t start in this browser. Reload to try
-          again.
+          Mochi couldn&apos;t start. Reload to try again.
           <button
             type="button"
             onClick={() => setUnavailable(false)}
             aria-label="Dismiss companion message"
           >
-            ×
+            <X size={15} />
           </button>
         </div>
       )}

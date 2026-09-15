@@ -36,7 +36,9 @@ export default function HomeInteractiveLayer() {
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const storedMode =
-      query.get("arcade") === "cluck" || query.get("octocat") === "play"
+      query.get("arcade") === "cluck" ||
+      query.get("octocat") === "play" ||
+      query.get("mochi") === "play"
         ? "explore"
         : readPortfolioViewMode();
     setMode(storedMode);

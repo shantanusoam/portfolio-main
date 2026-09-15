@@ -1,83 +1,67 @@
-# Octocat-inspired home playground
+# Mochi — a little higher
 
-## Experience and entry
+The home-page companion is now **Mochi**, an original round bunny. This replaces the previous Octocat approximation and its three-ledge checklist with a continuous climbing game.
 
-Route: `/`. Select Explore mode and click the small cat perched on the top
-hero string. Direct entry: `/?octocat=play` (also enables Explore mode).
-The portfolio remains the stage. Land on the highlighted Living Index link,
-Enter Lab link, and name heading to find all three sparks.
+- Home: `/` in Explore mode. Click the bunny on the guitar strings.
+- Direct entry: `/?mochi=play`.
+- The previous `/?octocat=play` link still opens the new game.
+- `/octopod-lab` remains an independent experiment.
 
-| Input                         | Action                                              |
-| ----------------------------- | --------------------------------------------------- |
-| Left/right or A/D             | Walk                                                |
-| Space, Up, or W               | Jump; hold for more height                          |
-| Pointer drag on the character | Pick up and release with momentum                   |
-| Click the active character    | Short jump                                          |
-| P / Pause                     | Pause or resume                                     |
-| R / Reset                     | Start another lap                                   |
-| Escape / Exit                 | Return to the ambient home companion                |
-| Touch buttons                 | Walk and jump on coarse pointers and narrow screens |
+## Reference analysis
 
-The earlier `/octopod-lab` remains a separate eight-arm experiment.
+Reviewed both September attachments, including the current implementation recording (`screenrecording-2026-09-15_17-01-01.mp4`) and the reference (`screenrecording-2026-08-07_10-39-34(7).mp4`).
 
-## Reference and implementation plan
+| Observation                                                      | Previous implementation                                                                                                                                                       | Revision                                                                                                                          |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Compact silhouette in the reference                              | A large cat head, narrow torso and seven independently trailing tubes spread into a spider-like shape. This is especially visible around 12 seconds in the current recording. | One connected plush body, two short paws, small feet and two attached ear pivots.                                                 |
+| Movement has a leading action and delayed follow-through         | Head and limb springs could pull the anatomy apart.                                                                                                                           | The body retains its volume during squash/stretch. Ear rotation and body tilt respond with damped springs; no free-floating head. |
+| The reference becomes a vertical platform game around 18 seconds | Three fixed navigation links were the entire objective.                                                                                                                       | An endless, reachable course with stars, springs, moving ledges, crumbling ledges, height and a saved personal best.              |
+| The game grows out of the app                                    | The home screen stayed static behind a large bottom HUD.                                                                                                                      | Mochi starts over the guitar; the hero recedes upward as the camera climbs. A compact top HUD leaves the playfield clear.         |
+| Movement is easy to keep going                                   | Repeated manual jumps and awkwardly spaced DOM ledges.                                                                                                                        | Automatic bounces, responsive steering, and one optional mid-air recovery hop per landing.                                        |
 
-The supplied recordings show a small cat-headed character living on actual
-interface edges, with a heavy head, tapering limbs, fluid turns, and compressed
-landings. The correction is the home-view interaction and 3D silhouette,
-following the user's clarification about Cameron Foxly's Copilot Easter egg.
+### What Cameron actually described
 
-1. Build a cat-headed, tentacled 3D companion with original code-authored geometry.
-2. Implement planted steps, head lag, spring-driven limb curves, jump anticipation,
-   variable-height jumps, and drag/release physics.
-3. Use measured hero UI edges as one-way platforms and add a three-ledge goal.
-4. Add a small Framer Motion HUD, keyboard/touch controls, and reversible activation.
-5. Check motion invariants, types, lint, production build, and deployed UI behavior.
+Read the linked June 2, 2026 thread through X's public HTML and official syndication/embed responses. The main post is [here](https://x.com/CameronFoxly/status/2061921964302967073). His follow-ups describe:
 
-This is an independent implementation inspired by the supplied reference.
-It does not contain GitHub's source, a copied mesh, or a Blender-authored asset.
-The editable model is constructed in `lib/home-octocat/renderer.ts` using Three.js.
+- [Blender modeling and rigging, orthographic framing, GLB export, and Three.js runtime animation](https://x.com/CameronFoxly/status/2061921966203060404).
+- [A state machine for entrance, following, dragging, walking, jumping and the game](https://x.com/CameronFoxly/status/2061921967893254240).
+- [Tuning head bob from a sine wave scaled by horizontal speed](https://x.com/CameronFoxly/status/2061921969474572636).
+- [Bezier paths for changes in the look-at target](https://x.com/CameronFoxly/status/2061921971139662111).
+- [Verlet physics on the rig's bones for dragging and throwing](https://x.com/CameronFoxly/status/2061921972918083781).
+- [Mouse forces and predictive IK foot placement for procedural walking](https://x.com/CameronFoxly/status/2061921975040442807).
+- [Pushing the actual app UI out of the way while climbing](https://x.com/CameronFoxly/status/2061921976659365962), and [using UI theme variables](https://x.com/CameronFoxly/status/2061921978345472367).
 
-## Ownership and performance
+Mochi is an original implementation inspired by the interaction and timing. Its geometry is authored in code; it does not use Cameron's Blender model, GLB, IK rig or unpublished source. A smaller articulated character is a deliberate design choice, permitted by the user, rather than another approximation of Octocat's complex anatomy.
 
-- `motion.ts`: deterministic screen-space root physics, seven spring chains,
-  planted foot targets, swept one-way contacts, coyote time and jump buffering.
-- `renderer.ts`: Three.js orthographic camera and lit meshes; tapered tube vertex
-  and normal buffers are updated in place. No per-frame geometry reconstruction.
-- `canvasRenderer.ts`: a shaded Canvas 2D cat using the same rig and game state
-  when WebGL 2 is unavailable. Canvas selection is recorded on `data-renderer`.
-- `runtime.ts`: reuses the repository's `FixedStepLoop` with a 1/120 s step and
-  at most six catch-up updates. DOM geometry is sampled outside the animation
-  loop on mount, reflow, settled entrance, resize, and throttled scroll.
-- `HomeOctocat.tsx`: lifecycle, pointer capture, input ownership, and low-frequency
-  HUD updates. The Three.js runtime is imported after the home view mounts.
+## Controls and loop
 
-Rendering uses a moving 220 × 220 transparent canvas, capped at 1.5 DPR.
-The loop pauses for hidden tabs, an offscreen hero, and explicit pause.
-Reduced-motion visitors get a settled static idle pose; choosing Play permits
-the requested physics interaction with secondary motion reduced.
-GPU resources, observers, timers, and event listeners are disposed on unmount.
-Context loss reports an unavailable state and stops the loop.
+Click **Let's hop** or press **Space** to start. Landings bounce automatically after a brief compression. Move the mouse, use Left/Right or A/D, or drag horizontally on a touchscreen to steer. **Space**, Up or W supplies one extra hop in the air; it refills on landing. Touch devices also have direction buttons and an Extra hop button.
 
-Only the character and HUD receive pointer events. Form fields, dialogs,
-modified shortcuts, and native Space activation on buttons remain usable.
-The existing fish habitat, cursor effect, combo trail, and arcade trigger
-unmount while the home game is active and return on exit. Focus mode unmounts
-the home companion. Scrolling away ends play without moving keyboard focus.
+Gold stars are collectible. Green spring ledges launch higher. Moving ledges enter after the opening section; cracked peach ledges break after landing. Every consecutive ledge remains reachable with a normal bounce. Difficulty gradually narrows ledges while preserving jump reach.
+
+P pauses, R restarts, and Escape returns to the portfolio. Falling ends the run and shows the result with an immediate retry. Best height is stored locally when storage is available. Sound is off initially and can be enabled with the speaker button; notes are synthesized locally.
+
+Outside the game, Mochi makes small idle steps on the strings, looks toward the pointer, and can be picked up and gently tossed.
+
+## Implementation
+
+The existing `home-octocat` paths and event name are retained for compatibility.
+
+- `motion.ts`: fixed-step simulation, spring pose, input, swept contacts and collectible pickup, procedural course, camera and bounded particle pool. Physics is independent of the browser and React.
+- `pose.ts`: shared proportions and pose for both renderers. Squash uses reciprocal cross-axis scaling to retain body volume.
+- `renderer.ts`: Three.js scene with an orthographic camera, soft lighting and attached ear pivots. `MochiRig` is independent of WebGL so its actual geometry can also be inspected offline.
+- `canvasRenderer.ts`: shaded Canvas fallback using the same pose and proportions.
+- `worldRenderer.ts`: full-screen world canvas for ledges, stars, landing particles, depth markers and backdrop. Device pixel ratio is capped.
+- `runtime.ts`: one 120 Hz fixed-step loop with render interpolation, cached DOM measurements, lifecycle cleanup, visibility handling and the hero's temporary visual translation.
+- `audio.ts`: optional, gesture-activated synthesized feedback.
+- `HomeOctocat.tsx`: Framer Motion transitions, accessible buttons, touch input, focus containment, score and pause/result UI. React does not own per-frame positions.
+
+The game pauses on blur or tab hiding. Reduced-motion mode removes ambient wandering, bobbing, tilt, ear follow-through and particles; the essential playable trajectory remains. Exiting restores the hero, scrolling, focus and the normal portfolio effects. The older ambient mascot, page atmosphere and soundroom controls unmount while the game owns the screen.
 
 ## Verification
 
-- `npm run test:home-octocat`: ten deterministic tests covering anticipation,
-  landing/goal collection, variable jump height, fast falls, coyote time,
-  scroll translation, dragging, stable limb chains, continuous walking without
-  foot starvation, and reset/reduced motion.
-- `npm run test:procedural-character`: existing 23 tests pass.
-- `npx tsc --noEmit`: passes.
-- Targeted Next ESLint on the changed TypeScript files: passes.
-- `npm run build`: passes.
+`npm run test:home-octocat` covers start anticipation, auto-bounce, extra-hop refill, one-way swept contacts, spring and crumble behavior, swept star pickup, 1,000 generated rows at three widths, a 90-second steering run at both phone and desktop widths, bounded arrays, end/retry, resize/scroll behavior, reduced-motion idle and volume retention.
 
-The cloud browser cannot reach the workspace's localhost preview and reports
-WebGL as disabled. Deployed interaction checks therefore exercise the Canvas
-fallback. Three.js passes type and build checks but cannot receive a visual
-GPU review in this browser. These checks are not a measured frame-rate or
-mobile-device performance benchmark.
+Run `npx tsc --noEmit` and scoped ESLint separately from `npm run build`; this repo's build skips those gates. Do not run TypeScript concurrently with the Next build, which rewrites `.next/types`.
+
+Offline visual review uses the actual Canvas drawing code for six motion poses and a simulated climbing frame. The actual Three.js geometry was additionally rendered through Three's SVG renderer to inspect silhouette and attachment in rest, crouch and launch poses. That verifies geometry, not WebGL lighting or GPU performance. Cloud-browser interaction checks use the Canvas fallback because its WebGL context is disabled; final WebGL appearance remains a device-specific verification limit.
