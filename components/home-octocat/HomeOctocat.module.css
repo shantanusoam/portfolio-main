@@ -1,0 +1,277 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1700;
+  pointer-events: none;
+  outline: none;
+}
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 220px;
+  pointer-events: none;
+  will-change: transform;
+}
+.character {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 86px;
+  height: 89px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 45%;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+  opacity: 0;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+.character[data-ready="true"] {
+  opacity: 1;
+}
+.character:disabled {
+  pointer-events: none;
+}
+.character:active {
+  cursor: grabbing;
+}
+.character:focus-visible {
+  outline: 1px dashed #b4c9dc;
+  outline-offset: 5px;
+}
+.whisper {
+  position: absolute;
+  left: 50%;
+  top: -19px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font:
+    10px/1.5 var(--font-mono),
+    monospace;
+  letter-spacing: 0.02em;
+  color: #d2dee8;
+  padding: 3px 9px;
+  background: #171e29e8;
+  border: 1px solid #a6c5e526;
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.character:hover .whisper,
+.character:focus-visible .whisper {
+  opacity: 1;
+}
+.ledge {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e6c78999, transparent);
+  box-shadow: 0 -2px 12px #e6c78926;
+  pointer-events: none;
+}
+.spark {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  transform: rotate(45deg);
+  border-radius: 1px;
+  background: #efd7a4;
+  box-shadow: 0 0 12px #f8cc75a6;
+}
+.hud {
+  position: absolute;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 50%;
+  translate: -50% 0;
+  width: min(490px, calc(100vw - 32px));
+  padding: 17px 19px 12px;
+  border: 1px solid #b0c9e32b;
+  border-radius: 18px;
+  background: #131922f2;
+  box-shadow:
+    0 16px 64px #0006,
+    inset 0 1px 0 #ffffff08;
+  backdrop-filter: blur(20px);
+  color: #d8e3ec;
+  font:
+    12px/1.5 var(--font-mono),
+    monospace;
+  pointer-events: auto;
+}
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.identity strong {
+  display: block;
+  color: #f0f4f6;
+  font:
+    500 14px/1.6 var(--font-body),
+    sans-serif;
+  letter-spacing: -0.01em;
+}
+.identity p {
+  margin: 2px 0 0;
+  font-size: 10px;
+  color: #94a4b5;
+}
+.statusDot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  background: #d9c08d;
+  border-radius: 50%;
+  box-shadow: 0 0 14px #dbc38c55;
+}
+.score {
+  margin-left: auto;
+  white-space: nowrap;
+  color: #efd5a4;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.score span {
+  color: #718294;
+  font-size: 11px;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 13px;
+  padding-top: 10px;
+  border-top: 1px solid #b0c9e318;
+}
+.toolbar button,
+.touchControls button {
+  color: #c5d2df;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 5px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.toolbar button:hover {
+  color: #fff;
+  background: #e8f2ff0b;
+}
+.toolbar button:focus-visible,
+.touchControls button:focus-visible {
+  outline: 2px solid #d5bd88;
+  outline-offset: 2px;
+}
+.toolbar button:disabled,
+.touchControls button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.keyboardHint {
+  flex: 1;
+  color: #8b9baa;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.keyboardHint kbd {
+  padding: 2px 4px;
+  margin-right: 3px;
+  font: inherit;
+  color: #c6d2df;
+  border: 1px solid #b7cde52b;
+  border-radius: 4px;
+}
+.keyboardHint kbd:last-of-type {
+  margin-left: 7px;
+}
+.escape {
+  font-size: 8px;
+  color: #6f8192;
+}
+.touchControls {
+  display: none;
+  gap: 8px;
+  margin-top: 12px;
+  touch-action: none;
+}
+.touchControls button {
+  min-width: 56px;
+  min-height: 44px;
+  border-color: #b0c9e329;
+  background: #e8f2ff05;
+  font-size: 19px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.touchControls button:active {
+  background: #d9c08d25;
+  border-color: #d9c08d77;
+}
+.touchControls .jumpButton {
+  margin-left: auto;
+  min-width: 105px;
+  font-size: 12px;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.unavailable {
+  position: absolute;
+  bottom: 96px;
+  right: 20px;
+  width: min(310px, calc(100vw - 40px));
+  padding: 14px;
+  color: #c5d2df;
+  border: 1px solid #b0c9e32b;
+  border-radius: 12px;
+  background: #131922f2;
+  font: 12px/1.5 sans-serif;
+  pointer-events: auto;
+}
+.unavailable button {
+  margin-left: 8px;
+  padding: 3px 8px;
+  color: #fff;
+}
+@media (hover: none), (pointer: coarse), (max-width: 640px) {
+  .touchControls {
+    display: flex;
+  }
+  .keyboardHint {
+    display: none;
+  }
+  .toolbar {
+    justify-content: flex-end;
+  }
+  .hud {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    padding: 13px 15px 12px;
+  }
+  .identity strong {
+    font-size: 13px;
+  }
+  .identity p {
+    max-width: 225px;
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .whisper,
+  .toolbar button {
+    transition: none;
+  }
+}

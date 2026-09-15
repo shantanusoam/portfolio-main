@@ -188,6 +188,8 @@ export default function Hero({ masked }: HeroProps) {
               )}
               data-mascot-interest="hero"
               data-living-hero-occluder
+              data-octocat-surface="name"
+              data-octocat-goal
             >
               Shantanu Soam
             </motion.h1>
@@ -216,7 +218,7 @@ export default function Hero({ masked }: HeroProps) {
               data-living-hero-occluder
               className="mt-[clamp(0.1rem,0.5vh,0.4rem)] grid grid-cols-2 items-center justify-center gap-x-4 gap-y-2 font-mono text-[clamp(0.58rem,1vw,0.78rem)] uppercase tracking-widest sm:flex sm:flex-wrap sm:gap-x-[clamp(1rem,4vw,3rem)]"
             >
-              {START_MENU.map((item) => (
+              {START_MENU.map((item, index) => (
                 <Link
                   key={item.label}
                   href={item.href}
@@ -224,6 +226,10 @@ export default function Hero({ masked }: HeroProps) {
                   // link itself is the target — no overlay element to size.
                   {...{ [MAGNETIC_ATTRIBUTE]: "" }}
                   data-mascot-obstacle="hard"
+                  data-octocat-surface={`menu-${index}`}
+                  data-octocat-goal={
+                    index === 0 || index === 3 ? "" : undefined
+                  }
                   data-canvas-pulse="warm"
                   data-canvas-pulse-source="control"
                   className="whitespace-nowrap text-graytransparent transition-colors duration-300 hover:text-primary"
@@ -236,7 +242,10 @@ export default function Hero({ masked }: HeroProps) {
 
           {/* The instrument is part of the composition instead of being
               absolutely pinned, so short screens cannot crop or detach it. */}
-          <div className="mx-auto w-full max-w-[1020px]">
+          <div
+            className="mx-auto w-full max-w-[1020px]"
+            data-octocat-surface="instrument"
+          >
             <StringInstrument />
           </div>
         </div>
