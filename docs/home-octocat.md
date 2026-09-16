@@ -56,7 +56,7 @@ The existing `home-octocat` paths and event name are retained for compatibility.
 - `audio.ts`: optional, gesture-activated synthesized feedback.
 - `HomeOctocat.tsx`: Framer Motion transitions, accessible buttons, touch input, focus containment, score and pause/result UI. React does not own per-frame positions.
 
-The game pauses on blur or tab hiding. Reduced-motion mode removes ambient wandering, bobbing, tilt, ear follow-through and particles; the essential playable trajectory remains. Exiting restores the hero, scrolling, focus and the normal portfolio effects. The older ambient mascot, page atmosphere and soundroom controls unmount while the game owns the screen.
+The game pauses on blur or tab hiding. Reduced-motion mode removes ambient wandering, gaze animation, blinking, squash/stretch, bobbing, tilt, ear follow-through and particles; the essential playable trajectory remains. Exiting restores the hero, scrolling, focus and the normal portfolio effects. The older ambient mascot, page atmosphere and soundroom controls unmount while the game owns the screen.
 
 ## Verification
 
@@ -65,3 +65,11 @@ The game pauses on blur or tab hiding. Reduced-motion mode removes ambient wande
 Run `npx tsc --noEmit` and scoped ESLint separately from `npm run build`; this repo's build skips those gates. Do not run TypeScript concurrently with the Next build, which rewrites `.next/types`.
 
 Offline visual review uses the actual Canvas drawing code for six motion poses and a simulated climbing frame. The actual Three.js geometry was additionally rendered through Three's SVG renderer to inspect silhouette and attachment in rest, crouch and launch poses. That verifies geometry, not WebGL lighting or GPU performance. Cloud-browser interaction checks use the Canvas fallback because its WebGL context is disabled; final WebGL appearance remains a device-specific verification limit.
+
+## Final mascot audit
+
+The `mascot/mascot-contract.yaml` records the current identity, controls and performance limits. The alive pass added damped two-axis gaze with a 16px dead zone, smooth recentering on pointer exit, irregular blinks and occasional double blinks. These are independent of game state and do not restart on each hop.
+
+The cute pass reviewed the actual 44px-wide silhouette, not just enlarged poses. The engineering pass caught a page font-variable inheritance issue that enlarged the footer; the game now reads the loaded font variable directly with a fallback. Reduced-motion checks explicitly assert a neutral pose during a real jump, while preserving essential gameplay.
+
+Live checks on the deployed home page confirmed the entry card, automatic bouncing, mouse steering, star collection, altitude/camera progression, pause/resume, mid-air recovery, game over, retry with a retained best score, sound toggling, and Escape restoring the portfolio URL and keyboard focus. Browser rendering used the Canvas fallback; the Three.js rig was reviewed separately using its actual geometry. The browser surface does not expose mobile viewport emulation, so phone-width reachability is tested in the model and touch input/layout are inspected in code rather than claimed as device testing.

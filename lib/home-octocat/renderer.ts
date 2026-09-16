@@ -137,7 +137,7 @@ export class MochiRig {
     this.body.position.y = 2 + pose.bob;
     this.body.scale.set(pose.sx, pose.sy, pose.sx);
     this.body.rotation.z = -pose.tilt;
-    this.face.position.x = pose.look;
+    this.face.position.set(pose.look, -pose.lookY, 0);
     for (let i = 0; i < 2; i++) {
       this.ears[i].rotation.z = -pose.ears[i];
       this.eyes[i].scale.y = pose.blink;

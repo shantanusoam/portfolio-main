@@ -93,6 +93,10 @@ export class HomeOctocatMotion {
   pointerX: number | null = null;
   lookX = 0;
   lookY = 0;
+  lookActive = false;
+  gazeX = 0;
+  gazeY = 0;
+  blink = 1;
   squash = 0;
   squashVelocity = 0;
   tilt = 0;
@@ -124,6 +128,10 @@ export class HomeOctocatMotion {
   private dragX = 0;
   private dragY = 0;
   private lastCameraTarget = 0;
+  private blinkAt = 2.8;
+  private blinkStart = -10;
+  private blinkIndex = 0;
+  private doubleBlink = false;
 
   get playing() {
     return this.phase !== "idle";
@@ -507,6 +515,34 @@ export class HomeOctocatMotion {
   }
 
   private animate(dt: number, acceleration: number) {
+    const dx = this.lookX - this.screenX;
+    const dy = this.lookY - (this.screenY - 25);
+    const outsideDeadZone = Math.hypot(dx, dy) > 16;
+    const gazeX = this.playing
+      ? clamp(this.vx / 140, -2, 2)
+      : this.lookActive && outsideDeadZone
+        ? clamp(dx / 160, -2.5, 2.5)
+        : 0;
+    const gazeY = this.playing
+      ? clamp(this.vy / 700, -0.8, 0.8)
+      : this.lookActive && outsideDeadZone
+        ? clamp(dy / 240, -1.2, 1.2)
+        : 0;
+    this.gazeX = damp(this.gazeX, this.reducedMotion ? 0 : gazeX, 12, dt);
+    this.gazeY = damp(this.gazeY, this.reducedMotion ? 0 : gazeY, 12, dt);
+    if (!this.reducedMotion && this.time >= this.blinkAt) {
+      this.blinkStart = this.time;
+      this.blinkIndex++;
+      this.doubleBlink = noise(this.blinkIndex + 51) < 0.12;
+      this.blinkAt = this.time + 2.5 + noise(this.blinkIndex + 19) * 3.5;
+    }
+    const blinkAge = this.time - this.blinkStart;
+    const closureAge =
+      this.doubleBlink && blinkAge > 0.28 ? blinkAge - 0.28 : blinkAge;
+    this.blink =
+      !this.reducedMotion && closureAge >= 0 && closureAge < 0.18
+        ? 0.08 + (0.92 * Math.abs(closureAge - 0.09)) / 0.09
+        : 1;
     this.gait += Math.abs(this.vx) * dt * 0.11;
     const target = this.reducedMotion
       ? 0

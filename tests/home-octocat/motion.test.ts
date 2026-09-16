@@ -253,3 +253,61 @@ test("reduced-motion idle is still, drag is bounded, and the body retains volume
     );
   }
 });
+
+test("gaze eases through reversals and settles in the pointer dead zone", () => {
+  const m = setup();
+  m.stop();
+  m.lookActive = true;
+  m.lookX = m.screenX + 400;
+  m.lookY = m.screenY - 25;
+  m.update(1 / 120);
+  assert.ok(m.gazeX > 0 && m.gazeX < 0.4);
+  step(m, 0.35);
+  assert.ok(m.gazeX > 2);
+  m.lookX = m.screenX - 400;
+  m.update(1 / 120);
+  assert.ok(
+    m.gazeX > 1,
+    "the face cannot snap across on the first reversal frame",
+  );
+  step(m, 0.35);
+  assert.ok(m.gazeX < -2);
+  m.lookX = m.screenX;
+  m.lookY = m.screenY - 25;
+  step(m, 0.35);
+  assert.ok(Math.abs(m.gazeX) < 0.05);
+  m.lookActive = false;
+  step(m, 0.3);
+  assert.ok(Math.abs(m.gazeX) < 0.01);
+});
+
+test("blinks are irregular; reduced motion removes secondary deformation during real hops", () => {
+  const m = setup();
+  const blinks: number[] = [];
+  let previous = 1;
+  for (let i = 0; i < 30 * 120; i++) {
+    m.update(1 / 120);
+    if (previous > 0.98 && m.blink < 0.98) blinks.push(m.time);
+    previous = m.blink;
+  }
+  const intervals = blinks
+    .slice(1)
+    .map((t, i) => t - blinks[i])
+    .filter((t) => t > 1);
+  assert.ok(intervals.length >= 4);
+  assert.ok(new Set(intervals.map((t) => t.toFixed(1))).size > 2);
+  m.reducedMotion = true;
+  m.begin();
+  m.axis = 1;
+  step(m, 0.25);
+  assert.ok(m.y < m.launchY, "the essential playable movement remains");
+  const pose = mochiPose(m);
+  assert.equal(pose.sx, 1);
+  assert.equal(pose.sy, 1);
+  assert.equal(pose.tilt, 0);
+  assert.equal(pose.bob, 0);
+  assert.equal(pose.blink, 1);
+  assert.equal(pose.look, 0);
+  assert.deepEqual(pose.feet, [0, 0]);
+  assert.deepEqual(pose.ears, [-0.17, 0.22]);
+});

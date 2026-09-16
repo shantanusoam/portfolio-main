@@ -70,6 +70,7 @@ export class HomeOctocatRuntime {
     window.addEventListener("scroll", this.scheduleRefresh, { passive: true });
     window.addEventListener("resize", this.scheduleRefresh, { passive: true });
     window.addEventListener("pointermove", this.look, { passive: true });
+    window.addEventListener("pointerout", this.lookAway, { passive: true });
     document.addEventListener("visibilitychange", this.syncLoop);
     document.fonts.addEventListener("loadingdone", this.scheduleRefresh);
     canvas.addEventListener("webglcontextlost", this.contextLost);
@@ -81,6 +82,11 @@ export class HomeOctocatRuntime {
   private look = (event: PointerEvent) => {
     this.motion.lookX = event.clientX;
     this.motion.lookY = event.clientY;
+    this.motion.lookActive = true;
+  };
+
+  private lookAway = (event: PointerEvent) => {
+    if (!event.relatedTarget) this.motion.lookActive = false;
   };
 
   private contextLost = (event: Event) => {
@@ -241,6 +247,7 @@ export class HomeOctocatRuntime {
     window.removeEventListener("scroll", this.scheduleRefresh);
     window.removeEventListener("resize", this.scheduleRefresh);
     window.removeEventListener("pointermove", this.look);
+    window.removeEventListener("pointerout", this.lookAway);
     document.removeEventListener("visibilitychange", this.syncLoop);
     document.fonts.removeEventListener("loadingdone", this.scheduleRefresh);
     this.canvas.removeEventListener("webglcontextlost", this.contextLost);

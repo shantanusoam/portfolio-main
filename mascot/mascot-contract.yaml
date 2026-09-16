@@ -1,0 +1,38 @@
+identity: Mochi, a round ivory bunny with blush cheeks and short soft ears
+role: home-page companion and a playful doorway into an endless climbing game
+personality: [curious, gentle, determined]
+anchor: hero
+body: 3d
+style: cute, compact, fluid and calm, with readable weight and follow-through
+render_route: hybrid
+identity_layer: threejs
+render_reason: existing Three.js pipeline, softly lit connected geometry and articulated ear pivots
+fallback: Canvas 2D using the same proportions and pose
+pose_space: 2d
+inputs: [pointer, click, drag, touch, keyboard]
+base_behaviors: [observe, sparse_idle_steps, breathe]
+reaction_behaviors: [blink, pickup, squash, hop, landing_recovery, collect_star]
+rare_behaviors: [double_blink]
+tracking_radius_px: 400
+dead_zone_px: 16
+response: soft
+mobile_policy: drag
+reduced_motion: static idle and neutral secondary pose; retain only essential game movement
+destination: components/home-octocat/HomeOctocat.tsx on / in Explore mode
+visible_size_css_px: { width: 44, height: 65 }
+canvas_size_css_px: { width: 160, height: 160 }
+controls:
+  entry: click Mochi or open /?mochi=play
+  start: Space or Let's hop
+  steer: mouse, left/right, A/D, touch drag, or direction buttons
+  recovery: one extra mid-air hop per landing
+  pause: P
+  restart: R
+  exit: Escape
+performance:
+  fixed_step_hz: 120
+  maximum_catchup_steps: 6
+  character_dpr_cap: 2
+  world_dpr_cap: 1.5
+  particle_cap: 80
+  visibility_pause: true

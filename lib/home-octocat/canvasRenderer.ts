@@ -44,6 +44,8 @@ export function drawMochi(ctx: CanvasRenderingContext2D, pose: MochiPose) {
   ellipse(-17, -13, 4.5, 7, fur);
   ellipse(17, -13, 4.5, 7, fur);
   const gaze = pose.look;
+  ctx.save();
+  ctx.translate(0, pose.lookY);
   for (const side of [-1, 1]) {
     ellipse(side * 12 + gaze * 0.5, -18.5, 3.7, 2.2, "#eabbaa");
     ellipse(side * 6.6 + gaze, -23, 2.2, 3 * pose.blink, "#343d3c");
@@ -58,6 +60,7 @@ export function drawMochi(ctx: CanvasRenderingContext2D, pose: MochiPose) {
   ctx.moveTo(gaze - 2.5, -14.8);
   ctx.quadraticCurveTo(gaze, -12.3, gaze + 2.5, -14.8);
   ctx.stroke();
+  ctx.restore();
   ctx.restore();
 }
 
