@@ -104,4 +104,16 @@ A simulated manual controller also crosses the introductory obstacles and flower
 
 Run TypeScript and scoped ESLint separately from the production build; this repository's build skips those checks. Never run TypeScript concurrently with the Next build, which regenerates `.next/types`.
 
-The alive pass checks smooth gaze reversals and reaction return. The cute pass reviews the actual Canvas draw code at normal size and enlarged walking, turning, jumping, pet, wave, dizzy, sleepy and pickup poses. The engineering pass found and fixed turn-time foot overextension, tested real rendered stance positions and added moving-surface carry coverage. Three.js geometry is separately inspected through its SVG renderer; this does not verify final GPU lighting. Live browser QA is recorded below after deployment.
+The alive pass checks smooth gaze reversals and reaction return. The cute pass reviews the actual Canvas draw code at normal size and enlarged walking, turning, jumping, pet, wave, dizzy, sleepy and pickup poses. The engineering pass found and fixed turn-time foot overextension, tested real rendered stance positions and added moving-surface carry coverage. Three.js geometry is separately inspected through its SVG renderer; this does not verify final GPU lighting.
+
+### Live browser check — September 21, 2026
+
+The deployed home page at `https://shantanusoam.vercel.app/?mochi=play` was checked at 1363 × 936 using real pointer and keyboard input:
+
+- Starting the course stayed grounded through an extended wait. Steering produced walking without changing the standing height.
+- The Jump button launched on press. Space climbed the opening ledges, and a second airborne press spent the double jump; landing restored it. Standing on a ledge did not relaunch Mochi.
+- The run reached 35m, collected a star and encountered the first puff. A collision changed three hearts to two and returned Mochi to the starting safe spot, with the course and controls still usable.
+- Pause/resume and the opt-in sound control responded. Escape removed the play query, restored the hero and returned focus to the pet button.
+- Petting produced the happy reaction; three quick native clicks produced the dizzy reaction. The separate Play button remained available on the home page.
+
+All 19 simulation tests, TypeScript, scoped ESLint and a clean production build passed. The cloud browser used the Canvas fallback, so final WebGL lighting, physical touch-device input and device frame rate still need a hardware check.

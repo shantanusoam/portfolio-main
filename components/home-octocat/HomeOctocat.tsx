@@ -576,7 +576,7 @@ export default function HomeOctocat() {
                   <p>
                     Walk, then jump when you&apos;re ready.
                     <br />
-                    Hold for height. Pet the sky. Mind the puffs.
+                    Hold for height. Collect stars. Mind the puffs.
                   </p>
                   <button
                     type="button"
