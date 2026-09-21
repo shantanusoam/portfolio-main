@@ -26,9 +26,9 @@ import LivingIndex from "@/components/home/LivingIndex";
 import ProofJourneyMotion from "@/components/home/ProofJourneyMotion";
 
 export const metadata: Metadata = {
-  title: "Shantanu Soam — Creative Systems Engineer",
+  title: "Shantanu Soam — Staff Engineer | Full-Stack Systems & AI Voice",
   description:
-    "A playful portfolio of product engineering, interactive systems, measurable outcomes, writing, and original experiments.",
+    "Staff engineer portfolio spanning multi-tenant product systems, frontend architecture, performance engineering, AI voice orchestration, and interactive systems.",
   alternates: { canonical: "/" },
 };
 
@@ -40,7 +40,7 @@ const jsonLd = {
       "@id": "https://shantanusoam.vercel.app/#person",
       name: "Shantanu Soam",
       url: "https://shantanusoam.vercel.app",
-      jobTitle: "Creative Systems Engineer",
+      jobTitle: "Staff Engineer",
       sameAs: [
         "https://github.com/shantanusoam",
         "https://www.linkedin.com/in/shantanu007/",
@@ -49,14 +49,15 @@ const jsonLd = {
         "Next.js",
         "React",
         "TypeScript",
+        "System design",
+        "AI voice orchestration",
+        "Realtime audio",
         "Interactive systems",
-        "AI agents",
-        "Canvas animation",
       ],
     },
     {
       "@type": "ProfilePage",
-      name: "Shantanu Soam — Creative Systems Engineer",
+      name: "Shantanu Soam — Staff Engineer | Full-Stack Systems & AI Voice",
       url: "https://shantanusoam.vercel.app",
       mainEntity: { "@id": "https://shantanusoam.vercel.app/#person" },
     },
