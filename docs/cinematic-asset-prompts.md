@@ -1,5 +1,7 @@
 # Cinematic landscape — image and video prompts
 
+> Expanded video direction: [The world exhales](./solarpunk-video-direction.md) — copy-ready prompts, shot sequence, website placement and delivery checks.
+
 ## Created assets
 
 Built-in image generation was used with the user’s landscape screenshot as an art-direction reference. Reference framing, light and mood informed the new scenes; no phone UI or screenshot panel was copied into the deliverables. All masters are 1536 × 1024. WebP exports use quality 82.
