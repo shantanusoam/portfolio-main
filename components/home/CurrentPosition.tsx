@@ -42,6 +42,7 @@ export default function CurrentPosition() {
     <section
       ref={sectionRef}
       className={styles.currentBand}
+      id="voice-systems"
       aria-label="Current focus"
       data-signal-zone="bridge"
       data-signal-energy="0.18"
