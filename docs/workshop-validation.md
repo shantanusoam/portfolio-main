@@ -1,3 +1,5 @@
+> Current full-app checks: [solarpunk validation](./solarpunk-validation.md). The isolated-preview measurements below are historical.
+
 # Cinematic landscape revision — validation
 
 ## Local checks

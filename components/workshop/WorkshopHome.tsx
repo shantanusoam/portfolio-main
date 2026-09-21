@@ -3,6 +3,10 @@ import Link from "next/link";
 import { flagshipCaseStudies } from "@/lib/portfolio/evidence";
 import { archiveArticles } from "@/lib/archive/data";
 import { resume_link } from "@/constants/resume";
+import CinematicDirector from "./cinema/CinematicDirector";
+import ShaderImage from "./cinema/ShaderImage";
+import Toolkit from "./cinema/Toolkit";
+import cinema from "./cinema/Cinema.module.css";
 import SketchLoader from "./SketchLoader";
 import styles from "./Workshop.module.css";
 
@@ -62,11 +66,12 @@ function Mark() {
 
 export default function WorkshopHome() {
   return (
-    <div className={`${styles.workshop} workshop-home`}>
+    <div className={`${styles.workshop} ${cinema.world} workshop-home`}>
+      <CinematicDirector />
       <a href="#main-content" className={styles.skip}>
         Skip to content
       </a>
-      <header className={styles.header}>
+      <header className={`${styles.header} ${cinema.header}`}>
         <a className={styles.identity} href="#top">
           <Mark />
           <span>
@@ -74,9 +79,9 @@ export default function WorkshopHome() {
           </span>
         </a>
         <nav aria-label="Primary navigation">
-          {nav.map(([id, label]) => (
+          {nav.map(([id, label], index) => (
             <a href={`#${id}`} key={id}>
-              {label}
+              <small>0{index + 1}</small> {label}
             </a>
           ))}
         </nav>
@@ -91,39 +96,61 @@ export default function WorkshopHome() {
       </header>
       <main id="main-content">
         <section
-          className={styles.cinematicHero}
+          className={`${styles.cinematicHero} ${cinema.hero}`}
           id="top"
           aria-labelledby="hero-title"
         >
           <span id="hero" className={styles.anchor} aria-hidden="true" />
-          <div className={styles.cinematicIntro}>
-            <div className={styles.heroCopy}>
+          <div className={cinema.scene}>
+            <div className={cinema.environment} data-camera>
+              <Image
+                src="/workshop/meadow.webp"
+                alt="White birds gliding across a sunlit emerald meadow"
+                fill
+                priority
+                sizes="100vw"
+              />
+            </div>
+            <div className={cinema.atmosphere} aria-hidden="true" />
+            <div className={cinema.sceneTop}>
+              <span>A place for useful things</span>
+              <span>Chapter 00 / Arrive</span>
+            </div>
+            <div className={cinema.heroContent} data-hero-copy>
               <p className={styles.micro}>
                 Shantanu Soam / Creative systems engineer
               </p>
-              <h1 id="hero-title" className={styles.cinematicTitle}>
-                Useful software.
-                <br />
-                <em>Room to imagine.</em>
+              <h1
+                id="hero-title"
+                className={cinema.title}
+                aria-label="Useful software. Room to imagine."
+              >
+                <span className={cinema.titleLine} aria-hidden="true">
+                  {"Useful software.".split("").map((letter, i) => (
+                    <span data-letter key={i}>
+                      {letter === " " ? "\u00a0" : letter}
+                    </span>
+                  ))}
+                </span>
+                <em aria-hidden="true">Room to imagine.</em>
               </h1>
-            </div>
-            <div className={styles.heroAside}>
-              <p>
-                I build business software, interactive tools, and small
-                experiments. A little precision. A lot of curiosity.
-              </p>
-              <div className={styles.actions}>
-                <a href="#work" className={styles.button}>
-                  Explore my work <span>↗</span>
-                </a>
-                <a href="#contact" className={styles.textLink}>
-                  Let’s talk ↗
+              <div className={cinema.heroBottom}>
+                <p>
+                  I build business software, interactive tools, and small
+                  experiments. A little precision. A lot of curiosity.
+                </p>
+                <a href="#work" className={cinema.enter} data-magnetic>
+                  Wander through the work <span>↘</span>
                 </a>
               </div>
             </div>
+            <div className={cinema.sceneFooter}>
+              <span>Software / Systems / Small discoveries</span>
+              <span>Scroll to explore ↓</span>
+            </div>
           </div>
           <div
-            className={styles.landscapeSequence}
+            className={`${styles.landscapeSequence} ${cinema.filmstrip}`}
             aria-label="Three imagined landscapes: meadow, shoreline, and dusk"
           >
             <figure className={styles.meadowFrame}>
@@ -132,8 +159,7 @@ export default function WorkshopHome() {
                 alt="A small flock of white birds over a sunlit emerald meadow"
                 width={1536}
                 height={1024}
-                priority
-                sizes="(max-width: 700px) 100vw, 92vw"
+                sizes="(max-width: 700px) 92vw, 40vw"
               />
               <figcaption>01 / Follow a little curiosity.</figcaption>
             </figure>
@@ -143,7 +169,7 @@ export default function WorkshopHome() {
                 alt="A white horse on a smooth green bank beside sparkling turquoise water"
                 width={1536}
                 height={1024}
-                sizes="(max-width: 700px) 100vw, 92vw"
+                sizes="(max-width: 700px) 92vw, 40vw"
               />
               <figcaption>02 / Make room for the unexpected.</figcaption>
             </figure>
@@ -153,7 +179,7 @@ export default function WorkshopHome() {
                 alt="Rose and lavender sunset reflected in a quiet lake"
                 width={1536}
                 height={1024}
-                sizes="(max-width: 700px) 100vw, 92vw"
+                sizes="(max-width: 700px) 92vw, 40vw"
               />
               <figcaption>03 / See where it takes you.</figcaption>
             </figure>
@@ -163,7 +189,7 @@ export default function WorkshopHome() {
           </p>
         </section>
         <div className={styles.edition}>
-          <span>A quiet place for ambitious ideas.</span>
+          <span>From complicated things to a little more clarity.</span>
           <span>Software / Systems / Small discoveries</span>
           <a href="#work" aria-label="Scroll to selected work">
             ↓
@@ -185,10 +211,21 @@ export default function WorkshopHome() {
             </p>
           </div>
           {flagshipCaseStudies.slice(0, 3).map((project, index) => (
-            <article key={project.id} className={styles.project}>
+            <article
+              key={project.id}
+              className={`${styles.project} ${cinema.project}`}
+              data-project
+            >
+              <span
+                className={cinema.district}
+                data-district
+                aria-hidden="true"
+              >
+                {["GROW", "CARE", "PLAY"][index]}
+              </span>
               <div className={styles.projectCopy}>
                 <p className={styles.micro}>
-                  0{index + 1} / {project.category}
+                  Chapter 0{index + 1} / {project.category}
                 </p>
                 <h3>
                   <Link href={project.href}>
@@ -219,7 +256,8 @@ export default function WorkshopHome() {
                 </Link>
               </div>
               <figure
-                className={`${styles.projectArtifact} ${
+                data-artifact
+                className={`${styles.projectArtifact} ${cinema.artifact} ${
                   index === 1 ? styles.clayArtifact : ""
                 }`}
               >
@@ -246,7 +284,11 @@ export default function WorkshopHome() {
           ))}
         </section>
 
-        <section className={styles.lab} id="lab" aria-labelledby="lab-title">
+        <section
+          className={`${styles.lab} ${cinema.lab}`}
+          id="lab"
+          aria-labelledby="lab-title"
+        >
           <Anchors section="lab" />
           <div className={styles.labCopy}>
             <p className={styles.micro}>02 / The curious part</p>
@@ -264,6 +306,26 @@ export default function WorkshopHome() {
             </Link>
           </div>
           <SketchLoader />
+          <div className={cinema.refraction}>
+            <div>
+              <p className={styles.micro}>
+                A moment to yourself / Touch the light
+              </p>
+              <h3>
+                A different
+                <br />
+                <em>point of view.</em>
+              </h3>
+              <p>
+                Move gently through the meadow. Watch the light respond, then
+                settle. A little experiment in finding calm.
+              </p>
+            </div>
+            <ShaderImage
+              src="/workshop/meadow.webp"
+              alt="Sunlit meadow that responds gently to touch"
+            />
+          </div>
           <div className={styles.labLinks}>
             <Link href="/systems">All experiments ↗</Link>
             <Link href="/learning/string-instrument">
@@ -342,7 +404,16 @@ export default function WorkshopHome() {
             <em>Curious about everything.</em>
           </h2>
           <div className={styles.aboutBody}>
-            <Mark />
+            <figure className={cinema.portrait}>
+              <Image
+                src="/AboutMePic.jpg"
+                alt="Shantanu Soam"
+                width={600}
+                height={600}
+                sizes="(max-width: 700px) 80vw, 25vw"
+              />
+              <figcaption>Shantanu Soam / Behind the scenes</figcaption>
+            </figure>
             <div>
               <p>
                 My work moves between product engineering and interaction
@@ -380,6 +451,7 @@ export default function WorkshopHome() {
           </div>
         </section>
 
+        <Toolkit />
         <section
           className={styles.contact}
           id="contact"

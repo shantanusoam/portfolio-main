@@ -1,3 +1,5 @@
+> The latest implementation and motion/audio behavior are documented in [the solarpunk evolution](./solarpunk-evolution.md). The static-only motion description below records the earlier revision.
+
 # Room to imagine — cinematic landscape direction
 
 This revision supersedes the illustrated courtyard direction after the user supplied nature-film references. The desired atmosphere is dreamlike cinema: emerald slopes, small white birds, a white horse, silver water and a rose-lavender sunset. The first alpine candidate was rejected for adding mountains and excessive natural detail; three subsequent scenes follow the simpler supplied reference.

@@ -10,7 +10,7 @@ import SoundroomNub from "@/components/soundroom/SoundroomNub";
 import SmoothScrollProvider from "./SmoothScrollProvider";
 import type { CommandEntry } from "@/lib/archive/command-index";
 
-/** The workshop uses native scrolling; full-screen games own input and audio. */
+/** The homepage owns its motion and audio; full-screen games own their input. */
 export default function PortfolioRuntime({
   children,
   entries,
