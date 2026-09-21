@@ -22,6 +22,27 @@ export function drawMochi(ctx: CanvasRenderingContext2D, pose: MochiPose) {
     ctx.fill();
   };
   ctx.save();
+  ctx.globalAlpha = pose.opacity;
+  for (let i = 0; i < 2; i++) {
+    const { hip, knee } = pose.legs[i];
+    const foot = pose.feet[i];
+    ctx.strokeStyle = "#e4d7c1";
+    ctx.lineWidth = 5.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(hip.x, hip.y);
+    ctx.lineTo(knee.x, knee.y);
+    ctx.lineTo(foot.x, foot.y);
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(foot.x, foot.y);
+    ctx.rotate(foot.angle);
+    ellipse(0, 0, 7.5, 4, "#eee3ce");
+    ellipse(1, 0.8, 4, 1.5, "#d8c8b1");
+    ctx.restore();
+  }
+  ctx.save();
   ctx.translate(0, -2 - pose.bob);
   ctx.rotate(pose.tilt);
   ctx.scale(pose.sx, pose.sy);
@@ -38,18 +59,35 @@ export function drawMochi(ctx: CanvasRenderingContext2D, pose: MochiPose) {
     ellipse(0.7, -12, 2.7, i ? 10.5 : 9, "#e9bdab");
     ctx.restore();
   }
-  ellipse(-10, -1 - pose.feet[0], 8, 4.2, "#eee3ce");
-  ellipse(10, -1 - pose.feet[1], 8, 4.2, "#eee3ce");
   ellipse(0, -22, 21, 22, fur);
-  ellipse(-17, -13, 4.5, 7, fur);
-  ellipse(17, -13, 4.5, 7, fur);
+  for (let i = 0; i < 2; i++) {
+    ctx.save();
+    ctx.translate(i ? 17 : -17, -18);
+    ctx.rotate(-pose.arms[i]);
+    ellipse(0, 5, 4.5, 7, fur);
+    ctx.restore();
+  }
   const gaze = pose.look;
   ctx.save();
   ctx.translate(0, pose.lookY);
   for (const side of [-1, 1]) {
-    ellipse(side * 12 + gaze * 0.5, -18.5, 3.7, 2.2, "#eabbaa");
-    ellipse(side * 6.6 + gaze, -23, 2.2, 3 * pose.blink, "#343d3c");
-    if (pose.blink > 0.4)
+    const eye = pose.eyes[side === -1 ? 0 : 1];
+    ellipse(side * 12 + gaze * 0.5, -18.5, 3.7 * pose.cheek, 2.2, "#eabbaa");
+    if (pose.dizzy > 0.3) {
+      ctx.strokeStyle = "#343d3c";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let n = 0; n < 30; n++) {
+        const a = n / 3;
+        const r = n / 13;
+        const ex = side * 6.6 + gaze + Math.cos(a) * r;
+        const ey = -23 + Math.sin(a) * r;
+        if (!n) ctx.moveTo(ex, ey);
+        else ctx.lineTo(ex, ey);
+      }
+      ctx.stroke();
+    } else ellipse(side * 6.6 + gaze, -23, 2.2, 3 * eye, "#343d3c");
+    if (eye > 0.4 && pose.dizzy < 0.3)
       ellipse(side * 6.6 + gaze - 0.5, -24, 0.65, 0.75, "#fffef4");
   }
   ellipse(gaze, -17, 1.3, 0.95, "#b58479");
@@ -57,10 +95,35 @@ export function drawMochi(ctx: CanvasRenderingContext2D, pose: MochiPose) {
   ctx.lineWidth = 0.8;
   ctx.lineCap = "round";
   ctx.beginPath();
-  ctx.moveTo(gaze - 2.5, -14.8);
-  ctx.quadraticCurveTo(gaze, -12.3, gaze + 2.5, -14.8);
-  ctx.stroke();
+  ctx.moveTo(gaze - 2.5 - pose.happy, -14.8);
+  ctx.quadraticCurveTo(
+    gaze,
+    -12.3 + pose.happy,
+    gaze + 2.5 + pose.happy,
+    -14.8,
+  );
+  if (pose.mouthOpen <= 0.1) ctx.stroke();
+  if (pose.mouthOpen > 0.1)
+    ellipse(gaze, -14.1, 1.5, 2.2 * pose.mouthOpen, "#66554e");
   ctx.restore();
+  ctx.restore();
+  if (pose.heart > 0) {
+    ctx.save();
+    ctx.globalAlpha *= pose.heart;
+    ctx.translate(22, -68 - pose.heartRise);
+    ctx.fillStyle = "#e6aaae";
+    ctx.beginPath();
+    ctx.moveTo(0, 4);
+    ctx.bezierCurveTo(-10, -2, -5, -10, 0, -4);
+    ctx.bezierCurveTo(5, -10, 10, -2, 0, 4);
+    ctx.fill();
+    ctx.restore();
+  }
+  if (pose.dizzy > 0.1) {
+    ctx.fillStyle = "#efce85";
+    ellipse(-23, -61, 2 * pose.dizzy, 2 * pose.dizzy, "#efce85");
+    ellipse(25, -65, 2 * pose.dizzy, 2 * pose.dizzy, "#efce85");
+  }
   ctx.restore();
 }
 

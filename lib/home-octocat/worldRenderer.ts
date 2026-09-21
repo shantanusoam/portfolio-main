@@ -87,6 +87,7 @@ export class WorldRenderer {
       )
         continue;
       this.platform(p, m);
+      if (p.puff) this.puff(p, m);
       if (p.star) {
         const bob = m.reducedMotion ? 0 : Math.sin(m.time * 2.6 + p.id) * 3;
         const x = p.x + p.width / 2;
@@ -158,13 +159,15 @@ export class WorldRenderer {
   private platform(p: Platform, m: HomeOctocatMotion) {
     const ctx = this.ctx;
     const squash = Math.sin((1 - p.hit) * Math.PI) * p.hit * 4;
-    const y = p.y + squash;
+    const y = p.y; // The sole stays on the collision surface during compression.
     const color =
       p.kind === "spring"
         ? "#bddbb4"
-        : p.kind === "crumble"
-          ? "#cba992"
-          : "#96ada1";
+        : p.kind === "checkpoint"
+          ? "#e6ce97"
+          : p.kind === "crumble"
+            ? "#cba992"
+            : "#96ada1";
     ctx.save();
     if (p.broken) {
       ctx.globalAlpha = p.hit;
@@ -201,8 +204,53 @@ export class WorldRenderer {
         ctx.textAlign = "center";
         ctx.fillText("spring", p.x + p.width / 2, y + 24);
       }
+    } else if (p.kind === "checkpoint") {
+      const x = p.x + 18;
+      const active = p.id <= m.checkpointId;
+      ctx.strokeStyle = active ? "#adcda3" : "#829c85";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x + 3, y - 12, x, y - 22);
+      ctx.stroke();
+      ctx.fillStyle = active ? "#edd496" : "#8d9e85";
+      for (let i = 0; i < 5; i++) {
+        const a = (i * Math.PI * 2) / 5;
+        ctx.beginPath();
+        ctx.ellipse(
+          x + Math.cos(a) * 4,
+          y - 24 + Math.sin(a) * 4,
+          3.5,
+          3.5,
+          0,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+      ctx.fillStyle = "#f5efd5";
+      ctx.beginPath();
+      ctx.arc(x, y - 24, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = "9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#b9c9ac";
+      ctx.fillText(
+        active ? "a safe little spot" : "checkpoint + ♥",
+        p.x + p.width / 2,
+        y + 25,
+      );
     } else if (p.kind === "crumble") {
-      ctx.strokeStyle = "#967b6b";
+      ctx.strokeStyle = p.crumble !== undefined ? "#edc69d" : "#967b6b";
+      if (p.crumble !== undefined && !p.broken) {
+        ctx.fillStyle = "#e1b38a";
+        ctx.fillRect(
+          p.x + 2,
+          y + 6,
+          (p.width - 4) * Math.max(0, p.crumble / 0.95),
+          2,
+        );
+      }
       ctx.beginPath();
       ctx.moveTo(p.x + p.width * 0.45, y);
       ctx.lineTo(p.x + p.width * 0.49, y + 5);
@@ -213,6 +261,72 @@ export class WorldRenderer {
       ctx.fillRect(p.x + p.width / 2 - 6, y + 4, 12, 1);
     }
     ctx.restore();
+  }
+
+  private puff(p: Platform, m: HomeOctocatMotion) {
+    const puff = p.puff!;
+    if (puff.defeated && puff.squash <= 0) return;
+    const ctx = this.ctx;
+    const alert = Math.abs(m.x - puff.x) < 65 && Math.abs(m.y - p.y) < 65;
+    const breathing = m.reducedMotion ? 0 : Math.sin(m.time * 3 + p.id) * 0.7;
+    ctx.save();
+    ctx.translate(puff.x, p.y);
+    ctx.fillStyle = "#060f1844";
+    ctx.beginPath();
+    ctx.ellipse(0, 1, 14, 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (puff.defeated) {
+      ctx.globalAlpha = puff.squash;
+      ctx.scale(1.3, 0.2 + puff.squash * 0.2);
+    }
+    ctx.fillStyle = alert ? "#c4a9bf" : "#a796b3";
+    ctx.beginPath();
+    ctx.ellipse(0, -11, 12, 11 + breathing, 0, 0, Math.PI * 2);
+    ctx.fill();
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(side * 7, -20, 4, 5, side * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#ddd0de";
+      ctx.beginPath();
+      ctx.ellipse(side * 8, -2, 4, 2.3, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#a796b3";
+    }
+    const look = clamp((m.x - puff.x) / 40, -1.5, 1.5);
+    ctx.fillStyle = "#3e3846";
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(
+        side * 4 + look,
+        -12,
+        1.1,
+        alert ? 2.3 : 1.4,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+    ctx.strokeStyle = "#534558";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-2, -6);
+    ctx.quadraticCurveTo(0, -4.5, 2, -6);
+    ctx.stroke();
+    if (alert && !puff.defeated) {
+      ctx.fillStyle = "#e6c39c";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("!", 0, -31);
+    }
+    ctx.restore();
+    if (p.id === 4 && !puff.defeated) {
+      ctx.font = "9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#b5a3b8";
+      ctx.fillText("hop over · or land on top", p.x + p.width / 2, p.y - 48);
+    }
   }
 
   destroy() {

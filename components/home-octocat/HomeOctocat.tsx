@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  Heart,
   Pause,
   Play,
   Star,
@@ -27,18 +28,23 @@ import type {
 } from "@/lib/home-octocat/runtime";
 import styles from "./HomeOctocat.module.css";
 
-const BEST_KEY = "portfolio:mochi-best:v1";
+const BEST_KEY = "portfolio:mochi-best:manual-v2";
 const INITIAL: GameSnapshot = {
   phase: "idle",
   height: 0,
   stars: 0,
   extraHop: true,
+  grounded: true,
+  lives: 3,
+  checkpoint: 0,
+  recovering: false,
 };
 
 export default function HomeOctocat() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const worldRef = useRef<HTMLCanvasElement>(null);
   const playerRef = useRef<HTMLButtonElement>(null);
+  const companionRef = useRef<HTMLDivElement>(null);
   const regionRef = useRef<HTMLElement>(null);
   const runtimeRef = useRef<HomeOctocatRuntime | null>(null);
   const activeRef = useRef(false);
@@ -118,9 +124,17 @@ export default function HomeOctocat() {
     runtimeRef.current?.begin();
     focusGame();
   };
-  const extraHop = () => {
+  const jump = () => {
     if (!pausedRef.current) runtimeRef.current?.motion.jump();
-    focusGame();
+  };
+  const releaseJump = () => runtimeRef.current?.motion.releaseJump();
+  const pet = () => {
+    runtimeRef.current?.motion.boop();
+    runtimeRef.current?.wake();
+  };
+  const greet = () => {
+    runtimeRef.current?.motion.hover();
+    runtimeRef.current?.wake();
   };
 
   useEffect(() => {
@@ -161,6 +175,7 @@ export default function HomeOctocat() {
               setReady(false);
             },
           },
+          companionRef.current ?? undefined,
         );
         runtimeRef.current = runtime;
         runtime.setReducedMotion(reducedRef.current);
@@ -311,6 +326,8 @@ export default function HomeOctocat() {
     const keyUp = (event: KeyboardEvent) => {
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
       if (keys.current.delete(key)) syncAxis();
+      if ([" ", "ArrowUp", "w", "Enter"].includes(key))
+        runtimeRef.current?.motion.releaseJump();
     };
     const blur = () => {
       if (runtimeRef.current?.motion.phase === "climbing") pause(true);
@@ -369,7 +386,7 @@ export default function HomeOctocat() {
     if (event.currentTarget.hasPointerCapture(event.pointerId))
       event.currentTarget.releasePointerCapture(event.pointerId);
     if (current.moved) runtimeRef.current?.motion.release();
-    else start();
+    else pet();
   };
   const touchDirection = (
     direction: "left" | "right",
@@ -449,7 +466,9 @@ export default function HomeOctocat() {
         className={styles.character}
         data-ready={ready}
         hidden={active}
-        aria-label="Play with Mochi"
+        aria-label="Pet Mochi"
+        onPointerEnter={greet}
+        onFocus={greet}
         disabled={!ready || active}
         onPointerDown={onGrab}
         onPointerMove={onDrag}
@@ -457,11 +476,20 @@ export default function HomeOctocat() {
         onPointerCancel={cancelDrag}
         onLostPointerCapture={cancelDrag}
         onClick={(e) => {
-          if (e.detail === 0) start();
+          if (e.detail === 0) pet();
         }}
       >
-        <span className={styles.whisper}>psst… play?</span>
+        <span className={styles.whisper}>psst… hello</span>
       </button>
+      <div
+        ref={companionRef}
+        className={styles.companionControls}
+        hidden={active || !ready}
+      >
+        <button type="button" onClick={start} aria-label="Play with Mochi">
+          Play <ArrowUp size={11} />
+        </button>
+      </div>
       <AnimatePresence>
         {active && (
           <motion.div className={styles.gameUI} {...animation}>
@@ -485,6 +513,19 @@ export default function HomeOctocat() {
                   <Star size={11} /> {game.stars}{" "}
                   <i>best {Math.max(best, game.height)}m</i>
                 </span>
+              </div>
+              <div
+                className={styles.hearts}
+                aria-label={`${game.lives} hearts remaining`}
+              >
+                {[0, 1, 2].map((i) => (
+                  <Heart
+                    key={i}
+                    size={12}
+                    fill={i < game.lives ? "currentColor" : "none"}
+                    data-filled={i < game.lives}
+                  />
+                ))}
               </div>
               <div className={styles.actions}>
                 <button
@@ -516,6 +557,13 @@ export default function HomeOctocat() {
                 </button>
               </div>
             </header>
+            {running && (game.recovering || game.checkpoint > 0) && (
+              <div className={styles.checkpointNote} role="status">
+                {game.recovering
+                  ? "A little tumble. Back to your safe spot…"
+                  : "Flower checkpoint saved"}
+              </div>
+            )}
             <AnimatePresence mode="wait">
               {game.phase === "ready" && (
                 <motion.div
@@ -526,9 +574,9 @@ export default function HomeOctocat() {
                   <span className={styles.eyebrow}>a tiny escape</span>
                   <h2>Little bunny. Big sky.</h2>
                   <p>
-                    Mochi bounces. You find the next foothold.
+                    Walk, then jump when you&apos;re ready.
                     <br />
-                    Catch stars. Ride the green springs.
+                    Hold for height. Pet the sky. Mind the puffs.
                   </p>
                   <button
                     type="button"
@@ -536,9 +584,11 @@ export default function HomeOctocat() {
                     onClick={begin}
                     disabled={!ready}
                   >
-                    Let&apos;s hop <ArrowUp size={16} />
+                    Let&apos;s explore <ArrowRight size={16} />
                   </button>
-                  <span className={styles.cardHint}>or press Space</span>
+                  <span className={styles.cardHint}>
+                    3 hearts · flower checkpoints · take your time
+                  </span>
                 </motion.div>
               )}
               {paused && (
@@ -603,7 +653,8 @@ export default function HomeOctocat() {
                   Drag to steer, or use the arrows.
                 </span>{" "}
                 <span>
-                  Auto-bounce · <kbd>Space</kbd> extra hop
+                  <kbd>Space</kbd> jump · hold for height · press again in the
+                  air
                 </span>
               </p>
               {running && !paused && (
@@ -635,13 +686,50 @@ export default function HomeOctocat() {
                   </div>
                   <button
                     type="button"
-                    className={styles.extraHop}
-                    disabled={!game.extraHop}
-                    onClick={extraHop}
+                    className={styles.jumpButton}
+                    aria-label="Jump"
+                    data-available={game.grounded || game.extraHop}
+                    disabled={game.recovering}
+                    onPointerDown={(e) => {
+                      if (e.button !== 0) return;
+                      e.preventDefault();
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      jump();
+                      focusGame();
+                    }}
+                    onPointerUp={(e) => {
+                      releaseJump();
+                      if (e.currentTarget.hasPointerCapture(e.pointerId))
+                        e.currentTarget.releasePointerCapture(e.pointerId);
+                    }}
+                    onPointerCancel={releaseJump}
+                    onLostPointerCapture={releaseJump}
+                    onKeyDown={(e) => {
+                      if ([" ", "Enter"].includes(e.key)) {
+                        e.preventDefault();
+                        if (!e.repeat) jump();
+                      }
+                    }}
+                    onKeyUp={(e) => {
+                      if ([" ", "Enter"].includes(e.key)) {
+                        e.preventDefault();
+                        releaseJump();
+                      }
+                    }}
+                    onClick={(e) => {
+                      if (e.detail === 0) {
+                        jump();
+                        releaseJump();
+                      }
+                    }}
                   >
                     <span className={styles.hopDot} />
                     <ArrowUp size={15} />{" "}
-                    {game.extraHop ? "Extra hop" : "Refills on landing"}
+                    {game.grounded
+                      ? "Jump"
+                      : game.extraHop
+                        ? "Double jump"
+                        : "Land to refill"}
                   </button>
                 </div>
               )}
@@ -656,10 +744,10 @@ export default function HomeOctocat() {
             : paused
               ? "Game paused."
               : game.phase === "ready"
-                ? "Ready. Press Space to start. Mochi bounces automatically. Arrows steer, Space gives one extra hop between landings."
+                ? "Ready. Press Space to enter. Arrows move, Space jumps. Hold for a higher jump, press again for a double jump. Land on puffs from above. Flowers save your progress."
                 : `${Math.floor(game.height / 25) * 25} metres. ${
                     game.stars
-                  } stars.`)}
+                  } stars. ${game.lives} hearts.`)}
       </span>
       {unavailable && (
         <div className={styles.unavailable} role="status">

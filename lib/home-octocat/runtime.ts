@@ -9,6 +9,10 @@ export interface GameSnapshot {
   height: number;
   stars: number;
   extraHop: boolean;
+  grounded: boolean;
+  lives: number;
+  checkpoint: number;
+  recovering: boolean;
 }
 interface Callbacks {
   onGame: (game: GameSnapshot) => void;
@@ -39,6 +43,7 @@ export class HomeOctocatRuntime {
     private readonly hitTarget: HTMLButtonElement,
     private readonly hero: HTMLElement,
     private readonly callbacks: Callbacks,
+    private readonly companionControls?: HTMLDivElement,
   ) {
     this.originalTranslate = hero.style.translate;
     this.originalWillChange = hero.style.willChange;
@@ -61,6 +66,10 @@ export class HomeOctocatRuntime {
         if (!this.motion.playing) {
           canvas.style.visibility = this.visible ? "visible" : "hidden";
           hitTarget.style.visibility = this.visible ? "visible" : "hidden";
+          if (this.companionControls)
+            this.companionControls.style.visibility = this.visible
+              ? "visible"
+              : "hidden";
         }
         this.syncLoop();
       },
@@ -83,6 +92,7 @@ export class HomeOctocatRuntime {
     this.motion.lookX = event.clientX;
     this.motion.lookY = event.clientY;
     this.motion.lookActive = true;
+    this.motion.attend();
   };
 
   private lookAway = (event: PointerEvent) => {
@@ -147,11 +157,18 @@ export class HomeOctocatRuntime {
     const { x, y } = this.renderer.render(this.motion, alpha);
     this.hitTarget.style.transform = `translate3d(${x - 32}px,${y - 72}px,0)`;
     this.hitTarget.dataset.motion = this.motion.state;
+    this.hitTarget.dataset.reaction = this.motion.reaction;
+    if (this.companionControls)
+      this.companionControls.style.transform = `translate3d(${x - 39}px,${
+        y + 13
+      }px,0)`;
     if (this.motion.playing)
       this.hero.style.translate = `0 ${-this.motion.camera * 0.7}px`;
     for (const event of this.motion.events.splice(0)) this.audio.play(event);
     const m = this.motion;
-    const signature = `${m.phase}:${m.heightMetres}:${m.stars}:${m.extraHop}`;
+    const signature = `${m.phase}:${m.heightMetres}:${m.stars}:${m.extraHop}:${
+      m.grounded
+    }:${m.lives}:${m.checkpointId}:${m.recovering > 0}`;
     if (signature !== this.signature) {
       this.signature = signature;
       this.callbacks.onGame({
@@ -159,11 +176,19 @@ export class HomeOctocatRuntime {
         height: m.heightMetres,
         stars: m.stars,
         extraHop: m.extraHop,
+        grounded: m.grounded,
+        lives: m.lives,
+        checkpoint: m.checkpointId,
+        recovering: m.recovering > 0,
       });
     }
     if (
       m.phase === "over" ||
-      (m.reducedMotion && !m.playing && !m.dragging && m.grounded)
+      (m.reducedMotion &&
+        !m.playing &&
+        !m.dragging &&
+        m.grounded &&
+        m.reaction === "none")
     )
       this.loop.stop();
   }
@@ -176,7 +201,11 @@ export class HomeOctocatRuntime {
       (this.visible || m.playing) &&
       !this.paused &&
       m.phase !== "over" &&
-      (!m.reducedMotion || m.phase === "climbing" || m.dragging || !m.grounded)
+      (!m.reducedMotion ||
+        m.phase === "climbing" ||
+        m.dragging ||
+        !m.grounded ||
+        m.reaction !== "none")
     )
       this.loop.start();
     else {

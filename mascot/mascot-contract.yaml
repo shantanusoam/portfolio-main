@@ -1,34 +1,47 @@
 identity: Mochi, a round ivory bunny with blush cheeks and short soft ears
-role: home-page companion and a playful doorway into an endless climbing game
-personality: [curious, gentle, determined]
+role: reactive home companion and a manually controlled climbing adventure
+personality: [curious, affectionate, determined]
 anchor: hero
 body: 3d
-style: cute, compact, fluid and calm, with readable weight and follow-through
+style: soft plush, compact, fluid and calm, readable anticipation and follow-through
 render_route: hybrid
 identity_layer: threejs
-render_reason: existing Three.js pipeline, softly lit connected geometry and articulated ear pivots
-fallback: Canvas 2D using the same proportions and pose
+render_reason: retain the existing softly lit 3D rig; separate planted feet from body deformation
+fallback: Canvas 2D with the same pose, expressions, and articulated feet
 pose_space: 2d
 inputs: [pointer, click, drag, touch, keyboard]
-base_behaviors: [observe, sparse_idle_steps, breathe]
-reaction_behaviors: [blink, pickup, squash, hop, landing_recovery, collect_star]
-rare_behaviors: [double_blink]
+base_behaviors:
+  [observe, approach_nearby_pointer, planted_steps, breathe, sleepy_idle]
+reaction_behaviors:
+  [wave, boop, blush, pickup, landing_squash, skid, celebrate, hurt]
+rare_behaviors: [double_blink, repeated_boop_dizzy]
 tracking_radius_px: 400
 dead_zone_px: 16
 response: soft
-mobile_policy: drag
-reduced_motion: static idle and neutral secondary pose; retain only essential game movement
+mobile_policy: direction buttons plus press-and-hold Jump; tap to pet outside the game
+reduced_motion: still secondary pose, static expression feedback, essential gameplay retained
+state_priority: [hurt, direct_reaction, contextual_reaction, gaze, idle]
 destination: components/home-octocat/HomeOctocat.tsx on / in Explore mode
-visible_size_css_px: { width: 44, height: 65 }
+visible_size_css_px: { width: 48, height: 65 }
 canvas_size_css_px: { width: 160, height: 160 }
 controls:
-  entry: click Mochi or open /?mochi=play
-  start: Space or Let's hop
-  steer: mouse, left/right, A/D, touch drag, or direction buttons
-  recovery: one extra mid-air hop per landing
+  pet: click or tap Mochi; repeated pets produce a brief dizzy reaction
+  entry: separate Play button or /?mochi=play
+  start: Let's explore or Space; starting never launches automatically
+  move: mouse, Left/Right, A/D, touch drag, or direction buttons
+  jump: Space, Up, W, or Jump button; hold for height, release for a shorter hop
+  recovery: one deliberate double jump per flight; no automatic landing bounce
   pause: P
   restart: R
   exit: Escape
+mechanics:
+  jump_buffer_ms: 140
+  coyote_time_ms: 100
+  planted_feet: alternating world-space stance and predictive swing targets; short two-bone legs
+  obstacles: patrolling puff creatures; stomp from above, avoid sides
+  platforms: normal, moving with passenger carry, manual spring boost, delayed crumble, flower checkpoint
+  forgiveness: three hearts, checkpoint return after damage or falling, brief invulnerability
+  course: early safe ledges, progressively introduced mechanics, reachable consecutive platforms
 performance:
   fixed_step_hz: 120
   maximum_catchup_steps: 6

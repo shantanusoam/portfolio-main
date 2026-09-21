@@ -9,6 +9,8 @@ import {
   MeshStandardMaterial,
   OrthographicCamera,
   Scene,
+  Shape,
+  ShapeGeometry,
   SphereGeometry,
   SRGBColorSpace,
   WebGLRenderer,
@@ -53,6 +55,13 @@ export class MochiRig {
   private readonly ears = [new Group(), new Group()];
   private readonly eyes = [new Group(), new Group()];
   private readonly feet: Mesh[] = [];
+  private readonly legs: Mesh[][] = [];
+  private readonly arms = [new Group(), new Group()];
+  private readonly cheeks: Mesh[] = [];
+  private readonly smiles: Mesh[] = [];
+  private readonly mouth: Mesh;
+  private readonly heart: Mesh<ShapeGeometry, MeshBasicMaterial>;
+  private readonly dizzyEyes = [new Group(), new Group()];
   private readonly shadow: Mesh<CircleGeometry, MeshBasicMaterial>;
   constructor() {
     this.camera.position.z = 400;
@@ -70,7 +79,7 @@ export class MochiRig {
     const nose = new MeshBasicMaterial({ color: 0xb58479 });
     const sphere = new SphereGeometry(1, 32, 24);
     const ball = (
-      parent: Group,
+      parent: Group | Scene,
       material: Material,
       x: number,
       y: number,
@@ -93,14 +102,29 @@ export class MochiRig {
       ball(ear, fur, 0, 10, 0, 6.5, i ? 17 : 15, 5);
       ball(ear, pink, 0, 12, 4.1, 2.7, i ? 10.5 : 9, 0.9);
       this.body.add(ear);
-      this.feet.push(ball(this.body, fur, side * 10, 1, 6, 8, 4.2, 7));
-      ball(this.body, fur, side * 17, 13, 5, 4.5, 7, 5);
-      ball(this.face, pink, side * 12, 18.5, 12.9, 3.7, 2.2, 1.3);
+      this.feet.push(ball(this.scene, fur, side * 9, 4, 8, 7.5, 4, 7));
+      this.legs.push([
+        ball(this.scene, fur, 0, 0, 4, 2.8, 5, 2.8),
+        ball(this.scene, fur, 0, 0, 5, 2.8, 5, 2.8),
+      ]);
+      this.arms[i].position.set(side * 17, 18, 5);
+      ball(this.arms[i], fur, 0, -5, 0, 4.5, 7, 5);
+      this.body.add(this.arms[i]);
+      this.cheeks.push(
+        ball(this.face, pink, side * 12, 18.5, 12.9, 3.7, 2.2, 1.3),
+      );
       const eye = this.eyes[i];
       eye.position.set(side * 6.6, 23, 15.1);
       ball(eye, dark, 0, 0, 0, 2.2, 3, 1.1);
       ball(eye, white, -0.5, 1, 1, 0.65, 0.75, 0.4);
       this.face.add(eye);
+      const dizzy = this.dizzyEyes[i];
+      dizzy.position.copy(eye.position);
+      for (const angle of [-0.65, 0.65]) {
+        const line = ball(dizzy, dark, 0, 0, 1.2, 2.6, 0.5, 0.35);
+        line.rotation.z = angle;
+      }
+      this.face.add(dizzy);
     }
     ball(this.face, nose, 0, 17, 15.5, 1.3, 0.95, 0.7);
     for (const side of [-1, 1]) {
@@ -115,7 +139,19 @@ export class MochiRig {
         0.35,
       );
       smile.rotation.z = side * 0.25;
+      this.smiles.push(smile);
     }
+    this.mouth = ball(this.face, dark, 0, 14, 15.8, 1.5, 2.2, 0.5);
+    const heart = new Shape();
+    heart.moveTo(0, -4);
+    heart.bezierCurveTo(-10, 2, -5, 10, 0, 4);
+    heart.bezierCurveTo(5, 10, 10, 2, 0, -4);
+    this.heart = new Mesh(
+      new ShapeGeometry(heart),
+      new MeshBasicMaterial({ color: 0xe6aaae, transparent: true }),
+    );
+    this.heart.position.set(22, 70, 20);
+    this.scene.add(this.heart);
     this.body.add(this.face);
     this.scene.add(this.body);
     this.shadow = new Mesh(
@@ -137,12 +173,39 @@ export class MochiRig {
     this.body.position.y = 2 + pose.bob;
     this.body.scale.set(pose.sx, pose.sy, pose.sx);
     this.body.rotation.z = -pose.tilt;
+    this.body.rotation.y = pose.facing * 0.12;
     this.face.position.set(pose.look, -pose.lookY, 0);
     for (let i = 0; i < 2; i++) {
       this.ears[i].rotation.z = -pose.ears[i];
-      this.eyes[i].scale.y = pose.blink;
-      this.feet[i].position.y = 1 + pose.feet[i];
+      this.eyes[i].scale.y = pose.eyes[i];
+      this.eyes[i].visible = pose.dizzy < 0.3;
+      this.dizzyEyes[i].visible = pose.dizzy >= 0.3;
+      this.arms[i].rotation.z = pose.arms[i];
+      this.cheeks[i].scale.x = 3.7 * pose.cheek;
+      const foot = pose.feet[i];
+      this.feet[i].position.set(foot.x, -foot.y, 8);
+      this.feet[i].rotation.z = -foot.angle;
+      const { hip, knee } = pose.legs[i];
+      const points = [hip, knee, foot];
+      for (let j = 0; j < 2; j++) {
+        const a = points[j];
+        const b = points[j + 1];
+        const leg = this.legs[i][j];
+        leg.position.x = (a.x + b.x) / 2;
+        leg.position.y = -(a.y + b.y) / 2;
+        leg.scale.y = Math.hypot(a.x - b.x, a.y - b.y) / 2;
+        leg.rotation.z = Math.atan2(b.x - a.x, b.y - a.y);
+      }
     }
+    this.mouth.visible = pose.mouthOpen > 0.1;
+    this.mouth.scale.y = 2.2 * pose.mouthOpen;
+    this.smiles.forEach((smile) => {
+      smile.visible = pose.mouthOpen <= 0.1;
+      smile.scale.x = 1.5 + pose.happy;
+    });
+    this.heart.visible = pose.heart > 0;
+    this.heart.material.opacity = pose.heart;
+    this.heart.position.y = 68 + pose.heartRise;
     this.shadow.visible = m.grounded;
   }
 
@@ -194,7 +257,10 @@ export class HomeOctocatRenderer {
       m.previousCamera +
       (m.camera - m.previousCamera) * alpha;
     this.canvas.style.transform = `translate3d(${x - OX}px,${y - OY}px,0)`;
-    this.canvas.style.opacity = m.phase === "over" ? "0" : "1";
+    this.canvas.style.opacity =
+      m.phase === "over"
+        ? "0"
+        : String(m.recovering ? 0.65 : m.invulnerable ? 0.8 : 1);
     this.rig.update(m);
     this.renderer.render(this.rig.scene, this.rig.camera);
     return { x, y };

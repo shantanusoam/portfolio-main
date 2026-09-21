@@ -2,7 +2,7 @@
 
 The home-page companion is now **Mochi**, an original round bunny. This replaces the previous Octocat approximation and its three-ledge checklist with a continuous climbing game.
 
-- Home: `/` in Explore mode. Click the bunny on the guitar strings.
+- Home: `/` in Explore mode. Pet the bunny on the guitar strings; use the separate **Play** pill to enter.
 - Direct entry: `/?mochi=play`.
 - The previous `/?octocat=play` link still opens the new game.
 - `/octopod-lab` remains an independent experiment.
@@ -11,13 +11,13 @@ The home-page companion is now **Mochi**, an original round bunny. This replaces
 
 Reviewed both September attachments, including the current implementation recording (`screenrecording-2026-09-15_17-01-01.mp4`) and the reference (`screenrecording-2026-08-07_10-39-34(7).mp4`).
 
-| Observation                                                      | Previous implementation                                                                                                                                                       | Revision                                                                                                                          |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Compact silhouette in the reference                              | A large cat head, narrow torso and seven independently trailing tubes spread into a spider-like shape. This is especially visible around 12 seconds in the current recording. | One connected plush body, two short paws, small feet and two attached ear pivots.                                                 |
-| Movement has a leading action and delayed follow-through         | Head and limb springs could pull the anatomy apart.                                                                                                                           | The body retains its volume during squash/stretch. Ear rotation and body tilt respond with damped springs; no free-floating head. |
-| The reference becomes a vertical platform game around 18 seconds | Three fixed navigation links were the entire objective.                                                                                                                       | An endless, reachable course with stars, springs, moving ledges, crumbling ledges, height and a saved personal best.              |
-| The game grows out of the app                                    | The home screen stayed static behind a large bottom HUD.                                                                                                                      | Mochi starts over the guitar; the hero recedes upward as the camera climbs. A compact top HUD leaves the playfield clear.         |
-| Movement is easy to keep going                                   | Repeated manual jumps and awkwardly spaced DOM ledges.                                                                                                                        | Automatic bounces, responsive steering, and one optional mid-air recovery hop per landing.                                        |
+| Observation                                                      | Previous implementation                                                                                                                                                       | Revision                                                                                                                             |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Compact silhouette in the reference                              | A large cat head, narrow torso and seven independently trailing tubes spread into a spider-like shape. This is especially visible around 12 seconds in the current recording. | One connected plush body, two short paws, small feet and two attached ear pivots.                                                    |
+| Movement has a leading action and delayed follow-through         | Head and limb springs could pull the anatomy apart.                                                                                                                           | The body retains its volume during squash/stretch. Ear rotation and body tilt respond with damped springs; no free-floating head.    |
+| The reference becomes a vertical platform game around 18 seconds | Three fixed navigation links were the entire objective.                                                                                                                       | An endless, reachable course with stars, springs, moving ledges, crumbling ledges, height and a saved personal best.                 |
+| The game grows out of the app                                    | The home screen stayed static behind a large bottom HUD.                                                                                                                      | Mochi starts over the guitar; the hero recedes upward as the camera climbs. A compact top HUD leaves the playfield clear.            |
+| Movement belongs to the player                                   | Repeated manual jumps and awkwardly spaced DOM ledges.                                                                                                                        | Manual, variable-height jumps, buffered input, coyote time, and one deliberate double jump. No automatic bounce on entry or landing. |
 
 ### What Cameron actually described
 
@@ -33,43 +33,75 @@ Read the linked June 2, 2026 thread through X's public HTML and official syndica
 
 Mochi is an original implementation inspired by the interaction and timing. Its geometry is authored in code; it does not use Cameron's Blender model, GLB, IK rig or unpublished source. A smaller articulated character is a deliberate design choice, permitted by the user, rather than another approximation of Octocat's complex anatomy.
 
+## September 21 revision: agency, feet, and reactions
+
+The auto-bounce version left the feet grounded for only a fraction of a second. Its feet only moved vertically, so they could not communicate walking or weight. This revision removes auto-bounce and separates the feet from body deformation.
+
+[Nintendo's Super Mario Bros. Wonder developer interview](https://www.nintendo.com/my/interview/aqmx/02.html) describes using animation to communicate character state, keeping expressions readable while showing direction, and matching sound to actions. These principles informed Mochi's skid, jump tuck, open-mouth surprise, directional lean and quiet landing sound. The jump buffering, checkpoint rules and original bunny/puff art here are our own implementation, not Nintendo code or assets.
+
 ## Controls and loop
 
-Click **Let's hop** or press **Space** to start. Landings bounce automatically after a brief compression. Move the mouse, use Left/Right or A/D, or drag horizontally on a touchscreen to steer. **Space**, Up or W supplies one extra hop in the air; it refills on landing. Touch devices also have direction buttons and an Extra hop button.
+- **Let's explore** or the first **Space** opens the course. Mochi stays on the starting foothold.
+- Move with the mouse, **Left/Right**, **A/D**, touch drag, or the direction buttons.
+- **Space / Up / W / Jump** launches only on a new press. Hold to go higher; release for a shorter hop. The opening ledges are reachable with a short hop.
+- Press again in flight for one double jump. It refills on landing. A press within 140ms of landing is buffered for the next ground jump; a 100ms grace window also permits jumping just after leaving an edge.
+- **P** pauses, **R** restarts, **Escape** exits. Blur and tab hiding pause the run.
 
-Gold stars are collectible. Green spring ledges launch higher. Moving ledges enter after the opening section; cracked peach ledges break after landing. Every consecutive ledge remains reachable with a normal bounce. Difficulty gradually narrows ledges while preserving jump reach.
+The Jump button supports pointer capture, press/release, keyboard activation and assistive clicks. Pausing, restarting or exiting clears held input. A held key never auto-repeats a jump after landing.
 
-P pauses, R restarts, and Escape returns to the portfolio. Falling ends the run and shows the result with an immediate retry. Best height is stored locally when storage is available. Sound is off initially and can be enabled with the speaker button; notes are synthesized locally.
+### Course rules
 
-Outside the game, Mochi makes small idle steps on the strings, looks toward the pointer, and can be picked up and gently tossed.
+| Element                 | Behavior and player choice                                                                                                                                              |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gold star               | Collect once per run, including after checkpoint recovery.                                                                                                              |
+| Green spring            | Stand safely, then press Jump for a stronger launch. Never launches automatically.                                                                                      |
+| Moving foothold         | Carries Mochi and planted feet together.                                                                                                                                |
+| Cracked peach foothold  | Shows a shrinking warning bar for 950ms before breaking. Jump before it collapses.                                                                                      |
+| Purple puff             | Patrols its ledge and looks toward Mochi. Avoid its sides or land on its head for two stars. Stomping squashes it; it does not auto-launch Mochi.                       |
+| Flower foothold         | Saves a checkpoint and restores one heart, up to three. Introduced every eight rows.                                                                                    |
+| Tumble / side collision | Costs one heart and returns to the most recent safe spot after a brief hurt reaction. Recovery includes 1.4 seconds of protection from puffs. Zero hearts ends the run. |
+
+The first three ledges introduce movement safely. The first patrol has an inline hint. Gap, horizontal distance and ledge width are bounded; there is room to avoid each patrol. Camera progress is monotonic during normal climbing, with an intentional reset when returning to a checkpoint. Score and claimed rewards survive recovery; retry creates a clean run. The manual game has its own local best-score key because its rules differ from the former auto-bounce version.
+
+## Behavior map
+
+| Trigger                             | Visible response                                                                                                                   |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Nearby pointer on the home page     | Smooth two-axis gaze, ear attention, little steps toward the pointer, comfortable stopping distance.                               |
+| Hover or keyboard focus             | A short wave with a three-second cooldown.                                                                                         |
+| Pet / tap                           | Closed happy eyes, blush, lower-body squash and a floating heart.                                                                  |
+| Three quick pets                    | Brief dizzy expression, followed by the current gaze target.                                                                       |
+| Pick up and toss                    | Spring-following body, surprised mouth, dangling feet and delayed ears.                                                            |
+| Sixteen seconds without interaction | Heavy eyelids and softer ears; pointer movement wakes Mochi.                                                                       |
+| Walk / run                          | World-space stance, predictive alternating swing targets, visible soles and short two-bone legs. Running can overlap swing phases. |
+| Brake / reverse                     | Body weight shifts before the ears settle; a small dust puff marks braking.                                                        |
+| Near a ledge edge                   | A restrained balancing lean and paw response.                                                                                      |
+| Jump / land                         | Short anticipation, tucked feet, velocity-driven stretch, impact-dependent compression, ear follow-through.                        |
+| Star / checkpoint / stomp           | Happy eyes and raised paws, bounded particles and distinct optional sounds.                                                        |
+
+Gaze and reactions are separate channels. Hurt has priority over affection, then contextual reactions, then idle details. Returning from a reaction resumes the live gaze instead of snapping to a stale neutral pose. Irregular blinks and occasional double blinks continue independently.
 
 ## Implementation
 
-The existing `home-octocat` paths and event name are retained for compatibility.
+The existing `home-octocat` paths and event name remain compatible.
 
-- `motion.ts`: fixed-step simulation, spring pose, input, swept contacts and collectible pickup, procedural course, camera and bounded particle pool. Physics is independent of the browser and React.
-- `pose.ts`: shared proportions and pose for both renderers. Squash uses reciprocal cross-axis scaling to retain body volume.
-- `renderer.ts`: Three.js scene with an orthographic camera, soft lighting and attached ear pivots. `MochiRig` is independent of WebGL so its actual geometry can also be inspected offline.
-- `canvasRenderer.ts`: shaded Canvas fallback using the same pose and proportions.
-- `worldRenderer.ts`: full-screen world canvas for ledges, stars, landing particles, depth markers and backdrop. Device pixel ratio is capped.
-- `runtime.ts`: one 120 Hz fixed-step loop with render interpolation, cached DOM measurements, lifecycle cleanup, visibility handling and the hero's temporary visual translation.
-- `audio.ts`: optional, gesture-activated synthesized feedback.
-- `HomeOctocat.tsx`: Framer Motion transitions, accessible buttons, touch input, focus containment, score and pause/result UI. React does not own per-frame positions.
+- `motion.ts`: 120Hz browser-independent simulation, grounded support tracking, buffered manual input, variable jump height, swept contacts, planted foot targets, reaction state, course, hazards, rewards and checkpoints.
+- `pose.ts`: shared Canvas/Three pose, two-bone leg solution, facial expressions, paw gestures and volume-preserving body deformation. Stance feet do not inherit body squash or tilt.
+- `renderer.ts`: existing Three.js orthographic rig; independent feet/legs, articulated paws and ears, happy/surprised/dizzy expressions and pet heart.
+- `canvasRenderer.ts`: equivalent shaded Canvas fallback. Both routes retain the compact bunny identity.
+- `worldRenderer.ts`: bounded Canvas world, patrols, flowers, crumble countdowns, stars, particles and altitude markers.
+- `runtime.ts`: fixed-step loop with interpolated root position, cached DOM geometry, world/character lifecycle, visibility pause and restoration of the hero after play.
+- `audio.ts`: opt-in synthesized cues for hops, landings, pets, stars, stomps, damage and checkpoints.
+- `HomeOctocat.tsx`: existing Framer Motion UI, separate Pet/Play interactions, hearts, accessible controls, touch capture and focus containment. React does not update per frame.
 
-The game pauses on blur or tab hiding. Reduced-motion mode removes ambient wandering, gaze animation, blinking, squash/stretch, bobbing, tilt, ear follow-through and particles; the essential playable trajectory remains. Exiting restores the hero, scrolling, focus and the normal portfolio effects. The older ambient mascot, page atmosphere and soundroom controls unmount while the game owns the screen.
+No dependency was added. DPR remains capped at 2 for the character and 1.5 for the world, with at most 80 particles and six catch-up steps. Offscreen/hidden activity pauses. Reduced motion removes wandering, gaze animation, blinking, body/ear/foot secondary motion and particles, while retaining essential game trajectories and static pet expressions. Exiting restores page scrolling, focus, hero placement and the other portfolio effects.
 
 ## Verification
 
-`npm run test:home-octocat` covers start anticipation, auto-bounce, extra-hop refill, one-way swept contacts, spring and crumble behavior, swept star pickup, 1,000 generated rows at three widths, a 90-second steering run at both phone and desktop widths, bounded arrays, end/retry, resize/scroll behavior, reduced-motion idle and volume retention.
+`npm run test:home-octocat` covers 19 behavioral cases: no auto-hop, tap/hold height, coyote time, landing input buffering, double-jump refill, planted feet in both directions, moving-platform carry, one-way contacts, manual springs, delayed crumble, stomp versus side contact, hearts/checkpoint recovery, collectible idempotence, 1,000 generated rows at three widths, reactions/gaze/sleep, reduced motion, resize/scroll and bounded springs.
 
-Run `npx tsc --noEmit` and scoped ESLint separately from `npm run build`; this repo's build skips those gates. Do not run TypeScript concurrently with the Next build, which rewrites `.next/types`.
+A simulated manual controller also crosses the introductory obstacles and flower checkpoints for 35 seconds at both 390px and 1200px viewport widths, exceeding 350m without damage and keeping the platform/particle pools bounded. A longer exploratory run reached 1,030m on desktop; the simple phone controller eventually failed at 512m. That is not a claim of automated mastery or actual touch-device testing.
 
-Offline visual review uses the actual Canvas drawing code for six motion poses and a simulated climbing frame. The actual Three.js geometry was additionally rendered through Three's SVG renderer to inspect silhouette and attachment in rest, crouch and launch poses. That verifies geometry, not WebGL lighting or GPU performance. Cloud-browser interaction checks use the Canvas fallback because its WebGL context is disabled; final WebGL appearance remains a device-specific verification limit.
+Run TypeScript and scoped ESLint separately from the production build; this repository's build skips those checks. Never run TypeScript concurrently with the Next build, which regenerates `.next/types`.
 
-## Final mascot audit
-
-The `mascot/mascot-contract.yaml` records the current identity, controls and performance limits. The alive pass added damped two-axis gaze with a 16px dead zone, smooth recentering on pointer exit, irregular blinks and occasional double blinks. These are independent of game state and do not restart on each hop.
-
-The cute pass reviewed the actual 44px-wide silhouette, not just enlarged poses. The engineering pass caught a page font-variable inheritance issue that enlarged the footer; the game now reads the loaded font variable directly with a fallback. Reduced-motion checks explicitly assert a neutral pose during a real jump, while preserving essential gameplay.
-
-Live checks on the deployed home page confirmed the entry card, automatic bouncing, mouse steering, star collection, altitude/camera progression, pause/resume, mid-air recovery, game over, retry with a retained best score, sound toggling, and Escape restoring the portfolio URL and keyboard focus. Browser rendering used the Canvas fallback; the Three.js rig was reviewed separately using its actual geometry. The browser surface does not expose mobile viewport emulation, so phone-width reachability is tested in the model and touch input/layout are inspected in code rather than claimed as device testing.
+The alive pass checks smooth gaze reversals and reaction return. The cute pass reviews the actual Canvas draw code at normal size and enlarged walking, turning, jumping, pet, wave, dizzy, sleepy and pickup poses. The engineering pass found and fixed turn-time foot overextension, tested real rendered stance positions and added moving-surface carry coverage. Three.js geometry is separately inspected through its SVG renderer; this does not verify final GPU lighting. Live browser QA is recorded below after deployment.

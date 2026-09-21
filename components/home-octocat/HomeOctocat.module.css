@@ -329,7 +329,7 @@
   pointer-events: auto;
 }
 .directions {
-  display: none;
+  display: flex;
   gap: 9px;
 }
 .controls button {
@@ -465,7 +465,7 @@ button:disabled .hopDot {
     min-height: 48px;
     padding: 8px;
   }
-  .controls .extraHop {
+  .controls .jumpButton {
     min-width: 145px;
     min-height: 48px;
     font-size: 10px;
@@ -502,5 +502,100 @@ button:disabled .hopDot {
   .whisper,
   .primary {
     transition: none;
+  }
+}
+
+.companionControls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 78px;
+  pointer-events: auto;
+  will-change: transform;
+}
+.companionControls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 78px;
+  min-height: 32px;
+  color: #c7d4bf;
+  background: #182820de;
+  border: 1px solid #d4dfbd33;
+  border-radius: 18px;
+  font: 10px/1.4 var(--font-data, monospace);
+  cursor: pointer;
+}
+.companionControls button:hover {
+  background: #304939;
+  color: #fff5d9;
+}
+.companionControls button:focus-visible {
+  outline: 2px solid #d6deab;
+  outline-offset: 3px;
+}
+.hearts {
+  display: flex;
+  gap: 5px;
+  color: #d6a8a0;
+}
+.hearts [data-filled="false"] {
+  opacity: 0.3;
+}
+.checkpointNote {
+  position: absolute;
+  top: 102px;
+  left: 50%;
+  translate: -50% 0;
+  width: max-content;
+  max-width: calc(100% - 36px);
+  text-align: center;
+  color: #becba6;
+  font: 10px/1.5 var(--font-data, monospace);
+}
+.controls .jumpButton {
+  min-width: 152px;
+  border-color: #c7dba44d;
+}
+.controls .jumpButton[data-available="false"] {
+  color: #859981;
+}
+.directions button {
+  min-width: 48px;
+  padding: 8px;
+}
+.character[data-reaction="boop"] .whisper,
+.character[data-reaction="dizzy"] .whisper {
+  font-size: 0;
+}
+.character[data-reaction="boop"] .whisper::after {
+  content: "♡";
+  font-size: 13px;
+  color: #edb4b5;
+}
+.character[data-reaction="dizzy"] .whisper::after {
+  content: "oh, my little head…";
+  font-size: 9px;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .hearts {
+    position: absolute;
+    top: 60px;
+    left: 3px;
+  }
+  .checkpointNote {
+    top: 104px;
+    font-size: 9px;
+  }
+  .actions {
+    min-width: 104px;
+  }
+  .actions button {
+    min-width: 34px;
+    min-height: 44px;
+  }
+  .companionControls button {
+    min-height: 40px;
   }
 }
