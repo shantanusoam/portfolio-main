@@ -21,31 +21,43 @@ export class MochiAudio {
     const ctx = this.context;
     if (!this.enabled || !ctx || ctx.state !== "running") return;
     const soft = event === "land";
-    const frequency = soft
-      ? 155
-      : event === "boop"
-        ? 740
-        : event === "hurt"
-          ? 220
-          : event === "checkpoint"
-            ? 1046
-            : event === "stomp"
-              ? 784
-              : event === "star"
-                ? 880
-                : event === "spring"
-                  ? 659
-                  : event === "extra"
-                    ? 587
-                    : event === "over"
-                      ? 196
-                      : [330, 392, 440, 494, 587][this.note++ % 5];
+    const frequency =
+      event === "boost"
+        ? 410
+        : event === "chain"
+          ? 1175
+          : event === "lantern"
+            ? 1318
+            : soft
+              ? 155
+              : event === "boop"
+                ? 740
+                : event === "hurt"
+                  ? 220
+                  : event === "checkpoint"
+                    ? 1046
+                    : event === "stomp"
+                      ? 784
+                      : event === "star"
+                        ? 880
+                        : event === "spring"
+                          ? 659
+                          : event === "extra"
+                            ? 587
+                            : event === "over"
+                              ? 196
+                              : [330, 392, 440, 494, 587][this.note++ % 5];
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
     osc.frequency.setValueAtTime(frequency, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(
-      frequency * (event === "over" || event === "hurt" || soft ? 0.7 : 1.05),
+      frequency *
+        (event === "boost"
+          ? 2.1
+          : event === "over" || event === "hurt" || soft
+            ? 0.7
+            : 1.05),
       ctx.currentTime + 0.15,
     );
     gain.gain.setValueAtTime(0, ctx.currentTime);

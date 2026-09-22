@@ -7,7 +7,8 @@ import {
   nextPlatform,
   type Platform,
 } from "../../lib/home-octocat/motion";
-import { mochiPose } from "../../lib/home-octocat/pose";
+import { mochiPose, characterScale } from "../../lib/home-octocat/pose";
+import { platformOpacity } from "../../lib/home-octocat/worldRenderer";
 const floor = { id: "instrument", x: 20, y: 540, width: 1160, goal: false };
 function setup(width = 1200, height = 800) {
   const m = new HomeOctocatMotion();
@@ -143,7 +144,8 @@ test("feet alternate predictive steps and hold their world position through stan
         assert.equal(f.x, previous[j].x);
         plantedFrames++;
         assert.ok(
-          Math.abs(m.x + mochiPose(m).feet[j].x - f.x) < 1e-8,
+          Math.abs(m.x + mochiPose(m).feet[j].x * characterScale(m) - f.x) <
+            1e-8,
           "rendered foot remains planted too",
         );
       }
@@ -474,4 +476,128 @@ test("a manual controller crosses the introductory obstacles and checkpoints at 
     }
     assert.ok(m.heightMetres > 350 && m.landings > 35 && m.checkpointId > 24);
   }
+});
+
+function descendOnto(m: HomeOctocatMotion, p: Platform) {
+  m.grounded = false;
+  m.x = p.x + p.width / 2;
+  m.y = p.y - 2;
+  m.vx = 0;
+  m.vy = 360;
+  m.update(1 / 120);
+}
+
+test("amber boosters launch automatically with horizontal speed, survive key release and allow an air hop", () => {
+  for (const width of [390, 1200]) {
+    const m = setup(width);
+    m.begin();
+    const p = m.platforms.find((p) => p.kind === "boost")!;
+    assert.ok(p, "the first boost is visible in the generated introduction");
+    m.pointerX = p.x + p.width / 2;
+    descendOnto(m, p);
+    assert.equal(m.grounded, false);
+    assert.ok(m.vy <= -700 && Math.abs(m.vx) > 260);
+    assert.equal(
+      m.pointerX,
+      null,
+      "stale pointer position cannot cancel the launch",
+    );
+    assert.equal(m.extraHop, true);
+    const vy = m.vy;
+    m.releaseJump();
+    assert.equal(m.vy, vy, "a released manual key does not cut booster height");
+    step(m, 0.09);
+    assert.ok(Math.abs(m.vx) > 200, "the impulse retains momentum");
+    const vx = m.vx;
+    m.jump();
+    assert.equal(m.extraHop, false);
+    assert.equal(m.vx, vx, "air hopping keeps horizontal momentum");
+    assert.ok(m.events.includes("boost") && m.events.includes("extra"));
+  }
+});
+
+test("unsteered boosts guide to a higher foothold at phone and desktop widths, with bounded trails", () => {
+  for (const width of [320, 390, 1200]) {
+    const m = setup(width);
+    m.begin();
+    const p = m.platforms.find((p) => p.kind === "boost")!;
+    descendOnto(m, p);
+    for (let i = 0; i < 180 && !m.grounded; i++) {
+      m.update(1 / 120);
+      assert.ok(m.flowTrail.length <= 20 && m.particles.length <= 80);
+    }
+    assert.equal(m.lives, 3);
+    assert.equal(m.grounded, true);
+    assert.ok(m.y < p.y - 60, `${width}px boost should reach the next ledge`);
+    assert.equal(m.chain, 2);
+    const y = m.y;
+    step(m, 0.2);
+    assert.equal(m.y, y, "ordinary receiving ledge does not auto-launch");
+  }
+});
+
+test("new ledges form timed chains, third links award once, expiry and repeated supports break the chain", () => {
+  const m = enter();
+  descendOnto(m, m.platforms.find((p) => p.id === 1)!);
+  assert.equal(m.chain, 1);
+  descendOnto(m, m.platforms.find((p) => p.id === 2)!);
+  const stars = m.stars;
+  const third = m.platforms.find((p) => p.id === 3)!;
+  descendOnto(m, third);
+  assert.equal(m.chain, 3);
+  assert.equal(m.bestChain, 3);
+  assert.equal(m.stars, stars + 1);
+  assert.ok(m.events.includes("chain"));
+  descendOnto(m, third);
+  assert.equal(m.chain, 0);
+  assert.equal(m.stars, stars + 1);
+  const fifth = m.platforms.find((p) => p.id === 5)!;
+  descendOnto(m, fifth);
+  assert.equal(m.chain, 1);
+  step(m, 3.3);
+  assert.equal(m.chain, 0);
+  assert.equal(m.lives, 3, "a missed timing window does not cost a heart");
+});
+
+test("lower ledges fade continuously as camera progress moves them down, then disappear offscreen", () => {
+  const height = 800;
+  assert.equal(platformOpacity(500, height), 1);
+  const values = [640, 680, 720, 760, 800, 830].map((y) =>
+    platformOpacity(y, height),
+  );
+  assert.ok(values[1] > 0 && values[1] < 1);
+  assert.ok(values.every((v, i) => i === 0 || v < values[i - 1]));
+  assert.equal(values.at(-1), 0);
+  const m = enter();
+  m.y = -500;
+  m.vy = -100;
+  m.grounded = false;
+  step(m, 0.1);
+  const camera = m.camera;
+  step(m, 0.1);
+  assert.ok(m.camera >= camera);
+});
+
+test("100m lanterns celebrate once and reduced motion suppresses speed trails, not boost physics", () => {
+  const m = enter();
+  m.reducedMotion = true;
+  const p = m.platforms.find((p) => p.kind === "boost")!;
+  descendOnto(m, p);
+  step(m, 0.15);
+  assert.ok(m.vy < 0);
+  assert.equal(m.flowTrail.length, 0);
+  assert.equal(m.particles.length, 0);
+  m.y = m.launchY - 1005;
+  m.update(1 / 120);
+  assert.equal(m.lanterns, 1);
+  assert.ok(m.milestoneTime > 0);
+  const count = m.events.filter((event) => event === "lantern").length;
+  step(m, 0.1);
+  assert.equal(m.events.filter((event) => event === "lantern").length, count);
+  assert.equal(mochiPose(m).tilt, 0);
+  m.reset();
+  assert.equal(m.chain, 0);
+  assert.equal(m.bestChain, 0);
+  assert.equal(m.lanterns, 0);
+  assert.equal(m.boostTime, 0);
 });

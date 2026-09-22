@@ -38,6 +38,10 @@ const INITIAL: GameSnapshot = {
   lives: 3,
   checkpoint: 0,
   recovering: false,
+  chain: 0,
+  bestChain: 0,
+  lanterns: 0,
+  celebrating: false,
 };
 
 export default function HomeOctocat() {
@@ -557,6 +561,27 @@ export default function HomeOctocat() {
                 </button>
               </div>
             </header>
+            {running && (
+              <div
+                className={styles.skyGoal}
+                aria-label={`Sky lantern ${game.lanterns + 1} at ${
+                  (game.lanterns + 1) * 100
+                } metres`}
+              >
+                <span>
+                  {game.celebrating
+                    ? `✦ Lantern ${game.lanterns} lit. Lovely flying!`
+                    : `Next sky lantern · ${(game.lanterns + 1) * 100}m`}
+                </span>
+                <div className={styles.goalTrack}>
+                  <i
+                    style={{
+                      transform: `scaleX(${(game.height % 100) / 100})`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             {running && (game.recovering || game.checkpoint > 0) && (
               <div className={styles.checkpointNote} role="status">
                 {game.recovering
@@ -576,7 +601,7 @@ export default function HomeOctocat() {
                   <p>
                     Walk, then jump when you&apos;re ready.
                     <br />
-                    Hold for height. Collect stars. Mind the puffs.
+                    Amber pads boost you. Link landings. Light the sky.
                   </p>
                   <button
                     type="button"
@@ -587,7 +612,7 @@ export default function HomeOctocat() {
                     Let&apos;s explore <ArrowRight size={16} />
                   </button>
                   <span className={styles.cardHint}>
-                    3 hearts · flower checkpoints · take your time
+                    3 hearts · flower checkpoints · first lantern at 100m
                   </span>
                 </motion.div>
               )}
@@ -625,7 +650,8 @@ export default function HomeOctocat() {
                   </h2>
                   <p>
                     <Star size={13} /> {game.stars} stars collected · best{" "}
-                    {Math.max(best, game.height)}m
+                    {Math.max(best, game.height)}m<br />
+                    Best chain: {game.bestChain} · {game.lanterns} lanterns lit
                   </p>
                   <button
                     type="button"
@@ -744,10 +770,12 @@ export default function HomeOctocat() {
             : paused
               ? "Game paused."
               : game.phase === "ready"
-                ? "Ready. Press Space to enter. Arrows move, Space jumps. Hold for a higher jump, press again for a double jump. Land on puffs from above. Flowers save your progress."
+                ? "Ready. Press Space to enter. Arrows move, Space jumps. Hold for a higher jump, press again for a double jump. Amber pads launch automatically. Link new ledges within three seconds for bonus stars. Land on puffs from above. Flowers save your progress."
                 : `${Math.floor(game.height / 25) * 25} metres. ${
                     game.stars
-                  } stars. ${game.lives} hearts.`)}
+                  } stars. ${game.lives} hearts. ${game.chain} linked. ${
+                    game.lanterns
+                  } lanterns lit.`)}
       </span>
       {unavailable && (
         <div className={styles.unavailable} role="status">

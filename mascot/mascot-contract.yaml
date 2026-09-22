@@ -42,6 +42,12 @@ mechanics:
   platforms: normal, moving with passenger carry, manual spring boost, delayed crumble, flower checkpoint
   forgiveness: three hearts, checkpoint return after damage or falling, brief invulnerability
   course: early safe ledges, progressively introduced mechanics, reachable consecutive platforms
+  boosters: amber directional pads automatically launch on landing, preserving steerable horizontal momentum; green springs remain manual
+  chains: new higher ledges within 3.2 seconds link; stars and stomps extend the window; every third link awards a star once
+  flow: booster launch, air steering, double jump, landing compression, next manual jump retain momentum
+  camera: upward progress moves platforms down; lower platforms fade over the last 190 pixels and are removed offscreen
+  milestone: every 100 metres lights another sky lantern with a brief celebration
+  readability: character 20 percent larger in play; darker backdrop; clear directional arrows and chain timer
 performance:
   fixed_step_hz: 120
   maximum_catchup_steps: 6

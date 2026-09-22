@@ -1,6 +1,7 @@
 import type { HomeOctocatMotion } from "./motion";
 import {
   CHARACTER_SIZE,
+  characterScale,
   CHARACTER_ORIGIN_X as OX,
   CHARACTER_ORIGIN_Y as OY,
   mochiPose,
@@ -147,7 +148,10 @@ export class CanvasOctocatRenderer {
       (m.y - m.previousY) * alpha +
       m.previousCamera +
       (m.camera - m.previousCamera) * alpha;
-    this.canvas.style.transform = `translate3d(${x - OX}px,${y - OY}px,0)`;
+    this.canvas.style.transformOrigin = `${OX}px ${OY}px`;
+    this.canvas.style.transform = `translate3d(${x - OX}px,${
+      y - OY
+    }px,0) scale(${characterScale(m)})`;
     this.canvas.style.opacity = m.phase === "over" ? "0" : "1";
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);

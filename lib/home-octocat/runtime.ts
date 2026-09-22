@@ -13,6 +13,10 @@ export interface GameSnapshot {
   lives: number;
   checkpoint: number;
   recovering: boolean;
+  chain: number;
+  bestChain: number;
+  lanterns: number;
+  celebrating: boolean;
 }
 interface Callbacks {
   onGame: (game: GameSnapshot) => void;
@@ -168,7 +172,9 @@ export class HomeOctocatRuntime {
     const m = this.motion;
     const signature = `${m.phase}:${m.heightMetres}:${m.stars}:${m.extraHop}:${
       m.grounded
-    }:${m.lives}:${m.checkpointId}:${m.recovering > 0}`;
+    }:${m.lives}:${m.checkpointId}:${m.recovering > 0}:${m.chain}:${
+      m.bestChain
+    }:${m.lanterns}:${m.milestoneTime > 0}`;
     if (signature !== this.signature) {
       this.signature = signature;
       this.callbacks.onGame({
@@ -180,6 +186,10 @@ export class HomeOctocatRuntime {
         lives: m.lives,
         checkpoint: m.checkpointId,
         recovering: m.recovering > 0,
+        chain: m.chain,
+        bestChain: m.bestChain,
+        lanterns: m.lanterns,
+        celebrating: m.milestoneTime > 0,
       });
     }
     if (

@@ -11,13 +11,13 @@ The home-page companion is now **Mochi**, an original round bunny. This replaces
 
 Reviewed both September attachments, including the current implementation recording (`screenrecording-2026-09-15_17-01-01.mp4`) and the reference (`screenrecording-2026-08-07_10-39-34(7).mp4`).
 
-| Observation                                                      | Previous implementation                                                                                                                                                       | Revision                                                                                                                             |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Compact silhouette in the reference                              | A large cat head, narrow torso and seven independently trailing tubes spread into a spider-like shape. This is especially visible around 12 seconds in the current recording. | One connected plush body, two short paws, small feet and two attached ear pivots.                                                    |
-| Movement has a leading action and delayed follow-through         | Head and limb springs could pull the anatomy apart.                                                                                                                           | The body retains its volume during squash/stretch. Ear rotation and body tilt respond with damped springs; no free-floating head.    |
-| The reference becomes a vertical platform game around 18 seconds | Three fixed navigation links were the entire objective.                                                                                                                       | An endless, reachable course with stars, springs, moving ledges, crumbling ledges, height and a saved personal best.                 |
-| The game grows out of the app                                    | The home screen stayed static behind a large bottom HUD.                                                                                                                      | Mochi starts over the guitar; the hero recedes upward as the camera climbs. A compact top HUD leaves the playfield clear.            |
-| Movement belongs to the player                                   | Repeated manual jumps and awkwardly spaced DOM ledges.                                                                                                                        | Manual, variable-height jumps, buffered input, coyote time, and one deliberate double jump. No automatic bounce on entry or landing. |
+| Observation                                                      | Previous implementation                                                                                                                                                       | Revision                                                                                                                                                              |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Compact silhouette in the reference                              | A large cat head, narrow torso and seven independently trailing tubes spread into a spider-like shape. This is especially visible around 12 seconds in the current recording. | One connected plush body, two short paws, small feet and two attached ear pivots.                                                                                     |
+| Movement has a leading action and delayed follow-through         | Head and limb springs could pull the anatomy apart.                                                                                                                           | The body retains its volume during squash/stretch. Ear rotation and body tilt respond with damped springs; no free-floating head.                                     |
+| The reference becomes a vertical platform game around 18 seconds | Three fixed navigation links were the entire objective.                                                                                                                       | An endless, reachable course with stars, springs, moving ledges, crumbling ledges, height and a saved personal best.                                                  |
+| The game grows out of the app                                    | The home screen stayed static behind a large bottom HUD.                                                                                                                      | Mochi starts over the guitar; the hero recedes upward as the camera climbs. A compact top HUD leaves the playfield clear.                                             |
+| Movement belongs to the player                                   | Repeated manual jumps and awkwardly spaced DOM ledges.                                                                                                                        | Manual, variable-height jumps, buffered input, coyote time, and one deliberate double jump. Normal platforms stay manual; marked amber boosters launch automatically. |
 
 ### What Cameron actually described
 
@@ -43,17 +43,18 @@ The auto-bounce version left the feet grounded for only a fraction of a second. 
 
 - **Let's explore** or the first **Space** opens the course. Mochi stays on the starting foothold.
 - Move with the mouse, **Left/Right**, **A/D**, touch drag, or the direction buttons.
-- **Space / Up / W / Jump** launches only on a new press. Hold to go higher; release for a shorter hop. The opening ledges are reachable with a short hop.
+- **Space / Up / W / Jump** launches from normal platforms only on a new press. Amber boost pads launch automatically on landing. Hold to go higher; release for a shorter hop. The opening ledges are reachable with a short hop.
 - Press again in flight for one double jump. It refills on landing. A press within 140ms of landing is buffered for the next ground jump; a 100ms grace window also permits jumping just after leaving an edge.
 - **P** pauses, **R** restarts, **Escape** exits. Blur and tab hiding pause the run.
 
-The Jump button supports pointer capture, press/release, keyboard activation and assistive clicks. Pausing, restarting or exiting clears held input. A held key never auto-repeats a jump after landing.
+The Jump button supports pointer capture, press/release, keyboard activation and assistive clicks. Pausing, restarting or exiting clears held input. A held key never auto-repeats a jump after a normal landing. Automatic amber boosts are independent of held input.
 
 ### Course rules
 
 | Element                 | Behavior and player choice                                                                                                                                              |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Gold star               | Collect once per run, including after checkpoint recovery.                                                                                                              |
+| Amber boost pad         | Automatically launches upward and toward the next ledge on landing. Arrows show direction. Air steering and the double jump remain available.                           |
 | Green spring            | Stand safely, then press Jump for a stronger launch. Never launches automatically.                                                                                      |
 | Moving foothold         | Carries Mochi and planted feet together.                                                                                                                                |
 | Cracked peach foothold  | Shows a shrinking warning bar for 950ms before breaking. Jump before it collapses.                                                                                      |
@@ -117,3 +118,17 @@ The deployed home page at `https://shantanusoam.vercel.app/?mochi=play` was chec
 - Petting produced the happy reaction; three quick native clicks produced the dizzy reaction. The separate Play button remained available on the home page.
 
 All 19 simulation tests, TypeScript, scoped ESLint and a clean production build passed. The cloud browser used the Canvas fallback, so final WebGL lighting, physical touch-device input and device frame rate still need a hardware check.
+
+## September 22: linked movement and sky lanterns
+
+- Amber boosters appear every eight rows starting at row six, with directional arrows and an introductory label. They apply a 720px/s upward impulse and up to 430px/s horizontal impulse. Momentum eases into guidance toward the next ledge; fresh pointer or keyboard input can steer away. Releasing a jump key cannot shorten the automatic boost. A deliberate air hop preserves horizontal velocity.
+- Landing on a new higher ledge within 3.2 seconds links the movement. Stars and stomps refresh the window. Every third link awards one bonus star and a sound cue. Revisiting a support breaks the chain, and previously reached supports cannot farm link rewards after checkpoint recovery. Missing the window costs no heart. Damage and restarting clear active chains.
+- A bounded, short speed trail follows boosts and longer chains. Body lean, paw lift and ear follow-through respond to the actual impulse. Pausing freezes the simulation and timing windows together.
+- The rising camera moves the platforms down the screen. Each platform, star and patrol fades together across the bottom 190px, then is removed offscreen. Moving-platform carry and collision geometry stay unchanged during the fade.
+- Every 100m lights a visible sky lantern and triggers a brief celebration; the next target and progress are shown below the HUD. The run summary records lanterns and the best chain.
+- Mochi is 20% larger during play, anchored at the soles in both renderers. Foot positions compensate for display scaling to preserve planted world-space stance. The backdrop becomes quieter sooner, improving character and platform contrast.
+- Reduced motion keeps automatic boosts and essential trajectories, while removing speed trails, pad pulses and secondary character movement. Sound remains opt-in.
+
+The 24 behavioral tests include booster impulses, key-release independence, double-jump momentum, automatic arrival at higher ledges at 320/390/1200px widths, chain bonuses/expiry/repeat protection, fading, one-time lantern milestones and reduced motion. The original manual course controller and actual rendered foot-plant checks still pass. The Canvas world and booster poses were inspected at desktop and phone widths. Physical touch-device performance and final WebGL lighting remain hardware checks.
+
+TypeScript, scoped ESLint and the production build passed for this revision.

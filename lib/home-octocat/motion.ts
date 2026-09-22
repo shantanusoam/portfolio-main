@@ -9,6 +9,7 @@ export interface Ledge {
 export type PlatformKind =
   | "normal"
   | "spring"
+  | "boost"
   | "moving"
   | "crumble"
   | "checkpoint";
@@ -23,6 +24,7 @@ export interface Platform {
   broken: boolean;
   star: boolean;
   crumble?: number;
+  boostReadyAt?: number;
   puff?: { x: number; defeated: boolean; squash: number };
 }
 export interface Particle {
@@ -62,7 +64,10 @@ export type MotionEvent =
   | "boop"
   | "hurt"
   | "checkpoint"
-  | "stomp";
+  | "stomp"
+  | "boost"
+  | "chain"
+  | "lantern";
 export const clamp = (v: number, min: number, max: number) =>
   Math.max(min, Math.min(max, v));
 export const GRAVITY = 1500;
@@ -85,13 +90,15 @@ export function nextPlatform(
   const kind: PlatformKind =
     id % 8 === 0
       ? "checkpoint"
-      : id % 8 === 5
-        ? "spring"
-        : id > 8 && id % 8 === 7
-          ? "crumble"
-          : id > 5 && id % 8 === 2
-            ? "moving"
-            : "normal";
+      : id % 8 === 6
+        ? "boost"
+        : id % 8 === 5
+          ? "spring"
+          : id > 8 && id % 8 === 7
+            ? "crumble"
+            : id > 5 && id % 8 === 2
+              ? "moving"
+              : "normal";
   const size = Math.min(
     width * 0.5,
     kind === "checkpoint" ? 170 : 140 - difficulty * 30,
@@ -175,6 +182,16 @@ export class HomeOctocatMotion {
   sleepy = 0;
   attention = 0;
   checkpointId = 0;
+  boostTime = 0;
+  boostTargetX: number | null = null;
+  chain = 0;
+  bestChain = 0;
+  chainTime = 0;
+  lanterns = 0;
+  milestoneTime = 0;
+  flowTrail: { x: number; y: number; life: number }[] = [];
+  private chainFrontier = 0;
+  private trailClock = 0;
   private initialized = false;
   private scrollY = 0;
   private idleOrigin = 0;
@@ -271,6 +288,8 @@ export class HomeOctocatMotion {
       this.x *= ratio;
       this.previousX = this.x;
       this.pointerX = null;
+      if (this.boostTargetX !== null) this.boostTargetX *= ratio;
+      this.flowTrail = [];
       for (const p of this.platforms) {
         p.x *= ratio;
         p.baseX *= ratio;
@@ -324,7 +343,9 @@ export class HomeOctocatMotion {
         0;
     this.ears.fill(0);
     this.earVelocity.fill(0);
-    this.anticipation = this.coyote = 0;
+    this.anticipation = this.coyote = this.boostTime = 0;
+    this.boostTargetX = null;
+    this.flowTrail = [];
     this.dragging = false;
     this.grounded = true;
     this.clearInput();
@@ -373,6 +394,8 @@ export class HomeOctocatMotion {
       this.checkpointId =
         0;
     this.extraHop = true;
+    this.chain = this.bestChain = this.chainTime = this.chainFrontier = 0;
+    this.lanterns = this.milestoneTime = 0;
     this.lives = 3;
     this.invulnerable = this.recovering = 0;
     this.particles = [];
@@ -399,7 +422,7 @@ export class HomeOctocatMotion {
     this.resetPose();
   }
 
-  /** Entering the course never jumps. Every launch belongs to a new press. */
+  /** Entering and normal landings never jump. Marked boosters are automatic. */
   begin() {
     if (this.phase === "ready") {
       this.phase = "climbing";
@@ -453,7 +476,7 @@ export class HomeOctocatMotion {
 
   releaseJump() {
     this.jumpHeld = false;
-    if (this.vy < -this.jumpCut) this.vy = -this.jumpCut;
+    if (this.boostTime <= 0 && this.vy < -this.jumpCut) this.vy = -this.jumpCut;
   }
 
   steer(screenX: number) {
@@ -561,6 +584,7 @@ export class HomeOctocatMotion {
   }
 
   private launch(speed: number, event: MotionEvent) {
+    if (event !== "boost") this.boostTime = Math.min(this.boostTime, 0.35);
     this.jumpCut = event === "spring" ? 640 : 510;
     this.vy = -(this.jumpHeld ? speed : Math.min(speed, this.jumpCut));
     this.jumpAge = 0;
@@ -581,6 +605,21 @@ export class HomeOctocatMotion {
     const oldVx = this.vx;
     if (this.phase === "idle") this.updateIdle(dt);
     else if (this.phase === "climbing") this.updateClimb(dt);
+    this.milestoneTime = Math.max(0, this.milestoneTime - dt);
+    this.flowTrail = this.flowTrail.filter((p) => (p.life -= dt) > 0);
+    this.trailClock += dt;
+    if (
+      !this.reducedMotion &&
+      this.phase === "climbing" &&
+      !this.grounded &&
+      !this.recovering &&
+      (this.boostTime > 0 || this.chain >= 3) &&
+      this.trailClock > 0.025
+    ) {
+      this.trailClock = 0;
+      if (this.flowTrail.length < 20)
+        this.flowTrail.push({ x: this.x, y: this.y - 25, life: 0.32 });
+    }
     this.animate(dt, (this.vx - oldVx) / dt);
     this.updateFeet(dt);
     for (const p of this.particles) {
@@ -656,6 +695,10 @@ export class HomeOctocatMotion {
       if (!this.recovering) this.respawn();
       return;
     }
+    this.boostTime = Math.max(0, this.boostTime - dt);
+    if (!this.boostTime) this.boostTargetX = null;
+    this.chainTime = Math.max(0, this.chainTime - dt);
+    if (!this.chainTime) this.chain = 0;
     let support = this.platforms.find(
       (p) => p.id === this.supportId && !p.broken,
     );
@@ -690,10 +733,13 @@ export class HomeOctocatMotion {
         p.puff.squash = Math.max(0, p.puff.squash - dt * 2);
       }
     }
+    // Booster momentum eases toward its next ledge unless the player steers.
+    const aim =
+      this.pointerX ?? (this.boostTime > 0 ? this.boostTargetX : null);
     const targetVx = this.axis
       ? this.axis * RUN_SPEED
-      : this.pointerX !== null
-        ? clamp((this.pointerX - this.x) * 8, -RUN_SPEED, RUN_SPEED)
+      : aim !== null
+        ? clamp((aim - this.x) * 8, -RUN_SPEED, RUN_SPEED)
         : 0;
     const braking =
       this.grounded &&
@@ -701,7 +747,12 @@ export class HomeOctocatMotion {
       (Math.sign(targetVx) !== Math.sign(this.vx) || Math.abs(targetVx) < 8);
     if (braking && this.skid < 0.1) this.burst(this.x, this.y - 1, false, 3);
     this.skid = damp(this.skid, braking ? 1 : 0, 16, dt);
-    this.vx = damp(this.vx, targetVx, this.grounded ? 15 : 8, dt);
+    this.vx = damp(
+      this.vx,
+      targetVx,
+      this.grounded ? 15 : this.boostTime > 0 ? 5 : 8,
+      dt,
+    );
     this.x = clamp(this.x + this.vx * dt, 16, this.fieldWidth - 16);
     if (this.x === 16 || this.x === this.fieldWidth - 16) this.vx = 0;
     if (this.grounded) {
@@ -791,6 +842,7 @@ export class HomeOctocatMotion {
           this.vy = Math.min(this.vy, 120);
           this.squashVelocity = 3;
           this.react("delight", 0.7);
+          if (this.chain > 0) this.chainTime = 3.2;
           this.emit("stomp");
           this.burst(px, top, true, 12);
         } else if (
@@ -821,6 +873,7 @@ export class HomeOctocatMotion {
         p.star = false;
         this.claimedStars.add(p.id);
         this.stars++;
+        if (this.chain > 0) this.chainTime = 3.2;
         this.emit("star");
         this.react("delight", 0.55);
         this.burst(sx, sy, true, 10);
@@ -830,10 +883,18 @@ export class HomeOctocatMotion {
       this.heightMetres,
       Math.floor((this.launchY - this.y) / 10),
     );
+    const reached = Math.floor(this.heightMetres / 100);
+    if (reached > this.lanterns) {
+      this.lanterns = reached;
+      this.milestoneTime = 2.6;
+      this.react("delight", 1.1);
+      this.emit("lantern");
+      this.burst(this.x, this.y - 30, true, 18);
+    }
     // Keep the current foothold available when exploring; progress only lifts the camera.
     this.lastCameraTarget = Math.max(
       this.lastCameraTarget,
-      this.height * 0.43 - this.y,
+      this.height * 0.46 - this.y,
     );
     this.camera = damp(this.camera, this.lastCameraTarget, 7, dt);
     this.fillPlatforms();
@@ -852,6 +913,23 @@ export class HomeOctocatMotion {
     this.coyote = 0.1;
     this.extraHop = true;
     this.landings++;
+    this.boostTime = 0;
+    this.boostTargetX = null;
+    // Only new higher supports can link: bouncing on one pad cannot farm stars.
+    if (p.id > this.chainFrontier) {
+      this.chainFrontier = p.id;
+      this.chain = this.chainTime > 0 ? this.chain + 1 : 1;
+      this.bestChain = Math.max(this.bestChain, this.chain);
+      this.chainTime = 3.2;
+      if (this.chain % 3 === 0) {
+        this.stars++;
+        this.emit("chain");
+        this.react("delight", 0.7);
+        this.burst(this.x, this.y - 22, true, 8);
+      }
+    } else {
+      this.chain = this.chainTime = 0;
+    }
     this.resetFeet();
     this.squashVelocity = this.reducedMotion
       ? 0
@@ -875,11 +953,38 @@ export class HomeOctocatMotion {
       this.emit("checkpoint");
       this.burst(this.x, this.y - 18, true, 18);
     }
+    if (p.kind === "boost") this.boost(p);
+  }
+
+  /** A pad fires once on contact, then waits before accepting another landing. */
+  private boost(p: Platform) {
+    if (this.time < (p.boostReadyAt ?? 0)) return;
+    p.boostReadyAt = this.time + 1.1;
+    const next =
+      this.platforms.find((candidate) => candidate.id === p.id + 1) ??
+      nextPlatform(p, p.id + 1, this.fieldWidth);
+    this.pointerX = null;
+    this.boostTargetX = next.x + next.width / 2;
+    const direction =
+      Math.sign(this.boostTargetX - this.x) ||
+      (this.x < this.fieldWidth / 2 ? 1 : -1);
+    this.jumpBuffer = this.anticipation = 0;
+    // A key release must never trim the automatic pad's impulse.
+    this.launch(720, "boost");
+    this.vy = -720;
+    this.vx = direction * Math.min(430, this.fieldWidth * 1.4);
+    this.boostTime = 0.9;
+    this.extraHop = true;
+    this.react("surprise", 0.45);
+    this.burst(this.x, this.y, true, 12);
   }
 
   private hurt(sourceX: number) {
     if (this.recovering > 0) return;
     this.lives--;
+    this.chain = this.chainTime = this.boostTime = 0;
+    this.boostTargetX = null;
+    this.flowTrail = [];
     this.clearInput();
     this.vx = (Math.sign(this.x - sourceX) || 1) * 70;
     this.react("hurt", 0.7);

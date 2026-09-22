@@ -1,4 +1,15 @@
-import { clamp, type HomeOctocatMotion, type Platform } from "./motion";
+import {
+  clamp,
+  nextPlatform,
+  type HomeOctocatMotion,
+  type Platform,
+} from "./motion";
+
+/** Offscreen removal is separate from opacity: no visible disappearing supports. */
+export function platformOpacity(screenY: number, height: number) {
+  const t = clamp((height + 30 - screenY) / 190, 0, 1);
+  return t * t * (3 - 2 * t);
+}
 
 /** The world moves; the page never scrolls during a run. One bounded canvas. */
 export class WorldRenderer {
@@ -40,7 +51,7 @@ export class WorldRenderer {
     const camera = m.previousCamera + (m.camera - m.previousCamera) * alpha;
     // Start over the portfolio, then let it recede into a quiet night sky.
     const cover = clamp(camera / 280, 0, 1);
-    ctx.fillStyle = `rgba(13,23,26,${0.72 + cover * 0.25})`;
+    ctx.fillStyle = `rgba(13,23,26,${0.87 + cover * 0.12})`;
     ctx.fillRect(0, 0, width, height);
     const glow = ctx.createRadialGradient(
       width / 2,
@@ -79,6 +90,40 @@ export class WorldRenderer {
       ctx.lineTo(m.fieldWidth, y);
       ctx.stroke();
     }
+    // Lanterns are visible destinations as their altitude enters the viewport.
+    for (let n = Math.max(1, m.lanterns); n <= m.lanterns + 1; n++) {
+      const y = m.launchY - n * 1000;
+      if (y + camera < -70 || y + camera > height + 60) continue;
+      const x = m.fieldWidth / 2;
+      const lit = n <= m.lanterns;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = lit ? "#f6d69822" : "#c5dcca0d";
+      ctx.beginPath();
+      ctx.arc(0, -30, 44, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = lit ? "#f4d496" : "#90aa97";
+      ctx.fillStyle = lit ? "#f5cf80" : "#314b41";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(-13, -47, 26, 32, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, -15);
+      ctx.lineTo(0, -5);
+      ctx.stroke();
+      ctx.fillStyle = lit ? "#fff1c8" : "#c1d1b2";
+      this.star(0, -31, 5);
+      ctx.font = "10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        lit ? "a little light for the sky" : `${n * 100}m · light this lantern`,
+        0,
+        13,
+      );
+      ctx.restore();
+    }
     for (const p of m.platforms) {
       if (
         p.y + camera < -50 ||
@@ -86,6 +131,8 @@ export class WorldRenderer {
         (p.broken && p.hit <= 0)
       )
         continue;
+      ctx.save();
+      ctx.globalAlpha = platformOpacity(p.y + camera, height);
       this.platform(p, m);
       if (p.puff) this.puff(p, m);
       if (p.star) {
@@ -103,6 +150,21 @@ export class WorldRenderer {
           7.5,
           m.reducedMotion ? 0 : Math.sin(m.time + p.id) * 0.1,
         );
+      }
+      ctx.restore();
+    }
+    if (!m.reducedMotion) {
+      for (let i = 1; i < m.flowTrail.length; i++) {
+        const a = m.flowTrail[i - 1];
+        const b = m.flowTrail[i];
+        ctx.globalAlpha = (Math.min(a.life, b.life) / 0.32) * 0.45;
+        ctx.strokeStyle = m.boostTime > 0 ? "#f6c57e" : "#b9e5d0";
+        ctx.lineWidth = 2 + (i / m.flowTrail.length) * 3;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
       }
     }
     for (const p of m.particles) {
@@ -149,6 +211,21 @@ export class WorldRenderer {
       }
     }
     ctx.restore();
+    // Small, stable flow readout; the timer is drawn without React frame updates.
+    if (m.chain > 1 && m.phase === "climbing") {
+      ctx.textAlign = "center";
+      ctx.font = "600 12px sans-serif";
+      ctx.fillStyle = "#f2d9a6";
+      ctx.fillText(
+        `${m.chain} linked · ${m.chain % 3 === 0 ? "+1 star" : "keep flowing"}`,
+        width / 2,
+        108,
+      );
+      ctx.fillStyle = "#a7bc9f33";
+      ctx.fillRect(width / 2 - 46, 116, 92, 2);
+      ctx.fillStyle = "#ebcb90";
+      ctx.fillRect(width / 2 - 46, 116, (92 * m.chainTime) / 3.2, 2);
+    }
     const vignette = ctx.createLinearGradient(0, height - 150, 0, height);
     vignette.addColorStop(0, "#0c171900");
     vignette.addColorStop(1, "#0c1719dd");
@@ -161,16 +238,18 @@ export class WorldRenderer {
     const squash = Math.sin((1 - p.hit) * Math.PI) * p.hit * 4;
     const y = p.y; // The sole stays on the collision surface during compression.
     const color =
-      p.kind === "spring"
-        ? "#bddbb4"
-        : p.kind === "checkpoint"
-          ? "#e6ce97"
-          : p.kind === "crumble"
-            ? "#cba992"
-            : "#96ada1";
+      p.kind === "boost"
+        ? "#f1bd77"
+        : p.kind === "spring"
+          ? "#bddbb4"
+          : p.kind === "checkpoint"
+            ? "#e6ce97"
+            : p.kind === "crumble"
+              ? "#cba992"
+              : "#96ada1";
     ctx.save();
     if (p.broken) {
-      ctx.globalAlpha = p.hit;
+      ctx.globalAlpha *= p.hit;
       ctx.translate(0, (1 - p.hit) * 18);
     }
     ctx.fillStyle = "#050e1144";
@@ -182,12 +261,45 @@ export class WorldRenderer {
     ctx.roundRect(p.x, y, p.width, 9 - squash * 0.4, 5);
     ctx.fill();
     ctx.fillStyle = color;
+    const platformAlpha = ctx.globalAlpha;
     ctx.globalAlpha *= 0.8;
     ctx.beginPath();
     ctx.roundRect(p.x + 1, y, p.width - 2, 3, 2);
     ctx.fill();
-    ctx.globalAlpha = p.broken ? p.hit : 1;
-    if (p.kind === "spring") {
+    ctx.globalAlpha = platformAlpha;
+    if (p.kind === "boost") {
+      const next =
+        m.platforms.find((n) => n.id === p.id + 1) ??
+        nextPlatform(p, p.id + 1, m.fieldWidth);
+      const direction =
+        Math.sign(next.x + next.width / 2 - p.x - p.width / 2) || 1;
+      const center = p.x + p.width / 2;
+      const pulse = m.reducedMotion ? 0 : Math.sin(m.time * 4 + p.id) * 0.12;
+      ctx.fillStyle = `rgba(241,189,119,${0.14 + pulse * 0.4})`;
+      ctx.beginPath();
+      ctx.roundRect(p.x, y - 7, p.width, 20, 9);
+      ctx.fill();
+      ctx.strokeStyle = "#ffe1aa";
+      ctx.lineWidth = 2;
+      ctx.lineJoin = "round";
+      for (const offset of [-12, 0, 12]) {
+        ctx.beginPath();
+        ctx.moveTo(center + offset - direction * 4, y + 4);
+        ctx.lineTo(center + offset + direction * 3, y - 2);
+        ctx.lineTo(center + offset - direction * 3, y - 2);
+        ctx.moveTo(center + offset + direction * 3, y - 2);
+        ctx.lineTo(center + offset + direction * 3, y + 4);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#e8c38e";
+      ctx.textAlign = "center";
+      ctx.font = "10px monospace";
+      ctx.fillText(
+        p.id === 6 ? "auto boost · steer in air" : "boost",
+        center,
+        y + 26,
+      );
+    } else if (p.kind === "spring") {
       ctx.strokeStyle = "#cee8b7";
       ctx.lineWidth = 1.4;
       for (const dx of [-4, 4]) {
@@ -276,7 +388,7 @@ export class WorldRenderer {
     ctx.ellipse(0, 1, 14, 2.5, 0, 0, Math.PI * 2);
     ctx.fill();
     if (puff.defeated) {
-      ctx.globalAlpha = puff.squash;
+      ctx.globalAlpha *= puff.squash;
       ctx.scale(1.3, 0.2 + puff.squash * 0.2);
     }
     ctx.fillStyle = alert ? "#c4a9bf" : "#a796b3";

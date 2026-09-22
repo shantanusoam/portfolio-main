@@ -1,8 +1,12 @@
 import { clamp, type HomeOctocatMotion } from "./motion";
 
+export const characterScale = (m: HomeOctocatMotion) => (m.playing ? 1.2 : 1);
+
 /** The stance feet are outside body squash/tilt. Short two-bone legs bridge the pose. */
 export function mochiPose(m: HomeOctocatMotion) {
   const still = m.reducedMotion;
+  const scale = characterScale(m);
+  const boost = still ? 0 : clamp(m.boostTime / 0.18, 0, 1);
   const weight = Math.max(0, m.reactionWeight);
   const happy = m.reaction === "boop" || m.reaction === "delight" ? weight : 0;
   const dizzy = m.reaction === "dizzy" ? weight : 0;
@@ -23,8 +27,8 @@ export function mochiPose(m: HomeOctocatMotion) {
         )
       : Math.sin(m.time * 2) * 0.32;
   const feet = m.feet.map((foot, i) => ({
-    x: still ? (i ? 9 : -9) : clamp(foot.x - m.x, -29, 29),
-    y: -4 + (still ? 0 : foot.y - m.y),
+    x: still ? (i ? 9 : -9) : clamp(foot.x - m.x, -29, 29) / scale,
+    y: -4 + (still ? 0 : (foot.y - m.y) / scale),
     angle: still
       ? 0
       : foot.moving
@@ -70,9 +74,13 @@ export function mochiPose(m: HomeOctocatMotion) {
     arms: still
       ? [0, 0]
       : [
-          Math.sin(m.gait) * (moving ? 0.4 : 0) - happy * 0.65 - m.edge * 0.4,
+          Math.sin(m.gait) * (moving ? 0.4 : 0) -
+            happy * 0.65 -
+            m.edge * 0.4 -
+            boost * 0.65,
           -Math.sin(m.gait) * (moving ? 0.4 : 0) +
             happy * 0.65 +
+            boost * 0.65 +
             wave * (2.55 + Math.sin(m.reactionAge * 19) * 0.3) -
             m.edge * 0.4,
         ],
