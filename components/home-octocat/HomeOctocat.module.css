@@ -82,6 +82,9 @@
   pointer-events: none;
 }
 .hud {
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0d191bf5, #0d191be8);
   position: absolute;
   top: max(25px, env(safe-area-inset-top));
   left: 50%;
@@ -545,7 +548,7 @@ button:disabled .hopDot {
 }
 .checkpointNote {
   position: absolute;
-  top: 171px;
+  top: 183px;
   left: 50%;
   translate: -50% 0;
   width: max-content;
@@ -585,7 +588,7 @@ button:disabled .hopDot {
     left: 3px;
   }
   .checkpointNote {
-    top: 171px;
+    top: 183px;
     font-size: 9px;
   }
   .actions {
@@ -606,6 +609,9 @@ button:disabled .hopDot {
   left: 50%;
   translate: -50% 0;
   width: min(260px, calc(100% - 60px));
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: #10201ff0;
   text-align: center;
   color: #c5d6bf;
   font: 10px/1.5 var(--font-data, monospace);

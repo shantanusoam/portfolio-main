@@ -132,3 +132,5 @@ All 19 simulation tests, TypeScript, scoped ESLint and a clean production build 
 The 24 behavioral tests include booster impulses, key-release independence, double-jump momentum, automatic arrival at higher ledges at 320/390/1200px widths, chain bonuses/expiry/repeat protection, fading, one-time lantern milestones and reduced motion. The original manual course controller and actual rendered foot-plant checks still pass. The Canvas world and booster poses were inspected at desktop and phone widths. Physical touch-device performance and final WebGL lighting remain hardware checks.
 
 TypeScript, scoped ESLint and the production build passed for this revision.
+
+Live Canvas QA on September 22 verified three consecutive keyboard landings and the bonus star, then the manual spring → automatic directional booster → safe landing sequence without another launch press. The run retained all three hearts, saved the flower checkpoint and lit the first 100m lantern with the celebration and next-goal update. The final visual pass adds quiet backgrounds behind the HUD and goal readout so passing platforms do not obscure their text.
