@@ -75,8 +75,8 @@ const career = [
     date: "Jan 2025 — Present",
     summary: "Building digital systems that scale and last.",
     description:
-      "Leading product engineering, multi-tenant architecture and modernization for complex business platforms.",
-    technologies: ["React", "TypeScript", "TanStack", "Laravel", "AWS"],
+      "Leading product engineering, multi-tenant architecture, performance work, permissions, and modernization for complex business platforms.",
+    technologies: ["React", "TypeScript", "TanStack", "Laravel", "System Design"],
     icon: "building",
   },
   {
@@ -137,9 +137,9 @@ const career = [
 const skills = [
   ["Frontend Development", 9],
   ["Backend Development", 8],
-  ["System Design", 8],
+  ["System Design", 9],
   ["Database & APIs", 8],
-  ["DevOps & Deployment", 7],
+  ["AI Voice & Orchestration", 8],
 ] as const;
 
 const tools = [
@@ -297,8 +297,8 @@ function CareerDiagnostics() {
         <div className={diagnosticStyles.focusPanel}>
           <h3>{"// Current focus"}</h3>
           <p>
-            Building scalable products, exploring AI integrations and pushing the
-            boundaries of interactive web experiences.
+            Building scalable product systems, realtime AI voice orchestration,
+            and hardware-connected interaction experiments.
           </p>
           <div className={diagnosticStyles.processRail}>
             {["Build", "Learn", "Ship", "Repeat"].map((item) => (
