@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { frame, subscribe, timeOfDay, wake } from "./motion";
-import Cursor from "./Cursor";
 import GardenSound from "./GardenSound";
 import styles from "./Cinema.module.css";
 
 export default function CinematicDirector() {
   const [quiet, setQuiet] = useState(false);
+  const entrancePlayed = useRef(false);
   const [systemQuiet, setSystemQuiet] = useState(false);
   useEffect(() => {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -48,6 +48,7 @@ export default function CinematicDirector() {
         id: el.id,
         top: el.getBoundingClientRect().top + scrollY,
       }));
+      previousProgress = -1;
       wake();
     };
     const update = () => {
@@ -134,18 +135,20 @@ export default function CinematicDirector() {
           const wheel = () => wake(1800);
           addEventListener("wheel", wheel, { passive: true });
           const context = gsap.context(() => {
-            gsap.from("[data-letter]", {
-              yPercent: 65,
-              rotateX: -15,
-              stagger: 0.035,
-              duration: 1.6,
-              ease: "power4.out",
-              clearProps: "transform",
-              delay: 0.1,
-            });
+            if (!entrancePlayed.current && scrollY < innerHeight * 0.7)
+              gsap.from("[data-letter]", {
+                yPercent: 18,
+                rotateX: 0,
+                stagger: 0.012,
+                duration: 0.8,
+                ease: "power4.out",
+                clearProps: "transform",
+                delay: 0.1,
+              });
+            entrancePlayed.current = true;
             gsap.to("[data-camera]", {
-              yPercent: desktop ? 16 : 6,
-              scale: 1.06,
+              yPercent: desktop ? 6 : 2,
+              scale: 1.025,
               ease: "none",
               scrollTrigger: {
                 trigger: "#top",
@@ -155,7 +158,7 @@ export default function CinematicDirector() {
               },
             });
             gsap.to("[data-hero-copy]", {
-              y: desktop ? 90 : 25,
+              y: desktop ? 30 : 0,
               ease: "none",
               scrollTrigger: {
                 trigger: "#top",
@@ -169,7 +172,7 @@ export default function CinematicDirector() {
               .forEach((el) => {
                 gsap.fromTo(
                   el.querySelector("[data-artifact]"),
-                  { rotateY: desktop ? -7 : 0, scale: 0.94 },
+                  { rotateY: desktop ? -2 : 0, scale: 0.98 },
                   {
                     rotateY: 0,
                     scale: 1,
@@ -184,9 +187,9 @@ export default function CinematicDirector() {
                 );
                 gsap.fromTo(
                   el.querySelector("[data-district]"),
-                  { xPercent: 10 },
+                  { xPercent: 2 },
                   {
-                    xPercent: -5,
+                    xPercent: -2,
                     ease: "none",
                     scrollTrigger: {
                       trigger: el,
@@ -228,7 +231,6 @@ export default function CinematicDirector() {
   }, [quiet, systemQuiet]);
   return (
     <>
-      <Cursor />
       <div className={styles.journey}>
         <GardenSound />
         <span className={styles.signal} aria-hidden="true" />

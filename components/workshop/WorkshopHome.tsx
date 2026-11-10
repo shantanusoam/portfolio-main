@@ -7,7 +7,10 @@ import CinematicDirector from "./cinema/CinematicDirector";
 import ShaderImage from "./cinema/ShaderImage";
 import Toolkit from "./cinema/Toolkit";
 import cinema from "./cinema/Cinema.module.css";
+import GardenSecret from "./GardenSecret";
 import SketchLoader from "./SketchLoader";
+import MotionGarden from "./playground/MotionGarden";
+import GardenArcade from "./garden-game/GardenArcade";
 import styles from "./Workshop.module.css";
 
 const nav = [
@@ -67,7 +70,6 @@ function Mark() {
 export default function WorkshopHome() {
   return (
     <div className={`${styles.workshop} ${cinema.world} workshop-home`}>
-      <CinematicDirector />
       <a href="#main-content" className={styles.skip}>
         Skip to content
       </a>
@@ -79,9 +81,9 @@ export default function WorkshopHome() {
           </span>
         </a>
         <nav aria-label="Primary navigation">
-          {nav.map(([id, label], index) => (
+          {nav.map(([id, label]) => (
             <a href={`#${id}`} key={id}>
-              <small>0{index + 1}</small> {label}
+              {label}
             </a>
           ))}
         </nav>
@@ -91,7 +93,7 @@ export default function WorkshopHome() {
           target="_blank"
           rel="noreferrer"
         >
-          CV ↗
+          CV →
         </a>
       </header>
       <main id="main-content">
@@ -113,8 +115,8 @@ export default function WorkshopHome() {
             </div>
             <div className={cinema.atmosphere} aria-hidden="true" />
             <div className={cinema.sceneTop}>
-              <span>A place for useful things</span>
-              <span>Chapter 00 / Arrive</span>
+              <span>A little precision. A lot of curiosity.</span>
+              <span>Welcome in.</span>
             </div>
             <div className={cinema.heroContent} data-hero-copy>
               <p className={styles.micro}>
@@ -140,13 +142,13 @@ export default function WorkshopHome() {
                   experiments. A little precision. A lot of curiosity.
                 </p>
                 <a href="#work" className={cinema.enter} data-magnetic>
-                  Wander through the work <span>↘</span>
+                  Explore the work <span>↓</span>
                 </a>
               </div>
             </div>
             <div className={cinema.sceneFooter}>
-              <span>Software / Systems / Small discoveries</span>
-              <span>Scroll to explore ↓</span>
+              <span>Built with care. Open to possibility.</span>
+              <a href="#lab">There’s a playful side, too →</a>
             </div>
           </div>
           <div
@@ -185,9 +187,10 @@ export default function WorkshopHome() {
             </figure>
           </div>
           <p className={styles.artCredit}>
-            An imagined landscape, made for this portfolio.
+            An imagined landscape. A real place to explore the work.
           </p>
         </section>
+        <CinematicDirector />
         <div className={styles.edition}>
           <span>From complicated things to a little more clarity.</span>
           <span>Software / Systems / Small discoveries</span>
@@ -225,7 +228,7 @@ export default function WorkshopHome() {
               </span>
               <div className={styles.projectCopy}>
                 <p className={styles.micro}>
-                  Chapter 0{index + 1} / {project.category}
+                  0{index + 1} / {project.category}
                 </p>
                 <h3>
                   <Link href={project.href}>
@@ -252,7 +255,7 @@ export default function WorkshopHome() {
                   </p>
                 </details>
                 <Link href={project.href} className={styles.textLink}>
-                  Read the case study <span>↗</span>
+                  Read the case study <span>→</span>
                 </Link>
               </div>
               <figure
@@ -293,47 +296,64 @@ export default function WorkshopHome() {
           <div className={styles.labCopy}>
             <p className={styles.micro}>02 / The curious part</p>
             <h2 id="lab-title">
-              A small idea.
+              Serious about work.
               <br />
-              <em>Try something.</em>
+              <em>Playful by nature.</em>
             </h2>
             <p>
               Move a task. Watch its relationships change. Then undo it. A small
               working sketch of the state modelling behind nested interfaces.
             </p>
             <Link className={styles.textLink} href="/systems/dynamic-tree">
-              Inside the dynamic tree ↗
+              Inside the dynamic tree →
             </Link>
           </div>
           <SketchLoader />
-          <div className={cinema.refraction}>
-            <div>
-              <p className={styles.micro}>
-                A moment to yourself / Touch the light
-              </p>
-              <h3>
-                A different
-                <br />
-                <em>point of view.</em>
-              </h3>
+          <div className={cinema.playCorner}>
+            <div className={cinema.playHeading}>
+              <p className={styles.micro}>A small clearing for curiosity</p>
               <p>
-                Move gently through the meadow. Watch the light respond, then
-                settle. A little experiment in finding calm.
+                Take a detour. Follow a little movement.
+                <br />
+                Everything here begins when you do.
               </p>
             </div>
-            <ShaderImage
-              src="/workshop/meadow.webp"
-              alt="Sunlit meadow that responds gently to touch"
-            />
+            <MotionGarden />
+            <GardenArcade />
           </div>
+          <details className={cinema.quietStudy}>
+            <summary>
+              Look a little closer <span>A study in light →</span>
+            </summary>
+            <div className={cinema.refraction}>
+              <div>
+                <p className={styles.micro}>
+                  Light, texture & a gentle response
+                </p>
+                <h3>
+                  A different
+                  <br />
+                  <em>point of view.</em>
+                </h3>
+                <p>
+                  Move gently through the meadow. Watch the light respond, then
+                  settle. A little experiment in finding calm.
+                </p>
+              </div>
+              <ShaderImage
+                src="/workshop/meadow.webp"
+                alt="Sunlit meadow that responds gently to touch"
+              />
+            </div>
+          </details>
           <div className={styles.labLinks}>
-            <Link href="/systems">All experiments ↗</Link>
+            <Link href="/systems">All experiments →</Link>
             <Link href="/learning/string-instrument">
-              The string instrument ↗
+              The string instrument →
             </Link>
-            <Link href="/octopod-lab">Procedural creatures ↗</Link>
+            <Link href="/octopod-lab">Procedural creatures →</Link>
             <Link href="/arcade/space-impact/pocket">
-              A little arcade break ↗
+              A little arcade break →
             </Link>
           </div>
         </section>
@@ -352,7 +372,7 @@ export default function WorkshopHome() {
               <em>out loud.</em>
             </h2>
             <Link className={styles.textLink} href="/blog">
-              The full notebook ↗
+              The full notebook →
             </Link>
           </div>
           <div className={styles.noteList}>
@@ -371,7 +391,7 @@ export default function WorkshopHome() {
                   <p>{article.dek}</p>
                 </div>
                 <span className={styles.noteArrow} aria-hidden="true">
-                  ↗
+                  →
                 </span>
               </Link>
             ))}
@@ -431,7 +451,7 @@ export default function WorkshopHome() {
                 target="_blank"
                 rel="noreferrer"
               >
-                Experience & CV ↗
+                Experience & CV →
               </a>
             </div>
             <dl>
@@ -468,7 +488,7 @@ export default function WorkshopHome() {
             className={styles.contactLink}
             href="mailto:shantanu.singh.soam@gmail.com"
           >
-            Let’s make it happen. <span aria-hidden="true">↗</span>
+            Let’s make it happen. <span aria-hidden="true">→</span>
           </a>
           <a
             className={styles.email}
@@ -480,11 +500,11 @@ export default function WorkshopHome() {
       </main>
       <footer className={styles.footer}>
         <a href="#top">Shantanu Soam ↑</a>
-        <span>Made with care. Always in progress.</span>
+        <GardenSecret />
         <div>
-          <a href="https://github.com/shantanusoam">GitHub ↗</a>
-          <a href="https://www.linkedin.com/in/shantanu007/">LinkedIn ↗</a>
-          <Link href="/blog">Notebook ↗</Link>
+          <a href="https://github.com/shantanusoam">GitHub →</a>
+          <a href="https://www.linkedin.com/in/shantanu007/">LinkedIn →</a>
+          <Link href="/blog">Notebook →</Link>
         </div>
       </footer>
     </div>

@@ -27,7 +27,7 @@ function tick(time: number) {
   if (document.hidden) return;
   frame.time = time;
   listeners.forEach((listener) => listener(frame));
-  if (time < until) request = requestAnimationFrame(tick);
+  if (!request && time < until) request = requestAnimationFrame(tick);
 }
 export function subscribe(listener: (frame: Frame) => void) {
   listeners.add(listener);

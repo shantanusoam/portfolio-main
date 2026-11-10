@@ -4,13 +4,10 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { CommandPaletteProvider } from "@/components/command-palette/CommandPalette";
 import PageAtmosphere from "@/components/ui/PageAtmosphere";
-import PageScrollProgress from "@/components/ui/PageScrollProgress";
-import ProceduralMascotLoader from "@/components/mascot/ProceduralMascotLoader";
 import SoundroomNub from "@/components/soundroom/SoundroomNub";
-import SmoothScrollProvider from "./SmoothScrollProvider";
 import type { CommandEntry } from "@/lib/archive/command-index";
 
-/** The homepage owns its motion and audio; full-screen games own their input. */
+/** Interactive routes own their input, clock and audio; reading uses native scroll. */
 export default function PortfolioRuntime({
   children,
   entries,
@@ -19,15 +16,21 @@ export default function PortfolioRuntime({
   entries: CommandEntry[];
 }) {
   const pathname = usePathname();
-  if (pathname === "/" || pathname.startsWith("/arcade/")) return <>{children}</>;
+  const ownsInput =
+    pathname === "/" ||
+    /^\/(arcade|creature-lab|octopod-lab|motion-lab|ss-lab|gpu|gpu-smoke|testing|admin|oauth)(\/|$)/.test(
+      pathname,
+    ) ||
+    pathname === "/learning/string-instrument" ||
+    pathname === "/learning/procedural-animation";
+
+  if (ownsInput) return <>{children}</>;
+
   return (
     <CommandPaletteProvider entries={entries}>
       <PageAtmosphere />
-      <PageScrollProgress />
-      <ProceduralMascotLoader />
+      {children}
       <SoundroomNub />
-      <SmoothScrollProvider>{children}</SmoothScrollProvider>
     </CommandPaletteProvider>
   );
 }
-

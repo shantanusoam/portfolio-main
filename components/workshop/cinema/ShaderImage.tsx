@@ -88,7 +88,7 @@ export default function ShaderImage({
             wake();
           }}
         >
-          {grid ? "Hide mesh" : "Reveal mesh"} ↗
+          {grid ? "Hide mesh" : "Reveal mesh"} →
         </button>
       </figcaption>
     </figure>

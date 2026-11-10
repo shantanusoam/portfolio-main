@@ -61,8 +61,12 @@ function createGardenScore() {
   };
   const visibility = () => {
     if (closed) return;
-    if (document.hidden) void context.suspend();
-    else void context.resume().then(schedule);
+    if (document.hidden) void context.suspend().catch(() => {});
+    else
+      void context
+        .resume()
+        .then(schedule)
+        .catch(() => {});
   };
   document.addEventListener("visibilitychange", visibility);
   return {

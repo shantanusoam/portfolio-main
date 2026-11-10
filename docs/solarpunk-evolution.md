@@ -1,3 +1,5 @@
+> Latest iteration: [A quieter portfolio, with a playful side](./creative-play-overhaul.md) records the procedural motion/game overhaul and independent review.
+
 # Room to imagine — a place to come home to
 
 The latest user direction supersedes the brief coastal-city experiment: hopeful solarpunk, emerald landscapes, warm light, and calm emerging from complexity. The existing portfolio's real content remains the foundation.

@@ -37,7 +37,7 @@ export default function Toolkit() {
             onClick={() => setActive(i)}
           >
             {name}
-            <span>↗</span>
+            <span>→</span>
           </button>
         ))}
       </div>

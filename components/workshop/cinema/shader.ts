@@ -1,4 +1,4 @@
-import { frame, subscribe, wake } from "./motion";
+import { subscribe, wake } from "./motion";
 const vertex = `attribute vec2 position; varying vec2 uv; void main(){uv=position*.5+.5;gl_Position=vec4(position,0.,1.);}`;
 const fragment = `precision mediump float;
 varying vec2 uv; uniform sampler2D photo; uniform vec2 resolution; uniform vec2 imageSize; uniform vec2 pointer; uniform float energy; uniform float progress; uniform float mode;
@@ -167,6 +167,6 @@ export function mountShader(
     gl.deleteBuffer(buffer);
     gl.deleteProgram(program);
     shaders.forEach((s) => gl.deleteShader(s));
-    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    // Release GPU resources without deliberately losing this reusable canvas context.
   };
 }
