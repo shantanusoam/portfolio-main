@@ -6,6 +6,8 @@ The portfolio should feel like walking through Shantanu's living workshop: meado
 
 This document expands the earlier landscape prompt pack. It is a production direction, not a claim that these videos or inner-page changes already exist. Generate and review one representative scene before commissioning the whole set.
 
+> **Media status (generated):** the eight clips and five new plates in this document now exist, have been reviewed and are measured. Asset table, measured cues, rejected takes and reproduction steps: [One living world — generated media](./connected-world-media.md). The page-level work described at the end is still not implemented.
+
 ## What the current source shows
 
 Reviewed at branch commit `dfbbb84fb7bfd6749f5c6f5de7df2426d2bc21c6`:

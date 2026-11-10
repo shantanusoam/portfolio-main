@@ -1,0 +1,110 @@
+[
+ {
+  "take": "probe-omni-api",
+  "interaction": "v1_ChdkX2p5YW9YQUpiaVgwcjRQa3VLMXNBOBIXZF9qeWFvWEFKYmlYMHI0UGt1SzFzQTg",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v01-meadow",
+  "interaction": "v1_ChZjX255YXRkdm90N3IzZy1mNXVTZ0J3EhZjX255YXRkdm90N3IzZy1mNXVTZ0J3",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v02-shore-v2",
+  "interaction": "v1_ChdWdnZ5YXJyQUxlSDRnOFVQa2R5RmlRWRIXVnZ2eWFyckFMZUg0ZzhVUGtkeUZpUVk",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v02-shore-v3",
+  "interaction": "v1_Chdxdnp5YW9ycE9jMzU2OTRQa2JpdHNBYxIXcXZ6eWFvcnBPYzM1Njk0UGtiaXRzQWM",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v02-shore-v4",
+  "interaction": "v1_ChdidjN5YXFyM0twLUE2OTRQNzhTa3dRMBIXYnYzeWFxcjNLcC1BNjk0UDc4U2t3UTA",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v02-shore-v5",
+  "interaction": "v1_Chc3Zjd5YXJYME1LdTd6N3NQZ3JIc29BZxIXN2Y3eWFyWDBNS3U3ejdzUGdySHNvQWc",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v02-shore-v6-720",
+  "interaction": "v1_ChdZdl95YXJHQ0p1YW82OTRQajhHc3NBYxIXWXZfeWFyR0NKdWFvNjk0UGo4R3NzQWM",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v02-shore",
+  "interaction": "v1_ChdXdnJ5YW91dU9KenYzTFVQd0xTc3FBURIXV3ZyeWFvdXVPSnp2M0xVUHdMU3NxQVE",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v03-dusk-v2",
+  "interaction": "v1_ChdXUHZ5YXE3UkxZV2V6N3NQMExMRHdRcxIXV1B2eWFxN1JMWVdlejdzUDBMTER3UXM",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v03-dusk",
+  "interaction": "v1_ChdNX3J5YW9yaENmZmw2OTRQczZ1OHlBYxIXTV9yeWFvcmhDZmZsNjk0UHM2dTh5QWM",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v04-dew-bridge",
+  "interaction": "v1_ChdadnZ5YXA2VUc1NzA2OTRQLWRyWnlRVRIXWnZ2eWFwNlVHNTcwNjk0UC1kclp5UVU",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v05-greenhouse",
+  "interaction": "v1_ChdoZm55YXZDNUM2Nm02OTRQbU82RXdRYxIXaGZueWF2QzVDNjZtNjk0UG1PNkV3UWM",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v06-resonance",
+  "interaction": "v1_ChdSdnJ5YXBlUkE2akt6N3NQMVpyemlBbxIXUnZyeWFwZVJBNmpLejdzUDFacnppQW8",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v07-notebook-loop",
+  "interaction": "v1_ChdzUDN5YXVEMkg4YnA0dDRQLU51UzZRZxIXc1AzeWF1RDJIOGJwNHQ0UC1OdVM2UWc",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v07-notebook-v2",
+  "interaction": "v1_ChdwZnp5YW9qdEtmdUI2OTRQX3Z5dDRBcxIXcGZ6eWFvanRLZnVCNjk0UF92eXQ0QXM",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v07-notebook",
+  "interaction": "v1_ChdhZnZ5YXVhUUllYW82OTRQajhHc3NBYxIXYWZ2eWF1YVFJZWFvNjk0UGo4R3NzQWM",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v08-leaf-v2",
+  "interaction": "v1_Chdrdnp5YXBuM0ZaenYzTFVQd0xTc3FBURIXa3Z6eWFwbjNGWnp2M0xVUHdMU3NxQVE",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ },
+ {
+  "take": "v08-leaf",
+  "interaction": "v1_ChdWZnZ5YXJPNEk5V29tTk1QdXN6emtBdxIXVmZ2eWFyTzRJOVdvbU5NUHVzenprQXc",
+  "status": "completed",
+  "model": "gemini-omni-1.2-flash"
+ }
+]

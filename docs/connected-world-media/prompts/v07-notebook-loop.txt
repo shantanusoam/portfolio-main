@@ -1,0 +1,9 @@
+Locked static camera, tripod, absolutely no camera movement, no zoom, no drift. Single continuous shot, no scene cuts. Use this image as both the starting frame and the final frame of an eight second ambient loop so the opening and closing image match perfectly.
+
+The scene is an open unprinted notebook lying perfectly flat on a worn timber desk, a small green plant softly out of focus at the left, a fine brass pencil at the right, a pale ceramic jar and soft books behind, morning sunlight from the upper right. Keep the geometry, the exact framing, the palette and the exposure unchanged.
+
+The book is completely still. No page lifts, turns, curls, flutters, stands up or flips at any moment. The paper stays flat and heavy on the desk for the whole eight seconds.
+
+Only light and the smallest leaves move. Seconds 0 to 1: near stillness. Seconds 1 to 3: the grazing patch of sunlight on the desk and the blank paper edges forward very slightly, revealing a little more paper fibre. Seconds 3 to 5: the light patch reaches its widest and brightest point and the nearest leaves of the small plant sway a few millimetres. Seconds 5 to 7: the light recedes and the plant settles. Seconds 7 to 8: complete stillness matching the first frame. Dust floats faintly in the light. The moment is thoughtful, quiet and human: a page catching the morning.
+
+No page movement of any kind, no flying sheets, no ink, no writing appears, no new objects, no people, no text, no interface, no motion blur, no camera shake, no exposure pumping, no colour shift, no visible loop seam. Silent.

@@ -1,0 +1,7 @@
+Locked static camera, tripod, absolutely no camera movement, no zoom, no drift. Use this image as both the starting frame and the final frame of a single continuous eight second shot, with no scene cuts, so the opening and closing image match perfectly.
+
+The scene is a small optimistic maker's greenhouse interior built from pale timber, clear glass and aged brass, filled with fine green plants and a few carefully kept physical prototypes on the edge shelves. The centre of the frame is a clean, empty pale wooden workbench. Warm honey sunlight falls through the glass roof from the upper right. Keep the architecture, the exact framing, every plant, every object, the palette and the exposure unchanged.
+
+Only three things move, all subtly. A shared gentle breeze moves a few nearby leaves at the left and right edges of the frame. A soft patch of reflected sunlight travels slowly across the empty central workbench and settles back exactly where it began. Faint dust drifts in the light shaft. Everything else is completely still: tools, jars, pots, shelves, structure. Seconds 0 to 1 stillness, seconds 1 to 3 the breeze gathers, seconds 3 to 5 the reflected light crests, seconds 5 to 7 the movement settles, final second returns exactly to the opening state.
+
+Quiet natural environmental motion only. No floating screens, no diagrams, no interface, no text, no people, no animals, no moving machinery, no camera movement, no exposure pumping, no flashing highlights, no morphing geometry, no visible loop seam. Silent.

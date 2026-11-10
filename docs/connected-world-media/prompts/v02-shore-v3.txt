@@ -1,0 +1,9 @@
+Locked static camera, tripod, absolutely no camera movement, no zoom, no drift. Single continuous shot, no scene cuts. Use this image as both the starting frame and the final frame of an eight second ambient loop so the opening and closing image match perfectly.
+
+The scene is an elevated view looking diagonally down on a smooth emerald grassy bank curving around calm turquoise water, with a small white horse grazing at centre-right. Keep the horse's anatomy, pose, position, planted feet, mane, tail and shadow exactly as photographed: no leg changes, no head lift, no walking, no morphing. Keep the bank geometry, the shoreline curve, the framing, the palette and the exposure completely unchanged.
+
+The water stays calm turquoise. No expanding ring, no concentric circles, no droplet impact, no stone, no splash, no fountain, no white foam, no surf, no whitewater, no long-exposure milk. The shoreline keeps exactly the colour and shape it has in the photograph.
+
+Only fine, soft surface texture moves. Seconds 0 to 1: near stillness. Seconds 1 to 3: the faintest lateral shimmer passes across the near water. Seconds 3 to 5: the existing sparkles of sunlight on the surface shimmer gently together, in a broad soft band, not a circle. Seconds 5 to 7: the shimmer fades and the surface quiets. Seconds 7 to 8: complete stillness matching the first frame. The closest foreground grass follows a barely perceptible shared breeze; distant grass stays still.
+
+No new objects, no boats, no birds appearing, no people, no text, no camera movement, no exposure change, no colour shift, no melting anatomy, no visible loop seam. Silent.

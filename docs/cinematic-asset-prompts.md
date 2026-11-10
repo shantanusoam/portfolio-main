@@ -28,7 +28,9 @@ An elevated view looking diagonally down on a smooth emerald grassy bank and cur
 
 A tranquil lake at sunset, a small warm sun near center-right, smooth peach and rose sky fading into lilac, finely rippled lavender-blue water with pale pink-gold reflection. A small emerald grassy corner connects it to the other scenes. Delicate haze and optical bloom; spacious calm bands of colour. No dramatic mountains or clouds. Keep sun, horizon and reflection near the middle third. No people, boats, buildings, text, panels or UI.
 
-## Image-to-video prompts — not generated yet
+## Image-to-video prompts — generated
+
+All three landscape loops, plus the five new rooms and bridges, are generated and measured. See [One living world — generated media](./connected-world-media.md) for the shipped files, cues and review notes. The prompts below remain the written brief the accepted takes were judged against.
 
 Use each corresponding approved still as the first frame. Generate separate shots, then edit the sequence; do not ask the generator to create the website UI or edit between shots.
 

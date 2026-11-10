@@ -1,0 +1,7 @@
+Locked static camera, tripod, absolutely no camera movement, no zoom, no drift. Single continuous shot, no scene cuts. Use this image as both the starting frame and the final frame of an eight second ambient loop so the opening and closing image match perfectly.
+
+The scene is a living sun-warmed emerald meadow seen from slightly above, with soft folds of land, diagonal afternoon sunlight from the upper right and a tiny distant flock of white birds. Keep every hill contour, the exact framing, the flock's position and count, the palette and the exposure completely unchanged.
+
+Only the fine grass moves. Seconds 0 to 1: near stillness. Seconds 1 to 3: a faint breeze gathers through the closest foreground grass on the lower edge. Seconds 3 to 5: one broad, soft wave of movement passes through the foreground grass and settles. Seconds 5 to 7: the grass becomes almost still again. Seconds 7 to 8: complete stillness matching the first frame. Distant grass barely moves; the foreground moves most. Dew highlights respond subtly to the bending grass as continuous tiny glints, never independent flickering particles. The birds stay fixed in position and shape.
+
+Quiet, natural, continuous environmental motion only. No new objects, no people, no animals appearing, no text, no camera shake, no exposure change, no light flicker, no colour shift, no melting or morphing geometry, no texture crawl, no visible loop seam. Silent.
