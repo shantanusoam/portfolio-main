@@ -1,5 +1,7 @@
 # Cinematic landscape — image and video prompts
 
+> Next phase: [One living world](./connected-world-motion-and-video-prompts.md) adds eight connected video prompts, synchronization rules, expressive transitions and an overhaul map for the existing inner pages.
+
 > Expanded video direction: [The world exhales](./solarpunk-video-direction.md) — copy-ready prompts, shot sequence, website placement and delivery checks.
 
 ## Created assets
