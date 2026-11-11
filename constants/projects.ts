@@ -304,6 +304,94 @@ export const projects: MissionType[] = [
     ],
   },
 
+  {
+    id: 'voicebox-ai',
+    title: 'VoiceBox / CallBox',
+    metadata: ['AI Voice', 'Orchestration', 'Telephony Lab'],
+    cover_image: null,
+    screenshots: [],
+    description:
+      'A local-first realtime AI voice platform that separates speech intelligence from deterministic business tools, with persistent receptionist workflows, authenticated audio transport, SIP experiments, and a hardware/device path.',
+    url: '/projects/voicebox-ai',
+    features: [
+      'Full-duplex OpenAI Realtime voice path with streamed microphone audio, returned speech, turn-taking, and barge-in.',
+      'Risk-tiered orchestration layer with validated tool arguments, serialized writes, phase routing, and audit trails.',
+      'Transactional booking flow with explicit hold, read-back, confirmation, and availability recheck before commit.',
+      'Authenticated WebSocket audio gateway with fixed PCM framing, bounded buffers, interruption epochs, disconnect handling, and device revocation.',
+      'Local Asterisk SIP lab that feeds the same realtime engine and tool contracts through a softphone call path.',
+      'Portable C audio-ring component and device simulator for the hardware track; physical Bluetooth HFP remains a separate validation milestone.',
+    ],
+    skills: {
+      Backend: ['Python', 'FastAPI', 'SQLite', 'WebSocket'],
+      AI: ['OpenAI Realtime', 'Tool Calling', 'Speech', 'Agent Orchestration'],
+      Telephony: ['SIP', 'Asterisk', 'PCM Audio'],
+      Hardware: ['C', 'Edge Device Simulation', 'Audio Buffers'],
+    },
+    liveLink: 'https://github.com/shantanusoam/voicebox-ai',
+    codeLink: 'https://github.com/shantanusoam/voicebox-ai',
+    class: 'AI Voice Systems Engineer',
+    specialMoves: [
+      'Realtime voice separated from transactional source-of-truth tools',
+      'One orchestration contract reused across browser, WebSocket, and SIP paths',
+      'Explicit proof boundary between software lab, carrier telephony, and physical hardware',
+    ],
+    impact: [
+      'Built a runnable local-first operator console with persistent sessions, bookings, staff queue, device identities, and audit-friendly workflows',
+      'Reduced first audio in the implemented Realtime path to roughly 0.9s in the project test setup versus the earlier turn-based path',
+      'Created a testable path from simulated device audio through orchestration toward SIP and future Bluetooth hardware validation',
+    ],
+    caseStudy: {
+      headline: 'Building a Voice Agent as a System, Not a Prompt',
+      context:
+        'A receptionist agent is useful only when speech, tools, data, interruption, tenant rules, and transport agree. The project treats the model as one component inside a larger operational system rather than allowing conversational output to become application truth.',
+      ownership:
+        'Self-directed systems project. I designed the product model, orchestration boundaries, persistent workflows, realtime audio path, SIP lab, device simulator, verification gates, and the staged hardware roadmap.',
+      constraints: [
+        'Bookings and business writes must be deterministic even when speech and reasoning are probabilistic.',
+        'Realtime voice needs barge-in, bounded buffering, disconnect recovery, and explicit session ownership.',
+        'Local SIP and software loopback can prove transport architecture but cannot be presented as carrier/PSTN or physical-phone validation.',
+      ],
+      failedApproach:
+        'The early turn-based speech path was useful for proving workflow logic but produced an unnatural conversation loop. The improved architecture keeps the same deterministic tools while replacing the speech surface with a full-duplex realtime session.',
+      engineeringDecisions: [
+        'Kept business data behind validated tools so the model cannot invent availability or claim a booking that was never committed.',
+        'Reused the same workflow guarantees across typed console, realtime browser voice, authenticated device WebSockets, and the SIP bridge.',
+        'Made interruption an explicit transport concept so stale queued audio can be discarded instead of playing after the user has changed direction.',
+        'Documented unproven phone, carrier, and Bluetooth assumptions as roadmap items rather than hiding them behind a demo.',
+      ],
+      architecture: {
+        title: 'Voice orchestration lane',
+        description:
+          'Speech enters a realtime session, model intent is constrained by tool policy, side effects pass through application workflows, and multiple transports converge on the same source of truth.',
+        nodes: [
+          'Browser / device / SIP audio',
+          'Realtime voice session',
+          'Tool policy + validation',
+          'Workflow + SQLite truth',
+          'Audit trail',
+          'Response audio',
+        ],
+      },
+      outcome: [
+        'Runnable local operator console with persistent receptionist workflows and session history.',
+        'Full-duplex realtime voice path with barge-in and tool-backed booking guarantees.',
+        'Local SIP softphone lab plus tested C audio-ring component and device simulation.',
+      ],
+      measurement: [
+        'The repository reports roughly 0.9s first-audio in its implemented Realtime test path versus roughly 7.5s for the earlier turn-based path; this is project test evidence, not a carrier latency claim.',
+        'Transport tests exercise real WebSocket framing and interruption locally; telephone/PSTN service is explicitly not claimed.',
+        'Verification spans unit, contract, transport, firmware-host, hardened-mode, eval, and optional browser gates.',
+      ],
+      tradeoffs: [
+        'Keeping side effects outside the model adds orchestration code, but makes business actions inspectable and testable.',
+        'SQLite is ideal for a local-first laboratory but is not presented as a distributed production data layer.',
+        'SIP narrowband audio can validate the call bridge while still losing fidelity that cannot be restored by upsampling.',
+      ],
+      reflection:
+        'The next useful proof is not another UI feature: it is a consented two-way Bluetooth HFP audio loop on one identified phone, board, and pinned SDK without AI in the middle.',
+    },
+  },
+
   // Real case study — no public screenshot exists (confidential enterprise
   // healthcare system), so cover_image stays null and renders the
   // "no public screenshot" fallback rather than a placeholder state.

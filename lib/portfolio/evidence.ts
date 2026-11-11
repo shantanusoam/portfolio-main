@@ -67,9 +67,9 @@ export type SystemRegistryEntry = {
 };
 
 export const currentPosition: CurrentPosition = {
-  body: "I'm currently a Staff Engineer at Knowbuild, modernizing multi-tenant business software across frontend architecture, permissions, performance, and deployment systems. Outside product work, I build interaction engines, agent runtimes, and hardware experiments that make invisible rules tangible.",
+  body: "I'm a Staff Engineer at Knowbuild, modernizing multi-tenant business software across architecture, permissions, performance, and deployment. Alongside that work I'm building VoiceBox / CallBox: a realtime AI voice platform where speech, tool orchestration, transactional workflows, WebSockets, SIP experiments, and a hardware path meet.",
   support:
-    "Based in India. Available for senior product-engineering, frontend-systems, and selected design-engineering collaborations.",
+    "Based in India. Focused on senior/staff product engineering, technical leadership, full-stack architecture, AI voice systems, and selected design-engineering work.",
 };
 
 export const proofMetrics: ProofMetric[] = [
@@ -108,6 +108,67 @@ export const proofMetrics: ProofMetric[] = [
 ];
 
 export const flagshipCaseStudies: FlagshipCaseStudy[] = [
+  {
+    id: "voicebox-ai",
+    name: "VoiceBox / CallBox",
+    category: "AI Voice / Orchestration + Telephony Lab",
+    summary:
+      "Building a Voice Agent as a System, Not a Prompt.",
+    problem:
+      "A useful voice receptionist has to coordinate realtime speech, business rules, bookings, tool execution, interruptions, tenant context, auditability, and eventually a real phone/hardware path.",
+    constraints: [
+      "Tool writes must remain deterministic and auditable",
+      "Realtime audio needs interruption and bounded buffering",
+      "Phone and hardware paths must be proven separately from the AI demo",
+    ],
+    decisions: [
+      "Separated the voice model from transactional tools and database truth",
+      "Built an authenticated WebSocket audio gateway with interruption epochs and device revocation",
+      "Added a local Asterisk SIP lab that reuses the same realtime engine and tool guarantees",
+    ],
+    results: [
+      "Runnable local-first operator console and persistent receptionist workflows",
+      "Full-duplex OpenAI Realtime path with barge-in plus explicit booking confirmation",
+      "SIP softphone lab and tested portable C audio-ring component for the hardware track",
+    ],
+    image: "/proof-assets/notes/hardware.webp",
+    systemImage: "/proof-assets/evidence/build-trace.webp",
+    systemLayers: [
+      "Realtime speech session",
+      "Risk-tiered tool policy",
+      "Transactional workflow layer",
+      "WebSocket / SIP transport",
+      "Device + hardware experiment path",
+    ],
+    trace: [
+      {
+        label: "Boundary",
+        title: "Model is not the database",
+        detail: "Speech and reasoning can be probabilistic; bookings and business state cannot.",
+      },
+      {
+        label: "Decision",
+        title: "Tools own side effects",
+        detail: "Availability, holds, confirmation, cancellation, and staff escalation pass through validated application tools.",
+      },
+      {
+        label: "Transport",
+        title: "One engine, multiple channels",
+        detail: "Browser realtime voice, authenticated WebSocket device traffic, and the SIP lab converge on the same workflow contracts.",
+      },
+      {
+        label: "Proof",
+        title: "Separate what is simulated",
+        detail: "The repository explicitly distinguishes local software proof from carrier/PSTN and physical-phone hardware work that still needs validation.",
+      },
+      {
+        label: "Next",
+        title: "Prove the hardware loop",
+        detail: "The next milestone is a consented two-way Bluetooth HFP audio loop on one pinned phone/board/SDK combination.",
+      },
+    ],
+    href: "/projects/voicebox-ai",
+  },
   {
     id: "knowbuild",
     name: "Knowbuild",

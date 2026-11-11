@@ -14,9 +14,9 @@ const publicOrigin = getPublicOrigin();
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicOrigin),
-  title: "Shantanu Soam — Creative Systems Engineer",
+  title: "Shantanu Soam — Staff Engineer | Full-Stack Systems & AI Voice",
   description:
-    "A creative systems engineer building fast software, playful interfaces, AI tools, and hardware experiments.",
+    "Staff engineer building multi-tenant software, high-performance frontends, AI voice orchestration, and hardware-connected systems.",
   alternates: { canonical: "/" },
   authors: [{ name: "Shantanu Soam", url: publicOrigin }],
   creator: "Shantanu Soam",
@@ -25,23 +25,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Shantanu Soam's Portfolio",
-    title: "Shantanu Soam — Creative Systems Engineer",
+    title: "Shantanu Soam — Staff Engineer | Full-Stack Systems & AI Voice",
     description:
-      "A creative systems engineer building fast software, playful interfaces, AI tools, and hardware experiments.",
+      "Staff engineer building multi-tenant software, high-performance frontends, AI voice orchestration, and hardware-connected systems.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Shantanu Soam — Creative Systems Engineer",
+        alt: "Shantanu Soam — Staff Engineer | Full-Stack Systems & AI Voice",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Shantanu Soam — Creative Systems Engineer",
+    title: "Shantanu Soam — Staff Engineer | Full-Stack Systems & AI Voice",
     description:
-      "Product engineering, interactive systems, and a playable lab of original experiments.",
+      "Full-stack architecture, AI voice systems, performance engineering, and interactive product experiments.",
     images: ["/opengraph-image"],
   },
   keywords: [
@@ -54,6 +54,11 @@ export const metadata: Metadata = {
     "nextjs",
     "developer",
     "backend",
+    "staff engineer",
+    "system design",
+    "AI voice",
+    "realtime audio",
+    "orchestration",
   ],
 };
 

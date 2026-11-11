@@ -70,6 +70,7 @@ export default function CredibilityPanel() {
           <h3>Code, package, and build history.</h3>
           <ul className={styles.credibilityList}>
             <li>dnd-dynamic-tree is publicly installable through npm.</li>
+            <li>VoiceBox / CallBox publishes its orchestration, realtime audio, SIP lab, simulator, tests, and explicit unproven hardware boundaries.</li>
             <li>
               The portfolio and its interactive systems are visible on GitHub.
             </li>

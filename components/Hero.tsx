@@ -22,15 +22,15 @@ interface HeroProps {
 const START_MENU = [
   { label: "Living Index", href: "#living-index" },
   { label: "View Case Studies", href: "#mission-select" },
-  { label: "Signal Room", href: "#signal-room" },
+  { label: "Voice Systems", href: "#voice-systems" },
   { label: "Enter Lab", href: "#maker-lab" },
 ];
 
 const ROLE_LINES = [
-  "Creative Systems Engineer",
-  "Trail Hiker",
-  "Maker",
-  "Frontend Wizard",
+  "Staff Engineer",
+  "Full-Stack Systems",
+  "AI Voice + Orchestration",
+  "Creative Systems",
 ];
 
 // TextCarousel's crossfade deliberately overlaps two items briefly — fine
@@ -209,8 +209,9 @@ export default function Hero({ masked }: HeroProps) {
               variants={contentVariants}
               className="max-w-2xl text-[clamp(0.75rem,1.2vw,0.95rem)] leading-relaxed text-graytransparent"
             >
-              Building fast systems with a maker&apos;s curiosity and a game
-              designer&apos;s eye.
+              I design multi-tenant product platforms, performance-critical
+              frontends, and AI voice systems that connect models to real tools,
+              data, and hardware.
             </motion.p>
 
             <motion.nav

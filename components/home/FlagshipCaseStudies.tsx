@@ -104,7 +104,7 @@ export default function FlagshipCaseStudies() {
       <header className={styles.sectionHeading}>
         <p className={styles.eyebrow}>01 / Flagship systems</p>
         <div>
-          <h2>Three projects. Decisions included.</h2>
+          <h2>Four systems. Decisions included.</h2>
           <p>
             The finished surface is only half the story. Switch on System X-Ray
             to see the boundaries behind each result, then follow the build
